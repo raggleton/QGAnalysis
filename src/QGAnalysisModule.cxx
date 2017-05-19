@@ -6,7 +6,10 @@
 #include "UHH2/common/include/CommonModules.h"
 #include "UHH2/common/include/CleaningModules.h"
 #include "UHH2/common/include/NSelections.h"
+#include "UHH2/common/include/MuonIds.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisSelections.h"
+#include "UHH2/common/include/MuonHists.h"
+#include "UHH2/common/include/JetHists.h"
 
 using namespace std;
 using namespace uhh2;
@@ -32,7 +35,7 @@ private:
     // to avoid memory leaks.
     std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel;
 
-
+    std::unique_ptr<Hists> zplusjets_muon_hists, zplusjets_jet_hists, dijet_jet_hists;
 };
 
 
@@ -42,54 +45,55 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     // CommonModules or some cleaner module, Selections and Hists.
     // But you can do more and e.g. access the configuration, as shown below.
 
-    cout << "Running preselection module" << endl;
-
-    // If running in SFrame, the keys "dataset_version", "dataset_type", "dataset_lumi",
-    // and "target_lumi" are set to the according values in the xml file. For CMSSW, these are
-    // not set automatically, but can be set in the python config file.
-    for(auto & kv : ctx.get_all()){
-        cout << " " << kv.first << " = " << kv.second << endl;
-    }
+    cout << "Running analysis module" << endl;
 
     common.reset(new CommonModules());
     common->disable_mcpileupreweight();
     common->disable_mclumiweight();
     common->disable_jec();
     common->disable_jersmear();
-
-    JetPFID loose_jet(JetPFID::wp::WP_LOOSE);
-    common->set_jet_id(loose_jet);
-
+    common->change_pf_id(JetPFID::wp::WP_LOOSE);
+    // slightly tighter Jet selection on top
+    common->set_jet_id(PtEtaCut(30.0, 2.4));
+    common->set_muon_id(MuonIDMedium_ICHEP());
+    common->switch_jetlepcleaner(true);
     common->init(ctx);
 
-    // slightly tighter Jet selection
-    jetcleaner.reset(new JetCleaner(ctx, 30.0, 2.4));
-
-    njet_sel.reset(new NJetSelection(1)); // see common/include/NSelections.h
+    // Selections
+    njet_sel.reset(new NJetSelection(1));
     zplusjets_sel.reset(new ZplusJetsSelection());
     dijet_sel.reset(new DijetSelection());
+
+    // Hists
+    zplusjets_muon_hists.reset(new MuonHists(ctx, "ZPlusJets_Muon"));
+    zplusjets_jet_hists.reset(new JetHists(ctx, "ZPlusJets_Jet"));
+
+    dijet_jet_hists.reset(new JetHists(ctx, "Dijet_Jet"));
 }
 
 
 bool QGAnalysisModule::process(Event & event) {
-    // This is the main procedure, called for each event. Typically,
-    // do some pre-processing by calling the modules' process method
-    // of the modules constructed in the constructor (1).
-    // Then, test whether the event passes some selection and -- if yes --
-    // use it to fill the histograms (2).
-    // Finally, decide whether or not to keep the event in the output (3);
-    // this is controlled by the return value of this method: If it
-    // returns true, the event is kept; if it returns false, the event
-    // is thrown away.
+    // This is the main procedure, called for each event.
+    if (!common->process(event)) return false;
 
-    // cout << "QGAnalysisModule: (runid, eventid) = (" << event.run << ", " << event.event << "); weight = " << event.weight << endl;
+    if (!njet_sel->passes(event)) return false;
 
-    common->process(event);
-    jetcleaner->process(event);
+    bool zpj = zplusjets_sel->passes(event);
+    if (zpj) {
+        zplusjets_muon_hists->fill(event);
+        zplusjets_jet_hists->fill(event);
+    }
 
-    bool njet_selection = njet_sel->passes(event);
+    bool dj = dijet_sel->passes(event);
+    if (dj) {
+        dijet_jet_hists->fill(event);
+    }
 
-    return njet_selection;
+    if (zpj && dj) {
+        cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet criteria" << endl;
+    }
+
+    return zpj || dj;
 }
 
 // as we want to run the ExampleCycleNew directly with AnalysisModuleRunner,
