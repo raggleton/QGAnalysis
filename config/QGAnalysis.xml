@@ -13,11 +13,11 @@
     <!ENTITY MC_DYJetsToLL_M-50_HT600to800 "&IDIR;/Ntuple_MC_DYJetsToLL_M-50_HT600to800.root">
 
     <!-- QCD MC -->
-    <!ENTITY MC_QCD_HT100to200 "&IDIR;Ntuple_MC_QCD_HT100to200.root">
-    <!ENTITY MC_QCD_HT200to300 "&IDIR;Ntuple_MC_QCD_HT200to300.root">
-    <!ENTITY MC_QCD_HT300to500 "&IDIR;Ntuple_MC_QCD_HT300to500.root">
-    <!ENTITY MC_QCD_HT500to700 "&IDIR;Ntuple_MC_QCD_HT500to700.root">
-    <!ENTITY MC_QCD_HT700to1000 "&IDIR;Ntuple_MC_QCD_HT700to1000.root">
+    <!ENTITY MC_QCD_HT100to200 "&IDIR;/Ntuple_MC_QCD_HT100to200.root">
+    <!ENTITY MC_QCD_HT200to300 "&IDIR;/Ntuple_MC_QCD_HT200to300.root">
+    <!ENTITY MC_QCD_HT300to500 "&IDIR;/Ntuple_MC_QCD_HT300to500.root">
+    <!ENTITY MC_QCD_HT500to700 "&IDIR;/Ntuple_MC_QCD_HT500to700.root">
+    <!ENTITY MC_QCD_HT700to1000 "&IDIR;/Ntuple_MC_QCD_HT700to1000.root">
 ]>
 
 <!-- OutputLevel controls which messages are printed; set to VERBOSE or DEBUG for more verbosity, to WARNING or ERROR for less -->
