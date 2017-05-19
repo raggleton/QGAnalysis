@@ -91,8 +91,9 @@
                  event weight assigned by MCLumiWeight is InputData.Lumi / Cycle.TargetLumi. -->
             <Item Name="use_sframe_weight" Value="false" />
 
-            <!-- configuration for MCPileupReweight (run as part of CommonModules): -->
-            <!-- <Item Name="pileup_directory" Value="" /> -->
+            <Item Name="JetCone" Value="AK4" />
+            <Item Name="PURemoval" Value="CHS" />
+
         </UserConfig>
     </Cycle>
 </JobConfiguration>
