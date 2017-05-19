@@ -7,8 +7,19 @@ using namespace uhh2examples;
 using namespace uhh2;
 
 
+ZplusJetsSelection::ZplusJetsSelection() {}
+
+bool ZplusJetsSelection::passes(const Event & event){
+    if (event.muons->size() < 2) return true;
+    const auto & muon0 = event.muons->at(0);
+    const auto & muon1 = event.muons->at(1);
+    // float m_mumu = muon0.p4().DeltaR(muon1.p4());
+
+    return true;
+}
+
 DijetSelection::DijetSelection(float dphi_min_, float third_frac_max_): dphi_min(dphi_min_), third_frac_max(third_frac_max_){}
-    
+
 bool DijetSelection::passes(const Event & event){
     assert(event.jets); // if this fails, it probably means jets are not read in
     if(event.jets->size() < 2) return false;
@@ -21,5 +32,6 @@ bool DijetSelection::passes(const Event & event){
     auto third_jet_frac = jet2.pt() / (0.5 * (jet0.pt() + jet1.pt()));
     return third_jet_frac < third_frac_max;
 }
+
 
 
