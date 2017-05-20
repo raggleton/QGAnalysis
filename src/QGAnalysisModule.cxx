@@ -9,6 +9,8 @@
 #include "UHH2/common/include/MuonIds.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisSelections.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisHists.h"
+#include "UHH2/QGAnalysis/include/QGAnalysisZPlusJetsHists.h"
+#include "UHH2/QGAnalysis/include/QGAnalysisDijetHists.h"
 #include "UHH2/common/include/MuonHists.h"
 #include "UHH2/common/include/JetHists.h"
 
@@ -39,8 +41,8 @@ private:
     // to avoid memory leaks.
     std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel;
 
-    std::unique_ptr<Hists> zplusjets_muon_hists, zplusjets_jet_hists, zplusjets_qg_hists;
-    std::unique_ptr<Hists> dijet_jet_hists;
+    std::unique_ptr<Hists> zplusjets_hists, zplusjets_qg_hists;
+    std::unique_ptr<Hists> dijet_hists, dijet_qg_hists;
 
     bool is_mc;
 
@@ -138,11 +140,11 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     dijet_sel.reset(new DijetSelection());
 
     // Hists
-    zplusjets_muon_hists.reset(new MuonHists(ctx, "ZPlusJets_Muon"));
-    zplusjets_jet_hists.reset(new JetHists(ctx, "ZPlusJets_Jet"));
+    zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets"));
     zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG"));
 
-    dijet_jet_hists.reset(new JetHists(ctx, "Dijet_Jet"));
+    dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet"));
+    dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG"));
 }
 
 
@@ -187,14 +189,14 @@ bool QGAnalysisModule::process(Event & event) {
 
     bool zpj = zplusjets_sel->passes(event);
     if (zpj) {
-        zplusjets_muon_hists->fill(event);
-        zplusjets_jet_hists->fill(event);
+        zplusjets_hists->fill(event);
         zplusjets_qg_hists->fill(event);
     }
 
     bool dj = dijet_sel->passes(event);
     if (dj) {
-        dijet_jet_hists->fill(event);
+        dijet_hists->fill(event);
+        dijet_qg_hists->fill(event);
     }
 
     if (zpj && dj) {
