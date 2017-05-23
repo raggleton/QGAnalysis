@@ -1,10 +1,11 @@
 #pragma once
 
 #include "UHH2/core/include/Hists.h"
+#include "UHH2/core/include/NtupleObjects.h"
 
 namespace uhh2examples {
 
-/**  \brief Example class for booking and filling histograms
+/**  \brief Book and fill main analysis histograms
  * 
  * NOTE: This class uses the 'hist' method to retrieve histograms.
  * This requires a string lookup and is therefore slow if you have
@@ -19,10 +20,18 @@ public:
     virtual void fill(const uhh2::Event & ev) override;
     virtual ~QGAnalysisHists();
 protected:
+    std::vector<GenParticle*> get_genjet_genparticles(const GenJetWithParts &, std::vector<GenParticle>*);
+	float deltaR(const LorentzVector & a, const LorentzVector & b);
+
+    // reco jet hists
     float jetRadius, LHA_rescale, width_rescale, thrust_rescale;
     TH1F *h_jet_multiplicity, *h_jet_LHA, *h_jet_pTD, *h_jet_width, *h_jet_thrust, *h_jet_flavour;
     TH1F *h_qjet_multiplicity, *h_qjet_LHA, *h_qjet_pTD, *h_qjet_width, *h_qjet_thrust;
     TH1F *h_gjet_multiplicity, *h_gjet_LHA, *h_gjet_pTD, *h_gjet_width, *h_gjet_thrust;
+    // genjet hists
+    TH1F *h_genjet_multiplicity, *h_genjet_LHA, *h_genjet_pTD, *h_genjet_width, *h_genjet_thrust, *h_genjet_flavour;
+    TH1F *h_qgenjet_multiplicity, *h_qgenjet_LHA, *h_qgenjet_pTD, *h_qgenjet_width, *h_qgenjet_thrust;
+    TH1F *h_ggenjet_multiplicity, *h_ggenjet_LHA, *h_ggenjet_pTD, *h_ggenjet_width, *h_ggenjet_thrust;
 };
 
 }
