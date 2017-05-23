@@ -18,17 +18,20 @@ QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string &
   // muons
   n_mu = book<TH1F>("N_mu", "N^{#mu}", 10, 0, 10);
 
-  pt_mu1 = book<TH1F>("pt_mu1", "p_{T}^{#mu1} [GeV/c]", 40, 0, 200);
-  eta_mu1 = book<TH1F>("eta_mu1", "#eta^{#mu1}", 40, -2.1, 2.1);
-  reliso_mu1 = book<TH1F>("reliso_mu1", "#mu1 rel. Iso", 40, 0, 0.5);
+  int nbins_pt = 100;
+  int nbins_eta = 40;
+  int nbins_reliso = 50;
+  pt_mu1 = book<TH1F>("pt_mu1", "p_{T}^{#mu1} [GeV/c]", nbins_pt, 0, 200);
+  eta_mu1 = book<TH1F>("eta_mu1", "#eta^{#mu1}", nbins_eta, -2.1, 2.1);
+  reliso_mu1 = book<TH1F>("reliso_mu1", "#mu1 rel. Iso", nbins_reliso, 0, 0.5);
 
-  pt_mu2 = book<TH1F>("pt_mu2", "p_{T}^{#mu2} [GeV/c]", 40, 0, 200);
-  eta_mu2 = book<TH1F>("eta_mu2", "#eta^{#mu2}", 40, -2.1, 2.1);
-  reliso_mu2 = book<TH1F>("reliso_mu2", "#mu2 rel. Iso", 40, 0, 0.5);
+  pt_mu2 = book<TH1F>("pt_mu2", "p_{T}^{#mu2} [GeV/c]", nbins_pt, 0, 200);
+  eta_mu2 = book<TH1F>("eta_mu2", "#eta^{#mu2}", nbins_eta, -2.1, 2.1);
+  reliso_mu2 = book<TH1F>("reliso_mu2", "#mu2 rel. Iso", nbins_reliso, 0, 0.5);
 
   m_mumu = book<TH1F>("m_mumu", "m_{#mu#mu} [GeV]", 100, 90-50, 90+50);
 
-  deta_dphi_mumu = book<TH2F>("deta_dphi_mumu", ";#Delta #eta_{#mu#mu};#Delta #phi_{#mu#mu}", 60, 0, 6, 50, 0, TMath::Pi());
+  deta_dphi_mumu = book<TH2F>("deta_dphi_mumu", ";#Delta #eta_{#mu#mu};#Delta #phi_{#mu#mu}", 60, 0, 6, 60, 0, TMath::Pi());
 
   // primary vertices
   book<TH1F>("N_pv", "N^{PV}", 50, 0, 50);

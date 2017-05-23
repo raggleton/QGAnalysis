@@ -12,19 +12,22 @@ using namespace uhh2examples;
 QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname): Hists(ctx, dirname){
   // book all histograms here
   // jets
-  n_jets = book<TH1F>("N_jets", "N_{jets}", 20, 0, 20);
+  n_jets = book<TH1F>("N_jets", "N_{jets}", 10, 0, 10);
 
-  pt_jet1 = book<TH1F>("pt_jet1", "p_{T}^{jet 1} [GeV/c]", 40, 0, 200);
-  eta_jet1 = book<TH1F>("eta_jet1", "#eta^{jet 1}", 40, -2.5, 2.5);
-  phi_jet1 = book<TH1F>("phi_jet1", "#phi^{jet 1}", 60, -TMath::Pi(), TMath::Pi());
+  int nbins_pt = 100;
+  int nbins_eta = 40;
+  int nbins_phi = 60;
+  pt_jet1 = book<TH1F>("pt_jet1", "p_{T}^{jet 1} [GeV/c]", nbins_pt, 0, 200);
+  eta_jet1 = book<TH1F>("eta_jet1", "#eta^{jet 1}", nbins_eta, -2.5, 2.5);
+  phi_jet1 = book<TH1F>("phi_jet1", "#phi^{jet 1}", nbins_phi, -TMath::Pi(), TMath::Pi());
 
-  pt_jet2 = book<TH1F>("pt_jet2", "p_{T}^{jet 2} [GeV/c]", 40, 0, 200);
-  eta_jet2 = book<TH1F>("eta_jet2", "#eta^{jet 2}", 40, -2.5, 2.5);
-  phi_jet2 = book<TH1F>("phi_jet2", "#phi^{jet 2}", 60, -TMath::Pi(), TMath::Pi());
+  pt_jet2 = book<TH1F>("pt_jet2", "p_{T}^{jet 2} [GeV/c]", nbins_pt, 0, 200);
+  eta_jet2 = book<TH1F>("eta_jet2", "#eta^{jet 2}", nbins_eta, -2.5, 2.5);
+  phi_jet2 = book<TH1F>("phi_jet2", "#phi^{jet 2}", nbins_phi, -TMath::Pi(), TMath::Pi());
 
   m_jj = book<TH1F>("m_jj", "m_{jj} [GeV]", 40, 0, 400);
 
-  deta_dphi_jj = book<TH2F>("deta_dphi_jj", ";#Delta #eta_{jj};#Delta #phi_{jj}", 60, 0, 6, 50, 0, TMath::Pi());
+  deta_dphi_jj = book<TH2F>("deta_dphi_jj", ";#Delta #eta_{jj};#Delta #phi_{jj}", 60, 0, 6, 60, 0, TMath::Pi());
 
   // primary vertices
   book<TH1F>("N_pv", "N^{PV}", 50, 0, 50);
