@@ -8,7 +8,7 @@
 #$ -m eas
 #$ -M aggleton@desy.de
 #$ -t 1-17
-#$ -l h_vmem=2G
+#$ -l h_vmem=3G
 #$ -l h_fsize=2G
 #$ -l h_rt=8:00:00
 
