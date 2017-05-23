@@ -9,16 +9,27 @@ using namespace std;
 using namespace uhh2;
 using namespace uhh2examples;
 
-QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname): Hists(ctx, dirname){
+QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useNJets): Hists(ctx, dirname), useNJets_(useNJets) {
+  if (useNJets_ < 0) useNJets_ = 99999; // Do them all
+
   // book all histograms here
-  int nMultBins = 50;
 
   // RECO jet hists
   // --------------
   // For all jets
+  int nPtBins = 50;
+  float ptMin(0.), ptMax(500.);
+  h_jet_pt = book<TH1F>("jet_pt", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, 1000.); // use as a catch-all to see we haven't missed highPT jets
+
+  int nEtaBins = 50;
+  float etaMin(-2.5), etaMax(2.5);
+  h_jet_eta = book<TH1F>("jet_eta", ";#eta^{j};", nEtaBins, etaMin, etaMax);
+
   h_jet_flavour = book<TH1F>("jet_flavour", "jet flavour;PDGID;", 23, -0.5, 22.5);
 
+  int nMultBins = 100;
   h_jet_multiplicity = book<TH1F>("jet_multiplicity", ";# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
+
   int nBins = 50;
   h_jet_LHA = book<TH1F>("jet_LHA", ";LHA (#lambda_{0.5}^{1});", nBins, 0, 1);
   h_jet_pTD = book<TH1F>("jet_pTD", ";p_{T}^{D} (#lambda_{0}^{2});", nBins, 0, 1);
@@ -39,8 +50,6 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname): Hists(c
   h_gjet_thrust = book<TH1F>("gjet_thrust", "g-flavour jet;Thrust (#lambda_{2}^{1});", nBins, 0, 1);
 
   // 2D versions vs PT
-  int nPtBins = 50;
-  float ptMin(0.), ptMax(200.);
   h_jet_multiplicity_vs_pt = book<TH2F>("jet_multiplicity_vs_pt", ";# of constituents (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
   h_jet_LHA_vs_pt = book<TH2F>("jet_LHA_vs_pt", ";LHA (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_jet_pTD_vs_pt = book<TH2F>("jet_pTD_vs_pt", ";p_{T}^{D} (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
@@ -64,6 +73,9 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname): Hists(c
   // GENJET hists
   // ------------
   // For all jets
+  h_genjet_pt = book<TH1F>("genjet_pt", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, 1000.);
+  h_genjet_eta = book<TH1F>("genjet_eta", ";#eta^{j};", nEtaBins, etaMin, etaMax);
+
   h_genjet_multiplicity = book<TH1F>("genjet_multiplicity", ";# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
   h_genjet_LHA = book<TH1F>("genjet_LHA", ";LHA (#lambda_{0.5}^{1});", nBins, 0, 1);
   h_genjet_pTD = book<TH1F>("genjet_pTD", ";p_{T}^{D} (#lambda_{0}^{2});", nBins, 0, 1);
@@ -118,7 +130,8 @@ void QGAnalysisHists::fill(const Event & event){
 
   // Fill reco jet hists
   std::vector<Jet>* jets = event.jets;
-  for (const Jet & thisjet : *jets) {
+  for (int i = 0; i < useNJets_; i++) {
+    const Jet & thisjet = jets->at(i);
     int mult = thisjet.numberOfDaughters();
     float lha = thisjet.LHA() / LHA_rescale;
     float ptd = thisjet.pTD();
@@ -126,6 +139,8 @@ void QGAnalysisHists::fill(const Event & event){
     float thrust = thisjet.thrust() / thrust_rescale;
 
     float jet_pt = thisjet.pt();
+    h_jet_pt->Fill(jet_pt, weight);
+    h_jet_eta->Fill(thisjet.eta(), weight);
 
     h_jet_multiplicity->Fill(mult, weight);
     h_jet_LHA->Fill(lha, weight);
@@ -177,6 +192,9 @@ void QGAnalysisHists::fill(const Event & event){
 
     std::vector<GenParticle*> daughters = get_genjet_genparticles(thisjet, genparticles);
 
+    h_genjet_pt->Fill(thisjet.pt());
+    h_genjet_eta->Fill(thisjet.eta());
+
     // do special vars according to 1704.03878
     uint mult = 0;
     float ptd = 0, lha = 0, width = 0, thrust = 0;
@@ -226,17 +244,17 @@ void QGAnalysisHists::fill(const Event & event){
 
 }
 
-float QGAnalysisHists::deltaR(const LorentzVector & a, const LorentzVector & b) {
-  // Why am I writing this myself?
-  float e1 = a.eta();
-  float e2 = b.eta();
-  float p1 = a.phi();
-  float p2 = b.phi();
-  float deta = std::abs(e1-e2);
-  float dphi = p1-p2;
-  if(dphi>M_PI) dphi -= (2*M_PI);
-  return std::hypot(deta, dphi);
-}
+// float QGAnalysisHists::deltaR(const LorentzVector & a, const LorentzVector & b) {
+//   // Why am I writing this myself?
+//   float e1 = a.eta();
+//   float e2 = b.eta();
+//   float p1 = a.phi();
+//   float p2 = b.phi();
+//   float deta = std::abs(e1-e2);
+//   float dphi = p1-p2;
+//   if(dphi>M_PI) dphi -= (2*M_PI);
+//   return std::hypot(deta, dphi);
+// }
 
 /**
  * Get the collection of GenParticle*s for a given GenJet

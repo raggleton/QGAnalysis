@@ -68,8 +68,6 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     common->disable_jersmear();
     common->change_pf_id(JetPFID::wp::WP_LOOSE);
     common->set_muon_id(MuonIDMedium_ICHEP());
-    // If you want to recalc MET, these need changing/uncommenting
-    // common->set_jet_id(PtEtaCut(30.0, 2.4)); // slightly tighter Jet selection on top
     common->disable_jec();
     common->switch_jetPtSorter(false);
     common->switch_jetlepcleaner(false);
@@ -141,10 +139,10 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
 
     // Hists
     zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets"));
-    zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG"));
+    zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1));
 
     dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet"));
-    dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG"));
+    dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", 2));
 }
 
 
