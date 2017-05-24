@@ -244,17 +244,6 @@ void QGAnalysisHists::fill(const Event & event){
 
 }
 
-// float QGAnalysisHists::deltaR(const LorentzVector & a, const LorentzVector & b) {
-//   // Why am I writing this myself?
-//   float e1 = a.eta();
-//   float e2 = b.eta();
-//   float p1 = a.phi();
-//   float p2 = b.phi();
-//   float deta = std::abs(e1-e2);
-//   float dphi = p1-p2;
-//   if(dphi>M_PI) dphi -= (2*M_PI);
-//   return std::hypot(deta, dphi);
-// }
 
 /**
  * Get the collection of GenParticle*s for a given GenJet

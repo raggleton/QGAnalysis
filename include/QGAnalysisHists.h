@@ -21,7 +21,6 @@ public:
     virtual ~QGAnalysisHists();
 protected:
     std::vector<GenParticle*> get_genjet_genparticles(const GenJetWithParts &, std::vector<GenParticle>*);
-	// float deltaR(const LorentzVector & a, const LorentzVector & b);
 
     // reco jet hists
     float jetRadius, LHA_rescale, width_rescale, thrust_rescale;
