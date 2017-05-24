@@ -12,34 +12,34 @@ using namespace uhh2examples;
 QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname): Hists(ctx, dirname){
   // book all histograms here
   // jets
-  n_jets = book<TH1F>("N_jets", "N_{jets}", 10, 0, 10);
+  n_jets = book<TH1F>("N_jets", ";N_{jets};", 10, 0, 10);
 
   int nbins_pt = 50;
   float pt_max = 2000;
   float eta_max = 5;
   int nbins_eta = 50;
   int nbins_phi = 60;
-  pt_jet1 = book<TH1F>("pt_jet1", "p_{T}^{jet 1} [GeV/c]", nbins_pt, 0, pt_max);
-  eta_jet1 = book<TH1F>("eta_jet1", "#eta^{jet 1}", nbins_eta, -eta_max, eta_max);
-  phi_jet1 = book<TH1F>("phi_jet1", "#phi^{jet 1}", nbins_phi, -TMath::Pi(), TMath::Pi());
+  pt_jet1 = book<TH1F>("pt_jet1", ";p_{T}^{jet 1} [GeV/c];", nbins_pt, 0, pt_max);
+  eta_jet1 = book<TH1F>("eta_jet1", ";#eta^{jet 1};", nbins_eta, -eta_max, eta_max);
+  phi_jet1 = book<TH1F>("phi_jet1", ";#phi^{jet 1};", nbins_phi, -TMath::Pi(), TMath::Pi());
 
-  pt_jet2 = book<TH1F>("pt_jet2", "p_{T}^{jet 2} [GeV/c]", nbins_pt, 0, pt_max);
-  eta_jet2 = book<TH1F>("eta_jet2", "#eta^{jet 2}", nbins_eta, -eta_max, eta_max);
-  phi_jet2 = book<TH1F>("phi_jet2", "#phi^{jet 2}", nbins_phi, -TMath::Pi(), TMath::Pi());
+  pt_jet2 = book<TH1F>("pt_jet2", ";p_{T}^{jet 2} [GeV/c];", nbins_pt, 0, pt_max);
+  eta_jet2 = book<TH1F>("eta_jet2", ";#eta^{jet 2};", nbins_eta, -eta_max, eta_max);
+  phi_jet2 = book<TH1F>("phi_jet2", ";#phi^{jet 2};", nbins_phi, -TMath::Pi(), TMath::Pi());
 
-  pt_jet1_jet2_ratio = book<TH1F>("pt_jet1_jet2_ratio", "p_{T}^{jet 2} / p_{T}^{jet 1}", 20, 0, 1);
+  pt_jet1_jet2_ratio = book<TH1F>("pt_jet1_jet2_ratio", ";p_{T}^{jet 2} / p_{T}^{jet 1};", 20, 0, 1);
 
-  m_jj = book<TH1F>("m_jj", "m_{jj} [GeV]", 50, 0, 4000);
+  m_jj = book<TH1F>("m_jj", ";m_{jj} [GeV]", 50, 0, 4000);
 
   deta_dphi_jj = book<TH2F>("deta_dphi_jj", ";#Delta #eta_{jj};#Delta #phi_{jj}", 60, 0, 6, 60, 0, TMath::Pi());
 
   // Possible 3rd jet in the event
-  pt_jet3 = book<TH1F>("pt_jet3", "p_{T}^{jet 3} [GeV/c]", nbins_pt, 0, 500);
-  eta_jet3 = book<TH1F>("eta_jet3", "#eta^{jet 3}", nbins_eta, -eta_max, eta_max);
-  pt_jet3_frac = book<TH1F>("pt_jet3_frac", "p_{T}^{jet 3} / #LT p_{T}^{jet 1} + p_{T}^{jet 2} #GT", 20, 0, 1);
+  pt_jet3 = book<TH1F>("pt_jet3", ";p_{T}^{jet 3} [GeV/c];", nbins_pt, 0, 500);
+  eta_jet3 = book<TH1F>("eta_jet3", ";#eta^{jet 3};", nbins_eta, -eta_max, eta_max);
+  pt_jet3_frac = book<TH1F>("pt_jet3_frac", ";p_{T}^{jet 3} / #LT p_{T}^{jet 1} + p_{T}^{jet 2} #GT;", 20, 0, 1);
 
   // primary vertices
-  book<TH1F>("N_pv", "N^{PV}", 50, 0, 50);
+  book<TH1F>("N_pv", ";N^{PV};", 50, 0, 50);
 }
 
 
