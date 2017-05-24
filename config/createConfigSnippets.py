@@ -66,7 +66,7 @@ def get_num_events(list_of_files):
 
 def create_xml_snippet(sdict, common_attr):
     """Create an XML snippet for this sample dictionary"""
-    new_attrib = {"Lumi" : "%10f" % sdict['lumi_weight'],
+    new_attrib = {"Lumi" : "%.8f" % sdict['lumi_weight'],
                   "Type": sdict['type'],
                   "Version": sdict['short_name']}
     new_attrib.update(common_attr)
