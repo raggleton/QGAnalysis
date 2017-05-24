@@ -2,8 +2,7 @@
 <!DOCTYPE JobConfiguration PUBLIC "" "JobConfig.dtd" [
 
     <!ENTITY NEVT "-1">
-    <!ENTITY IDIR "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Ntuples">
-    <!ENTITY ODIR "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection">
+    <!ENTITY ODIR "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/50K">
 
     <!-- Z+jets MC -->
     <!ENTITY MC_DYJetsToLL_M-50_HT70to100 "&IDIR;/Ntuple_MC_DYJetsToLL_M-50_HT70to100.root">
