@@ -4,19 +4,8 @@
     <!ENTITY NEVT "-1">
     <!ENTITY ODIR "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/50K">
 
-    <!-- Z+jets MC -->
-    <!ENTITY MC_DYJetsToLL_M-50_HT70to100 "&IDIR;/Ntuple_MC_DYJetsToLL_M-50_HT70to100.root">
-    <!ENTITY MC_DYJetsToLL_M-50_HT100to200 "&IDIR;/Ntuple_MC_DYJetsToLL_M-50_HT100to200.root">
-    <!ENTITY MC_DYJetsToLL_M-50_HT200to400 "&IDIR;/Ntuple_MC_DYJetsToLL_M-50_HT200to400.root">
-    <!ENTITY MC_DYJetsToLL_M-50_HT400to600 "&IDIR;/Ntuple_MC_DYJetsToLL_M-50_HT400to600.root">
-    <!ENTITY MC_DYJetsToLL_M-50_HT600to800 "&IDIR;/Ntuple_MC_DYJetsToLL_M-50_HT600to800.root">
-
-    <!-- QCD MC -->
-    <!ENTITY MC_QCD_HT100to200 "&IDIR;/Ntuple_MC_QCD_HT100to200.root">
-    <!ENTITY MC_QCD_HT200to300 "&IDIR;/Ntuple_MC_QCD_HT200to300.root">
-    <!ENTITY MC_QCD_HT300to500 "&IDIR;/Ntuple_MC_QCD_HT300to500.root">
-    <!ENTITY MC_QCD_HT500to700 "&IDIR;/Ntuple_MC_QCD_HT500to700.root">
-    <!ENTITY MC_QCD_HT700to1000 "&IDIR;/Ntuple_MC_QCD_HT700to1000.root">
+    <!-- create input XMl using createConfigSnippets.py -->
+    <!ENTITY INPUT SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/50K/input.xml">
 ]>
 
 <!-- OutputLevel controls which messages are printed; set to VERBOSE or DEBUG for more verbosity, to WARNING or ERROR for less -->
@@ -25,62 +14,13 @@
     <Package Name="SUHH2QGAnalysis.par" />
 
    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR;/" PostFix="" TargetLumi="1" >
-
-        <InputData Lumi="92.751566" NEventsMax="&NEVT;" Type="MC" Version="MC_DYJetsToLL_M-50_HT70to100" Cacheable="False">
-            <In FileName="&MC_DYJetsToLL_M-50_HT70to100;" Lumi="0.0"/>
-            <InputTree Name="AnalysisTree" />
-        </InputData>
-
-        <InputData Lumi="24.842528" NEventsMax="&NEVT;" Type="MC" Version="MC_DYJetsToLL_M-50_HT100to200" Cacheable="False">
-            <In FileName="&MC_DYJetsToLL_M-50_HT100to200;" Lumi="0.0"/>
-            <InputTree Name="AnalysisTree" />
-        </InputData>
-
-        <InputData Lumi="396.666250" NEventsMax="&NEVT;" Type="MC" Version="MC_DYJetsToLL_M-50_HT200to400" Cacheable="False">
-            <In FileName="&MC_DYJetsToLL_M-50_HT200to400;" Lumi="0.0"/>
-            <InputTree Name="AnalysisTree" />
-        </InputData>
-
-        <InputData Lumi="2863.586248" NEventsMax="&NEVT;" Type="MC" Version="MC_DYJetsToLL_M-50_HT400to600" Cacheable="False">
-            <In FileName="&MC_DYJetsToLL_M-50_HT400to600;" Lumi="0.0"/>
-            <InputTree Name="AnalysisTree" />
-        </InputData>
-
-        <InputData Lumi="11894.254788" NEventsMax="&NEVT;" Type="MC" Version="MC_DYJetsToLL_M-50_HT600to800" Cacheable="False">
-            <In FileName="&MC_DYJetsToLL_M-50_HT600to800;" Lumi="0.0"/>
-            <InputTree Name="AnalysisTree" />
-        </InputData>
+        &INPUT;
 
 <!--         <InputData Lumi="1" NEventsMax="&NEVT;" Type="MC" Version="MC_Test" Cacheable="False">
             <In FileName="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Ntuples/Ntuple_test.root" Lumi="0.0"/>
             <InputTree Name="AnalysisTree" />
         </InputData>
  -->
-
-         <InputData Lumi="0.000715" NEventsMax="&NEVT;" Type="MC" Version="MC_QCD_HT100to200" Cacheable="False">
-            <In FileName="&MC_QCD_HT100to200;" Lumi="0.0"/>
-            <InputTree Name="AnalysisTree" />
-        </InputData>
-
-        <InputData Lumi="0.011682" NEventsMax="&NEVT;" Type="MC" Version="MC_QCD_HT200to300" Cacheable="False">
-            <In FileName="&MC_QCD_HT200to300;" Lumi="0.0"/>
-            <InputTree Name="AnalysisTree" />
-        </InputData>
-
-        <InputData Lumi="0.057521" NEventsMax="&NEVT;" Type="MC" Version="MC_QCD_HT300to500" Cacheable="False">
-            <In FileName="&MC_QCD_HT300to500;" Lumi="0.0"/>
-            <InputTree Name="AnalysisTree" />
-        </InputData>
-
-        <InputData Lumi="0.623053" NEventsMax="&NEVT;" Type="MC" Version="MC_QCD_HT500to700" Cacheable="False">
-            <In FileName="&MC_QCD_HT500to700;" Lumi="0.0"/>
-            <InputTree Name="AnalysisTree" />
-        </InputData>
-
-        <InputData Lumi="2.927829" NEventsMax="&NEVT;" Type="MC" Version="MC_QCD_HT700to1000" Cacheable="False">
-            <In FileName="&MC_QCD_HT700to1000;" Lumi="0.0"/>
-            <InputTree Name="AnalysisTree" />
-        </InputData>
 
         <UserConfig>
             <!-- define which collections to read from the input. Only specify what you need to save I/O time -->
