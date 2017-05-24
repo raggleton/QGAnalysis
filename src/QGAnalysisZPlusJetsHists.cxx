@@ -14,7 +14,7 @@ QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string &
   // book all histograms here
   // jets
   int nbins_pt = 50;
-  float pt_max = 1000;
+  float pt_max = 2000;
   int nbins_eta = 40;
   float eta_max = 3;
   n_jets = book<TH1F>("N_jets", "N_{jets}", 10, 0, 10);
@@ -22,7 +22,7 @@ QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string &
   eta_jet1 = book<TH1F>("eta_jet1", "#eta^{jet 1}", nbins_eta, -eta_max, eta_max);
   pt_jet1_z_ratio = book<TH1F>("pt_jet1_z_ratio", "p_{T}^{jet 1} / p_{T}^{Z}", 50, 0, 5);
 
-  pt_max = 500;
+  pt_max = 2000;
   pt_jet2 = book<TH1F>("pt_jet2", "p_{T}^{jet 2} [GeV/c]", nbins_pt, 0, pt_max);
   eta_jet2 = book<TH1F>("eta_jet2", "#eta^{jet 2}", nbins_eta, -eta_max, eta_max);
   pt_jet2_z_ratio = book<TH1F>("pt_jet2_z_ratio", "p_{T}^{jet 2} / p_{T}^{Z}", 50, 0, 1);
@@ -31,6 +31,7 @@ QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string &
   n_mu = book<TH1F>("N_mu", "N^{#mu}", 10, 0, 10);
   int nbins_reliso = 60;
   float reliso_max = 0.3;
+  pt_max = 1000;
   pt_mu1 = book<TH1F>("pt_mu1", "p_{T}^{#mu1} [GeV/c]", nbins_pt, 0, pt_max);
   eta_mu1 = book<TH1F>("eta_mu1", "#eta^{#mu1}", nbins_eta, -eta_max, eta_max);
   reliso_mu1 = book<TH1F>("reliso_mu1", "#mu1 rel. Iso", nbins_reliso, 0, reliso_max);

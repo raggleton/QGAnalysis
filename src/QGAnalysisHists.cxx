@@ -18,7 +18,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   // --------------
   // For all jets
   int nPtBins = 50;
-  float ptMin(0.), ptMax(500.);
+  float ptMin(0.), ptMax(2000.);
   h_jet_pt = book<TH1F>("jet_pt", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, 1000.); // use as a catch-all to see we haven't missed highPT jets
 
   int nEtaBins = 50;

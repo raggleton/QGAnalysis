@@ -15,7 +15,7 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   n_jets = book<TH1F>("N_jets", "N_{jets}", 10, 0, 10);
 
   int nbins_pt = 50;
-  float pt_max = 1000;
+  float pt_max = 2000;
   float eta_max = 5;
   int nbins_eta = 50;
   int nbins_phi = 60;
@@ -29,7 +29,7 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
 
   pt_jet1_jet2_ratio = book<TH1F>("pt_jet1_jet2_ratio", "p_{T}^{jet 2} / p_{T}^{jet 1}", 20, 0, 1);
 
-  m_jj = book<TH1F>("m_jj", "m_{jj} [GeV]", 50, 0, 2000);
+  m_jj = book<TH1F>("m_jj", "m_{jj} [GeV]", 50, 0, 4000);
 
   deta_dphi_jj = book<TH2F>("deta_dphi_jj", ";#Delta #eta_{jj};#Delta #phi_{jj}", 60, 0, 6, 60, 0, TMath::Pi());
 
