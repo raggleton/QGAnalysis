@@ -8,6 +8,15 @@
     <!ENTITY INPUT SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/50K/input.xml">
 ]>
 
+
+<!-- MUST run SFrameBatch inside QGAnalyis/config! -->
+
+<!--
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="1" />
+   <ConfigSGE RAM ="2" DISK ="2" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir"/>
+-->
+
+
 <!-- OutputLevel controls which messages are printed; set to VERBOSE or DEBUG for more verbosity, to WARNING or ERROR for less -->
 <JobConfiguration JobName="ExampleCycleJob" OutputLevel="INFO">
     <Library Name="libSUHH2QGAnalysis"/>
