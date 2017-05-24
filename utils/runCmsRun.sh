@@ -6,7 +6,7 @@
 #$ -l site=hh
 #$ -P unihh2
 #$ -m eas
-#$ -M aggleton@desy.de
+#$ -M robin.aggleton@desy.de
 #$ -t 1-17
 #$ -l h_vmem=3G
 #$ -l h_fsize=2G
