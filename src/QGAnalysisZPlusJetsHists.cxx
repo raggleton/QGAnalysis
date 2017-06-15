@@ -25,7 +25,8 @@ QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string &
   pt_max = 2000;
   pt_jet2 = book<TH1F>("pt_jet2", ";p_{T}^{jet 2} [GeV/c]", nbins_pt, 0, pt_max);
   eta_jet2 = book<TH1F>("eta_jet2", ";#eta^{jet 2}", nbins_eta, -eta_max, eta_max);
-  pt_jet2_z_ratio = book<TH1F>("pt_jet2_z_ratio", ";p_{T}^{jet 2} / p_{T}^{Z}", 50, 0, 1);
+  pt_jet2_z_ratio = book<TH1F>("pt_jet2_z_ratio", ";p_{T}^{jet 2} / p_{T}^{Z}", 60, 0, 3);
+  pt_jet1_z_pt_jet2_z_ratio = book<TH2F>("pt_jet1_z_pt_jet2_z_ratio", ";p_{T}^{jet 1} / p_{T}^{Z};p_{T}^{jet 2} / p_{T}^{Z}", 50, 0, 5, 60, 0, 3);
 
   // muons
   n_mu = book<TH1F>("N_mu", ";N^{#mu}", 10, 0, 10);
@@ -45,6 +46,7 @@ QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string &
 
   deta_dphi_mumu = book<TH2F>("deta_dphi_mumu", ";#Delta #eta_{#mu#mu};#Delta #phi_{#mu#mu}", 60, 0, 6, 60, 0, TMath::Pi());
   deta_dphi_mumu_jet1 = book<TH2F>("deta_dphi_mumu_jet1", ";#Delta #eta_{#mu#mu, jet 1};#Delta #phi_{#mu#mu, jet1}", 60, 0, 6, 60, 0, TMath::Pi());
+  deta_dphi_mumu_jet2 = book<TH2F>("deta_dphi_mumu_jet2", ";#Delta #eta_{#mu#mu, jet 12;#Delta #phi_{#mu#mu, jet2}", 60, 0, 6, 60, 0, TMath::Pi());
 
   // primary vertices
   book<TH1F>("N_pv", ";N^{PV}", 50, 0, 50);
@@ -64,7 +66,7 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   int Nmuons = muons->size();
   n_mu->Fill(Nmuons, weight);
 
-  assert(Nmuons >= 2);
+  if (Nmuons < 2) return;
 
   Muon mu1 = muons->at(0);
   pt_mu1->Fill(mu1.pt(), weight);
@@ -87,7 +89,8 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   std::vector<Jet> * jets = event.jets;
   int Njets = jets->size();
   n_jets->Fill(Njets, weight);
-  assert(Njets >= 1);
+
+  if (Njets < 1) return;
 
   Jet jet1 = jets->at(0);
   pt_jet1->Fill(jet1.pt(), weight);
@@ -102,6 +105,9 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
     pt_jet2->Fill(jet2.pt(), weight);
     eta_jet2->Fill(jet2.eta(), weight);
     pt_jet2_z_ratio->Fill(jet2.pt() / z_cand.pt(), weight);
+    pt_jet1_z_pt_jet2_z_ratio->Fill(jet1.pt() / z_cand.pt(), jet2.pt() / z_cand.pt(), weight);
+    diff = z_cand - jet2.v4();
+    deta_dphi_mumu_jet2->Fill(fabs(diff.eta()), fabs(diff.phi()), weight);
   }
 
   int Npvs = event.pvs->size();
