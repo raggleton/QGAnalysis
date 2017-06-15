@@ -20,10 +20,10 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gROOT.SetBatch(1)
 
 # CHANGE ME - dir of NTuples
-ntuple_dir = "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Ntuples/50K"
+ntuple_dir = "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Ntuples/100K"
 
 # CHANGE ME - output dir for XML file
-xml_dir = "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/50K"
+xml_dir = "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/100K"
 
 # For all XML input snippets:
 common_attr = dict(NEventsMax="&NEVT;", Type="MC", Cacheable="False")
