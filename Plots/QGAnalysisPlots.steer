@@ -1,18 +1,18 @@
 SteerPlotter(){
-  
+
   // steering for the plotter
-  fCycleName     = "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/50K/workdir/uhh2.AnalysisModuleRunner"; // name of the cycle (first part of the name of the root files)
+  fCycleName     = "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/100K/workdir_ak4chs/uhh2.AnalysisModuleRunner"; // name of the cycle (first part of the name of the root files)
   fInputFiles    = "MC.MC_DYJetsToLL_*.root,  MC.MC_QCD_*.root"; // name of the input files (second part)
-  fSampleNames   = "Z+jets,     Dijets"; // name of chains to be plotted
+  fSampleNames   = "Z+jets,     QCD"; // name of chains to be plotted
   fSamplesWeight = "1.0,        1.0"; // weights applied to the samples (same order as in fInputFiles)
   fSamplesUnc  = "0.0,          0.0"; // normalisation uncertainty of individual samples
   fHistColors =  "880,          867";   // the colors of the histograms, negative numbers mean no filling
   fHistMarkers = "0,            0";   // histogram markers (0=solid line, -1=dashed line, 24=open circle...)
 
-  fSamplesToStack = "Z+jets, Dijets"; // the names of chains which you would like to stack (same as in input filenames)
+  fSamplesToStack = "Z+jets, QCD"; // the names of chains which you would like to stack (same as in input filenames)
 
-  fOutputPsFile = "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Plots/50K/QGAnalysis.ps";
-  
+  fOutputPsFile = "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Plots/100K/ak4chs/QGAnalysis.ps";
+
   bRatioPlot = false;   // plot ratio histograms?
   bZScoreInRatio = false;   // plot z-score instead of usual ratio
   bDrawLegend = true;   // draw a legend on each histogram? (otherwise only on the first one in each ps file)
