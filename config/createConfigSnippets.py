@@ -34,17 +34,14 @@ df_bkg = pd.read_csv("/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/Q
 df_bkg_names = df_bkg['Short name'].tolist()
 
 
-def get_lumi_weight(df, num_events, short_name):
-    """Calculate correct lumi weight for one sample, identified either by XML filename (short_name) or full dataset."""
+def get_xsec(df, short_name):
     this_df = df[df['Short name'] == short_name]
-
     if len(this_df.index) == 0:
         raise RuntimeError("No matches for dataset: %s / short_name: %s" % (dataset, short_name))
     elif len(this_df.index) > 1:
         print this_df
         raise RuntimeError("More than 1 match for dataset: %s / short_name: %s" % (dataset, short_name))
-
-    return num_events / float(this_df['Cross section [pb]'])
+    return float(this_df['Cross section [pb]'])
 
 
 def get_num_events(list_of_files):
@@ -89,13 +86,10 @@ if __name__ == "__main__":
         sdict['type'] = "MC"  # TODO: select
         sdict['local_filenames'] = [os.path.join(ntuple_dir, sdict['output'])]  # TODO: why is this a list?
         sdict['short_name'] = sname
-        num_events = get_num_events(sdict['local_filenames'])
-        sdict['num_events'] = num_events
-        lumi_weight = get_lumi_weight(df=sdict['df'],
-                                      num_events=num_events,
-                                      short_name=sname)
-        sdict['lumi_weight'] = lumi_weight
-        print "%s (%d events): %10f" % (sname, num_events, lumi_weight)
+        sdict['num_events'] = get_num_events(sdict['local_filenames'])
+        sdict['xsec'] = get_xsec(df=sdict['df'], short_name=sname)
+        sdict['lumi_weight'] = sdict['num_events'] / sdict['xsec']
+        print "{short_name} ({num_events} events): {lumi_weight:10f} (xsec={xsec:8f})".format(**sdict)
         snip = create_xml_snippet(sdict, common_attr)
         xml_snippets.append(snip)
 
