@@ -17,7 +17,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   // RECO jet hists
   // --------------
   // For all jets
-  int nPtBins = 50;
+  int nPtBins = 100;
   float ptMin(0.), ptMax(2000.);
   h_jet_pt = book<TH1F>("jet_pt", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, 1000.); // use as a catch-all to see we haven't missed highPT jets
 
@@ -26,11 +26,12 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_eta = book<TH1F>("jet_eta", ";#eta^{j};", nEtaBins, etaMin, etaMax);
 
   h_jet_flavour = book<TH1F>("jet_flavour", "jet flavour;PDGID;", 23, -0.5, 22.5);
+  h_jet_genParton_flavour = book<TH1F>("jet_genParton_flavour", "jet flavour (genParton);PDGID;", 23, -0.5, 22.5);
 
   int nMultBins = 100;
   h_jet_multiplicity = book<TH1F>("jet_multiplicity", ";# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
 
-  int nBins = 50;
+  int nBins = 100;
   h_jet_LHA = book<TH1F>("jet_LHA", ";LHA (#lambda_{0.5}^{1});", nBins, 0, 1);
   h_jet_pTD = book<TH1F>("jet_pTD", ";p_{T}^{D} (#lambda_{0}^{2});", nBins, 0, 1);
   h_jet_width = book<TH1F>("jet_width", ";Width (#lambda_{1}^{1});", nBins, 0, 1);
@@ -57,6 +58,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_thrust_vs_pt = book<TH2F>("jet_thrust_vs_pt", ";Thrust (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
 
   h_jet_flavour_vs_pt = book<TH2F>("jet_flavour_vs_pt", "jet flavour;PDGID;Jet p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
+  h_jet_genParton_flavour_vs_pt = book<TH2F>("jet_genParton_flavour_vs_pt", "jet flavour;PDGID;Jet p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
 
   h_qjet_multiplicity_vs_pt = book<TH2F>("qjet_multiplicity_vs_pt", "q-flavour;# of constituents (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
   h_qjet_LHA_vs_pt = book<TH2F>("qjet_LHA_vs_pt", "q-flavour;LHA (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
@@ -73,7 +75,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   // GENJET hists
   // ------------
   // For all jets
-  h_genjet_pt = book<TH1F>("genjet_pt", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, 1000.);
+  h_genjet_pt = book<TH1F>("genjet_pt", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, ptMax);
   h_genjet_eta = book<TH1F>("genjet_eta", ";#eta^{j};", nEtaBins, etaMin, etaMax);
 
   h_genjet_multiplicity = book<TH1F>("genjet_multiplicity", ";# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
@@ -154,8 +156,11 @@ void QGAnalysisHists::fill(const Event & event){
     h_jet_width_vs_pt->Fill(width, jet_pt, weight);
     h_jet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
 
+    // int jet_flav = get_jet_flavour(thisjet, event.genparticles);
+    int jet_flav = abs(thisjet.genPartonFlavor());
+
     // Split by actual jet flavour - these only make sense for MC
-    if (thisjet.flavor() == 21) { // gluon jets
+    if (jet_flav == 21) { // gluon jets
       h_gjet_multiplicity->Fill(mult, weight);
       h_gjet_LHA->Fill(lha, weight);
       h_gjet_pTD->Fill(ptd, weight);
@@ -167,7 +172,7 @@ void QGAnalysisHists::fill(const Event & event){
       h_gjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
       h_gjet_width_vs_pt->Fill(width, jet_pt, weight);
       h_gjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
-    } else if ((abs(thisjet.flavor()) <= 3) && (abs(thisjet.flavor()) > 0)){ // uds jets
+    } else if ((jet_flav <= 3) && (jet_flav > 0)){ // uds jets
       h_qjet_multiplicity->Fill(mult, weight);
       h_qjet_LHA->Fill(lha, weight);
       h_qjet_pTD->Fill(ptd, weight);
@@ -182,13 +187,25 @@ void QGAnalysisHists::fill(const Event & event){
     }
 
     h_jet_flavour->Fill(abs(thisjet.flavor()), weight);
+    h_jet_genParton_flavour->Fill(abs(thisjet.genPartonFlavor()), weight);
     h_jet_flavour_vs_pt->Fill(abs(thisjet.flavor()), jet_pt, weight);
+    h_jet_genParton_flavour_vs_pt->Fill(abs(thisjet.genPartonFlavor()), jet_pt, weight);
   }
 
   // Fill GenJet hists
   std::vector<GenJetWithParts>* genjets = event.genjets;
-  std::vector< GenParticle >* genparticles = event.genparticles;
-  for (const GenJetWithParts & thisjet : * genjets) {
+  std::vector<GenParticle>* genparticles = event.genparticles;
+
+  // for (int i = 0; i < useNJets_; i++) {
+  //   const GenJetWithParts & thisjet = genjets->at(i);
+  int counter = 0;
+  for (const auto & thisjet : *genjets) {
+    if (!(thisjet.pt() > 100 && fabs(thisjet.eta()) < 1.5))
+      continue;
+
+    counter++;
+    if (counter > useNJets_)
+      break;
 
     std::vector<GenParticle*> daughters = get_genjet_genparticles(thisjet, genparticles);
 
@@ -255,5 +272,23 @@ std::vector<GenParticle*> QGAnalysisHists::get_genjet_genparticles(const GenJetW
   }
   return gp;
 }
+
+/**
+ *
+ */
+// int QGAnalysisHists::get_jet_flavour(const Jet & jet, std::vector<GenParticle>* genparticles) {
+//   cout << "jet:" << endl;
+//   cout << jet.eta() << " : " << jet.phi() << endl;
+//   if (jet.genParton() != nullptr) {
+//     cout << "gp: " << jet.genParton()->eta() << " : " << jet.genParton()->phi() << endl;
+//   }
+//   for (const auto& gp : *genparticles) {
+
+//     if (deltaR(jet.v4(), gp.v4()) < 0.1) cout << "*** ";
+//     cout << gp.eta() << " : " << gp.phi() << " : " << gp.pdgId() << " : " << gp.status() << " : " << deltaR(jet.v4(), gp.v4()) << endl;
+//     // if (gp.status)
+//   }
+//   return 1;
+// }
 
 QGAnalysisHists::~QGAnalysisHists(){}

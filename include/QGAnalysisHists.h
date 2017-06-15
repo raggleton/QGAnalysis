@@ -6,7 +6,7 @@
 namespace uhh2examples {
 
 /**  \brief Book and fill main analysis histograms
- * 
+ *
  * NOTE: This class uses the 'hist' method to retrieve histograms.
  * This requires a string lookup and is therefore slow if you have
  * many histograms. Therefore, it is recommended to use histogram
@@ -21,15 +21,16 @@ public:
     virtual ~QGAnalysisHists();
 protected:
     std::vector<GenParticle*> get_genjet_genparticles(const GenJetWithParts &, std::vector<GenParticle>*);
+    int get_jet_flavour(const Jet & jet, std::vector<GenParticle> * genparticles);
 
     // reco jet hists
     float jetRadius, LHA_rescale, width_rescale, thrust_rescale;
-    TH1F *h_jet_pt, *h_jet_eta, *h_jet_flavour;
+    TH1F *h_jet_pt, *h_jet_eta, *h_jet_flavour, *h_jet_genParton_flavour;
     TH1F *h_jet_multiplicity, *h_jet_LHA, *h_jet_pTD, *h_jet_width, *h_jet_thrust;
     TH1F *h_qjet_multiplicity, *h_qjet_LHA, *h_qjet_pTD, *h_qjet_width, *h_qjet_thrust;
     TH1F *h_gjet_multiplicity, *h_gjet_LHA, *h_gjet_pTD, *h_gjet_width, *h_gjet_thrust;
 
-    TH2F *h_jet_multiplicity_vs_pt, *h_jet_LHA_vs_pt, *h_jet_pTD_vs_pt, *h_jet_width_vs_pt, *h_jet_thrust_vs_pt, *h_jet_flavour_vs_pt;
+    TH2F *h_jet_multiplicity_vs_pt, *h_jet_LHA_vs_pt, *h_jet_pTD_vs_pt, *h_jet_width_vs_pt, *h_jet_thrust_vs_pt, *h_jet_flavour_vs_pt, *h_jet_genParton_flavour_vs_pt;
     TH2F *h_qjet_multiplicity_vs_pt, *h_qjet_LHA_vs_pt, *h_qjet_pTD_vs_pt, *h_qjet_width_vs_pt, *h_qjet_thrust_vs_pt;
     TH2F *h_gjet_multiplicity_vs_pt, *h_gjet_LHA_vs_pt, *h_gjet_pTD_vs_pt, *h_gjet_width_vs_pt, *h_gjet_thrust_vs_pt;
 
