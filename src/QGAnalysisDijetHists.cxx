@@ -54,7 +54,7 @@ void QGAnalysisDijetHists::fill(const Event & event){
   int Njets = jets->size();
   n_jets->Fill(Njets, weight);
 
-  assert(Njets >= 2);
+  if (Njets < 2) return;
 
   Jet jet1 = jets->at(0);
   pt_jet1->Fill(jet1.pt(), weight);
