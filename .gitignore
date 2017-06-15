@@ -2,3 +2,6 @@ obj
 *.pyc
 *.o
 uhh*.root
+Plots/*.ps
+*.pdf
+
