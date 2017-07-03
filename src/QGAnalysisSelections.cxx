@@ -2,6 +2,7 @@
 #include "UHH2/core/include/Event.h"
 
 #include <stdexcept>
+#include <algorithm>
 
 using namespace uhh2examples;
 using namespace uhh2;
@@ -17,8 +18,14 @@ ZplusJetsSelection::ZplusJetsSelection(float mu1_pt, float mu2_pt, float mZ_wind
 
 bool ZplusJetsSelection::passes(const Event & event){
     if (event.muons->size() < 2) return false;
-    const auto & muon1 = event.muons->at(0);
-    const auto & muon2 = event.muons->at(1);
+    std::vector<Muon> muons;
+    for (const auto & itr : *event.muons) {
+        if (itr.pt() > mu2_pt_) muons.push_back(itr);
+    }
+    if (muons.size() < 2) return false;
+
+    const auto & muon1 = muons.at(0);
+    const auto & muon2 = muons.at(1);
 
     if (muon1.pt() < mu1_pt_ || muon2.pt() < mu2_pt_) return false;
 
@@ -32,7 +39,7 @@ bool ZplusJetsSelection::passes(const Event & event){
     if (fabs(m_mumu - 90) > mZ_window_) return false;
 
     const auto & jet1 = event.jets->at(0);
-    if (deltaPhi(jet1, z_cand) < dphi_jet_z_min_) return false;
+    if (fabs(deltaPhi(jet1, z_cand)) < dphi_jet_z_min_) return false;
 
     if (event.jets->size() > 1) {
         const auto & jet2 = event.jets->at(1);
@@ -44,14 +51,16 @@ bool ZplusJetsSelection::passes(const Event & event){
 }
 
 
-DijetSelection::DijetSelection(float dphi_min, float third_frac_max): dphi_min_(dphi_min), third_frac_max_(third_frac_max){}
+DijetSelection::DijetSelection(float dphi_min, float third_frac_max):
+    dphi_min_(dphi_min),
+    third_frac_max_(third_frac_max){}
 
 bool DijetSelection::passes(const Event & event){
     if (event.jets->size() < 2) return false;
     const auto & jet1 = event.jets->at(0);
     const auto & jet2 = event.jets->at(1);
 
-    auto dphi = deltaPhi(jet1, jet2);
+    auto dphi = fabs(deltaPhi(jet1, jet2));
     if (dphi < dphi_min_) return false;
 
     if (event.jets->size() == 2) return true;

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <memory>
+#include <algorithm>
 
 #include "UHH2/core/include/AnalysisModule.h"
 #include "UHH2/core/include/Event.h"
@@ -13,6 +14,7 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisDijetHists.h"
 #include "UHH2/common/include/MuonHists.h"
 #include "UHH2/common/include/JetHists.h"
+#include "UHH2/common/include/Utils.h"
 
 using namespace std;
 using namespace uhh2;
@@ -39,12 +41,15 @@ private:
 
     // declare the Selections to use. Use unique_ptr to ensure automatic call of delete in the destructor,
     // to avoid memory leaks.
-    std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel;
+    std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel, first_jet_qflav_sel, first_jet_gflav_sel;
+    std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists, zplusjets_qg_hists, zplusjets_hists_q, zplusjets_hists_g;
+    std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_qg_hists, dijet_hists_q, dijet_hists_g;
 
     std::unique_ptr<Hists> zplusjets_hists, zplusjets_qg_hists;
     std::unique_ptr<Hists> dijet_hists, dijet_qg_hists;
 
     bool is_mc;
+    float jetRadius;
 
     const int runnr_BCD = 276811;
     const int runnr_EFearly = 278802;
@@ -81,6 +86,15 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     if (pu_removal != "CHS") {
         throw runtime_error("Only PURemoval == CHS supported for now");
     }
+
+    if (jet_cone.find("AK4") != string::npos)
+        jetRadius = 0.4;
+    else if (jet_cone.find("AK8") != string::npos)
+        jetRadius = 0.8;
+    else if (jet_cone.find("ca15") != string::npos)
+        jetRadius = 1.5;
+    else
+        throw runtime_error("Cannot determine jetRadius in QGAnalysisTheoryHists");
 
     if (is_mc) {
         std::vector<std::string> JEC_MC;
@@ -136,12 +150,22 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     njet_sel.reset(new NJetSelection(1));
     zplusjets_sel.reset(new ZplusJetsSelection());
     dijet_sel.reset(new DijetSelection());
+    std::vector<int> q = {1, 2, 3};
+    first_jet_qflav_sel.reset(new JetFlavourSelection(q, 0));
+    std::vector<int> g = {21};
+    first_jet_gflav_sel.reset(new JetFlavourSelection(g, 0));
 
     // Hists
+    zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel"));
     zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets"));
+    zplusjets_hists_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_q"));
+    zplusjets_hists_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_g"));
     zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1));
 
+    dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel"));
     dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet"));
+    dijet_hists_q.reset(new QGAnalysisDijetHists(ctx, "Dijet_q"));
+    dijet_hists_g.reset(new QGAnalysisDijetHists(ctx, "Dijet_g"));
     dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", 2));
 }
 
@@ -183,7 +207,20 @@ bool QGAnalysisModule::process(Event & event) {
     // 4) Resort by pT
     sort_by_pt(*event.jets);
 
+
+    // Preselection hists
+    zplusjets_hists_presel->fill(event);
+    dijet_hists_presel->fill(event);
+
     if (!njet_sel->passes(event)) return false;
+
+    if (first_jet_gflav_sel->passes(event)) {
+        zplusjets_hists_g->fill(event);
+        dijet_hists_g->fill(event);
+    } else if (first_jet_qflav_sel->passes(event)) {
+        zplusjets_hists_q->fill(event);
+        dijet_hists_q->fill(event);
+    }
 
     bool zpj = zplusjets_sel->passes(event);
     if (zpj) {

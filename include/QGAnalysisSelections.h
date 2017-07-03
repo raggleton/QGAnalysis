@@ -2,6 +2,10 @@
 
 #include "UHH2/core/include/fwd.h"
 #include "UHH2/core/include/Selection.h"
+#include "UHH2/core/include/NtupleObjects.h"
+#include "UHH2/core/include/Event.h"
+#include "UHH2/core/include/AnalysisModule.h"
+
 
 namespace uhh2examples {
 
@@ -27,5 +31,19 @@ public:
 private:
     float dphi_min_, third_frac_max_;
 };
+
+
+/*
+ * Select event where the nth jet has suitable flavour
+ */
+class JetFlavourSelection: public uhh2::Selection {
+public:
+    JetFlavourSelection(std::vector<int> pdgids, uint jet_index=0);
+    virtual bool passes(const uhh2::Event & event) override;
+private:
+    uint jet_index_;
+    std::vector<int> flavours_;
+};
+
 
 }
