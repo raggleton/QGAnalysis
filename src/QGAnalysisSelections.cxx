@@ -71,4 +71,97 @@ bool DijetSelection::passes(const Event & event){
 }
 
 
+JetFlavourSelection::JetFlavourSelection(std::vector<int> pdgids, uint jet_index): jet_index_(jet_index), flavours_(pdgids) {}
 
+bool JetFlavourSelection::passes(const Event & event) {
+    if (event.jets->size() <= jet_index_) return false;
+    const auto & jet = event.jets->at(jet_index_);
+    uint flav = abs(jet.genPartonFlavor());
+    return std::find(flavours_.begin(), flavours_.end(), flav) != flavours_.end();
+}
+
+
+ZplusJetsTheorySelection::ZplusJetsTheorySelection(Context & ctx, float pt_min, float jet_frac_min, float jet_z_deta_max, float second_jet_frac_max):
+    pt_min_(pt_min),
+    jet_frac_min_(jet_frac_min),
+    jet_z_deta_max_(jet_z_deta_max),
+    second_jet_frac_max_(second_jet_frac_max) {
+        genJets_handle = ctx.get_handle<std::vector<GenJetWithParts>>("GoodGenJets");
+        genMuons_handle = ctx.get_handle<std::vector<GenParticle>>("GoodGenMuons");
+    }
+
+bool ZplusJetsTheorySelection::passes(const Event & event) {
+    if(!event.is_valid(genJets_handle) || !event.is_valid(genMuons_handle)) return false;
+
+    const auto & genjets = event.get(genJets_handle);
+    const auto & muons = event.get(genMuons_handle);
+
+    if ((genjets.size() < 1) || (muons.size() < 2)) return false;
+
+    // auto gp = *event.genparticles;
+    // for (const auto & itr : muons) {
+    //     auto mum1 = itr.mother1();
+    //     auto mum2 = itr.mother2();
+    //     if (mum1 < gp.size()) {
+    //         auto mum_id = gp.at(mum1).pdgId();
+    //         if (mum_id != 23) {
+    //             std::cout << "NOT A Z: " << mum1 << " - " << mum_id << std::endl;
+    //         }
+    //     }
+    // }
+
+    // Get Z candidate
+    const auto & muon1 = muons.at(0);
+    const auto & muon2 = muons.at(1);
+
+    if (muon1.charge() == muon2.charge()) return false;
+
+    const auto z_cand = muon1.v4() + muon2.v4();
+
+    if (z_cand.pt() < pt_min_) return false;
+
+    const auto & jet = genjets.at(0);
+
+    if ((jet.pt() / z_cand.pt()) < jet_frac_min_) return false;
+
+    if (fabs(jet.eta() - z_cand.eta()) > jet_z_deta_max_) return false;
+
+    if (genjets.size() >=2) {
+        const auto & jet2 = genjets.at(1);
+        if ((jet2.pt() / z_cand.pt()) > second_jet_frac_max_) return false;
+    }
+
+    return true;
+}
+
+
+DijetTheorySelection::DijetTheorySelection(Context & ctx, float pt_min, float jet_frac_min, float jet_deta_max, float third_frac_max):
+    pt_min_(pt_min),
+    jet_frac_min_(jet_frac_min),
+    jet_deta_max_(jet_deta_max),
+    third_frac_max_(third_frac_max) {
+        genJets_handle = ctx.get_handle<std::vector<GenJetWithParts>>("GoodGenJets");
+    }
+
+bool DijetTheorySelection::passes(const Event & event) {
+    if(!event.is_valid(genJets_handle)) return false;
+
+    const auto & genjets = event.get(genJets_handle);
+
+    if (genjets.size() < 2) return false;
+
+    const auto & jet1 = genjets.at(0);
+    const auto & jet2 = genjets.at(1);
+
+    if ((jet1.pt() + jet2.pt()) < (2. * pt_min_)) return false;
+
+    if (jet2.pt() < (jet1.pt() * jet_frac_min_)) return false;
+
+    if (fabs(jet1.eta() - jet2.eta()) > jet_deta_max_) return false;
+
+    if (genjets.size()>=3) {
+        const auto & jet3 = genjets.at(2);
+        if ((jet3.pt() / (0.5*(jet1.pt()+jet2.pt()))) > third_frac_max_) return false;
+    }
+    return true;
+}

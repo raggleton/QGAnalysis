@@ -46,4 +46,37 @@ private:
 };
 
 
+/*
+ * Select Z+jets events using the theory paper method
+ */
+class ZplusJetsTheorySelection: public uhh2::Selection {
+public:
+    ZplusJetsTheorySelection(uhh2::Context & ctx, float pt_min=100., float jet_frac_min=0.8, float jet_z_deta_max_=1.0, float second_jet_frac_max=1.);
+    virtual bool passes(const uhh2::Event & event) override;
+private:
+    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+    uhh2::Event::Handle<std::vector<GenParticle> > genMuons_handle;
+    float pt_min_;
+    float jet_frac_min_;
+    float jet_z_deta_max_;
+    float second_jet_frac_max_;
+};
+
+
+/*
+ * Select dijet events using the theory paper method
+ */
+class DijetTheorySelection: public uhh2::Selection {
+public:
+    DijetTheorySelection(uhh2::Context & ctx, float pt_min=100., float jet_frac_min=0.8, float jet_deta_max=1.0, float third_frac_max=1.);
+    virtual bool passes(const uhh2::Event & event) override;
+private:
+    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+    float pt_min_;
+    float jet_frac_min_;
+    float jet_deta_max_;
+    float third_frac_max_;
+};
+
+
 }

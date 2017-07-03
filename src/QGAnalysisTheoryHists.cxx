@@ -9,7 +9,11 @@ using namespace std;
 using namespace uhh2;
 using namespace uhh2examples;
 
-QGAnalysisTheoryHists::QGAnalysisTheoryHists(Context & ctx, const string & dirname, int useNJets): Hists(ctx, dirname), useNJets_(useNJets) {
+QGAnalysisTheoryHists::QGAnalysisTheoryHists(Context & ctx, const string & dirname, int useNJets):
+  Hists(ctx, dirname),
+  useNJets_(useNJets)
+  {
+
   if (useNJets_ < 0) useNJets_ = 99999; // Do them all
 
   // book all histograms here
@@ -143,25 +147,8 @@ void QGAnalysisTheoryHists::fill(const Event & event){
     h_genjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
 
     int flav = get_jet_flavour(thisjet, genparticles, jetRadius);
-    // std::vector<GenParticle> * ds = new std::vector<GenParticle>();
-    // for (auto itr : daughters) {
-    //   ds->push_back(*itr);
-    // }
-    // int dflav = get_jet_flavour(thisjet, ds, jetRadius);
-    // if (dflav != flav) {
-    //   std::cout << "flav: " << flav << " dflav: " << dflav << std::endl;
-    // }
     h_genjet_flavour->Fill(abs(flav), weight);
     h_genjet_flavour_vs_pt->Fill(abs(flav), jet_pt, weight);
-
-    // if ((flav <= 0) && (220 < jet_pt) && (jet_pt < 320) && (lha > 0.8)) {
-    //   std::cout << "WEIRD JET" << std::endl;
-    //   std::cout << thisjet.pt() << " : " << thisjet.eta() << " : " << thisjet.phi() << std::endl;
-    //   for (const auto & itr : *ds){
-    //     std::cout << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << " : " << itr.eta() << " : " << itr.phi()  << std::endl;
-    //   }
-    // }
-
 
     if (abs(flav) == 21) { // gluon jets
       h_ggenjet_multiplicity_vs_pt->Fill(mult, jet_pt, weight);

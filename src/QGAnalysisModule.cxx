@@ -12,6 +12,7 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisZPlusJetsHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisDijetHists.h"
+#include "UHH2/QGAnalysis/include/QGAnalysisTheoryHists.h"
 #include "UHH2/common/include/MuonHists.h"
 #include "UHH2/common/include/JetHists.h"
 #include "UHH2/common/include/Utils.h"
@@ -29,6 +30,8 @@ public:
 
     explicit QGAnalysisModule(Context & ctx);
     virtual bool process(Event & event) override;
+    std::vector<GenJetWithParts> getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=1.5, float lepton_overlap_dr=0.2);
+    std::vector<GenParticle> getGenMuons(std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=2.5);
 
 private:
 
@@ -45,8 +48,18 @@ private:
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists, zplusjets_qg_hists, zplusjets_hists_q, zplusjets_hists_g;
     std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_qg_hists, dijet_hists_q, dijet_hists_g;
 
-    std::unique_ptr<Hists> zplusjets_hists, zplusjets_qg_hists;
-    std::unique_ptr<Hists> dijet_hists, dijet_qg_hists;
+    std::unique_ptr<Selection> zplusjets_theory_sel, dijet_theory_sel;
+    std::unique_ptr<Hists> zplusjets_hists_theory, dijet_hists_theory;
+
+    // for sweeping over ptMin
+    std::vector<float> theory_pt_bins = {50, 100, 200, 400, 800};
+    std::vector< std::unique_ptr<Selection> > zplusjets_theory_sel_pt_binned;
+    std::vector< std::unique_ptr<Selection> > dijet_theory_sel_pt_binned;
+    std::vector< std::unique_ptr<Hists> > zplusjets_hists_theory_pt_binned;
+    std::vector< std::unique_ptr<Hists> > dijet_hists_theory_pt_binned;
+
+    Event::Handle<std::vector<GenJetWithParts>> genjets_handle;
+    Event::Handle<std::vector<GenParticle>> genmuons_handle;
 
     bool is_mc;
     float jetRadius;
@@ -146,6 +159,9 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
 
     jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.4)));
 
+    genjets_handle = ctx.declare_event_output< std::vector<GenJetWithParts> > ("GoodGenJets");
+    genmuons_handle = ctx.declare_event_output< std::vector<GenParticle> > ("GoodGenMuons");
+
     // Event Selections
     njet_sel.reset(new NJetSelection(1));
     zplusjets_sel.reset(new ZplusJetsSelection());
@@ -154,6 +170,9 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     first_jet_qflav_sel.reset(new JetFlavourSelection(q, 0));
     std::vector<int> g = {21};
     first_jet_gflav_sel.reset(new JetFlavourSelection(g, 0));
+
+    zplusjets_theory_sel.reset(new ZplusJetsTheorySelection(ctx));
+    dijet_theory_sel.reset(new DijetTheorySelection(ctx));
 
     // Hists
     zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel"));
@@ -167,12 +186,27 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     dijet_hists_q.reset(new QGAnalysisDijetHists(ctx, "Dijet_q"));
     dijet_hists_g.reset(new QGAnalysisDijetHists(ctx, "Dijet_g"));
     dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", 2));
+
+    zplusjets_hists_theory.reset(new QGAnalysisTheoryHists(ctx, "ZPlusJets_genjet", 1));
+    dijet_hists_theory.reset(new QGAnalysisTheoryHists(ctx, "Dijet_genjet", 2));
+
+    for (auto pt : theory_pt_bins) {
+        std::unique_ptr<Selection> A(new ZplusJetsTheorySelection(ctx, pt));
+        zplusjets_theory_sel_pt_binned.push_back(std::move(A));
+        std::unique_ptr<Selection> B(new DijetTheorySelection(ctx, pt));
+        dijet_theory_sel_pt_binned.push_back(std::move(B));
+
+        std::unique_ptr<QGAnalysisTheoryHists> a(new QGAnalysisTheoryHists(ctx, TString::Format("ZPlusJets_genjet_ptMin_%d", int(pt)).Data(), 1));
+        zplusjets_hists_theory_pt_binned.push_back(std::move(a));
+        std::unique_ptr<QGAnalysisTheoryHists> b(new QGAnalysisTheoryHists(ctx, TString::Format("Dijet_genjet_ptMin_%d", int(pt)).Data(), 2));
+        dijet_hists_theory_pt_binned.push_back(std::move(b));
+    }
 }
 
 
 bool QGAnalysisModule::process(Event & event) {
     // This is the main procedure, called for each event.
-    if (!common->process(event)) return false;
+    if (!common->process(event)) {cout << "Fail common" << endl; return false;}
 
     // Do additional cleaning & JEC manually to allow custom JEC (common only does AK4)
     // 1) jet-lepton cleaning
@@ -207,6 +241,38 @@ bool QGAnalysisModule::process(Event & event) {
     // 4) Resort by pT
     sort_by_pt(*event.jets);
 
+   // The Theory part
+    std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, event.genparticles, 5., 1.5, jetRadius);
+    event.set(genjets_handle, goodGenJets);
+
+    std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, 5., 2.5);
+    event.set(genmuons_handle, goodGenMuons);
+
+    bool zpj_th = zplusjets_theory_sel->passes(event);
+    bool dj_th = dijet_theory_sel->passes(event);
+
+    if (zpj_th && dj_th) {
+        cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet theory criteria" << endl;
+    }
+
+
+    if (zpj_th) {
+        zplusjets_hists_theory->fill(event);
+    }
+
+    if (dj_th) {
+        dijet_hists_theory->fill(event);
+    }
+
+    // ptMin binned hists
+    for (uint i=0; i < theory_pt_bins.size(); i++) {
+        if (zplusjets_theory_sel_pt_binned.at(i)->passes(event)) {
+            zplusjets_hists_theory_pt_binned.at(i)->fill(event);
+        }
+        if (dijet_theory_sel_pt_binned.at(i)->passes(event)) {
+            dijet_hists_theory_pt_binned.at(i)->fill(event);
+        }
+    }
 
     // Preselection hists
     zplusjets_hists_presel->fill(event);
@@ -238,7 +304,51 @@ bool QGAnalysisModule::process(Event & event) {
         cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet criteria" << endl;
     }
 
-    return zpj || dj;
+
+
+    // For checking genparticle/jet assignments:
+    // std::cout << "JETS" << std::endl;
+    // for (const auto & itr : *event.jets) {
+    //     std::cout << itr.eta() << " : " << itr.phi() << " : " << itr.genPartonFlavor() << std::endl;
+    // }
+    // std::cout << "GenPARTICLES" << std::endl;
+    // for (const auto & itr : *event.genparticles) {
+    //     if (abs(itr.status()) > 1)
+    //     std::cout << itr.pdgId() << " : " << itr.status() << " : " << itr.eta() << " : " << itr.phi() << std::endl;
+    // }
+
+    return zpj || dj || zpj_th || dj_th;
+}
+
+
+std::vector<GenJetWithParts> QGAnalysisModule::getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min, float eta_max, float lepton_overlap_dr) {
+    std::vector<GenJetWithParts> genjets;
+    for (const auto itr : *jets) {
+        bool found = (std::find(genjets.begin(), genjets.end(), itr) != genjets.end());
+        // avoid jets that are just leptons + a few spurious gluons
+        bool leptonOverlap = false;
+        if (genparticles != nullptr) {
+            for (const auto & ptr : *genparticles) {
+                leptonOverlap = leptonOverlap || (((abs(ptr.pdgId()) == 13) || (abs(ptr.pdgId()) == 11) || (abs(ptr.pdgId()) == 15)) && (deltaR(ptr.v4(), itr.v4()) < lepton_overlap_dr));
+            }
+        }
+        if ((itr.pt() > pt_min) && (fabs(itr.eta()) < eta_max) && !found && !leptonOverlap) genjets.push_back(itr);
+    }
+    sort_by_pt(genjets);
+    return genjets;
+}
+
+
+std::vector<GenParticle> QGAnalysisModule::getGenMuons(std::vector<GenParticle> * genparticles, float pt_min, float eta_max) {
+    std::vector<GenParticle> muons;
+    for(const auto itr : *genparticles) {
+        bool found = (std::find(muons.begin(), muons.end(), itr) != muons.end());
+        if ((abs(itr.pdgId()) == 13) && (itr.status() == 1) && (itr.pt() > pt_min) && (fabs(itr.eta()) < eta_max) && !found) {
+            muons.push_back(itr);
+        }
+    }
+    sort_by_pt(muons);
+    return muons;
 }
 
 // as we want to run the ExampleCycleNew directly with AnalysisModuleRunner,
