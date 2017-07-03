@@ -46,7 +46,7 @@ QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string &
 
   deta_dphi_mumu = book<TH2F>("deta_dphi_mumu", ";#Delta #eta_{#mu#mu};#Delta #phi_{#mu#mu}", 60, 0, 6, 60, 0, TMath::Pi());
   deta_dphi_mumu_jet1 = book<TH2F>("deta_dphi_mumu_jet1", ";#Delta #eta_{#mu#mu, jet 1};#Delta #phi_{#mu#mu, jet1}", 60, 0, 6, 60, 0, TMath::Pi());
-  deta_dphi_mumu_jet2 = book<TH2F>("deta_dphi_mumu_jet2", ";#Delta #eta_{#mu#mu, jet 12;#Delta #phi_{#mu#mu, jet2}", 60, 0, 6, 60, 0, TMath::Pi());
+  deta_dphi_mumu_jet2 = book<TH2F>("deta_dphi_mumu_jet2", ";#Delta #eta_{#mu#mu, jet 2};#Delta #phi_{#mu#mu, jet2}", 60, 0, 6, 60, 0, TMath::Pi());
 
   // primary vertices
   book<TH1F>("N_pv", ";N^{PV}", 50, 0, 50);
