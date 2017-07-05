@@ -111,8 +111,8 @@ void QGAnalysisTheoryHists::fill(const Event & event){
 
     std::vector<GenParticle*> daughters = get_genjet_genparticles(thisjet, genparticles);
 
-    h_genjet_pt->Fill(thisjet.pt());
-    h_genjet_eta->Fill(thisjet.eta());
+    h_genjet_pt->Fill(thisjet.pt(), weight);
+    h_genjet_eta->Fill(thisjet.eta(), weight);
 
     // do special vars according to 1704.03878
     uint mult = 0;
