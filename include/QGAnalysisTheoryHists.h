@@ -30,7 +30,7 @@ protected:
     float jetRadius;
 
     // genjet hists
-    TH1F *h_genjet_pt, *h_genjet_eta, *h_genjet_flavour;
+    TH1F *h_genjet_pt, *h_genjet_pt_all, *h_genjet_ht, *h_genjet_eta, *h_genjet_flavour;
     TH2F *h_genjet_flavour_vs_pt;
     TH1F *h_genjet_multiplicity, *h_genjet_LHA, *h_genjet_pTD, *h_genjet_width, *h_genjet_thrust;
     TH1F *h_qgenjet_multiplicity, *h_qgenjet_LHA, *h_qgenjet_pTD, *h_qgenjet_width, *h_qgenjet_thrust;

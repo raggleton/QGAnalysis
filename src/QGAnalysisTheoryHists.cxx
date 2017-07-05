@@ -31,6 +31,8 @@ QGAnalysisTheoryHists::QGAnalysisTheoryHists(Context & ctx, const string & dirna
   // ------------
   // For all jets
   h_genjet_pt = book<TH1F>("genjet_pt", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, 2*ptMax);
+  h_genjet_pt_all = book<TH1F>("genjet_pt_all", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, 2*ptMax);
+  h_genjet_ht = book<TH1F>("genjet_ht", ";H_{T} [GeV];", 2*nPtBins, ptMin, 2*ptMax);
   h_genjet_eta = book<TH1F>("genjet_eta", ";#eta^{j};", nEtaBins, etaMin, etaMax);
   h_genjet_flavour = book<TH1F>("genjet_flavour", "genjet flavour;PDGID;", 23, -0.5, 22.5);
   h_genjet_flavour_vs_pt = book<TH2F>("genjet_flavour_vs_pt", "genjet flavour;PDGID;Jet p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
@@ -102,6 +104,14 @@ void QGAnalysisTheoryHists::fill(const Event & event){
   const auto & genjets = event.get(genJets_handle);
 
   std::vector<GenParticle>* genparticles = event.genparticles;
+
+  float ht = 0.;
+  for (const auto & thisjet : genjets) {
+    auto pt = thisjet.pt();
+    h_genjet_pt_all->Fill(pt, weight);
+    ht += pt;
+  }
+  h_genjet_ht->Fill(ht, weight);
 
   int counter = 0;
   for (const auto & thisjet : genjets) {
