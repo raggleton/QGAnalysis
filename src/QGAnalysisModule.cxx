@@ -82,11 +82,10 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
 
     common.reset(new CommonModules());
     common->disable_mcpileupreweight();
-    common->disable_mclumiweight();
     common->disable_jersmear();
+    common->disable_jec(); // do it manually below
     common->change_pf_id(JetPFID::wp::WP_LOOSE);
     common->set_muon_id(MuonIDMedium_ICHEP());
-    common->disable_jec();
     common->switch_jetPtSorter(false);
     common->switch_jetlepcleaner(false);
 
