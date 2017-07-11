@@ -242,10 +242,10 @@ bool QGAnalysisModule::process(Event & event) {
 
    // The Theory part
     std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, event.genparticles, 5., 1.5, jetRadius);
-    event.set(genjets_handle, goodGenJets);
+    event.set(genjets_handle, std::move(goodGenJets));
 
     std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, 5., 2.5);
-    event.set(genmuons_handle, goodGenMuons);
+    event.set(genmuons_handle, std::move(goodGenMuons));
 
     bool zpj_th = zplusjets_theory_sel->passes(event);
     bool dj_th = dijet_theory_sel->passes(event);
