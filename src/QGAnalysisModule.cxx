@@ -123,7 +123,7 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
         }
 
         jet_corrector_MC.reset(new JetCorrector(ctx, JEC_MC));
-
+        jet_resolution_smearer.reset(new JetResolutionSmearer(ctx));
         JLC_MC.reset(new JetLeptonCleaner(ctx, JEC_MC));
     } else {
         std::vector<std::string> JEC_BCD, JEC_EFearly, JEC_FlateG, JEC_H;
@@ -205,34 +205,39 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
 
 bool QGAnalysisModule::process(Event & event) {
     // This is the main procedure, called for each event.
-    if (!common->process(event)) {cout << "Fail common" << endl; return false;}
+    if (!common->process(event)) {return false;}
 
     // Do additional cleaning & JEC manually to allow custom JEC (common only does AK4)
     // 1) jet-lepton cleaning
     // 2) Apply JEC
+    // 3) correct MET
+    // 4) Smear jets if MC
     if (is_mc) {
         JLC_MC->process(event);
         jet_corrector_MC->process(event);
+        jet_corrector_MC->correct_met(event);
+        jet_resolution_smearer->process(event);
     } else {
         if (event.run <= runnr_BCD) {
             JLC_BCD->process(event);
             jet_corrector_BCD->process(event);
+            jet_corrector_BCD->correct_met(event);
         } else if (event.run < runnr_EFearly) { //< is correct, not <=
             JLC_EFearly->process(event);
             jet_corrector_EFearly->process(event);
+            jet_corrector_EFearly->correct_met(event);
         } else if (event.run <= runnr_FlateG) {
             JLC_FlateG->process(event);
             jet_corrector_FlateG->process(event);
+            jet_corrector_FlateG->correct_met(event);
         } else if (event.run > runnr_FlateG) {
             JLC_H->process(event);
             jet_corrector_H->process(event);
+            jet_corrector_H->correct_met(event);
         } else {
             throw runtime_error("CommonModules.cxx: run number not covered by if-statements in process-routine.");
         }
     }
-
-    // NB: Need to correct MET as well if you use it!
-    // e.g. jet_corrector_MC->correct_met(event);
 
     // 3) Do jet cleaner
     jet_cleaner->process(event);
