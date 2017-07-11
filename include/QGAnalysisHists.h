@@ -25,7 +25,9 @@ protected:
 
     // reco jet hists
     float jetRadius, LHA_rescale, width_rescale, thrust_rescale;
-    TH1F *h_jet_pt, *h_jet_eta, *h_jet_flavour, *h_jet_genParton_flavour;
+    TH1F * h_weights;
+    TH2F * h_weights_vs_pt;
+    TH1F *h_jet_pt, *h_jet_pt_unweighted, *h_jet_eta, *h_jet_flavour, *h_jet_genParton_flavour;
     TH1F *h_jet_multiplicity, *h_jet_LHA, *h_jet_pTD, *h_jet_width, *h_jet_thrust;
     TH1F *h_qjet_multiplicity, *h_qjet_LHA, *h_qjet_pTD, *h_qjet_width, *h_qjet_thrust;
     TH1F *h_gjet_multiplicity, *h_gjet_LHA, *h_gjet_pTD, *h_gjet_width, *h_gjet_thrust;

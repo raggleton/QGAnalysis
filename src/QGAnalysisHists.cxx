@@ -13,13 +13,24 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   if (useNJets_ < 0) useNJets_ = 99999; // Do them all
 
   // book all histograms here
+  std::vector<double> weightBins;
+  for (int p = -12; p <= 1; p++) {
+    weightBins.push_back(pow(10, p));
+    weightBins.push_back(2.*pow(10, p));
+    weightBins.push_back(5.*pow(10, p));
+    weightBins.push_back(8.*pow(10, p));
+  }
+  int nWeightBins = weightBins.size()-1;
+  h_weights = book<TH1F>("weights", ";weight;", nWeightBins, &weightBins[0]);
+  h_weights_vs_pt = book<TH2F>("weights_vs_pt", ";weight;", nWeightBins, &weightBins[0], 200, 0., 2000.);
 
   // RECO jet hists
   // --------------
   // For all jets
   int nPtBins = 100;
   float ptMin(0.), ptMax(2000.);
-  h_jet_pt = book<TH1F>("jet_pt", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, 1000.); // use as a catch-all to see we haven't missed highPT jets
+  h_jet_pt = book<TH1F>("jet_pt", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, ptMax); // use as a catch-all to see we haven't missed highPT jets
+  h_jet_pt_unweighted = book<TH1F>("jet_pt_unweighted", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, ptMax); // use as a catch-all to see we haven't missed highPT jets
 
   int nEtaBins = 50;
   float etaMin(-2.5), etaMax(2.5);
@@ -141,6 +152,10 @@ void QGAnalysisHists::fill(const Event & event){
     float thrust = thisjet.thrust() / thrust_rescale;
 
     float jet_pt = thisjet.pt();
+    h_weights->Fill(weight);
+    h_weights_vs_pt->Fill(weight, jet_pt);
+
+    h_jet_pt_unweighted->Fill(jet_pt);
     h_jet_pt->Fill(jet_pt, weight);
     h_jet_eta->Fill(thisjet.eta(), weight);
 

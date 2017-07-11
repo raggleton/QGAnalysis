@@ -27,10 +27,16 @@ QGAnalysisTheoryHists::QGAnalysisTheoryHists(Context & ctx, const string & dirna
 
   int nBins = 100;
 
+  int nWeightBins = 11;
+  double weightBins [nWeightBins+1] = {1E-10, 1E-9, 1E-8, 1E-7, 1E-6, 1E-5, 1E-4, 1E-3, 1E-2, 1E-1, 1, 10};
+  h_weights = book<TH1F>("weights", ";weight;", nWeightBins, weightBins);
+  h_weights_vs_pt = book<TH2F>("weights_vs_pt", ";weight;", nWeightBins, weightBins, 200, 0., 2000.);
+
   // GENJET hists
   // ------------
   // For all jets
   h_genjet_pt = book<TH1F>("genjet_pt", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, 2*ptMax);
+  h_genjet_pt_unweighted = book<TH1F>("genjet_pt_unweighted", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, 2*ptMax);
   h_genjet_pt_all = book<TH1F>("genjet_pt_all", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, 2*ptMax);
   h_genjet_ht = book<TH1F>("genjet_ht", ";H_{T} [GeV];", 2*nPtBins, ptMin, 2*ptMax);
   h_genjet_eta = book<TH1F>("genjet_eta", ";#eta^{j};", nEtaBins, etaMin, etaMax);
@@ -120,8 +126,11 @@ void QGAnalysisTheoryHists::fill(const Event & event){
       break;
 
     std::vector<GenParticle*> daughters = get_genjet_genparticles(thisjet, genparticles);
+    h_weights->Fill(weight);
+    h_weights_vs_pt->Fill(weight, thisjet.pt());
 
     h_genjet_pt->Fill(thisjet.pt(), weight);
+    h_genjet_pt_unweighted->Fill(thisjet.pt());
     h_genjet_eta->Fill(thisjet.eta(), weight);
 
     // do special vars according to 1704.03878
