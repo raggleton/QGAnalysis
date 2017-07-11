@@ -32,7 +32,7 @@ public:
     virtual bool process(Event & event) override;
     std::vector<GenJetWithParts> getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=1.5, float lepton_overlap_dr=0.2);
     std::vector<GenParticle> getGenMuons(std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=2.5);
-
+    std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax=0.8);
 private:
 
     std::unique_ptr<CommonModules> common;
@@ -245,8 +245,11 @@ bool QGAnalysisModule::process(Event & event) {
     // 4) Resort by pT
     sort_by_pt(*event.jets);
 
-   // The Theory part
+   // THEORY PART
     std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, event.genparticles, 5., 1.5, jetRadius);
+    if (goodGenJets.size() < 1) {
+        return false;
+    }
     event.set(genjets_handle, std::move(goodGenJets));
 
     std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, 5., 2.5);
@@ -258,7 +261,6 @@ bool QGAnalysisModule::process(Event & event) {
     if (zpj_th && dj_th) {
         cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet theory criteria" << endl;
     }
-
 
     if (zpj_th) {
         zplusjets_hists_theory->fill(event);
@@ -276,6 +278,14 @@ bool QGAnalysisModule::process(Event & event) {
         if (dijet_theory_sel_pt_binned.at(i)->passes(event)) {
             dijet_hists_theory_pt_binned.at(i)->fill(event);
         }
+    }
+
+    // RECO PART
+    // Only consider jets that have a matching GenJet - this is to avoid dijet events solely from PU,
+    // which cause havoc if there is an event weight dervied from a significantly lower GenJet pT.
+    if (is_mc) {
+        std::vector<Jet> goodJets = getMatchedJets(event.jets, &event.get(genjets_handle), 0.8);
+        std::swap(goodJets, *event.jets);
     }
 
     // Preselection hists
@@ -325,6 +335,9 @@ bool QGAnalysisModule::process(Event & event) {
 }
 
 
+/**
+ * Get GenJets, ignoring those that are basically a lepton, and have some minimum pt and maximum eta.
+ */
 std::vector<GenJetWithParts> QGAnalysisModule::getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min, float eta_max, float lepton_overlap_dr) {
     std::vector<GenJetWithParts> genjets;
     for (const auto itr : *jets) {
@@ -343,6 +356,9 @@ std::vector<GenJetWithParts> QGAnalysisModule::getGenJets(std::vector<GenJetWith
 }
 
 
+/**
+ * Select gen muons from all genparticles, that have some minimum pt and maximum eta
+ */
 std::vector<GenParticle> QGAnalysisModule::getGenMuons(std::vector<GenParticle> * genparticles, float pt_min, float eta_max) {
     std::vector<GenParticle> muons;
     for(const auto itr : *genparticles) {
@@ -353,6 +369,22 @@ std::vector<GenParticle> QGAnalysisModule::getGenMuons(std::vector<GenParticle> 
     }
     sort_by_pt(muons);
     return muons;
+}
+
+/**
+ * Only select reco jets that have a matching GenJet within some DR
+ */
+std::vector<Jet> QGAnalysisModule::getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax) {
+    std::vector<Jet> goodJets;
+    for (const auto jtr: *jets) {
+        for (const auto genjtr: * genjets) {
+            if (deltaR(jtr, genjtr) < drMax) {
+                goodJets.push_back(jtr);
+                break;
+            }
+        }
+    }
+    return goodJets;
 }
 
 // as we want to run the ExampleCycleNew directly with AnalysisModuleRunner,
