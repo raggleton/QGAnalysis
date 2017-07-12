@@ -178,16 +178,16 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets"));
     zplusjets_hists_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_q"));
     zplusjets_hists_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_g"));
-    zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1));
+    zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1, "zplusjets"));
 
     dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel"));
     dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet"));
     dijet_hists_q.reset(new QGAnalysisDijetHists(ctx, "Dijet_q"));
     dijet_hists_g.reset(new QGAnalysisDijetHists(ctx, "Dijet_g"));
-    dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", 2));
+    dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", 2, "dijet"));
 
-    zplusjets_hists_theory.reset(new QGAnalysisTheoryHists(ctx, "ZPlusJets_genjet", 1));
-    dijet_hists_theory.reset(new QGAnalysisTheoryHists(ctx, "Dijet_genjet", 2));
+    zplusjets_hists_theory.reset(new QGAnalysisTheoryHists(ctx, "ZPlusJets_genjet", 1, "zplusjets"));
+    dijet_hists_theory.reset(new QGAnalysisTheoryHists(ctx, "Dijet_genjet", 2, "dijet"));
 
     for (auto pt : theory_pt_bins) {
         std::unique_ptr<Selection> A(new ZplusJetsTheorySelection(ctx, pt));
@@ -195,9 +195,9 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
         std::unique_ptr<Selection> B(new DijetTheorySelection(ctx, pt));
         dijet_theory_sel_pt_binned.push_back(std::move(B));
 
-        std::unique_ptr<QGAnalysisTheoryHists> a(new QGAnalysisTheoryHists(ctx, TString::Format("ZPlusJets_genjet_ptMin_%d", int(pt)).Data(), 1));
+        std::unique_ptr<QGAnalysisTheoryHists> a(new QGAnalysisTheoryHists(ctx, TString::Format("ZPlusJets_genjet_ptMin_%d", int(pt)).Data(), 1, "zplusjets"));
         zplusjets_hists_theory_pt_binned.push_back(std::move(a));
-        std::unique_ptr<QGAnalysisTheoryHists> b(new QGAnalysisTheoryHists(ctx, TString::Format("Dijet_genjet_ptMin_%d", int(pt)).Data(), 2));
+        std::unique_ptr<QGAnalysisTheoryHists> b(new QGAnalysisTheoryHists(ctx, TString::Format("Dijet_genjet_ptMin_%d", int(pt)).Data(), 2, "dijet"));
         dijet_hists_theory_pt_binned.push_back(std::move(b));
     }
 }

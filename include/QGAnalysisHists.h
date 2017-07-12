@@ -15,7 +15,7 @@ namespace uhh2examples {
 class QGAnalysisHists: public uhh2::Hists {
 public:
     // use the same constructor arguments as Hists for forwarding:
-    QGAnalysisHists(uhh2::Context & ctx, const std::string & dirname, int useNJets);
+    QGAnalysisHists(uhh2::Context & ctx, const std::string & dirname, int useNJets, const std::string & selection);
 
     virtual void fill(const uhh2::Event & ev) override;
     virtual ~QGAnalysisHists();
@@ -45,6 +45,9 @@ protected:
     TH2F *h_genjet_multiplicity_vs_pt, *h_genjet_LHA_vs_pt, *h_genjet_pTD_vs_pt, *h_genjet_width_vs_pt, *h_genjet_thrust_vs_pt, *h_genjet_flavour_vs_pt;
 
     int useNJets_;
+
+    bool doHerwigReweighting;
+    TH1F * reweightHist;
 };
 
 }

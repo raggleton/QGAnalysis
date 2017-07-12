@@ -22,6 +22,9 @@ protected:
     TH2F *deta_dphi_jj;
     TH1F *met_sig;
     TH2F *met_sig_pt_jet1;
+
+    bool doHerwigReweighting;
+    TH1F * reweightHist;
 };
 
 }

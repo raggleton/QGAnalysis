@@ -1,6 +1,7 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisDijetHists.h"
 #include "UHH2/core/include/Event.h"
 
+#include "TFile.h"
 #include "TH1F.h"
 #include "TH2F.h"
 #include <iostream>
@@ -10,6 +11,13 @@ using namespace uhh2;
 using namespace uhh2examples;
 
 QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname): Hists(ctx, dirname){
+  doHerwigReweighting = ctx.get("herwig_reweight_file", "") != "";
+  if (doHerwigReweighting) {
+    TFile f_weight(ctx.get("herwig_reweight_file", "").c_str());
+    reweightHist = (TH1F*) f_weight.Get("dijet_reco");
+    reweightHist->SetDirectory(0);
+  }
+
   // book all histograms here
   // jets
   n_jets = book<TH1F>("N_jets", ";N_{jets};", 10, 0, 10);
@@ -50,14 +58,26 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
 
 
 void QGAnalysisDijetHists::fill(const Event & event){
+  std::vector<Jet>* jets = event.jets;
+  int Njets = jets->size();
+
+  // Optionally apply weight to Herwig to ensure spectrum matches Pythia spectrum
+  float herwig_weight = 1.;
+  if (doHerwigReweighting && Njets >= 1) {
+    float pt = jets->at(0).pt();
+    if (pt >= reweightHist->GetXaxis()->GetXmax()) {
+      pt = reweightHist->GetXaxis()->GetXmax() - 0.1;
+    }
+    int bin_num = reweightHist->GetXaxis()->FindBin(pt);
+    herwig_weight = reweightHist->GetBinContent(bin_num);
+  }
+
   // fill the histograms. Please note better to
   // use histogram pointers as members instead of hist("name")
 
   // Don't forget to always use the weight when filling.
-  double weight = event.weight;
+  double weight = event.weight * herwig_weight;
 
-  std::vector<Jet>* jets = event.jets;
-  int Njets = jets->size();
   n_jets->Fill(Njets, weight);
 
   if (Njets < 2) return;
