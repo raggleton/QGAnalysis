@@ -194,7 +194,7 @@ void QGAnalysisTheoryHists::fill(const Event & event){
     h_genjet_width_vs_pt->Fill(width, jet_pt, weight);
     h_genjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
 
-    int flav = get_jet_flavour(thisjet, genparticles, jetRadius);
+    int flav = get_jet_flavour(thisjet, genparticles, jetRadius, true);
     h_genjet_flavour->Fill(abs(flav), weight);
     h_genjet_flavour_vs_pt->Fill(abs(flav), jet_pt, weight);
 
@@ -235,19 +235,19 @@ std::vector<GenParticle*> QGAnalysisTheoryHists::get_genjet_genparticles(const G
 /**
  *
  */
-int QGAnalysisTheoryHists::get_jet_flavour(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles, float dr_max) {
-  // cout << "jet:" << endl;
-  // cout << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
+int QGAnalysisTheoryHists::get_jet_flavour(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles, float dr_max, bool pythiaMode) {
+
+  // cout << "genjet:" << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
   float smallest_dr = dr_max;
   int pdgid = 0;
   for (const auto& gp : *genparticles) {
-    if (abs(gp.status()) != 23) continue;
+    if (pythiaMode && abs(gp.status()) != 23) continue;
     float dr = deltaR(jet.v4(), gp.v4());
     if (dr < smallest_dr) {
       pdgid = gp.pdgId();
       smallest_dr = dr;
+      // cout << gp.pt() << " : " << gp.eta() << " : " << gp.phi() << " : " << gp.pdgId() << " : " << gp.status() << " : " << deltaR(jet.v4(), gp.v4()) << endl;
     }
-    // cout << gp.pt() << " : " << gp.eta() << " : " << gp.phi() << " : " << gp.pdgId() << " : " << gp.status() << " : " << deltaR(jet.v4(), gp.v4()) << endl;
   }
   return pdgid;
 }

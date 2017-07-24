@@ -25,7 +25,7 @@ public:
     virtual ~QGAnalysisTheoryHists();
 protected:
     std::vector<GenParticle*> get_genjet_genparticles(const GenJetWithParts &, std::vector<GenParticle>*);
-    int get_jet_flavour(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles, float dr_max=0.2);
+    int get_jet_flavour(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles, float dr_max=0.2, bool PythiaMode=true);
 
     float jetRadius;
 
