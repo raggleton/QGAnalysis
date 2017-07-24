@@ -35,6 +35,8 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   eta_jet2 = book<TH1F>("eta_jet2", ";#eta^{jet 2};", nbins_eta, -eta_max, eta_max);
   phi_jet2 = book<TH1F>("phi_jet2", ";#phi^{jet 2};", nbins_phi, -TMath::Pi(), TMath::Pi());
 
+  pt_jet1_jet2 = book<TH2F>("pt_jet1_jet2", ";p_{T}^{jet 1};p_{T}^{jet 1};", nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
+
   pt_jet1_jet2_ratio = book<TH1F>("pt_jet1_jet2_ratio", ";p_{T}^{jet 2} / p_{T}^{jet 1};", 20, 0, 1);
 
   m_jj = book<TH1F>("m_jj", ";m_{jj} [GeV]", 100, 0, 4000);
@@ -92,6 +94,7 @@ void QGAnalysisDijetHists::fill(const Event & event){
   eta_jet2->Fill(jet2.eta(), weight);
   phi_jet2->Fill(jet2.phi(), weight);
 
+  pt_jet1_jet2->Fill(jet1.pt(), jet2.pt(), weight);
   pt_jet1_jet2_ratio->Fill(jet2.pt() / jet1.pt(), weight);
 
   double mass = (jet1.v4() + jet2.v4()).M();
