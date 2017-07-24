@@ -39,6 +39,8 @@ protected:
     TH1F *h_qgenjet_multiplicity, *h_qgenjet_LHA, *h_qgenjet_pTD, *h_qgenjet_width, *h_qgenjet_thrust;
     TH1F *h_ggenjet_multiplicity, *h_ggenjet_LHA, *h_ggenjet_pTD, *h_ggenjet_width, *h_ggenjet_thrust;
 
+    TH2F *h_genjet_pt_vs_const_pt, *h_genjet_pt_vs_const_deta, *h_genjet_pt_vs_const_dphi;
+
     TH2F *h_genjet_multiplicity_vs_pt, *h_genjet_LHA_vs_pt, *h_genjet_pTD_vs_pt, *h_genjet_width_vs_pt, *h_genjet_thrust_vs_pt;
     TH2F *h_qgenjet_multiplicity_vs_pt, *h_qgenjet_LHA_vs_pt, *h_qgenjet_pTD_vs_pt, *h_qgenjet_width_vs_pt, *h_qgenjet_thrust_vs_pt;
     TH2F *h_ggenjet_multiplicity_vs_pt, *h_ggenjet_LHA_vs_pt, *h_ggenjet_pTD_vs_pt, *h_ggenjet_width_vs_pt, *h_ggenjet_thrust_vs_pt;

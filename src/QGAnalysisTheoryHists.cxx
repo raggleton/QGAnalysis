@@ -79,6 +79,10 @@ QGAnalysisTheoryHists::QGAnalysisTheoryHists(Context & ctx, const string & dirna
   // h_ggenjet_width = book<TH1F>("ggenjet_width", "g-flavour;Width (#lambda_{1}^{1});", nBins, 0, 1);
   // h_ggenjet_thrust = book<TH1F>("ggenjet_thrust", "g-flavour jet;Thrust (#lambda_{2}^{1});", nBins, 0, 1);
 
+  h_genjet_pt_vs_const_pt = book<TH2F>("genjet_pt_vs_constituent_pt", ";p_{T} of constituents;Jet p_{T} [GeV]", 500, 0, 100, nPtBins, ptMin, ptMax);
+  h_genjet_pt_vs_const_deta = book<TH2F>("genjet_pt_vs_constituent_deta", ";#Delta#eta(jet, constituent);Jet p_{T} [GeV]", 500, 0, 0.5, nPtBins, ptMin, ptMax);
+  h_genjet_pt_vs_const_dphi = book<TH2F>("genjet_pt_vs_constituent_dphi", ";#Delta#phi(jet, constituent);Jet p_{T} [GeV]", 500, 0, 0.5, nPtBins, ptMin, ptMax);
+
   // 2D versions vs PT
   h_genjet_multiplicity_vs_pt = book<TH2F>("genjet_multiplicity_vs_pt", ";# of constituents (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
   h_genjet_LHA_vs_pt = book<TH2F>("genjet_LHA_vs_pt", ";LHA (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
@@ -169,6 +173,9 @@ void QGAnalysisTheoryHists::fill(const Event & event){
 
     for (auto dtr : daughters) {
       pt_sum += dtr->pt();
+      h_genjet_pt_vs_const_pt->Fill(dtr->pt(), thisjet.pt(), weight);
+      h_genjet_pt_vs_const_deta->Fill(fabs(dtr->eta() - thisjet.eta()), thisjet.pt(), weight);
+      h_genjet_pt_vs_const_dphi->Fill(fabs(deltaPhi(*dtr, thisjet)), thisjet.pt(), weight);
       mult += 1;
     }
 
