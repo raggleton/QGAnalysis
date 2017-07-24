@@ -42,12 +42,15 @@ private:
     std::unique_ptr<JetResolutionSmearer> jet_resolution_smearer;
     std::unique_ptr<JetCleaner> jet_cleaner;
 
-    // declare the Selections to use. Use unique_ptr to ensure automatic call of delete in the destructor,
-    // to avoid memory leaks.
-    std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel, first_jet_qflav_sel, first_jet_gflav_sel;
+    // Reco selections/hists
+    std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel, first_jet_qflav_sel, first_jet_gflav_sel, first_jet_uflav_sel, first_jet_dflav_sel, first_jet_sflav_sel;
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists, zplusjets_qg_hists, zplusjets_hists_q, zplusjets_hists_g;
     std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_qg_hists, dijet_hists_q, dijet_hists_g;
 
+    std::unique_ptr<Hists> zplusjets_qg_hists_u, zplusjets_qg_hists_d, zplusjets_qg_hists_s;
+    std::unique_ptr<Hists> dijet_qg_hists_u, dijet_qg_hists_d, dijet_qg_hists_s, dijet_qg_hists_c;
+
+    // Theory selections/hists
     std::unique_ptr<Selection> zplusjets_theory_sel, dijet_theory_sel;
     std::unique_ptr<Hists> zplusjets_hists_theory, dijet_hists_theory;
 
@@ -169,6 +172,9 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     first_jet_qflav_sel.reset(new JetFlavourSelection(q, 0));
     std::vector<int> g = {21};
     first_jet_gflav_sel.reset(new JetFlavourSelection(g, 0));
+    first_jet_dflav_sel.reset(new JetFlavourSelection({1}, 0));
+    first_jet_uflav_sel.reset(new JetFlavourSelection({2}, 0));
+    first_jet_sflav_sel.reset(new JetFlavourSelection({3}, 0));
 
     zplusjets_theory_sel.reset(new ZplusJetsTheorySelection(ctx));
     dijet_theory_sel.reset(new DijetTheorySelection(ctx));
@@ -179,12 +185,18 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     zplusjets_hists_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_q"));
     zplusjets_hists_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_g"));
     zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1, "zplusjets"));
+    zplusjets_qg_hists_u.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG_u", 1, "zplusjets"));
+    zplusjets_qg_hists_d.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG_d", 1, "zplusjets"));
+    zplusjets_qg_hists_s.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG_s", 1, "zplusjets"));
 
     dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel"));
     dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet"));
     dijet_hists_q.reset(new QGAnalysisDijetHists(ctx, "Dijet_q"));
     dijet_hists_g.reset(new QGAnalysisDijetHists(ctx, "Dijet_g"));
     dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", 2, "dijet"));
+    dijet_qg_hists_u.reset(new QGAnalysisHists(ctx, "Dijet_QG_u", 2, "dijet"));
+    dijet_qg_hists_d.reset(new QGAnalysisHists(ctx, "Dijet_QG_d", 2, "dijet"));
+    dijet_qg_hists_s.reset(new QGAnalysisHists(ctx, "Dijet_QG_s", 2, "dijet"));
 
     zplusjets_hists_theory.reset(new QGAnalysisTheoryHists(ctx, "ZPlusJets_genjet", 1, "zplusjets"));
     dijet_hists_theory.reset(new QGAnalysisTheoryHists(ctx, "Dijet_genjet", 2, "dijet"));
@@ -300,18 +312,34 @@ bool QGAnalysisModule::process(Event & event) {
     } else if (first_jet_qflav_sel->passes(event)) {
         zplusjets_hists_q->fill(event);
         dijet_hists_q->fill(event);
+
+
     }
 
     bool zpj = zplusjets_sel->passes(event);
     if (zpj) {
         zplusjets_hists->fill(event);
         zplusjets_qg_hists->fill(event);
+        if (first_jet_uflav_sel->passes(event)) {
+            zplusjets_qg_hists_u->fill(event);
+        } else if (first_jet_dflav_sel->passes(event)) {
+            zplusjets_qg_hists_d->fill(event);
+        } else if (first_jet_sflav_sel->passes(event)) {
+            zplusjets_qg_hists_s->fill(event);
+        }
     }
 
     bool dj = dijet_sel->passes(event);
     if (dj) {
         dijet_hists->fill(event);
         dijet_qg_hists->fill(event);
+        if (first_jet_uflav_sel->passes(event)) {
+            dijet_qg_hists_u->fill(event);
+        } else if (first_jet_dflav_sel->passes(event)) {
+            dijet_qg_hists_d->fill(event);
+        } else if (first_jet_sflav_sel->passes(event)) {
+            dijet_qg_hists_s->fill(event);
+        }
     }
 
     if (zpj && dj) {
