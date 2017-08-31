@@ -74,6 +74,16 @@ private:
     std::unique_ptr<Hists> zplusjets_qg_hists_u, zplusjets_qg_hists_d, zplusjets_qg_hists_s;
     std::unique_ptr<Hists> dijet_qg_hists_u, dijet_qg_hists_d, dijet_qg_hists_s, dijet_qg_hists_c;
 
+    // for sweeping over PU
+    std::vector<std::pair<int, int>> pu_bins = {
+        std::make_pair(5, 15),
+        std::make_pair(20, 25),
+        std::make_pair(30, 40)
+    };
+    std::vector< std::unique_ptr<Selection> > sel_pu_binned;
+    std::vector< std::unique_ptr<Hists> > zplusjets_qg_hists_pu_binned;
+    std::vector< std::unique_ptr<Hists> > dijet_qg_hists_pu_binned;
+
     // Theory selections/hists
     std::unique_ptr<Selection> zplusjets_theory_sel, dijet_theory_sel;
     std::unique_ptr<Hists> zplusjets_hists_theory, dijet_hists_theory;
@@ -236,6 +246,15 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
         std::unique_ptr<QGAnalysisTheoryHists> b(new QGAnalysisTheoryHists(ctx, TString::Format("Dijet_genjet_ptMin_%d", int(pt)).Data(), 2, "dijet"));
         dijet_hists_theory_pt_binned.push_back(std::move(b));
     }
+
+    for (auto puBin : pu_bins) {
+        std::unique_ptr<Selection> pu_sel(new NPVSelection(puBin.first, puBin.second));
+        sel_pu_binned.push_back(std::move(pu_sel));
+        std::unique_ptr<QGAnalysisHists> zpj(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), 1, "zplusjets"));
+        zplusjets_qg_hists_pu_binned.push_back(std::move(zpj));
+        std::unique_ptr<QGAnalysisHists> dj(new QGAnalysisHists(ctx, TString::Format("Dijet_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), 2, "dijet"));
+        dijet_qg_hists_pu_binned.push_back(std::move(dj));
+    }
 }
 
 
@@ -363,6 +382,13 @@ bool QGAnalysisModule::process(Event & event) {
             dijet_qg_hists_d->fill(event);
         } else if (first_jet_sflav_sel->passes(event)) {
             dijet_qg_hists_s->fill(event);
+        }
+    }
+
+    for (uint i=0; i<sel_pu_binned.size(); i++) {
+        if (sel_pu_binned.at(i)->passes(event)) {
+            if (zpj) zplusjets_qg_hists_pu_binned.at(i)->fill(event);
+            if (dj) dijet_qg_hists_pu_binned.at(i)->fill(event);
         }
     }
 
