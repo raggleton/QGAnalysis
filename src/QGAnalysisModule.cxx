@@ -132,8 +132,8 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     // Do manually and not in CommonModules to select correct cone size etc
     string jet_cone = ctx.get("JetCone", "AK4");
     string pu_removal = ctx.get("PURemoval", "CHS");
-    if (pu_removal != "CHS") {
-        throw runtime_error("Only PURemoval == CHS supported for now");
+    if (pu_removal != "CHS" || pu_removal != "PUPPI") {
+        throw runtime_error("Only PURemoval == CHS, PUPPI supported for now");
     }
 
     if (jet_cone.find("AK4") != string::npos)
@@ -152,11 +152,13 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
                 JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK4PFchs_MC;
             } else if (jet_cone == "AK8") {
                 JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK8PFchs_MC;
-            } else {
-                throw runtime_error("Unsupported JetCone value");
             }
-        } else {
-            throw runtime_error("Unsupported PURemoval value");
+        } else if (pu_removal == "PUPPI") {
+            if (jet_cone == "AK4") {
+                JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK4PFPuppi_MC;
+            } else if (jet_cone == "AK8") {
+                JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK8PFPuppi_MC;
+            }
         }
 
         jet_corrector_MC.reset(new JetCorrector(ctx, JEC_MC));
@@ -175,11 +177,19 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
                 JEC_EFearly = JERFiles::Summer16_23Sep2016_V4_EF_L123_AK8PFchs_DATA;
                 JEC_FlateG = JERFiles::Summer16_23Sep2016_V4_G_L123_AK8PFchs_DATA;
                 JEC_H = JERFiles::Summer16_23Sep2016_V4_H_L123_AK8PFchs_DATA;
-            } else {
-                throw runtime_error("Unsupported JetCone value");
             }
-        } else {
-            throw runtime_error("Unsupported PURemoval value");
+        } else if (pu_removal == "PUPPI") {
+            if (jet_cone == "AK4") {
+                JEC_BCD = JERFiles::Summer16_23Sep2016_V4_BCD_L123_AK4PFPuppi_DATA;
+                JEC_EFearly = JERFiles::Summer16_23Sep2016_V4_EF_L123_AK4PFPuppi_DATA;
+                JEC_FlateG = JERFiles::Summer16_23Sep2016_V4_G_L123_AK4PFPuppi_DATA;
+                JEC_H = JERFiles::Summer16_23Sep2016_V4_H_L123_AK4PFPuppi_DATA;
+            } else if (jet_cone == "AK8") {
+                JEC_BCD = JERFiles::Summer16_23Sep2016_V4_BCD_L123_AK8PFPuppi_DATA;
+                JEC_EFearly = JERFiles::Summer16_23Sep2016_V4_EF_L123_AK8PFPuppi_DATA;
+                JEC_FlateG = JERFiles::Summer16_23Sep2016_V4_G_L123_AK8PFPuppi_DATA;
+                JEC_H = JERFiles::Summer16_23Sep2016_V4_H_L123_AK8PFPuppi_DATA;
+            }
         }
 
         jet_corrector_BCD.reset(new JetCorrector(ctx, JEC_BCD));
