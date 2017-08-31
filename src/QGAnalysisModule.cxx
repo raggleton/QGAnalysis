@@ -20,7 +20,29 @@
 using namespace std;
 using namespace uhh2;
 
+namespace Color {
+    enum Code {
+        FG_RED      = 31,
+        FG_GREEN    = 32,
+        FG_YELLOW   = 33,
+        FG_BLUE     = 34,
+        FG_MAGENTA  = 35,
+        FG_CYAN     = 36,
+        FG_DEFAULT  = 39,
+        BG_RED      = 41,
+        BG_GREEN    = 42,
+        BG_BLUE     = 44,
+        BG_DEFAULT  = 49
+    };
+    std::ostream& operator<<(std::ostream& os, Code code) {
+        return os << "\033[" << static_cast<int>(code) << "m";
+    }
+}
+
 namespace uhh2examples {
+
+const bool PRINTOUT = false;
+
 
 /** \brief Basic analysis preselection
  *
@@ -33,6 +55,8 @@ public:
     std::vector<GenJetWithParts> getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=1.5, float lepton_overlap_dr=0.2);
     std::vector<GenParticle> getGenMuons(std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=2.5);
     std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax=0.8);
+    void printGenParticles(const std::vector<GenParticle> & gps, const std::string & info="", Color::Code color=Color::FG_DEFAULT);
+
 private:
 
     std::unique_ptr<CommonModules> common;
@@ -257,7 +281,9 @@ bool QGAnalysisModule::process(Event & event) {
     // 4) Resort by pT
     sort_by_pt(*event.jets);
 
-   // THEORY PART
+    // THEORY PART
+    // printGenParticles(*event.genparticles);
+
     std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, event.genparticles, 5., 1.5, jetRadius);
     if (goodGenJets.size() < 1) {
         return false;
@@ -312,8 +338,6 @@ bool QGAnalysisModule::process(Event & event) {
     } else if (first_jet_qflav_sel->passes(event)) {
         zplusjets_hists_q->fill(event);
         dijet_hists_q->fill(event);
-
-
     }
 
     bool zpj = zplusjets_sel->passes(event);
@@ -418,6 +442,18 @@ std::vector<Jet> QGAnalysisModule::getMatchedJets(std::vector<Jet> * jets, std::
         }
     }
     return goodJets;
+}
+
+void QGAnalysisModule::printGenParticles(const std::vector<GenParticle> & gps, const std::string & label, Color::Code color) {
+    if (!PRINTOUT) return;
+    for (auto & itr: gps) {
+        if (itr.status() != 1) continue;
+        cout << color << "GP";
+        if (label != "") {
+            cout << " [" << label << "]";
+        }
+        cout << ": " << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
+    }
 }
 
 // as we want to run the ExampleCycleNew directly with AnalysisModuleRunner,
