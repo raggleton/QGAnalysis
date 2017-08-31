@@ -384,17 +384,22 @@ std::vector<GenJetWithParts> QGAnalysisModule::getGenJets(std::vector<GenJetWith
 }
 
 
+
 /**
  * Select gen muons from all genparticles, that have some minimum pt and maximum eta
  */
 std::vector<GenParticle> QGAnalysisModule::getGenMuons(std::vector<GenParticle> * genparticles, float pt_min, float eta_max) {
     std::vector<GenParticle> muons;
-    for(const auto itr : *genparticles) {
-        bool found = (std::find(muons.begin(), muons.end(), itr) != muons.end());
-        if ((abs(itr.pdgId()) == 13) && (itr.status() == 1) && (itr.pt() > pt_min) && (fabs(itr.eta()) < eta_max) && !found) {
-            muons.push_back(itr);
+    // Do in reverse order to pick up most evolved muons first
+    for (auto itr = genparticles->rbegin(); itr != genparticles->rend(); ++itr){
+        // We check to see if we already have a very similar, bu tno exact, muon
+        // since the MC "evolves" the particle and slightly changes pt/eta/phi
+        bool alreadyFound = std::any_of(muons.begin(), muons.end(), [&itr] (const GenParticle & mtr) { return deltaR(*itr, mtr) < 0.05 && itr->charge() == mtr.charge(); });
+        if ((abs(itr->pdgId()) == 13) && (itr->status() == 1) && (itr->pt() > pt_min) && (fabs(itr->eta()) < eta_max) && !alreadyFound) {
+            muons.push_back(*itr);
         }
     }
+    // turn this off, because we want the latest muons, not similar ones
     sort_by_pt(muons);
     return muons;
 }
