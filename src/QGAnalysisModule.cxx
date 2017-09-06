@@ -132,7 +132,7 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     // Do manually and not in CommonModules to select correct cone size etc
     string jet_cone = ctx.get("JetCone", "AK4");
     string pu_removal = ctx.get("PURemoval", "CHS");
-    if (pu_removal != "CHS" || pu_removal != "PUPPI") {
+    if (pu_removal != "CHS" && pu_removal != "PUPPI") {
         throw runtime_error("Only PURemoval == CHS, PUPPI supported for now");
     }
 

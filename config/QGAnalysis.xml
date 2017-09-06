@@ -2,22 +2,18 @@
 <!DOCTYPE JobConfiguration PUBLIC "" "JobConfig.dtd" [
 
     <!ENTITY NEVT "-1">
+
+    <!-- Output directories -->
     <!ENTITY ODIR-MG-PYTHIA "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/MGPythia">
     <!ENTITY ODIR-HERWIG "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/Herwig">
     <!ENTITY ODIR-PYTHIA "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/PythiaOnlyFlat">
 
-    <!-- create input XMl using createConfigSnippets.py -->
+    <!-- OLD partial datasets: create input XMl using createConfigSnippets.py -->
     <!-- <!ENTITY INPUT SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/100K/input.xml"> -->
     <!-- <!ENTITY INPUT SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/Herwig/input.xml"> -->
     <!-- <!ENTITY INPUT SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/PythiaOnlyFlat/input.xml"> -->
 
-    <!ENTITY MG-PYTHIA SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/">
-    <!ENTITY HERWIG-ONLY SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/HerwigOnly/">
-    <!ENTITY MG-HERWIG SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Herwig/">
-    
-    <!ENTITY MG-PYTHIA-QCD SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/QCD_HT_All.xml">
-    <!ENTITY MG-PYTHIA-DY SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL_All.xml">
-    
+    <!-- Full datasets -->
     <!ENTITY MG-PYTHIA-DYJetsToLL_HT70to100 SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL_HT70to100.xml">
     <!ENTITY MG-PYTHIA-DYJetsToLL_HT100to200 SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL_HT100to200.xml">
     <!ENTITY MG-PYTHIA-DYJetsToLL_HT200to400 SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL_HT200to400.xml">
@@ -39,6 +35,7 @@
     
     <!ENTITY HERWIG-QCD SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/HerwigOnly/QCD_Pt15to7000_Flat.xml">
     <!ENTITY MG-HERWIG-DY SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Herwig/DYJetsToLL.xml">
+    <!ENTITY PYTHIA-QCD SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/PythiaOnly/QCD_Pt15to7000_Flat.xml">
 ]>
 
 
