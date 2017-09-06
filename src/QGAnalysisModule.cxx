@@ -310,14 +310,35 @@ bool QGAnalysisModule::process(Event & event) {
     // 4) Resort by pT
     sort_by_pt(*event.jets);
 
+
     // THEORY PART
     // printGenParticles(*event.genparticles);
 
     std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, event.genparticles, 5., 1.5, jetRadius);
-    if (goodGenJets.size() < 1) {
-        return false;
-    }
+    if (goodGenJets.size() == 0) return false;
+    if (event.jets->size() == 0) return false;
+
+    // Check event weight is sensible based on pthat
+    // could also use qScale
+    double ptHat = event.genInfo->binningValues()[0]; // yes this is correct. no idea why
+    if (goodGenJets[0].pt() / ptHat > 2) return false;
+    // Again, need to do this as sometimes reco dodgy but gen ok can end up with dodgy weight
+    if (event.jets->at(0).pt() / ptHat > 2) return false;
+
     event.set(genjets_handle, std::move(goodGenJets));
+
+    // Determine if weight is good - weight calculated based on leading jet
+    // Bad if it's a PU jet!
+    if (is_mc) {
+        bool goodEvent = false;
+        for (const auto genjtr: event.get(genjets_handle)) {
+            if (deltaR(event.jets->at(0), genjtr) < jetRadius){
+                goodEvent = true;
+                break;
+            }
+        }
+        if (!goodEvent) return false;
+    }
 
     std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, 5., 2.5);
     event.set(genmuons_handle, std::move(goodGenMuons));
@@ -351,7 +372,7 @@ bool QGAnalysisModule::process(Event & event) {
     // Only consider jets that have a matching GenJet - this is to avoid dijet events solely from PU,
     // which cause havoc if there is an event weight dervied from a significantly lower GenJet pT.
     if (is_mc) {
-        std::vector<Jet> goodJets = getMatchedJets(event.jets, &event.get(genjets_handle), 0.8);
+        std::vector<Jet> goodJets = getMatchedJets(event.jets, &event.get(genjets_handle), jetRadius);
         std::swap(goodJets, *event.jets);
     }
 
