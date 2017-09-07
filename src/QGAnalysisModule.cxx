@@ -320,10 +320,10 @@ bool QGAnalysisModule::process(Event & event) {
 
     // Check event weight is sensible based on pthat
     // could also use qScale
-    double ptHat = event.genInfo->binningValues()[0]; // yes this is correct. no idea why
-    if (goodGenJets[0].pt() / ptHat > 2) return false;
+    double qScale = event.genInfo->qScale(); // yes this is correct. no idea why
+    if (goodGenJets[0].pt() / qScale > 2) return false;
     // Again, need to do this as sometimes reco dodgy but gen ok can end up with dodgy weight
-    if (event.jets->at(0).pt() / ptHat > 2) return false;
+    if (event.jets->at(0).pt() / qScale > 2) return false;
 
     event.set(genjets_handle, std::move(goodGenJets));
 
