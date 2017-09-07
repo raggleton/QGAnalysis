@@ -30,16 +30,15 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   }
 
   // book all histograms here
-  std::vector<double> weightBins;
-  for (int p = -12; p <= 1; p++) {
-    weightBins.push_back(pow(10, p));
-    weightBins.push_back(2.*pow(10, p));
-    weightBins.push_back(5.*pow(10, p));
-    weightBins.push_back(8.*pow(10, p));
-  }
-  int nWeightBins = weightBins.size()-1;
-  h_weights = book<TH1F>("weights", ";weight;", nWeightBins, &weightBins[0]);
-  h_weights_vs_pt = book<TH2F>("weights_vs_pt", ";weight;", nWeightBins, &weightBins[0], 200, 0., 2000.);
+  int nWeightBins = 11;
+  double weightBins [nWeightBins+1] = {1E-10, 1E-9, 1E-8, 1E-7, 1E-6, 1E-5, 1E-4, 1E-3, 1E-2, 1E-1, 1, 10};
+
+  h_weights = book<TH1F>("weights", ";weight;", nWeightBins, weightBins);
+  h_weights_vs_pt = book<TH2F>("weights_vs_pt", ";weight;", nWeightBins, weightBins, 200, 0., 2000.);
+  h_PU_pT_hat_max_vs_weight = book<TH2F>("PU_pT_hat_max_vs_pt", ";weight;PU_pT_hat_max", nWeightBins, weightBins, 200, 0, 200);
+  h_qscale_vs_weight = book<TH2F>("qscale_vs_weight", ";weight;qScale", nWeightBins, weightBins, 200, 0, 2000);
+  h_pthat_vs_weight = book<TH2F>("pthat_vs_weight", ";weight;ptHat", nWeightBins, weightBins, 200, 0, 2000);
+  h_pthat_vs_jet_pt = book<TH2F>("pthat_vs_jet_pt", ";p_{T}^{leading jet};ptHat", 200, 0, 2000, 200, 0, 2000);
 
   // RECO jet hists
   // --------------
@@ -171,6 +170,12 @@ void QGAnalysisHists::fill(const Event & event){
   // Don't forget to always use the weight when filling.
   double weight = event.weight * herwig_weight;
 
+  h_weights->Fill(weight);
+  h_PU_pT_hat_max_vs_weight->Fill(weight, event.genInfo->PU_pT_hat_max());
+  h_qscale_vs_weight->Fill(weight, event.genInfo->qScale());
+  if (event.genInfo->binningValues().size() > 0)
+    h_pthat_vs_weight->Fill(weight, event.genInfo->binningValues()[0]);
+
   // Fill reco jet hists
   for (int i = 0; i < useNJets_; i++) {
     const Jet & thisjet = jets->at(i);
@@ -181,9 +186,12 @@ void QGAnalysisHists::fill(const Event & event){
     float thrust = thisjet.thrust() / thrust_rescale;
 
     float jet_pt = thisjet.pt();
-    h_weights->Fill(weight);
     h_weights_vs_pt->Fill(weight, jet_pt);
-
+    if (i == 0) {
+      h_weights_vs_pt->Fill(weight, thisjet.pt());
+      if (event.genInfo->binningValues().size() > 0)
+        h_pthat_vs_jet_pt->Fill(thisjet.pt(), event.genInfo->binningValues()[0]);
+    }
     h_jet_pt_unweighted->Fill(jet_pt);
     h_jet_pt->Fill(jet_pt, weight);
     h_jet_eta->Fill(thisjet.eta(), weight);

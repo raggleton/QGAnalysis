@@ -48,6 +48,10 @@ QGAnalysisTheoryHists::QGAnalysisTheoryHists(Context & ctx, const string & dirna
   double weightBins [nWeightBins+1] = {1E-10, 1E-9, 1E-8, 1E-7, 1E-6, 1E-5, 1E-4, 1E-3, 1E-2, 1E-1, 1, 10};
   h_weights = book<TH1F>("weights", ";weight;", nWeightBins, weightBins);
   h_weights_vs_pt = book<TH2F>("weights_vs_pt", ";weight;", nWeightBins, weightBins, 200, 0., 2000.);
+  h_PU_pT_hat_max_vs_weight = book<TH2F>("PU_pT_hat_max_vs_pt", ";weight;PU_pT_hat_max", nWeightBins, weightBins, 200, 0, 200);
+  h_qscale_vs_weight = book<TH2F>("qscale_vs_weight", ";weight;qScale", nWeightBins, weightBins, 200, 0, 2000);
+  h_pthat_vs_weight = book<TH2F>("pthat_vs_weight", ";weight;ptHat", nWeightBins, weightBins, 200, 0, 2000);
+  h_pthat_vs_genjet_pt = book<TH2F>("pthat_vs_genjet_pt", ";p_{T}^{leading genjet};ptHat", 200, 0, 2000, 200, 0, 2000);
 
   // GENJET hists
   // ------------
@@ -152,15 +156,25 @@ void QGAnalysisTheoryHists::fill(const Event & event){
   }
   h_genjet_ht->Fill(ht, weight);
 
+  h_weights->Fill(weight);
+  h_PU_pT_hat_max_vs_weight->Fill(weight, event.genInfo->PU_pT_hat_max());
+  h_qscale_vs_weight->Fill(weight, event.genInfo->qScale());
+  if (event.genInfo->binningValues().size() > 0)
+    h_pthat_vs_weight->Fill(weight, event.genInfo->binningValues()[0]);
+
   int counter = 0;
   for (const auto & thisjet : genjets) {
     counter++;
     if (counter > useNJets_)
       break;
+    
+    if (counter == 1) {
+      h_weights_vs_pt->Fill(weight, thisjet.pt());
+      if (event.genInfo->binningValues().size() > 0)
+        h_pthat_vs_genjet_pt->Fill(thisjet.pt(), event.genInfo->binningValues()[0]);
+    }
 
     std::vector<GenParticle*> daughters = get_genjet_genparticles(thisjet, genparticles);
-    h_weights->Fill(weight);
-    h_weights_vs_pt->Fill(weight, thisjet.pt());
 
     h_genjet_pt->Fill(thisjet.pt(), weight);
     h_genjet_pt_unweighted->Fill(thisjet.pt());

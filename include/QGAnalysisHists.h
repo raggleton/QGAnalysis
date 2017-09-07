@@ -27,6 +27,8 @@ protected:
     float jetRadius, LHA_rescale, width_rescale, thrust_rescale;
     TH1F * h_weights;
     TH2F * h_weights_vs_pt;
+    TH2F *h_pthat_vs_weight, *h_PU_pT_hat_max_vs_weight, *h_qscale_vs_weight, *h_pthat_vs_jet_pt;
+
     TH1F *h_jet_pt, *h_jet_pt_unweighted, *h_jet_eta, *h_jet_flavour, *h_jet_genParton_flavour;
     TH1F *h_jet_multiplicity, *h_jet_LHA, *h_jet_pTD, *h_jet_width, *h_jet_thrust;
     TH1F *h_qjet_multiplicity, *h_qjet_LHA, *h_qjet_pTD, *h_qjet_width, *h_qjet_thrust;
