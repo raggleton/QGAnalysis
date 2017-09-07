@@ -166,25 +166,35 @@
             <!-- <Item Name="TauCollection" Value="slimmedTaus" /> -->
 
             <!-- ak4 jets -->
-            <Item Name="JetCollection" Value="slimmedJets" />
-            <!-- <Item Name="JetCollection" Value="slimmedJetsPuppi" /> -->
+            <Item Name="JetCone" Value="AK4" />
             <Item Name="GenJetCollection" Value="slimmedGenJets" />
 
+            <!-- CHS -->
+            <Item Name="JetCollection" Value="slimmedJets" />
+            <Item Name="METName" Value="slimmedMETs" />
+            <Item Name="PURemoval" Value="CHS" />
+
+            <!-- PUPPI -->
+            <!-- <Item Name="JetCollection" Value="slimmedJetsPuppi" /> -->
+            <!-- <Item Name="METName" Value="slimmedMETsPuppi" /> -->
+            <!-- <Item Name="PURemoval" Value="PUPPI" /> -->
+
             <!-- ak8 jets -->
-            <!-- <Item Name="JetCollection" Value="patJetsAK8PFCHF" /> -->
-            <!-- <Item Name="JetCollection" Value="patJetsAK8PFPUPPI" /> -->
+            <!-- <Item Name="JetCone" Value="AK8" /> -->
             <!-- <Item Name="GenJetCollection" Value="slimmedGenJetsAK8" /> -->
 
-            <Item Name="JetCone" Value="AK4" />
-            <!-- <Item Name="JetCone" Value="AK8" /> -->
+            <!-- CHS -->
+            <!-- <Item Name="JetCollection" Value="patJetsAK8PFCHS" /> -->
+            <!-- <Item Name="METName" Value="slimmedMETs" /> -->
+            <!-- <Item Name="PURemoval" Value="CHS" /> -->
 
-            <!-- ca15 jets -->
-            <!-- <Item Name="GenJetCollection" Value="ca15GenJets" /> -->
+            <!-- PUPPI -->
+            <!-- <Item Name="JetCollection" Value="patJetsAK8PFPUPPI" /> -->
+            <!-- <Item Name="METName" Value="slimmedMETsPuppi" /> -->
+            <!-- <Item Name="PURemoval" Value="PUPPI" /> -->
+
 
             <Item Name="GenParticleCollection" Value="GenParticles" />
-
-            <Item Name="METName" Value="slimmedMETs" />
-            <!-- <Item Name="METName" Value="slimmedMETsPuppi" /> -->
 
             <!-- the class name of the AnalysisModule subclasses to run: -->
             <Item Name="AnalysisModule" Value="QGAnalysisModule" />
@@ -194,7 +204,13 @@
                  event weight assigned by MCLumiWeight is InputData.Lumi / Cycle.TargetLumi. -->
             <Item Name="use_sframe_weight" Value="false" />
 
-            <Item Name="PURemoval" Value="CHS" />
+
+            <!-- If you want to reweight herwig pT spectrum to match Pythia -->
+            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_weights_ak4chs.root" /> -->
+            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_weights_ak4puppi.root" /> -->
+            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_weights_ak8chs.root" /> -->
+            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_weights_ak8puppi.root" /> -->
+            <Item Name="herwig_reweight_file" Value="" />
 
         </UserConfig>
     </Cycle>
