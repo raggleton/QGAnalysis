@@ -56,6 +56,8 @@ public:
     std::vector<GenParticle> getGenMuons(std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=2.5);
     std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax=0.8);
     void printGenParticles(const std::vector<GenParticle> & gps, const std::string & info="", Color::Code color=Color::FG_DEFAULT);
+    void printGenJets(const std::vector<GenJetWithParts> & gps, const std::string & info="", Color::Code color=Color::FG_BLUE);
+    void printJets(const std::vector<Jet> & jets, const std::string & info="", Color::Code color=Color::FG_GREEN);
 
 private:
 
@@ -269,6 +271,8 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
 
 
 bool QGAnalysisModule::process(Event & event) {
+    if (PRINTOUT) {cout << "-- Event: " << event.event << endl;}
+
     // This is the main procedure, called for each event.
     if (!common->process(event)) {return false;}
 
@@ -511,6 +515,28 @@ void QGAnalysisModule::printGenParticles(const std::vector<GenParticle> & gps, c
             cout << " [" << label << "]";
         }
         cout << ": " << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
+    }
+}
+
+void QGAnalysisModule::printGenJets(const std::vector<GenJetWithParts> & gps, const std::string & label, Color::Code color) {
+    if (!PRINTOUT) return;
+    for (auto & itr: gps) {
+        cout << color << "GenJet";
+        if (label != "") {
+            cout << " [" << label << "]";
+        }
+        cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
+    }
+}
+
+void QGAnalysisModule::printJets(const std::vector<Jet> & jets, const std::string & label, Color::Code color) {
+    if (!PRINTOUT) return;
+    for (auto & itr: jets) {
+        cout << color << "jet";
+        if (label != "") {
+            cout << " [" << label << "]";
+        }
+        cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
     }
 }
 
