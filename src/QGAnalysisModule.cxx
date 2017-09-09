@@ -44,7 +44,7 @@ namespace uhh2examples {
 const bool PRINTOUT = false;
 
 // Easy way to refer to PDGIDs
-enum PartonID {
+enum PDGID {
     UNKNOWN = 0,
     DOWN_QUARK = 1,
     UP_QUARK = 2,
@@ -52,6 +52,9 @@ enum PartonID {
     CHARM_QUARK = 4,
     BOTTOM_QUARK = 5,
     TOP_QUARK = 6,
+    ELECTRON = 11,
+    MUON = 13,
+    TAU = 14,
     GLUON = 21
 };
 
@@ -399,25 +402,25 @@ bool QGAnalysisModule::process(Event & event) {
     if (event.jets->size() > 1) {
         flav2 = event.jets->at(1).genPartonFlavor();
     }
-    if (flav1 == PartonID::GLUON) {
+    if (flav1 == PDGID::GLUON) {
         zplusjets_hists_presel_g->fill(event);
-        if (flav2 > PartonID::UNKNOWN && flav2 < PartonID::CHARM_QUARK) {
+        if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
             dijet_hists_presel_qg->fill(event);
-        } else if (flav2 == PartonID::GLUON) {
+        } else if (flav2 == PDGID::GLUON) {
             dijet_hists_presel_gg->fill(event);
-        } else if (flav2 == PartonID::UNKNOWN) {
+        } else if (flav2 == PDGID::UNKNOWN) {
             dijet_hists_presel_unknown->fill(event);
         }
-    } else if (flav1 > PartonID::UNKNOWN && flav1 < PartonID::CHARM_QUARK) {
+    } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
         zplusjets_hists_presel_q->fill(event);
-        if (flav2 > PartonID::UNKNOWN && flav2 < PartonID::CHARM_QUARK) {
+        if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
             dijet_hists_presel_qq->fill(event);
-        } else if (flav2 == PartonID::GLUON) {
+        } else if (flav2 == PDGID::GLUON) {
             dijet_hists_presel_qg->fill(event);
-        } else if (flav2 == PartonID::UNKNOWN) {
+        } else if (flav2 == PDGID::UNKNOWN) {
             dijet_hists_presel_unknown->fill(event);
         }
-    } else if (flav1 == PartonID::UNKNOWN) {
+    } else if (flav1 == PDGID::UNKNOWN) {
         zplusjets_hists_presel_unknown->fill(event);
     }
 
@@ -476,7 +479,7 @@ std::vector<GenJetWithParts> QGAnalysisModule::getGenJets(std::vector<GenJetWith
         bool leptonOverlap = false;
         if (genparticles != nullptr) {
             for (const auto & ptr : *genparticles) {
-                leptonOverlap = leptonOverlap || (((abs(ptr.pdgId()) == 13) || (abs(ptr.pdgId()) == 11) || (abs(ptr.pdgId()) == 15)) && (deltaR(ptr.v4(), itr.v4()) < lepton_overlap_dr));
+                leptonOverlap = leptonOverlap || (((abs(ptr.pdgId()) == PDGID::MUON) || (abs(ptr.pdgId()) == PDGID::ELECTRON) || (abs(ptr.pdgId()) == PDGID::TAU)) && (deltaR(ptr.v4(), itr.v4()) < lepton_overlap_dr));
             }
         }
         if ((itr.pt() > pt_min) && (fabs(itr.eta()) < eta_max) && !found && !leptonOverlap) genjets.push_back(itr);
@@ -497,7 +500,7 @@ std::vector<GenParticle> QGAnalysisModule::getGenMuons(std::vector<GenParticle> 
         // We check to see if we already have a very similar, bu tno exact, muon
         // since the MC "evolves" the particle and slightly changes pt/eta/phi
         bool alreadyFound = std::any_of(muons.begin(), muons.end(), [&itr] (const GenParticle & mtr) { return deltaR(*itr, mtr) < 0.05 && itr->charge() == mtr.charge(); });
-        if ((abs(itr->pdgId()) == 13) && (itr->status() == 1) && (itr->pt() > pt_min) && (fabs(itr->eta()) < eta_max) && !alreadyFound) {
+        if ((abs(itr->pdgId()) == PDGID::MUON) && (itr->status() == 1) && (itr->pt() > pt_min) && (fabs(itr->eta()) < eta_max) && !alreadyFound) {
             muons.push_back(*itr);
         }
     }
