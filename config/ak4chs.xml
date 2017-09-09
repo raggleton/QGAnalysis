@@ -1,0 +1,6 @@
+<!-- ak4 CHS jets snippet -->
+<Item Name="JetCone" Value="AK4" />
+<Item Name="GenJetCollection" Value="slimmedGenJets" />
+<Item Name="JetCollection" Value="slimmedJets" />
+<Item Name="METName" Value="slimmedMETs" />
+<Item Name="PURemoval" Value="CHS" />

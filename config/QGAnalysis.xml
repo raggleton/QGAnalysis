@@ -22,7 +22,7 @@
     <!ENTITY MG-PYTHIA-DYJetsToLL_HT800to1200 SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL_HT800to1200.xml">
     <!ENTITY MG-PYTHIA-DYJetsToLL_HT1200to2500 SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL_HT1200to2500.xml">
     <!ENTITY MG-PYTHIA-DYJetsToLL_HT2500toInf SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL_HT2500toInf.xml">
-    
+
     <!ENTITY MG-PYTHIA-QCD_HT50to100 SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/QCD_HT50to100.xml">
     <!ENTITY MG-PYTHIA-QCD_HT100to200 SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/QCD_HT100to200.xml">
     <!ENTITY MG-PYTHIA-QCD_HT200to300 SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/QCD_HT200to300.xml">
@@ -32,10 +32,16 @@
     <!ENTITY MG-PYTHIA-QCD_HT1000to1500 SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/QCD_HT1000to1500.xml">
     <!ENTITY MG-PYTHIA-QCD_HT1500to2000 SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/QCD_HT1500to2000.xml">
     <!ENTITY MG-PYTHIA-QCD_HT2000toInf SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/QCD_HT2000toInf.xml">
-    
+
     <!ENTITY HERWIG-QCD SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/HerwigOnly/QCD_Pt15to7000_Flat.xml">
     <!ENTITY MG-HERWIG-DY SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Herwig/DYJetsToLL.xml">
     <!ENTITY PYTHIA-QCD SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/PythiaOnly/QCD_Pt15to7000_Flat.xml">
+
+    <!-- Jet config snippets -->
+    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chs.xml">
+    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4puppi.xml">
+    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8chs.xml">
+    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8puppi.xml">
 ]>
 
 
@@ -163,36 +169,13 @@
             <Item Name="PrimaryVertexCollection" Value="offlineSlimmedPrimaryVertices" />
             <Item Name="ElectronCollection" Value="slimmedElectronsUSER" />
             <Item Name="MuonCollection" Value="slimmedMuonsUSER" />
-            <!-- <Item Name="TauCollection" Value="slimmedTaus" /> -->
 
-            <!-- ak4 jets -->
-            <Item Name="JetCone" Value="AK4" />
-            <Item Name="GenJetCollection" Value="slimmedGenJets" />
+            <!-- Choose your jet configuration -->
 
-            <!-- CHS -->
-            <Item Name="JetCollection" Value="slimmedJets" />
-            <Item Name="METName" Value="slimmedMETs" />
-            <Item Name="PURemoval" Value="CHS" />
-
-            <!-- PUPPI -->
-            <!-- <Item Name="JetCollection" Value="slimmedJetsPuppi" /> -->
-            <!-- <Item Name="METName" Value="slimmedMETsPuppi" /> -->
-            <!-- <Item Name="PURemoval" Value="PUPPI" /> -->
-
-            <!-- ak8 jets -->
-            <!-- <Item Name="JetCone" Value="AK8" /> -->
-            <!-- <Item Name="GenJetCollection" Value="slimmedGenJetsAK8" /> -->
-
-            <!-- CHS -->
-            <!-- <Item Name="JetCollection" Value="patJetsAK8PFCHS" /> -->
-            <!-- <Item Name="METName" Value="slimmedMETs" /> -->
-            <!-- <Item Name="PURemoval" Value="CHS" /> -->
-
-            <!-- PUPPI -->
-            <!-- <Item Name="JetCollection" Value="patJetsAK8PFPUPPI" /> -->
-            <!-- <Item Name="METName" Value="slimmedMETsPuppi" /> -->
-            <!-- <Item Name="PURemoval" Value="PUPPI" /> -->
-
+            &AK4CHS;
+            <!-- &AK4PUPPI; -->
+            <!-- &AK8CHS; -->
+            <!-- &AK8PUPPI; -->
 
             <Item Name="GenParticleCollection" Value="GenParticles" />
 
