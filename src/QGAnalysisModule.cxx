@@ -43,6 +43,17 @@ namespace uhh2examples {
 
 const bool PRINTOUT = false;
 
+// Easy way to refer to PDGIDs
+enum PartonID {
+    UNKNOWN = 0,
+    DOWN_QUARK = 1,
+    UP_QUARK = 2,
+    STRANGE_QUARK = 3,
+    CHARM_QUARK = 4,
+    BOTTOM_QUARK = 5,
+    TOP_QUARK = 6,
+    GLUON = 21
+};
 
 /** \brief Basic analysis preselection
  *
@@ -71,7 +82,9 @@ private:
     // Reco selections/hists
     std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel, first_jet_qflav_sel, first_jet_gflav_sel, first_jet_uflav_sel, first_jet_dflav_sel, first_jet_sflav_sel;
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists, zplusjets_qg_hists, zplusjets_hists_q, zplusjets_hists_g;
+    std::unique_ptr<Hists> zplusjets_hists_presel_q, zplusjets_hists_presel_g, zplusjets_hists_presel_unknown;
     std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_qg_hists, dijet_hists_q, dijet_hists_g;
+    std::unique_ptr<Hists> dijet_hists_presel_gg, dijet_hists_presel_qg, dijet_hists_presel_qq, dijet_hists_presel_unknown;
 
     std::unique_ptr<Hists> zplusjets_qg_hists_u, zplusjets_qg_hists_d, zplusjets_qg_hists_s;
     std::unique_ptr<Hists> dijet_qg_hists_u, dijet_qg_hists_d, dijet_qg_hists_s, dijet_qg_hists_c;
@@ -147,6 +160,8 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     else
         throw runtime_error("Cannot determine jetRadius in QGAnalysisTheoryHists");
 
+    cout << "Running with jet cone: " << jet_cone << " and PUS: " << pu_removal << endl;
+
     if (is_mc) {
         std::vector<std::string> JEC_MC;
         if (pu_removal == "CHS") {
@@ -221,10 +236,19 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
 
     // Hists
     zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel"));
+    // preselection hists, if jet is quark, or gluon
+    zplusjets_hists_presel_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_q"));
+    zplusjets_hists_presel_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_g"));
+    zplusjets_hists_presel_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown"));
     zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets"));
     zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1, "zplusjets"));
 
     dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel"));
+    // preselection hiss, if both gluon jets, one gluon, or both quark
+    dijet_hists_presel_gg.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gg"));
+    dijet_hists_presel_qg.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qg"));
+    dijet_hists_presel_qq.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qq"));
+    dijet_hists_presel_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown"));
     dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet"));
     dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", 2, "dijet"));
 
@@ -369,6 +393,35 @@ bool QGAnalysisModule::process(Event & event) {
     zplusjets_hists_presel->fill(event);
     dijet_hists_presel->fill(event);
 
+    // flav-specific preselection hists, useful for optimising selection
+    uint flav1 = event.jets->at(0).genPartonFlavor();
+    uint flav2(99999999);
+    if (event.jets->size() > 1) {
+        flav2 = event.jets->at(1).genPartonFlavor();
+    }
+    if (flav1 == PartonID::GLUON) {
+        zplusjets_hists_presel_g->fill(event);
+        if (flav2 > PartonID::UNKNOWN && flav2 < PartonID::CHARM_QUARK) {
+            dijet_hists_presel_qg->fill(event);
+        } else if (flav2 == PartonID::GLUON) {
+            dijet_hists_presel_gg->fill(event);
+        } else if (flav2 == PartonID::UNKNOWN) {
+            dijet_hists_presel_unknown->fill(event);
+        }
+    } else if (flav1 > PartonID::UNKNOWN && flav1 < PartonID::CHARM_QUARK) {
+        zplusjets_hists_presel_q->fill(event);
+        if (flav2 > PartonID::UNKNOWN && flav2 < PartonID::CHARM_QUARK) {
+            dijet_hists_presel_qq->fill(event);
+        } else if (flav2 == PartonID::GLUON) {
+            dijet_hists_presel_qg->fill(event);
+        } else if (flav2 == PartonID::UNKNOWN) {
+            dijet_hists_presel_unknown->fill(event);
+        }
+    } else if (flav1 == PartonID::UNKNOWN) {
+        zplusjets_hists_presel_unknown->fill(event);
+    }
+
+    // Do reco selection and hist filling
     if (!njet_sel->passes(event)) return false;
 
     bool zpj = zplusjets_sel->passes(event);
@@ -383,6 +436,7 @@ bool QGAnalysisModule::process(Event & event) {
         dijet_qg_hists->fill(event);
     }
 
+    // do pu-binned hists
     for (uint i=0; i<sel_pu_binned.size(); i++) {
         if (sel_pu_binned.at(i)->passes(event)) {
             if (zpj) zplusjets_qg_hists_pu_binned.at(i)->fill(event);
