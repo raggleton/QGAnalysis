@@ -81,11 +81,12 @@ bool JetFlavourSelection::passes(const Event & event) {
 }
 
 
-ZplusJetsTheorySelection::ZplusJetsTheorySelection(Context & ctx, float pt_min, float jet_frac_min, float jet_z_deta_max, float second_jet_frac_max):
+ZplusJetsTheorySelection::ZplusJetsTheorySelection(Context & ctx, float pt_min, float jet_frac_min, float jet_z_deta_max, float second_jet_frac_max, float mZ_window):
     pt_min_(pt_min),
     jet_frac_min_(jet_frac_min),
     jet_z_deta_max_(jet_z_deta_max),
-    second_jet_frac_max_(second_jet_frac_max) {
+    second_jet_frac_max_(second_jet_frac_max),
+    mZ_window_(mZ_window) {
         genJets_handle = ctx.get_handle<std::vector<GenJetWithParts>>("GoodGenJets");
         genMuons_handle = ctx.get_handle<std::vector<GenParticle>>("GoodGenMuons");
     }
@@ -98,18 +99,6 @@ bool ZplusJetsTheorySelection::passes(const Event & event) {
 
     if ((genjets.size() < 1) || (muons.size() < 2)) return false;
 
-    // auto gp = *event.genparticles;
-    // for (const auto & itr : muons) {
-    //     auto mum1 = itr.mother1();
-    //     auto mum2 = itr.mother2();
-    //     if (mum1 < gp.size()) {
-    //         auto mum_id = gp.at(mum1).pdgId();
-    //         if (mum_id != 23) {
-    //             std::cout << "NOT A Z: " << mum1 << " - " << mum_id << std::endl;
-    //         }
-    //     }
-    // }
-
     // Get Z candidate
     const auto & muon1 = muons.at(0);
     const auto & muon2 = muons.at(1);
@@ -117,6 +106,9 @@ bool ZplusJetsTheorySelection::passes(const Event & event) {
     if (muon1.charge() == muon2.charge()) return false;
 
     const auto z_cand = muon1.v4() + muon2.v4();
+
+    float m_mumu = z_cand.M();
+    if (fabs(m_mumu - 90) > mZ_window_) return false;
 
     if (z_cand.pt() < pt_min_) return false;
 

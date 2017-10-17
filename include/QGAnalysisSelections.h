@@ -51,7 +51,7 @@ private:
  */
 class ZplusJetsTheorySelection: public uhh2::Selection {
 public:
-    ZplusJetsTheorySelection(uhh2::Context & ctx, float pt_min=100., float jet_frac_min=0.8, float jet_z_deta_max_=1.0, float second_jet_frac_max=999.);
+    ZplusJetsTheorySelection(uhh2::Context & ctx, float pt_min=100., float jet_frac_min=0.8, float jet_z_deta_max_=1.0, float second_jet_frac_max=999., float mZ_window=20);
     virtual bool passes(const uhh2::Event & event) override;
 private:
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
@@ -60,6 +60,7 @@ private:
     float jet_frac_min_;
     float jet_z_deta_max_;
     float second_jet_frac_max_;
+    float mZ_window_;
 };
 
 
