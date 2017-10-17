@@ -163,7 +163,8 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     else
         throw runtime_error("Cannot determine jetRadius in QGAnalysisTheoryHists");
 
-    cout << "Running with jet cone: " << jet_cone << " and PUS: " << pu_removal << endl;
+    cout << "Running with jet cone: " << jet_cone << endl;
+    cout << "Running with PUS: " << pu_removal << endl;
 
     if (is_mc) {
         std::vector<std::string> JEC_MC;
