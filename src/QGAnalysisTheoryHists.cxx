@@ -50,7 +50,7 @@ QGAnalysisTheoryHists::QGAnalysisTheoryHists(Context & ctx, const string & dirna
 
   int nBins = 100;
 
-  LambdaVariable multiplicity = {"multiplicity", "Multiplicity (#lambda_{0}^{0})", nMultBins, 0, nMultBins};
+  LambdaVariable multiplicity = {"multiplicity", "Multiplicity (#lambda_{0}^{0})", nMultBins, 0, (double)nMultBins};
   LambdaVariable LHA = {"LHA", "LHA (#lambda_{0.5}^{1})", nBins, 0, 1};
   LambdaVariable pTD = {"pTD", "(p_{T}^{D})^{2} (#lambda_{0}^{2})", nBins, 0, 1};
   LambdaVariable width = {"width", "Width (#lambda_{1}^{1})", nBins, 0, 1};
