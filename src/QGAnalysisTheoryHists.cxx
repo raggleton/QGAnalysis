@@ -66,8 +66,6 @@ QGAnalysisTheoryHists::QGAnalysisTheoryHists(Context & ctx, const string & dirna
   double weightBins [nWeightBins+1] = {1E-10, 1E-9, 1E-8, 1E-7, 1E-6, 1E-5, 1E-4, 1E-3, 1E-2, 1E-1, 1, 10};
   h_weights = book<TH1F>("weights", ";weight;", nWeightBins, weightBins);
   h_weights_vs_pt = book<TH2F>("weights_vs_pt", ";weight;", nWeightBins, weightBins, 200, 0., 2000.);
-  h_PU_pT_hat_max_vs_weight = book<TH2F>("PU_pT_hat_max_vs_pt", ";weight;PU_pT_hat_max", nWeightBins, weightBins, 200, 0, 200);
-  h_qscale_vs_weight = book<TH2F>("qscale_vs_weight", ";weight;qScale", nWeightBins, weightBins, 200, 0, 2000);
   h_pthat_vs_weight = book<TH2F>("pthat_vs_weight", ";weight;ptHat", nWeightBins, weightBins, 200, 0, 2000);
   h_pthat_vs_genjet_pt = book<TH2F>("pthat_vs_genjet_pt", ";p_{T}^{leading genjet};ptHat", 200, 0, 2000, 200, 0, 2000);
 
@@ -83,6 +81,7 @@ QGAnalysisTheoryHists::QGAnalysisTheoryHists(Context & ctx, const string & dirna
   h_genjet_flavour_vs_pt = book<TH2F>("genjet_flavour_vs_pt", "genjet flavour;PDGID;Jet p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
   h_genjet_flavour_vs_eta = book<TH2F>("genjet_flavour_vs_eta", "genjet flavour;PDGID;Jet #eta", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
 
+  // 1D distributions
   h_genjet_multiplicity = book<TH1F>("genjet_multiplicity", ";# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
   h_genjet_LHA = book<TH1F>("genjet_LHA", ";LHA (#lambda_{0.5}^{1});", nBins, 0, 1);
   h_genjet_pTD = book<TH1F>("genjet_pTD", ";p_{T}^{D} (#lambda_{0}^{2});", nBins, 0, 1);
@@ -137,18 +136,22 @@ QGAnalysisTheoryHists::QGAnalysisTheoryHists(Context & ctx, const string & dirna
   // h_genjet_LHA_vs_LHA_contrib = book<TH2F>("genjet_LHA_vs_zi", ";z_{i};LHA", 500, 0, 1, 500, 0, 1);
 
   // 2D versions vs PT
+  // -----------------
+  // All flavs
   h_genjet_multiplicity_vs_pt = book<TH2F>("genjet_multiplicity_vs_pt", ";# of constituents (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
   h_genjet_LHA_vs_pt = book<TH2F>("genjet_LHA_vs_pt", ";LHA (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_genjet_pTD_vs_pt = book<TH2F>("genjet_pTD_vs_pt", ";p_{T}^{D} (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_genjet_width_vs_pt = book<TH2F>("genjet_width_vs_pt", ";Width (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_genjet_thrust_vs_pt = book<TH2F>("genjet_thrust_vs_pt", ";Thrust (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
 
+  // q jet only
   h_qgenjet_multiplicity_vs_pt = book<TH2F>("qgenjet_multiplicity_vs_pt", "q-flavour;# of constituents (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
   h_qgenjet_LHA_vs_pt = book<TH2F>("qgenjet_LHA_vs_pt", "q-flavour;LHA (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_qgenjet_pTD_vs_pt = book<TH2F>("qgenjet_pTD_vs_pt", "q-flavour;p_{T}^{D} (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_qgenjet_width_vs_pt = book<TH2F>("qgenjet_width_vs_pt", "q-flavour;Width (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_qgenjet_thrust_vs_pt = book<TH2F>("qgenjet_thrust_vs_pt", "q-flavour;Thrust (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
 
+  // g jet only
   h_ggenjet_multiplicity_vs_pt = book<TH2F>("ggenjet_multiplicity_vs_pt", "g-flavour;# of constituents (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
   h_ggenjet_LHA_vs_pt = book<TH2F>("ggenjet_LHA_vs_pt", "g-flavour;LHA (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_ggenjet_pTD_vs_pt = book<TH2F>("ggenjet_pTD_vs_pt", "g-flavour;p_{T}^{D} (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
@@ -169,6 +172,8 @@ QGAnalysisTheoryHists::QGAnalysisTheoryHists(Context & ctx, const string & dirna
   // }
 
   // Variable correlation plots
+  // --------------------------
+  // All flavs
   h_genjet_multiplicity_vs_LHA = book<TH2F>("genjet_multiplicity_vs_LHA", ";multiplicity (#lambda_{0}^{0});LHA (#lambda_{0.5}^{1})", nMultBins, 0, nMultBins, nBins, 0, 1);
   h_genjet_multiplicity_vs_pTD = book<TH2F>("genjet_multiplicity_vs_pTD", ";multiplicity (#lambda_{0}^{0});{p_{T}^{D}}^2 (#lambda_{0}^{2})", nMultBins, 0, nMultBins, nBins, 0, 1);
   h_genjet_multiplicity_vs_width = book<TH2F>("genjet_multiplicity_vs_width", ";multiplicity (#lambda_{0}^{0});width (#lambda_{1}^{1})", nMultBins, 0, nMultBins, nBins, 0, 1);
@@ -180,6 +185,7 @@ QGAnalysisTheoryHists::QGAnalysisTheoryHists(Context & ctx, const string & dirna
   h_genjet_pTD_vs_thrust = book<TH2F>("genjet_pTD_vs_thrust", ";{p_{T}^{D}}^2 (#lambda_{0}^{2});thrust (#lambda_{2}^{1})", nBins, 0, 1, nBins, 0, 1);
   h_genjet_width_vs_thrust = book<TH2F>("genjet_width_vs_thrust", ";width (#lambda_{1}^{1});thrust (#lambda_{2}^{1})", nBins, 0, 1, nBins, 0, 1);
 
+  // q jet only
   h_qgenjet_multiplicity_vs_LHA = book<TH2F>("qgenjet_multiplicity_vs_LHA", "q-flavour;multiplicity (#lambda_{0}^{0});LHA (#lambda_{0.5}^{1})", nMultBins, 0, nMultBins, nBins, 0, 1);
   h_qgenjet_multiplicity_vs_pTD = book<TH2F>("qgenjet_multiplicity_vs_pTD", "q-flavour;multiplicity (#lambda_{0}^{0});{p_{T}^{D}}^2 (#lambda_{0}^{2})", nMultBins, 0, nMultBins, nBins, 0, 1);
   h_qgenjet_multiplicity_vs_width = book<TH2F>("qgenjet_multiplicity_vs_width", "q-flavour;multiplicity (#lambda_{0}^{0});width (#lambda_{1}^{1})", nMultBins, 0, nMultBins, nBins, 0, 1);
@@ -191,6 +197,7 @@ QGAnalysisTheoryHists::QGAnalysisTheoryHists(Context & ctx, const string & dirna
   h_qgenjet_pTD_vs_thrust = book<TH2F>("qgenjet_pTD_vs_thrust", "q-flavour;{p_{T}^{D}}^2 (#lambda_{0}^{2});thrust (#lambda_{2}^{1})", nBins, 0, 1, nBins, 0, 1);
   h_qgenjet_width_vs_thrust = book<TH2F>("qgenjet_width_vs_thrust", "q-flavour;width (#lambda_{1}^{1});thrust (#lambda_{2}^{1})", nBins, 0, 1, nBins, 0, 1);
   
+  // g jet only
   h_ggenjet_multiplicity_vs_LHA = book<TH2F>("ggenjet_multiplicity_vs_LHA", "g-flavour;multiplicity (#lambda_{0}^{0});LHA (#lambda_{0.5}^{1})", nMultBins, 0, nMultBins, nBins, 0, 1);
   h_ggenjet_multiplicity_vs_pTD = book<TH2F>("ggenjet_multiplicity_vs_pTD", "g-flavour;multiplicity (#lambda_{0}^{0});{p_{T}^{D}}^2 (#lambda_{0}^{2})", nMultBins, 0, nMultBins, nBins, 0, 1);
   h_ggenjet_multiplicity_vs_width = book<TH2F>("ggenjet_multiplicity_vs_width", "g-flavour;multiplicity (#lambda_{0}^{0});width (#lambda_{1}^{1})", nMultBins, 0, nMultBins, nBins, 0, 1);
@@ -253,8 +260,6 @@ void QGAnalysisTheoryHists::fill(const Event & event){
   h_genjet_ht->Fill(ht, weight);
 
   h_weights->Fill(weight);
-  h_PU_pT_hat_max_vs_weight->Fill(weight, event.genInfo->PU_pT_hat_max());
-  h_qscale_vs_weight->Fill(weight, event.genInfo->qScale());
   if (event.genInfo->binningValues().size() > 0)
     h_pthat_vs_weight->Fill(weight, event.genInfo->binningValues()[0]);
 

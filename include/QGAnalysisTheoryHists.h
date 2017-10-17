@@ -39,8 +39,7 @@ protected:
 
     TH1F *h_weights;
     TH2F *h_weights_vs_pt;
-    TH2F *h_PU_pT_hat_max_vs_weight;
-    TH2F *h_pthat_vs_weight, *h_qscale_vs_weight, *h_pthat_vs_genjet_pt;
+    TH2F *h_pthat_vs_weight, *h_pthat_vs_genjet_pt;
 
     // genjet hists
     TH1F *h_genjet_pt, *h_genjet_pt_unweighted, *h_genjet_pt_all, *h_genjet_ht, *h_genjet_eta, *h_genjet_flavour;
