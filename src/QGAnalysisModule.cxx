@@ -68,7 +68,7 @@ public:
     virtual bool process(Event & event) override;
     std::vector<GenJetWithParts> getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=1.5, float lepton_overlap_dr=0.2);
     std::vector<GenParticle> getGenMuons(std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=2.5);
-    std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax=0.8);
+    std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax=0.8, bool uniqueMatch=true);
     void printGenParticles(const std::vector<GenParticle> & gps, const std::string & info="", Color::Code color=Color::FG_DEFAULT);
     void printGenJets(const std::vector<GenJetWithParts> & gps, const std::string & info="", Color::Code color=Color::FG_BLUE);
     void printJets(const std::vector<Jet> & jets, const std::string & info="", Color::Code color=Color::FG_GREEN);
@@ -511,16 +511,40 @@ std::vector<GenParticle> QGAnalysisModule::getGenMuons(std::vector<GenParticle> 
 }
 
 /**
- * Only select reco jets that have a matching GenJet within some DR
+ * Select reco jets that have a matching GenJet within some DR
+ *
+ * Stores index of matching GenJet.
+ * Will take the closest matching GenJet as the match, provided it is within drMax.
+ * uniqueMatch controls whether matching GenJets must be unique (i.e 2 reco jets can't match the same GenJet)
+ *
  */
-std::vector<Jet> QGAnalysisModule::getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax) {
+std::vector<Jet> QGAnalysisModule::getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax, bool uniqueMatch) {
     std::vector<Jet> goodJets;
-    for (const auto jtr: *jets) {
-        for (const auto genjtr: * genjets) {
-            if (deltaR(jtr, genjtr) < drMax) {
-                goodJets.push_back(jtr);
-                break;
+    std::vector<uint> matchedIndices;
+    for (auto jtr: *jets) {
+        double minDR = 9999.;
+        int matchInd = -1; // sensible default - not 0!
+
+        for (uint gjInd=0; gjInd < genjets->size(); gjInd++) {
+            // If we want unique matches and we've already matched then skip this genjet
+            if (uniqueMatch && std::find(matchedIndices.begin(), matchedIndices.end(), gjInd) != matchedIndices.end())
+                continue;
+
+            const auto genjtr = genjets->at(gjInd);
+            auto thisDR = deltaR(jtr, genjtr);
+            if (thisDR < drMax && thisDR < minDR) {
+                matchInd = gjInd;
+                minDR = thisDR;
             }
+        }
+
+        jtr.set_genjet_index(matchInd);
+        if (matchInd > -1) {
+            goodJets.push_back(jtr);
+            matchedIndices.push_back(matchInd);
+            // cout << "Found a match at index " << matchInd << " with dr " << minDR << endl;
+            // cout << "RECO pt/eta/phi: " << jtr.pt() << " : " << jtr.eta() << " : " << jtr.phi() << endl;
+            // cout << "GEN pt/eta/phi: " << genjets->at(matchInd).pt() << " : " << genjets->at(matchInd).eta() << " : " << genjets->at(matchInd).phi() << endl;
         }
     }
     return goodJets;
