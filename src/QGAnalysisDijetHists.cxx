@@ -15,7 +15,12 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   if (doHerwigReweighting) {
     TFile f_weight(ctx.get("herwig_reweight_file", "").c_str());
     reweightHist = (TH1F*) f_weight.Get("dijet_reco");
-    reweightHist->SetDirectory(0);
+    if (reweightHist == nullptr) {
+      doHerwigReweighting = false;
+      cout << "WARNING: could not find dijet_reco reweight hist - not reweighting DijetHists!" << endl;
+    } else {
+      reweightHist->SetDirectory(0);
+    }
   }
 
   // book all histograms here
@@ -24,8 +29,8 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
 
   int nbins_pt = 100;
   float pt_max = 2000;
-  float eta_max = 5;
-  int nbins_eta = 50;
+  float eta_max = 2.5;
+  int nbins_eta = 25;
   int nbins_phi = 60;
   pt_jet1 = book<TH1F>("pt_jet1", ";p_{T}^{jet 1} [GeV/c];", nbins_pt, 0, pt_max);
   eta_jet1 = book<TH1F>("eta_jet1", ";#eta^{jet 1};", nbins_eta, -eta_max, eta_max);
@@ -35,7 +40,9 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   eta_jet2 = book<TH1F>("eta_jet2", ";#eta^{jet 2};", nbins_eta, -eta_max, eta_max);
   phi_jet2 = book<TH1F>("phi_jet2", ";#phi^{jet 2};", nbins_phi, -TMath::Pi(), TMath::Pi());
 
-  pt_jet1_jet2 = book<TH2F>("pt_jet1_jet2", ";p_{T}^{jet 1};p_{T}^{jet 1};", nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
+  pt_jet1_jet2 = book<TH2F>("pt_jet1_jet2", ";p_{T}^{jet 1};p_{T}^{jet 2};", nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
+
+  flav_jet1_jet2 = book<TH2F>("flav_jet1_jet2", ";jet 1 flav;jet 2 flav;", 23, -0.5, 22.5, 23, -0.5, 22.5);
 
   pt_jet1_jet2_ratio = book<TH1F>("pt_jet1_jet2_ratio", ";p_{T}^{jet 2} / p_{T}^{jet 1};", 20, 0, 1);
 
@@ -96,6 +103,7 @@ void QGAnalysisDijetHists::fill(const Event & event){
 
   pt_jet1_jet2->Fill(jet1.pt(), jet2.pt(), weight);
   pt_jet1_jet2_ratio->Fill(jet2.pt() / jet1.pt(), weight);
+  flav_jet1_jet2->Fill(abs(jet1.genPartonFlavor()), abs(jet2.genPartonFlavor()), weight);
 
   double mass = (jet1.v4() + jet2.v4()).M();
   m_jj->Fill(mass, weight);

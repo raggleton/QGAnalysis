@@ -26,17 +26,32 @@ protected:
     // reco jet hists
     float jetRadius, LHA_rescale, width_rescale, thrust_rescale;
     TH1F * h_weights;
-    TH2F * h_weights_vs_pt;
-    TH2F *h_pthat_vs_weight, *h_PU_pT_hat_max_vs_weight, *h_qscale_vs_weight, *h_pthat_vs_jet_pt;
+    TH2F * h_weights_vs_pt, *h_pthat_vs_weight, *h_pthat_vs_jet_pt;
 
     TH1F *h_jet_pt, *h_jet_pt_unweighted, *h_jet_eta, *h_jet_flavour, *h_jet_genParton_flavour;
     TH1F *h_jet_multiplicity, *h_jet_LHA, *h_jet_pTD, *h_jet_width, *h_jet_thrust;
     TH1F *h_qjet_multiplicity, *h_qjet_LHA, *h_qjet_pTD, *h_qjet_width, *h_qjet_thrust;
     TH1F *h_gjet_multiplicity, *h_gjet_LHA, *h_gjet_pTD, *h_gjet_width, *h_gjet_thrust;
 
-    TH2F *h_jet_multiplicity_vs_pt, *h_jet_LHA_vs_pt, *h_jet_pTD_vs_pt, *h_jet_width_vs_pt, *h_jet_thrust_vs_pt, *h_jet_flavour_vs_pt, *h_jet_genParton_flavour_vs_pt;
+    TH2F *h_jet_multiplicity_vs_pt, *h_jet_LHA_vs_pt, *h_jet_pTD_vs_pt, *h_jet_width_vs_pt, *h_jet_thrust_vs_pt, *h_jet_flavour_vs_pt, *h_jet_genParton_flavour_vs_pt, *h_jet_flavour_vs_eta, *h_jet_genParton_flavour_vs_eta;
     TH2F *h_qjet_multiplicity_vs_pt, *h_qjet_LHA_vs_pt, *h_qjet_pTD_vs_pt, *h_qjet_width_vs_pt, *h_qjet_thrust_vs_pt;
     TH2F *h_gjet_multiplicity_vs_pt, *h_gjet_LHA_vs_pt, *h_gjet_pTD_vs_pt, *h_gjet_width_vs_pt, *h_gjet_thrust_vs_pt;
+
+    // lambda correlation hists
+    TH2F *h_jet_multiplicity_vs_LHA, *h_jet_multiplicity_vs_pTD, *h_jet_multiplicity_vs_width, *h_jet_multiplicity_vs_thrust;
+    TH2F *h_jet_LHA_vs_pTD, *h_jet_LHA_vs_width, *h_jet_LHA_vs_thrust;
+    TH2F *h_jet_pTD_vs_width, *h_jet_pTD_vs_thrust;
+    TH2F *h_jet_width_vs_thrust;
+    
+    TH2F *h_qjet_multiplicity_vs_LHA, *h_qjet_multiplicity_vs_pTD, *h_qjet_multiplicity_vs_width, *h_qjet_multiplicity_vs_thrust;
+    TH2F *h_qjet_LHA_vs_pTD, *h_qjet_LHA_vs_width, *h_qjet_LHA_vs_thrust;
+    TH2F *h_qjet_pTD_vs_width, *h_qjet_pTD_vs_thrust;
+    TH2F *h_qjet_width_vs_thrust;
+
+    TH2F *h_gjet_multiplicity_vs_LHA, *h_gjet_multiplicity_vs_pTD, *h_gjet_multiplicity_vs_width, *h_gjet_multiplicity_vs_thrust;
+    TH2F *h_gjet_LHA_vs_pTD, *h_gjet_LHA_vs_width, *h_gjet_LHA_vs_thrust;
+    TH2F *h_gjet_pTD_vs_width, *h_gjet_pTD_vs_thrust;
+    TH2F *h_gjet_width_vs_thrust;
 
     // genjet hists
     TH1F *h_genjet_pt, *h_genjet_eta, *h_genjet_flavour;
@@ -44,7 +59,7 @@ protected:
     TH1F *h_qgenjet_multiplicity, *h_qgenjet_LHA, *h_qgenjet_pTD, *h_qgenjet_width, *h_qgenjet_thrust;
     TH1F *h_ggenjet_multiplicity, *h_ggenjet_LHA, *h_ggenjet_pTD, *h_ggenjet_width, *h_ggenjet_thrust;
 
-    TH2F *h_genjet_multiplicity_vs_pt, *h_genjet_LHA_vs_pt, *h_genjet_pTD_vs_pt, *h_genjet_width_vs_pt, *h_genjet_thrust_vs_pt, *h_genjet_flavour_vs_pt;
+    TH2F *h_genjet_multiplicity_vs_pt, *h_genjet_LHA_vs_pt, *h_genjet_pTD_vs_pt, *h_genjet_width_vs_pt, *h_genjet_thrust_vs_pt;
 
     int useNJets_;
 

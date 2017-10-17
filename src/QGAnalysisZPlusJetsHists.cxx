@@ -16,7 +16,12 @@ QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string &
   if (doHerwigReweighting) {
     TFile f_weight(ctx.get("herwig_reweight_file", "").c_str());
     reweightHist = (TH1F*) f_weight.Get("zpj_reco");
-    reweightHist->SetDirectory(0);
+    if (reweightHist == nullptr) {
+      doHerwigReweighting = false;
+      cout << "WARNING: could not find zpj_reco reweight hist - not reweighting ZPlusJetsHists!" << endl;
+    } else {
+      reweightHist->SetDirectory(0);
+    }
   }
 
   // book all histograms here
@@ -51,6 +56,8 @@ QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string &
 
   m_mumu = book<TH1F>("m_mumu", ";m_{#mu#mu} [GeV]", 80, 90-40, 90+40);
   pt_mumu = book<TH1F>("pt_mumu", ";p_{T, #mu#mu} [GeV]", nbins_pt, 0, 750);
+
+  dphi_j_z = book<TH1F>("dphi_jet1_z", ";#Delta #phi_{#mu#mu, jet1}", 60, 0, 6);
 
   deta_dphi_mumu = book<TH2F>("deta_dphi_mumu", ";#Delta #eta_{#mu#mu};#Delta #phi_{#mu#mu}", 60, 0, 6, 60, 0, TMath::Pi());
   deta_dphi_mumu_jet1 = book<TH2F>("deta_dphi_mumu_jet1", ";#Delta #eta_{#mu#mu, jet 1};#Delta #phi_{#mu#mu, jet1}", 60, 0, 6, 60, 0, TMath::Pi());
@@ -119,6 +126,8 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   pt_jet1_z_ratio->Fill(jet1.pt() / z_cand.pt(), weight);
   diff = z_cand - jet1.v4();
   deta_dphi_mumu_jet1->Fill(fabs(diff.eta()), fabs(diff.phi()), weight);
+  
+  dphi_j_z->Fill(deltaPhi(z_cand, jet1), weight);
 
   if (Njets >= 2) {
     Jet jet2 = jets->at(1);
