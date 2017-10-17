@@ -220,7 +220,7 @@ QGAnalysisTheoryHists::QGAnalysisTheoryHists(Context & ctx, const string & dirna
   else
     throw runtime_error("Cannot determine jetRadius in QGAnalysisTheoryHists");
 
-  genJets_handle = ctx.declare_event_output< std::vector<GenJetWithParts> > ("GoodGenJets");
+  genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > ("GoodGenJets");
 }
 
 
