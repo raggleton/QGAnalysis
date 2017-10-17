@@ -1,7 +1,12 @@
 #pragma once
 
+#include "UHH2/core/include/fwd.h"
+#include "UHH2/core/include/Selection.h"
+#include "UHH2/core/include/Event.h"
+#include "UHH2/core/include/AnalysisModule.h"
 #include "UHH2/core/include/Hists.h"
 #include "UHH2/core/include/NtupleObjects.h"
+
 
 namespace uhh2examples {
 
@@ -33,9 +38,9 @@ protected:
     TH1F *h_qjet_multiplicity, *h_qjet_LHA, *h_qjet_pTD, *h_qjet_width, *h_qjet_thrust;
     TH1F *h_gjet_multiplicity, *h_gjet_LHA, *h_gjet_pTD, *h_gjet_width, *h_gjet_thrust;
 
-    TH2F *h_jet_multiplicity_vs_pt, *h_jet_LHA_vs_pt, *h_jet_pTD_vs_pt, *h_jet_width_vs_pt, *h_jet_thrust_vs_pt, *h_jet_flavour_vs_pt, *h_jet_genParton_flavour_vs_pt, *h_jet_flavour_vs_eta, *h_jet_genParton_flavour_vs_eta;
-    TH2F *h_qjet_multiplicity_vs_pt, *h_qjet_LHA_vs_pt, *h_qjet_pTD_vs_pt, *h_qjet_width_vs_pt, *h_qjet_thrust_vs_pt;
-    TH2F *h_gjet_multiplicity_vs_pt, *h_gjet_LHA_vs_pt, *h_gjet_pTD_vs_pt, *h_gjet_width_vs_pt, *h_gjet_thrust_vs_pt;
+    TH2F *h_jet_multiplicity_vs_pt, *h_jet_LHA_vs_pt, *h_jet_pTD_vs_pt, *h_jet_width_vs_pt, *h_jet_thrust_vs_pt, *h_jet_flavour_vs_pt, *h_jet_genParton_flavour_vs_pt, *h_jet_flavour_vs_eta, *h_jet_genParton_flavour_vs_eta, *h_jet_response_vs_genjet_pt;
+    TH2F *h_qjet_multiplicity_vs_pt, *h_qjet_LHA_vs_pt, *h_qjet_pTD_vs_pt, *h_qjet_width_vs_pt, *h_qjet_thrust_vs_pt, *h_qjet_response_vs_genjet_pt;
+    TH2F *h_gjet_multiplicity_vs_pt, *h_gjet_LHA_vs_pt, *h_gjet_pTD_vs_pt, *h_gjet_width_vs_pt, *h_gjet_thrust_vs_pt, *h_gjet_response_vs_genjet_pt;
 
     // lambda correlation hists
     TH2F *h_jet_multiplicity_vs_LHA, *h_jet_multiplicity_vs_pTD, *h_jet_multiplicity_vs_width, *h_jet_multiplicity_vs_thrust;
@@ -65,6 +70,9 @@ protected:
 
     bool doHerwigReweighting;
     TH1F * reweightHist;
+
+    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+
 };
 
 }

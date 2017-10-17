@@ -91,6 +91,9 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_width_vs_pt = book<TH2F>("jet_width_vs_pt", ";Width (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_jet_thrust_vs_pt = book<TH2F>("jet_thrust_vs_pt", ";Thrust (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
 
+  float rspMax = 5;
+  h_jet_response_vs_genjet_pt = book<TH2F>("jet_response_vs_genjet_pt", ";response;GenJet p_{T} [GeV]", nBins, 0, rspMax, nPtBins, ptMin, ptMax);
+
   h_jet_flavour_vs_pt = book<TH2F>("jet_flavour_vs_pt", "jet flavour;PDGID;Jet p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
   h_jet_genParton_flavour_vs_pt = book<TH2F>("jet_genParton_flavour_vs_pt", "jet flavour;PDGID;Jet p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
   
@@ -103,6 +106,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_qjet_pTD_vs_pt = book<TH2F>("qjet_pTD_vs_pt", "q-flavour;p_{T}^{D} (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_qjet_width_vs_pt = book<TH2F>("qjet_width_vs_pt", "q-flavour;Width (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_qjet_thrust_vs_pt = book<TH2F>("qjet_thrust_vs_pt", "q-flavour jet;Thrust (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+  h_qjet_response_vs_genjet_pt = book<TH2F>("qjet_response_vs_genjet_pt", ";response;GenJet p_{T} [GeV]", nBins, 0, rspMax, nPtBins, ptMin, ptMax);
 
   // g jet only
   h_gjet_multiplicity_vs_pt = book<TH2F>("gjet_multiplicity_vs_pt", "g-flavour;# of constituents (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
@@ -110,6 +114,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_gjet_pTD_vs_pt = book<TH2F>("gjet_pTD_vs_pt", "g-flavour;p_{T}^{D} (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_gjet_width_vs_pt = book<TH2F>("gjet_width_vs_pt", "g-flavour;Width (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_gjet_thrust_vs_pt = book<TH2F>("gjet_thrust_vs_pt", "g-flavour jet;Thrust (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+  h_gjet_response_vs_genjet_pt = book<TH2F>("gjet_response_vs_genjet_pt", ";response;GenJet p_{T} [GeV]", nBins, 0, rspMax, nPtBins, ptMin, ptMax);
 
   // Variable correlation hists
   // --------------------------
@@ -196,6 +201,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   LHA_rescale = pow(jetRadius, 0.5);
   width_rescale = jetRadius;
   thrust_rescale = pow(jetRadius, 2.0);
+
+  genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > ("GoodGenJets");
 }
 
 
@@ -224,6 +231,8 @@ void QGAnalysisHists::fill(const Event & event){
   h_weights->Fill(weight);
   if (event.genInfo->binningValues().size() > 0)
     h_pthat_vs_weight->Fill(weight, event.genInfo->binningValues()[0]);
+
+  const auto & genjets = event.get(genJets_handle);
 
   // Fill reco jet hists
   for (int i = 0; i < useNJets_; i++) {
@@ -257,6 +266,11 @@ void QGAnalysisHists::fill(const Event & event){
     h_jet_width_vs_pt->Fill(width, jet_pt, weight);
     h_jet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
 
+    const GenJetWithParts & genjet = genjets.at(thisjet.genjet_index());
+    float genjet_pt = genjet.pt();
+    float response = jet_pt/genjet_pt;
+    h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+
     // int jet_flav = get_jet_flavour(thisjet, event.genparticles);
     int jet_flav = abs(thisjet.genPartonFlavor());
 
@@ -273,6 +287,7 @@ void QGAnalysisHists::fill(const Event & event){
       h_gjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
       h_gjet_width_vs_pt->Fill(width, jet_pt, weight);
       h_gjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
+      h_gjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
     } else if ((jet_flav <= 3) && (jet_flav > 0)){ // uds jets
       h_qjet_multiplicity->Fill(mult, weight);
       h_qjet_LHA->Fill(lha, weight);
@@ -285,6 +300,7 @@ void QGAnalysisHists::fill(const Event & event){
       h_qjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
       h_qjet_width_vs_pt->Fill(width, jet_pt, weight);
       h_qjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
+      h_qjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
     }
 
     h_jet_flavour->Fill(abs(thisjet.flavor()), weight);
@@ -335,13 +351,13 @@ void QGAnalysisHists::fill(const Event & event){
   }
 
   // Fill GenJet hists
-  std::vector<GenJetWithParts>* genjets = event.genjets;
+  // std::vector<GenJetWithParts>* genjets = event.genjets;
   std::vector<GenParticle>* genparticles = event.genparticles;
 
   // for (int i = 0; i < useNJets_; i++) {
   //   const GenJetWithParts & thisjet = genjets->at(i);
   int counter = 0;
-  for (const auto & thisjet : *genjets) {
+  for (const auto & thisjet : genjets) {
     if (!(thisjet.pt() > 100 && fabs(thisjet.eta()) < 1.5))
       continue;
 
