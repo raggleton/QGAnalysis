@@ -392,7 +392,7 @@ void QGAnalysisTheoryHists::fill(const Event & event){
       h_genjet_LHA_vs_pTD->Fill(lha, ptd, weight);
       h_genjet_LHA_vs_width->Fill(lha, width, weight);
       h_genjet_LHA_vs_thrust->Fill(lha, thrust, weight);
-      h_genjet_pTD_vs_width->Fill(ptd, thrust, weight);
+      h_genjet_pTD_vs_width->Fill(ptd, width, weight);
       h_genjet_pTD_vs_thrust->Fill(ptd, thrust, weight);
       h_genjet_width_vs_thrust->Fill(width, thrust, weight);
 
@@ -404,7 +404,7 @@ void QGAnalysisTheoryHists::fill(const Event & event){
         h_ggenjet_LHA_vs_pTD->Fill(lha, ptd, weight);
         h_ggenjet_LHA_vs_width->Fill(lha, width, weight);
         h_ggenjet_LHA_vs_thrust->Fill(lha, thrust, weight);
-        h_ggenjet_pTD_vs_width->Fill(ptd, thrust, weight);
+        h_ggenjet_pTD_vs_width->Fill(ptd, width, weight);
         h_ggenjet_pTD_vs_thrust->Fill(ptd, thrust, weight);
         h_ggenjet_width_vs_thrust->Fill(width, thrust, weight);
       } else if ((abs(flav) <= 3) && (abs(flav) > 0)){ // uds jets
@@ -415,7 +415,7 @@ void QGAnalysisTheoryHists::fill(const Event & event){
         h_qgenjet_LHA_vs_pTD->Fill(lha, ptd, weight);
         h_qgenjet_LHA_vs_width->Fill(lha, width, weight);
         h_qgenjet_LHA_vs_thrust->Fill(lha, thrust, weight);
-        h_qgenjet_pTD_vs_width->Fill(ptd, thrust, weight);
+        h_qgenjet_pTD_vs_width->Fill(ptd, width, weight);
         h_qgenjet_pTD_vs_thrust->Fill(ptd, thrust, weight);
         h_qgenjet_width_vs_thrust->Fill(width, thrust, weight);
       }

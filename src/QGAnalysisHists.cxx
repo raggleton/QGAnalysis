@@ -320,7 +320,7 @@ void QGAnalysisHists::fill(const Event & event){
       h_jet_LHA_vs_pTD->Fill(lha, ptd, weight);
       h_jet_LHA_vs_width->Fill(lha, width, weight);
       h_jet_LHA_vs_thrust->Fill(lha, thrust, weight);
-      h_jet_pTD_vs_width->Fill(ptd, thrust, weight);
+      h_jet_pTD_vs_width->Fill(ptd, width, weight);
       h_jet_pTD_vs_thrust->Fill(ptd, thrust, weight);
       h_jet_width_vs_thrust->Fill(width, thrust, weight);
 
@@ -332,7 +332,7 @@ void QGAnalysisHists::fill(const Event & event){
         h_gjet_LHA_vs_pTD->Fill(lha, ptd, weight);
         h_gjet_LHA_vs_width->Fill(lha, width, weight);
         h_gjet_LHA_vs_thrust->Fill(lha, thrust, weight);
-        h_gjet_pTD_vs_width->Fill(ptd, thrust, weight);
+        h_gjet_pTD_vs_width->Fill(ptd, width, weight);
         h_gjet_pTD_vs_thrust->Fill(ptd, thrust, weight);
         h_gjet_width_vs_thrust->Fill(width, thrust, weight);
       } else if ((abs(jet_flav) <= 3) && (abs(jet_flav) > 0)){ // uds jets
@@ -343,7 +343,7 @@ void QGAnalysisHists::fill(const Event & event){
         h_qjet_LHA_vs_pTD->Fill(lha, ptd, weight);
         h_qjet_LHA_vs_width->Fill(lha, width, weight);
         h_qjet_LHA_vs_thrust->Fill(lha, thrust, weight);
-        h_qjet_pTD_vs_width->Fill(ptd, thrust, weight);
+        h_qjet_pTD_vs_width->Fill(ptd, width, weight);
         h_qjet_pTD_vs_thrust->Fill(ptd, thrust, weight);
         h_qjet_width_vs_thrust->Fill(width, thrust, weight);
       }
