@@ -79,7 +79,8 @@ private:
 
     std::unique_ptr<JetCorrector> jet_corrector_MC, jet_corrector_BCD, jet_corrector_EFearly, jet_corrector_FlateG, jet_corrector_H;
     std::unique_ptr<JetLeptonCleaner> JLC_MC, JLC_BCD, JLC_EFearly, JLC_FlateG, JLC_H;
-    std::unique_ptr<JetResolutionSmearer> jet_resolution_smearer;
+    // std::unique_ptr<JetResolutionSmearer> jet_resolution_smearer;
+    std::unique_ptr<GenericJetResolutionSmearer> jet_resolution_smearer;
     std::unique_ptr<JetCleaner> jet_cleaner;
 
     // Reco selections/hists
@@ -168,22 +169,28 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
 
     if (is_mc) {
         std::vector<std::string> JEC_MC;
+        std::string resolutionFilename;
         if (pu_removal == "CHS") {
             if (jet_cone == "AK4") {
                 JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK4PFchs_MC;
+                resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK4PFchs.txt";
             } else if (jet_cone == "AK8") {
                 JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK8PFchs_MC;
+                resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK8PFchs.txt";  // actually doesn't matter, they're all the same
             }
         } else if (pu_removal == "PUPPI") {
             if (jet_cone == "AK4") {
                 JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK4PFPuppi_MC;
+                resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK4PFchs.txt";
             } else if (jet_cone == "AK8") {
                 JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK8PFPuppi_MC;
+                resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK8PFchs.txt";
             }
         }
 
         jet_corrector_MC.reset(new JetCorrector(ctx, JEC_MC));
-        jet_resolution_smearer.reset(new JetResolutionSmearer(ctx));
+        // jet_resolution_smearer.reset(new JetResolutionSmearer(ctx));
+        jet_resolution_smearer.reset(new GenericJetResolutionSmearer(ctx, "jets", "genjets", true, JERSmearing::SF_13TeV_2016_03Feb2017, resolutionFilename));
         JLC_MC.reset(new JetLeptonCleaner(ctx, JEC_MC));
     } else {
         std::vector<std::string> JEC_BCD, JEC_EFearly, JEC_FlateG, JEC_H;
