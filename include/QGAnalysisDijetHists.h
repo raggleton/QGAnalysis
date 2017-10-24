@@ -16,12 +16,16 @@ public:
     virtual ~QGAnalysisDijetHists();
 
 protected:
-    TH1F *n_jets;
-    TH1F *pt_jet1, *eta_jet1, *phi_jet1, *pt_jet2, *eta_jet2, *phi_jet2, *m_jj, *pt_jet1_jet2_ratio;
-    TH1F *pt_jet3, *eta_jet3, *pt_jet3_frac;
-    TH2F *deta_dphi_jj, *pt_jet1_jet2, *flav_jet1_jet2;
-    TH1F *met_sig;
-    TH2F *met_sig_pt_jet1;
+    TH2F *n_jets_vs_pt_jet1;
+    TH1F *pt_jet1;
+    TH2F *eta_jet1_vs_pt_jet1, *phi_jet1_vs_pt_jet1;
+    TH2F *pt_jet2_vs_pt_jet1, *eta_jet2_vs_pt_jet1, *phi_jet2_vs_pt_jet1;
+    TH2F *m_jj_vs_pt_jet1, *pt_jet1_jet2_ratio_vs_pt_jet1, *deta_jj_vs_pt_jet1, *dphi_jj_vs_pt_jet1;
+    TH2F *pt_jet3_vs_pt_jet1, *eta_jet3_vs_pt_jet1, *pt_jet3_frac_vs_pt_jet1;
+
+    TH2F *deta_dphi_jj, *flav_jet1_jet2;
+
+    TH2F *met_sig_vs_pt_jet1;
 
     bool doHerwigReweighting;
     TH1F * reweightHist;

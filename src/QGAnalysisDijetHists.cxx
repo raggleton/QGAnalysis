@@ -25,41 +25,43 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
 
   // book all histograms here
   // jets
-  n_jets = book<TH1F>("N_jets", ";N_{jets};", 10, 0, 10);
-
-  int nbins_pt = 100;
+  int nbins_pt = 200;
   float pt_max = 2000;
-  float eta_max = 2.5;
-  int nbins_eta = 25;
-  int nbins_phi = 60;
-  pt_jet1 = book<TH1F>("pt_jet1", ";p_{T}^{jet 1} [GeV/c];", nbins_pt, 0, pt_max);
-  eta_jet1 = book<TH1F>("eta_jet1", ";#eta^{jet 1};", nbins_eta, -eta_max, eta_max);
-  phi_jet1 = book<TH1F>("phi_jet1", ";#phi^{jet 1};", nbins_phi, -TMath::Pi(), TMath::Pi());
 
-  pt_jet2 = book<TH1F>("pt_jet2", ";p_{T}^{jet 2} [GeV/c];", nbins_pt, 0, pt_max);
-  eta_jet2 = book<TH1F>("eta_jet2", ";#eta^{jet 2};", nbins_eta, -eta_max, eta_max);
-  phi_jet2 = book<TH1F>("phi_jet2", ";#phi^{jet 2};", nbins_phi, -TMath::Pi(), TMath::Pi());
+  int nbins_eta = 200;
+  float eta_max = 5;
 
-  pt_jet1_jet2 = book<TH2F>("pt_jet1_jet2", ";p_{T}^{jet 1};p_{T}^{jet 2};", nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
+  int nbins_phi = 128;
+  float phi_max = 3.2;
+
+  n_jets_vs_pt_jet1 = book<TH2F>("n_jets_vs_pt_jet1", ";N_{jets};p_{T}^{jet 1}", 10, 0, 10, nbins_pt, 0, pt_max);
+
+  pt_jet1 = book<TH1F>("pt_jet1", ";p_{T}^{jet 1};", nbins_pt, 0, pt_max);
+  eta_jet1_vs_pt_jet1 = book<TH2F>("eta_jet1_vs_pt_jet1", ";#eta^{jet 1};p_{T}^{jet 1} ", nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
+  phi_jet1_vs_pt_jet1 = book<TH2F>("phi_jet1_vs_pt_jet1", ";#phi^{jet 1};p_{T}^{jet 1} ", nbins_phi, -phi_max, phi_max, nbins_pt, 0, pt_max);
+
+  pt_jet2_vs_pt_jet1 = book<TH2F>("pt_jet2_vs_pt_jet1", ";p_{T}^{jet 2};p_{T}^{jet 1} ", nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
+  eta_jet2_vs_pt_jet1 = book<TH2F>("eta_jet2_vs_pt_jet1", ";#eta^{jet 2};p_{T}^{jet 1} ", nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
+  phi_jet2_vs_pt_jet1 = book<TH2F>("phi_jet2_vs_pt_jet1", ";#phi^{jet 2};p_{T}^{jet 1} ", nbins_phi, -phi_max, phi_max, nbins_pt, 0, pt_max);
 
   flav_jet1_jet2 = book<TH2F>("flav_jet1_jet2", ";jet 1 flav;jet 2 flav;", 23, -0.5, 22.5, 23, -0.5, 22.5);
 
-  pt_jet1_jet2_ratio = book<TH1F>("pt_jet1_jet2_ratio", ";p_{T}^{jet 2} / p_{T}^{jet 1};", 20, 0, 1);
+  pt_jet1_jet2_ratio_vs_pt_jet1 = book<TH2F>("pt_jet1_jet2_ratio_vs_pt_jet1", ";p_{T}^{jet 2} / p_{T}^{jet 1};p_{T}^{jet 1};p_{T}^{jet 1}", 50, 0, 1, nbins_pt, 0, pt_max);
 
-  m_jj = book<TH1F>("m_jj", ";m_{jj} [GeV]", 100, 0, 4000);
+  m_jj_vs_pt_jet1 = book<TH2F>("m_jj_vs_pt_jet1", ";m_{jj} [GeV];p_{T}^{jet 1}", 200, 0, 4000, nbins_pt, 0, pt_max);
 
-  deta_dphi_jj = book<TH2F>("deta_dphi_jj", ";#Delta #eta_{jj};#Delta #phi_{jj}", 60, 0, 6, 60, 0, TMath::Pi());
+  deta_jj_vs_pt_jet1 = book<TH2F>("deta_jj_vs_pt_jet1", ";#Delta#eta_{jj};p_{T}^{jet 1}", nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
+  dphi_jj_vs_pt_jet1 = book<TH2F>("dphi_jj_vs_pt_jet1", ";#Delta#phi_{jj};p_{T}^{jet 1}", nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
 
   // Possible 3rd jet in the event
-  pt_jet3 = book<TH1F>("pt_jet3", ";p_{T}^{jet 3} [GeV/c];", nbins_pt, 0, 500);
-  eta_jet3 = book<TH1F>("eta_jet3", ";#eta^{jet 3};", nbins_eta, -eta_max, eta_max);
-  pt_jet3_frac = book<TH1F>("pt_jet3_frac", ";p_{T}^{jet 3} / #LT p_{T}^{jet 1} + p_{T}^{jet 2} #GT;", 20, 0, 1);
+  pt_jet3_vs_pt_jet1 = book<TH2F>("pt_jet3_vs_pt_jet1", ";p_{T}^{jet 3};p_{T}^{jet 1} ", nbins_pt, 0, 500, nbins_pt, 0, pt_max);
+  eta_jet3_vs_pt_jet1 = book<TH2F>("eta_jet3_vs_pt_jet1", ";#eta^{jet 3};p_{T}^{jet 1} ", nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
+  pt_jet3_frac_vs_pt_jet1 = book<TH2F>("pt_jet3_frac_vs_pt_jet1", ";p_{T}^{jet 3} / #LT p_{T}^{jet 1} + p_{T}^{jet 2} #GT;p_{T}^{jet 1} ", 50, 0, 1, nbins_pt, 0, pt_max);
 
   // MET
   int nbins_metSig(50);
   float metSig_max(10.);
-  met_sig = book<TH1F>("met_sig", ";MET/sumET;", nbins_metSig, 0, metSig_max);
-  met_sig_pt_jet1 = book<TH2F>("met_sig_pt_jet1", ";p_{T}^{jet 1} [GeV/c];MET/sumET", nbins_pt, 0, pt_max, nbins_metSig, 0, metSig_max);
+  met_sig_vs_pt_jet1 = book<TH2F>("met_sig_vs_pt_jet1", ";MET/sumET;p_{T}^{jet 1}", nbins_metSig, 0, metSig_max, nbins_pt, 0, pt_max);
 
   // primary vertices
   book<TH1F>("N_pv", ";N^{PV};", 50, 0, 50);
@@ -87,39 +89,40 @@ void QGAnalysisDijetHists::fill(const Event & event){
   // Don't forget to always use the weight when filling.
   double weight = event.weight * herwig_weight;
 
-  n_jets->Fill(Njets, weight);
+  Jet jet1 = jets->at(0);
+  double jet1_pt = jet1.pt();
+
+  n_jets_vs_pt_jet1->Fill(Njets, jet1_pt, weight);
 
   if (Njets < 2) return;
 
-  Jet jet1 = jets->at(0);
   pt_jet1->Fill(jet1.pt(), weight);
-  eta_jet1->Fill(jet1.eta(), weight);
-  phi_jet1->Fill(jet1.phi(), weight);
+  eta_jet1_vs_pt_jet1->Fill(jet1.eta(), jet1_pt, weight);
+  phi_jet1_vs_pt_jet1->Fill(jet1.phi(), jet1_pt, weight);
 
   Jet jet2 = jets->at(1);
-  pt_jet2->Fill(jet2.pt(), weight);
-  eta_jet2->Fill(jet2.eta(), weight);
-  phi_jet2->Fill(jet2.phi(), weight);
+  pt_jet2_vs_pt_jet1->Fill(jet2.pt(), jet1_pt, weight);
+  eta_jet2_vs_pt_jet1->Fill(jet2.eta(), jet1_pt, weight);
+  phi_jet2_vs_pt_jet1->Fill(jet2.phi(), jet1_pt, weight);
 
-  pt_jet1_jet2->Fill(jet1.pt(), jet2.pt(), weight);
-  pt_jet1_jet2_ratio->Fill(jet2.pt() / jet1.pt(), weight);
+  pt_jet1_jet2_ratio_vs_pt_jet1->Fill(jet2.pt() / jet1.pt(), jet1_pt, weight);
   flav_jet1_jet2->Fill(abs(jet1.genPartonFlavor()), abs(jet2.genPartonFlavor()), weight);
 
   double mass = (jet1.v4() + jet2.v4()).M();
-  m_jj->Fill(mass, weight);
+  m_jj_vs_pt_jet1->Fill(mass, jet1_pt, weight);
 
   double dEta = fabs(jet1.eta() - jet2.eta());
   double dPhi = fabs(deltaPhi(jet1, jet2));
-  deta_dphi_jj->Fill(dEta, dPhi, weight);
+  deta_jj_vs_pt_jet1->Fill(dEta, jet1_pt, weight);
+  dphi_jj_vs_pt_jet1->Fill(dPhi, jet1_pt, weight);
 
-  met_sig->Fill(event.met->mEtSig(), weight);
-  met_sig_pt_jet1->Fill(jet1.pt(), event.met->mEtSig(), weight);
+  met_sig_vs_pt_jet1->Fill(event.met->mEtSig(), jet1_pt, weight);
 
   if (Njets >= 3) {
     Jet jet3 = jets->at(2);
-    pt_jet3->Fill(jet3.pt(), weight);
-    eta_jet3->Fill(jet3.eta(), weight);
-    pt_jet3_frac->Fill(jet3.pt() / (0.5 * (jet1.pt() + jet2.pt())), weight);
+    pt_jet3_vs_pt_jet1->Fill(jet3.pt(), jet1_pt, weight);
+    eta_jet3_vs_pt_jet1->Fill(jet3.eta(), jet1_pt, weight);
+    pt_jet3_frac_vs_pt_jet1->Fill(jet3.pt() / (0.5 * (jet1.pt() + jet2.pt())), jet1_pt, weight);
   }
 
   int Npvs = event.pvs->size();
