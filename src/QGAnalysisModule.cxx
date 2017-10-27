@@ -88,7 +88,8 @@ private:
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists, zplusjets_qg_hists, zplusjets_hists_q, zplusjets_hists_g;
     std::unique_ptr<Hists> zplusjets_hists_presel_q, zplusjets_hists_presel_g, zplusjets_hists_presel_unknown;
     std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_qg_hists, dijet_hists_q, dijet_hists_g;
-    std::unique_ptr<Hists> dijet_hists_presel_gg, dijet_hists_presel_qg, dijet_hists_presel_qq, dijet_hists_presel_unknown;
+    std::unique_ptr<Hists> dijet_hists_presel_gg, dijet_hists_presel_qg, dijet_hists_presel_qq;
+    std::unique_ptr<Hists> dijet_hists_presel_q_unknown, dijet_hists_presel_g_unknown, dijet_hists_presel_unknown_unknown, dijet_hists_presel_unknown_q, dijet_hists_presel_unknown_g;
 
     std::unique_ptr<Hists> zplusjets_qg_hists_u, zplusjets_qg_hists_d, zplusjets_qg_hists_s;
     std::unique_ptr<Hists> dijet_qg_hists_u, dijet_qg_hists_d, dijet_qg_hists_s, dijet_qg_hists_c;
@@ -255,11 +256,15 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1, "zplusjets"));
 
     dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel"));
-    // preselection hiss, if both gluon jets, one gluon, or both quark
+    // preselection hiss, if both gluon jets, one gluon, or both quark, or one or both unknown
     dijet_hists_presel_gg.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gg"));
     dijet_hists_presel_qg.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qg"));
     dijet_hists_presel_qq.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qq"));
-    dijet_hists_presel_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown"));
+    dijet_hists_presel_unknown_q.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_q"));
+    dijet_hists_presel_unknown_g.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_g"));
+    dijet_hists_presel_unknown_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_unknown"));
+    dijet_hists_presel_q_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_q_unknown"));
+    dijet_hists_presel_g_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_g_unknown"));
     dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet"));
     dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", 2, "dijet"));
 
@@ -417,7 +422,7 @@ bool QGAnalysisModule::process(Event & event) {
         } else if (flav2 == PDGID::GLUON) {
             dijet_hists_presel_gg->fill(event);
         } else if (flav2 == PDGID::UNKNOWN) {
-            dijet_hists_presel_unknown->fill(event);
+            dijet_hists_presel_g_unknown->fill(event);
         }
     } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
         zplusjets_hists_presel_q->fill(event);
@@ -426,10 +431,17 @@ bool QGAnalysisModule::process(Event & event) {
         } else if (flav2 == PDGID::GLUON) {
             dijet_hists_presel_qg->fill(event);
         } else if (flav2 == PDGID::UNKNOWN) {
-            dijet_hists_presel_unknown->fill(event);
+            dijet_hists_presel_q_unknown->fill(event);
         }
     } else if (flav1 == PDGID::UNKNOWN) {
         zplusjets_hists_presel_unknown->fill(event);
+        if (flav2 == PDGID::GLUON) {
+            dijet_hists_presel_unknown_g->fill(event);
+        } else if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+            dijet_hists_presel_unknown_q->fill(event);
+        } else if (flav2 == PDGID::UNKNOWN) {
+            dijet_hists_presel_unknown_unknown->fill(event);
+        }
     }
 
     // Do reco selection and hist filling
