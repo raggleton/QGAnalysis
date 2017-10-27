@@ -84,7 +84,7 @@ private:
     std::unique_ptr<JetCleaner> jet_cleaner;
 
     // Reco selections/hists
-    std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel, first_jet_qflav_sel, first_jet_gflav_sel, first_jet_uflav_sel, first_jet_dflav_sel, first_jet_sflav_sel;
+    std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel;
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists, zplusjets_qg_hists, zplusjets_hists_q, zplusjets_hists_g;
     std::unique_ptr<Hists> zplusjets_hists_presel_q, zplusjets_hists_presel_g, zplusjets_hists_presel_unknown;
     std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_qg_hists, dijet_hists_q, dijet_hists_g;
