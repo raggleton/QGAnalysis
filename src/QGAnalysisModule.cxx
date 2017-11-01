@@ -401,7 +401,7 @@ bool QGAnalysisModule::process(Event & event) {
     // Only consider jets that have a matching GenJet - this is to avoid dijet events solely from PU,
     // which cause havoc if there is an event weight dervied from a significantly lower GenJet pT.
     if (is_mc) {
-        std::vector<Jet> goodJets = getMatchedJets(event.jets, &event.get(genjets_handle), jetRadius);
+        std::vector<Jet> goodJets = getMatchedJets(event.jets, &event.get(genjets_handle), jetRadius/2.);
         std::swap(goodJets, *event.jets);
     }
 
