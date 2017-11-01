@@ -50,8 +50,8 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
 
   m_jj_vs_pt_jet1 = book<TH2F>("m_jj_vs_pt_jet1", ";m_{jj} [GeV];p_{T}^{jet 1}", 200, 0, 4000, nbins_pt, 0, pt_max);
 
-  deta_jj_vs_pt_jet1 = book<TH2F>("deta_jj_vs_pt_jet1", ";#Delta#eta_{jj};p_{T}^{jet 1}", nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
-  dphi_jj_vs_pt_jet1 = book<TH2F>("dphi_jj_vs_pt_jet1", ";#Delta#phi_{jj};p_{T}^{jet 1}", nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
+  deta_jj_vs_pt_jet1 = book<TH2F>("deta_jj_vs_pt_jet1", ";|#Delta#eta_{jj}|;p_{T}^{jet 1}", nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
+  dphi_jj_vs_pt_jet1 = book<TH2F>("dphi_jj_vs_pt_jet1", ";|#Delta#phi_{jj}|;p_{T}^{jet 1}", nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
 
   // Possible 3rd jet in the event
   pt_jet3_vs_pt_jet1 = book<TH2F>("pt_jet3_vs_pt_jet1", ";p_{T}^{jet 3};p_{T}^{jet 1} ", nbins_pt, 0, 500, nbins_pt, 0, pt_max);

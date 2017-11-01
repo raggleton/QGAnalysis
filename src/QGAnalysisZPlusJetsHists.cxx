@@ -64,12 +64,12 @@ QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string &
   m_mumu_vs_pt_jet1 = book<TH2F>("m_mumu_vs_pt_jet1", ";m_{#mu#mu} [GeV];p_{T}^{jet 1}", 80, 90-40, 90+40, nbins_pt, 0, pt_max);
   pt_mumu_vs_pt_jet1 = book<TH2F>("pt_mumu_vs_pt_jet1", ";p_{T, #mu#mu} [GeV];p_{T}^{jet 1}", nbins_pt, 0, 750, nbins_pt, 0, pt_max);
 
-  dphi_j_z_vs_pt_jet1 = book<TH2F>("dphi_jet1_z_vs_pt_jet1", ";#Delta #phi_{#mu#mu, jet1};p_{T}^{jet 1}", 60, 0, 6, nbins_pt, 0, pt_max);
+  dphi_j_z_vs_pt_jet1 = book<TH2F>("dphi_jet1_z_vs_pt_jet1", ";|#Delta #phi_{#mu#mu, jet1}|;p_{T}^{jet 1}", 60, 0, 6, nbins_pt, 0, pt_max);
 
-  deta_mumu_vs_pt_jet1 = book<TH2F>("deta_mumu_vs_pt_jet1", ";#Delta #eta_{#mu#mu};p_{T}^{jet 1}", nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
-  dphi_mumu_vs_pt_jet1 = book<TH2F>("dphi_mumu_vs_pt_jet1", ";#Delta #phi_{#mu#mu};p_{T}^{jet 1}", nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
-  deta_mumu_jet1_vs_pt_jet1 = book<TH2F>("deta_mumu_jet1_vs_pt_jet1", ";#Delta #eta_{#mu#mu, jet 1};p_{T}^{jet 1}", nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
-  dphi_mumu_jet1_vs_pt_jet1 = book<TH2F>("dphi_mumu_jet1_vs_pt_jet1", ";#Delta #phi_{#mu#mu, jet1};p_{T}^{jet 1}", nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
+  deta_mumu_vs_pt_jet1 = book<TH2F>("deta_mumu_vs_pt_jet1", ";|#Delta #eta_{#mu#mu}|;p_{T}^{jet 1}", nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
+  dphi_mumu_vs_pt_jet1 = book<TH2F>("dphi_mumu_vs_pt_jet1", ";|#Delta #phi_{#mu#mu}|;p_{T}^{jet 1}", nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
+  deta_mumu_jet1_vs_pt_jet1 = book<TH2F>("deta_mumu_jet1_vs_pt_jet1", ";|#Delta #eta_{#mu#mu, jet 1}|;p_{T}^{jet 1}", nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
+  dphi_mumu_jet1_vs_pt_jet1 = book<TH2F>("dphi_mumu_jet1_vs_pt_jet1", ";|#Delta #phi_{#mu#mu, jet1}|;p_{T}^{jet 1}", nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
 
   // primary vertices
   book<TH1F>("N_pv", ";N^{PV}", 50, 0, 50);
