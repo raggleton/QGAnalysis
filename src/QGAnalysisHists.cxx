@@ -267,10 +267,16 @@ void QGAnalysisHists::fill(const Event & event){
     h_jet_width_vs_pt->Fill(width, jet_pt, weight);
     h_jet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
 
-    const GenJetWithParts & genjet = genjets.at(thisjet.genjet_index());
-    float genjet_pt = genjet.pt();
-    float response = jet_pt/genjet_pt;
-    h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+    bool matchedJet = false;
+    float genjet_pt = -1.;
+    float response = -1.;
+    if (thisjet.genjet_index() > -1) {
+      matchedJet = true;
+      const GenJetWithParts & genjet = genjets.at(thisjet.genjet_index());
+      genjet_pt = genjet.pt();
+      response = jet_pt/genjet_pt;
+      h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+    }
 
     // int jet_flav = get_jet_flavour(thisjet, event.genparticles);
     int jet_flav = abs(thisjet.genPartonFlavor());
@@ -288,7 +294,7 @@ void QGAnalysisHists::fill(const Event & event){
       h_gjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
       h_gjet_width_vs_pt->Fill(width, jet_pt, weight);
       h_gjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
-      h_gjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+      if (matchedJet) h_gjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
     } else if ((jet_flav <= 3) && (jet_flav > 0)){ // uds jets
       h_qjet_multiplicity->Fill(mult, weight);
       h_qjet_LHA->Fill(lha, weight);
@@ -301,7 +307,7 @@ void QGAnalysisHists::fill(const Event & event){
       h_qjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
       h_qjet_width_vs_pt->Fill(width, jet_pt, weight);
       h_qjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
-      h_qjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+      if (matchedJet) h_qjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
     }
 
     h_jet_flavour->Fill(abs(thisjet.flavor()), weight);

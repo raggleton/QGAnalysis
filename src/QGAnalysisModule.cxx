@@ -232,7 +232,7 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
         JLC_H.reset(new JetLeptonCleaner(ctx, JEC_H));
     }
 
-    jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.5)));
+    jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.4)));
 
     genjets_handle = ctx.declare_event_output< std::vector<GenJetWithParts> > ("GoodGenJets");
     genmuons_handle = ctx.declare_event_output< std::vector<GenParticle> > ("GoodGenMuons");
@@ -402,7 +402,7 @@ bool QGAnalysisModule::process(Event & event) {
     // which cause havoc if there is an event weight dervied from a significantly lower GenJet pT.
     if (is_mc) {
         std::vector<Jet> goodJets = getMatchedJets(event.jets, &event.get(genjets_handle), jetRadius/2.);
-        std::swap(goodJets, *event.jets);
+        // std::swap(goodJets, *event.jets);
     }
 
     // Preselection hists
@@ -531,8 +531,7 @@ std::vector<GenParticle> QGAnalysisModule::getGenMuons(std::vector<GenParticle> 
 
 /**
  * Select reco jets that have a matching GenJet within some DR
- *
- * Stores index of matching GenJet.
+ * Also stores index of matching GenJets in the passed Jet collection
  * Will take the closest matching GenJet as the match, provided it is within drMax.
  * uniqueMatch controls whether matching GenJets must be unique (i.e 2 reco jets can't match the same GenJet)
  *
@@ -540,7 +539,7 @@ std::vector<GenParticle> QGAnalysisModule::getGenMuons(std::vector<GenParticle> 
 std::vector<Jet> QGAnalysisModule::getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax, bool uniqueMatch) {
     std::vector<Jet> goodJets;
     std::vector<uint> matchedIndices;
-    for (auto jtr: *jets) {
+    for (auto & jtr: *jets) {
         double minDR = 9999.;
         int matchInd = -1; // sensible default - not 0!
 
