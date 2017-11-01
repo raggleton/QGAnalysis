@@ -232,7 +232,7 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
         JLC_H.reset(new JetLeptonCleaner(ctx, JEC_H));
     }
 
-    jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.4)));
+    jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.5)));
 
     genjets_handle = ctx.declare_event_output< std::vector<GenJetWithParts> > ("GoodGenJets");
     genmuons_handle = ctx.declare_event_output< std::vector<GenParticle> > ("GoodGenMuons");
@@ -342,7 +342,7 @@ bool QGAnalysisModule::process(Event & event) {
     // THEORY PART
     // printGenParticles(*event.genparticles);
 
-    std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, event.genparticles, 5., 1.5, jetRadius);
+    std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, event.genparticles, 5., 5., jetRadius);
     if (goodGenJets.size() == 0) return false;
     if (event.jets->size() == 0) return false;
 
