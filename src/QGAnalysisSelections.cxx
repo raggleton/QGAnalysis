@@ -51,23 +51,39 @@ bool ZplusJetsSelection::passes(const Event & event){
 }
 
 
-DijetSelection::DijetSelection(float dphi_min, float third_frac_max):
+DijetSelection::DijetSelection(float dphi_min, float third_jet_frac_max, float ellipse_semi_major_axis, float ellipse_semi_minor_axis, float second_jet_frac_max):
     dphi_min_(dphi_min),
-    third_frac_max_(third_frac_max){}
+    third_jet_frac_max_(third_jet_frac_max),
+    ellipse_semi_major_axis_(ellipse_semi_major_axis),
+    ellipse_semi_minor_axis_(ellipse_semi_minor_axis),
+    second_jet_frac_max_(second_jet_frac_max)
+    {}
 
 bool DijetSelection::passes(const Event & event){
     if (event.jets->size() < 2) return false;
     const auto & jet1 = event.jets->at(0);
     const auto & jet2 = event.jets->at(1);
 
+    if ((jet2.pt() / jet1.pt()) > second_jet_frac_max_) return false;
+
     auto dphi = fabs(deltaPhi(jet1, jet2));
     if (dphi < dphi_min_) return false;
+
+    auto eta1 = jet1.eta();
+    auto eta2 = jet2.eta();
+
+    // if ((eta1 * eta2) < 0) return false;
+
+    auto a = ellipse_semi_major_axis_;
+    auto b = ellipse_semi_minor_axis_;
+    bool inEllipse = ((pow((eta1+eta2), 2) / (a*a)) + (pow((eta1-eta2), 2) / (b*b))) <= 2;
+    if (!inEllipse) return false;
 
     if (event.jets->size() == 2) return true;
 
     const auto & jet3 = event.jets->at(2);
     auto third_jet_frac = jet3.pt() / (0.5 * (jet1.pt() + jet2.pt()));
-    return third_jet_frac < third_frac_max_;
+    return third_jet_frac < third_jet_frac_max_;
 }
 
 
@@ -156,4 +172,13 @@ bool DijetTheorySelection::passes(const Event & event) {
         if ((jet3.pt() / (0.5*(jet1.pt()+jet2.pt()))) > third_frac_max_) return false;
     }
     return true;
+}
+
+
+EventNumberSelection::EventNumberSelection(std::vector<unsigned long> eventNums) {
+    eventNums_ = eventNums;
+}
+
+bool EventNumberSelection::passes(const Event & event) {
+    return std::find(eventNums_.begin(), eventNums_.end(), event.event) != eventNums_.end();
 }

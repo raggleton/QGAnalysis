@@ -248,10 +248,12 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     njet_sel.reset(new NJetSelection(1));
 
     zplusjets_sel.reset(new ZplusJetsSelection());
-    dijet_sel.reset(new DijetSelection());
+    float factor = 1.;
+    // ellipse has ratio 1.7:1
+    dijet_sel.reset(new DijetSelection(2, 0.3, (factor*std::sqrt(2)*1.7), (factor*std::sqrt(2)), 0.94));
 
-    zplusjets_theory_sel.reset(new ZplusJetsTheorySelection(ctx));
-    dijet_theory_sel.reset(new DijetTheorySelection(ctx));
+    // zplusjets_theory_sel.reset(new ZplusJetsTheorySelection(ctx));
+    // dijet_theory_sel.reset(new DijetTheorySelection(ctx));
 
     // Hists
     zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel"));

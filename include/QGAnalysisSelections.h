@@ -26,10 +26,10 @@ private:
  */
 class DijetSelection: public uhh2::Selection {
 public:
-    DijetSelection(float dphi_min=2.0, float third_frac_max=0.3);
+    DijetSelection(float dphi_min=2.0, float third_jet_frac_max=0.3, float ellipse_semi_major_axis=(std::sqrt(2)*1.7), float ellipse_semi_minor_axis=std::sqrt(2), float second_jet_frac_max=0.94);
     virtual bool passes(const uhh2::Event & event) override;
 private:
-    float dphi_min_, third_frac_max_;
+    float dphi_min_, third_jet_frac_max_, ellipse_semi_major_axis_, ellipse_semi_minor_axis_, second_jet_frac_max_;
 };
 
 
@@ -80,4 +80,14 @@ private:
 };
 
 
+/**
+ * Allows selection of events by Event number
+ */
+class EventNumberSelection: public uhh2::Selection {
+public:
+    EventNumberSelection(std::vector<unsigned long> eventNums);
+    virtual bool passes(const uhh2::Event & event) override;
+private:
+    std::vector<unsigned long> eventNums_;
+};
 }
