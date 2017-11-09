@@ -70,8 +70,11 @@ public:
     std::vector<GenParticle> getGenMuons(std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=2.5);
     std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax=0.8, bool uniqueMatch=true);
     void printGenParticles(const std::vector<GenParticle> & gps, const std::string & info="", Color::Code color=Color::FG_DEFAULT);
-    void printGenJets(const std::vector<GenJetWithParts> & gps, const std::string & info="", Color::Code color=Color::FG_BLUE);
+    std::vector<GenParticle*> print_genjet_genparticles(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles);
+    void printGenJets(const std::vector<GenJetWithParts> & gps, std::vector<GenParticle>* genparticles, const std::string & info="", Color::Code color=Color::FG_BLUE);
     void printJets(const std::vector<Jet> & jets, const std::string & info="", Color::Code color=Color::FG_GREEN);
+    void printMuons(const std::vector<Muon> & muons, const std::string & info="", Color::Code color=Color::FG_RED);
+    void printElectrons(const std::vector<Electron> & electrons, const std::string & info="", Color::Code color=Color::FG_YELLOW);
 
 private:
 
@@ -300,6 +303,10 @@ bool QGAnalysisModule::process(Event & event) {
     // This is the main procedure, called for each event.
     if (!common->process(event)) {return false;}
 
+    printMuons(*event.muons);
+    printElectrons(*event.electrons);
+    printGenParticles(*event.genparticles);
+
     // Do additional cleaning & JEC manually to allow custom JEC (common only does AK4)
     // 1) jet-lepton cleaning
     // 2) Apply JEC
@@ -404,6 +411,9 @@ bool QGAnalysisModule::process(Event & event) {
         std::vector<Jet> goodJets = getMatchedJets(event.jets, &event.get(genjets_handle), jetRadius/2.);
         // std::swap(goodJets, *event.jets);
     }
+
+    printJets(*event.jets);
+    printGenJets(event.get(genjets_handle), event.genparticles);
 
     // Preselection hists
     zplusjets_hists_presel->fill(event);
@@ -580,7 +590,20 @@ void QGAnalysisModule::printGenParticles(const std::vector<GenParticle> & gps, c
     }
 }
 
-void QGAnalysisModule::printGenJets(const std::vector<GenJetWithParts> & gps, const std::string & label, Color::Code color) {
+std::vector<GenParticle*> QGAnalysisModule::print_genjet_genparticles(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles) {
+  std::vector<GenParticle*> gp;
+  for (const uint i : jet.genparticles_indices()) {
+    gp.push_back(&(genparticles->at(i)));
+  }
+  // if (gp.size() < 6) {
+    // std::cout << "low mult jet" << std::endl;
+    for (const auto *itr : gp) {std::cout << itr->pdgId() << " : " << itr->pt() << " : " << deltaR(jet.v4(), itr->v4()) << std::endl;}
+    // for(const auto & itr : *genparticles) {std::cout << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << " : " << deltaR(itr.v4(), jet.v4()) << std::endl;}
+  // }
+  return gp;
+}
+
+void QGAnalysisModule::printGenJets(const std::vector<GenJetWithParts> & gps, std::vector<GenParticle>* genparticles, const std::string & label, Color::Code color) {
     if (!PRINTOUT) return;
     for (auto & itr: gps) {
         cout << color << "GenJet";
@@ -595,6 +618,29 @@ void QGAnalysisModule::printJets(const std::vector<Jet> & jets, const std::strin
     if (!PRINTOUT) return;
     for (auto & itr: jets) {
         cout << color << "jet";
+        if (label != "") {
+            cout << " [" << label << "]";
+        }
+        cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
+        print_genjet_genparticles(itr, genparticles);
+    }
+}
+
+void QGAnalysisModule::printMuons(const std::vector<Muon> & muons, const std::string & label, Color::Code color) {
+    if (!PRINTOUT) return;
+    for (auto & itr: muons) {
+        cout << color << "muon";
+        if (label != "") {
+            cout << " [" << label << "]";
+        }
+        cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
+    }
+}
+
+void QGAnalysisModule::printElectrons(const std::vector<Electron> & electrons, const std::string & label, Color::Code color) {
+    if (!PRINTOUT) return;
+    for (auto & itr: electrons) {
+        cout << color << "electron";
         if (label != "") {
             cout << " [" << label << "]";
         }
