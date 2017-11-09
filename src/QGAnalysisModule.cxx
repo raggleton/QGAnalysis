@@ -84,6 +84,8 @@ private:
     std::unique_ptr<JetCorrector> jet_corrector_MC, jet_corrector_BCD, jet_corrector_EFearly, jet_corrector_FlateG, jet_corrector_H;
     std::unique_ptr<GenericJetResolutionSmearer> jet_resolution_smearer;
     std::unique_ptr<JetCleaner> jet_cleaner;
+    std::unique_ptr<JetElectronOverlapRemoval> jet_ele_cleaner;
+    std::unique_ptr<JetMuonOverlapRemoval> jet_mu_cleaner;
 
     // Reco selections/hists
     std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel;
@@ -239,7 +241,9 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
         jet_corrector_H.reset(new JetCorrector(ctx, JEC_H));
     }
 
-    jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.4)));
+    jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.5)));
+    jet_ele_cleaner.reset(new JetElectronOverlapRemoval(jetRadius));
+    jet_mu_cleaner.reset(new JetMuonOverlapRemoval(jetRadius));
 
     genjets_handle = ctx.declare_event_output< std::vector<GenJetWithParts> > ("GoodGenJets");
     genmuons_handle = ctx.declare_event_output< std::vector<GenParticle> > ("GoodGenMuons");
@@ -363,12 +367,13 @@ bool QGAnalysisModule::process(Event & event) {
         }
     }
 
-    // 3) Do jet cleaner
+    // Do jet cleaning
     jet_cleaner->process(event);
-    // 4) Resort by pT
+    jet_ele_cleaner->process(event);
+    jet_mu_cleaner->process(event);
+
+    // Resort by pT
     sort_by_pt(*event.jets);
-
-
 
     // THEORY PART
     // printGenParticles(*event.genparticles);
