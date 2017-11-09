@@ -8,6 +8,7 @@
 #include "UHH2/common/include/CleaningModules.h"
 #include "UHH2/common/include/NSelections.h"
 #include "UHH2/common/include/MuonIds.h"
+#include "UHH2/common/include/ElectronIds.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisSelections.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisZPlusJetsHists.h"
@@ -81,8 +82,6 @@ private:
     std::unique_ptr<CommonModules> common;
 
     std::unique_ptr<JetCorrector> jet_corrector_MC, jet_corrector_BCD, jet_corrector_EFearly, jet_corrector_FlateG, jet_corrector_H;
-    std::unique_ptr<JetLeptonCleaner> JLC_MC, JLC_BCD, JLC_EFearly, JLC_FlateG, JLC_H;
-    // std::unique_ptr<JetResolutionSmearer> jet_resolution_smearer;
     std::unique_ptr<GenericJetResolutionSmearer> jet_resolution_smearer;
     std::unique_ptr<JetCleaner> jet_cleaner;
 
@@ -146,6 +145,7 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     common->disable_jec(); // do it manually below
     common->change_pf_id(JetPFID::wp::WP_LOOSE);
     common->set_muon_id(MuonIDMedium_ICHEP());
+    common->set_electron_id(ElectronID_Spring16_veto);
     common->switch_jetPtSorter(false);
     common->switch_jetlepcleaner(false);
 
@@ -195,7 +195,6 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
         jet_corrector_MC.reset(new JetCorrector(ctx, JEC_MC));
         // jet_resolution_smearer.reset(new JetResolutionSmearer(ctx));
         jet_resolution_smearer.reset(new GenericJetResolutionSmearer(ctx, "jets", "genjets", true, JERSmearing::SF_13TeV_2016_03Feb2017, resolutionFilename));
-        JLC_MC.reset(new JetLeptonCleaner(ctx, JEC_MC));
     } else {
         std::vector<std::string> JEC_BCD, JEC_EFearly, JEC_FlateG, JEC_H;
         if (pu_removal == "CHS") {
@@ -228,11 +227,6 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
         jet_corrector_EFearly.reset(new JetCorrector(ctx, JEC_EFearly));
         jet_corrector_FlateG.reset(new JetCorrector(ctx, JEC_FlateG));
         jet_corrector_H.reset(new JetCorrector(ctx, JEC_H));
-
-        JLC_BCD.reset(new JetLeptonCleaner(ctx, JEC_BCD));
-        JLC_EFearly.reset(new JetLeptonCleaner(ctx, JEC_EFearly));
-        JLC_FlateG.reset(new JetLeptonCleaner(ctx, JEC_FlateG));
-        JLC_H.reset(new JetLeptonCleaner(ctx, JEC_H));
     }
 
     jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.4)));
@@ -308,30 +302,24 @@ bool QGAnalysisModule::process(Event & event) {
     printGenParticles(*event.genparticles);
 
     // Do additional cleaning & JEC manually to allow custom JEC (common only does AK4)
-    // 1) jet-lepton cleaning
-    // 2) Apply JEC
-    // 3) correct MET
-    // 4) Smear jets if MC
-    if (is_mc) {
-        JLC_MC->process(event);
+    // - Apply JEC
+    // - correct MET
+    // - Smear jets if MC
+   if (is_mc) {
         jet_corrector_MC->process(event);
         jet_corrector_MC->correct_met(event);
         jet_resolution_smearer->process(event);
     } else {
         if (event.run <= runnr_BCD) {
-            JLC_BCD->process(event);
             jet_corrector_BCD->process(event);
             jet_corrector_BCD->correct_met(event);
         } else if (event.run < runnr_EFearly) { //< is correct, not <=
-            JLC_EFearly->process(event);
             jet_corrector_EFearly->process(event);
             jet_corrector_EFearly->correct_met(event);
         } else if (event.run <= runnr_FlateG) {
-            JLC_FlateG->process(event);
             jet_corrector_FlateG->process(event);
             jet_corrector_FlateG->correct_met(event);
         } else if (event.run > runnr_FlateG) {
-            JLC_H->process(event);
             jet_corrector_H->process(event);
             jet_corrector_H->correct_met(event);
         } else {
@@ -341,9 +329,9 @@ bool QGAnalysisModule::process(Event & event) {
 
     // 3) Do jet cleaner
     jet_cleaner->process(event);
-
     // 4) Resort by pT
     sort_by_pt(*event.jets);
+
 
 
     // THEORY PART
