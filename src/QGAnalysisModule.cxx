@@ -138,6 +138,8 @@ private:
     const int runnr_BCD = 276811;
     const int runnr_EFearly = 278802;
     const int runnr_FlateG = 280385;
+
+    std::unique_ptr<EventNumberSelection> event_sel;
 };
 
 
@@ -332,6 +334,8 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
 
 
 bool QGAnalysisModule::process(Event & event) {
+    // if (!event_sel->passes(event)) return false;
+
     if (PRINTOUT) {cout << "-- Event: " << event.event << endl;}
 
     // This is the main procedure, called for each event.
