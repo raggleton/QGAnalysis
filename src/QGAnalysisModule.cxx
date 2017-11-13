@@ -703,6 +703,7 @@ void QGAnalysisModule::printGenJets(const std::vector<GenJetWithParts> & gps, st
             cout << " [" << label << "]";
         }
         cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
+        print_genjet_genparticles(itr, genparticles);
     }
 }
 
@@ -714,7 +715,6 @@ void QGAnalysisModule::printJets(const std::vector<Jet> & jets, const std::strin
             cout << " [" << label << "]";
         }
         cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
-        print_genjet_genparticles(itr, genparticles);
     }
 }
 
