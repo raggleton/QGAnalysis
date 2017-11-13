@@ -440,6 +440,8 @@ bool QGAnalysisModule::process(Event & event) {
     // }
 
     // RECO PART
+    if (!njet_sel->passes(event)) return false;
+
     // Ask reco jets to find matching GenJet
     // But we still use the event.jets as all interesting
     if (is_mc) {
