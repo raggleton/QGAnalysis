@@ -243,7 +243,7 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
         jet_corrector_H.reset(new JetCorrector(ctx, JEC_H));
     }
 
-    jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.5)));
+    jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.4)));
     jet_ele_cleaner.reset(new JetElectronOverlapRemoval(jetRadius));
     jet_mu_cleaner.reset(new JetMuonOverlapRemoval(jetRadius));
 
@@ -254,7 +254,9 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     njet_sel.reset(new NJetSelection(1));
 
     zplusjets_sel.reset(new ZplusJetsSelection());
-    dijet_sel.reset(new DijetSelection(2, 0.94, 0.3, false, 10, 10));
+    float deta = 1.2;
+    float sumEta = 10.;
+    dijet_sel.reset(new DijetSelection(2, 0.94, 0.3, true, deta, sumEta));
 
     // zplusjets_theory_sel.reset(new ZplusJetsTheorySelection(ctx));
     // dijet_theory_sel.reset(new DijetTheorySelection(ctx));
