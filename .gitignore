@@ -2,6 +2,6 @@ obj
 *.pyc
 *.o
 uhh*.root
-Plots/*.ps
+Plots/
 *.pdf
-
+config/workdir*
