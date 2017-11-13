@@ -17,7 +17,7 @@ ROOT.gStyle.SetOptStat(0)
 
 def make_weights_file(pythia_dir, herwig_dir, output_file):
     """Create file with histogram of weights for each selection region.
-    The wieghts reweight the herwig jet pt spectrum to that of pythia.
+    The weights reweight the herwig jet pt spectrum to that of pythia.
     """
     # Do QCD sample
     f_pythia = ROOT.TFile("../Selection/"+pythia_dir+"/uhh2.AnalysisModuleRunner.MC.MC_QCD_.root")
@@ -44,6 +44,7 @@ def make_weights_file(pythia_dir, herwig_dir, output_file):
     h_dijet_gen_h.Scale(1./h_dijet_gen_h.Integral())
     h_dijet_gen_p.Divide(h_dijet_gen_h)
 
+    """
     # Do Z+Jets
     f_pythia = ROOT.TFile("../Selection/"+pythia_dir+"/uhh2.AnalysisModuleRunner.MC.MC_DYJetsToLL_.root")
     f_herwig = ROOT.TFile("../Selection/"+herwig_dir+"/uhh2.AnalysisModuleRunner.MC.MC_DYJetsToLL_.root")
@@ -66,7 +67,7 @@ def make_weights_file(pythia_dir, herwig_dir, output_file):
     h_zpj_gen_p.Scale(1./h_zpj_gen_p.Integral())
     h_zpj_gen_h.Scale(1./h_zpj_gen_h.Integral())
     h_zpj_gen_p.Divide(h_zpj_gen_h)
-
+    """
     fout = ROOT.TFile(output_file, "RECREATE")
     h_dijet_reco_p.Write()
     h_dijet_gen_p.Write()
@@ -82,5 +83,6 @@ if __name__ == "__main__":
         SETUP = algo + pu
         # Check your directories are in the right places
         PYTHIA_DIR = "MGPythia/workdir_%s_mgpythia" % SETUP
-        HERWIG_DIR = "Herwig/workdir_%s_herwig" % SETUP
-        make_weights_file(PYTHIA_DIR, HERWIG_DIR, "herwig_weights_%s.root" % SETUP)
+        HERWIG_DIR = "Herwig/workdir_%s_herwig" % SETUP  # for Herig
+        HERWIG_DIR = "PythiaOnlyFlat/workdir_%s_pythiaOnlyFlat" % SETUP  # for PYthiaOnlyFlat
+        make_weights_file(PYTHIA_DIR, HERWIG_DIR, "pythiaOnlyFlat_weights_%s.root" % SETUP)
