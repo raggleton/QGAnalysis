@@ -9,7 +9,12 @@ import os
 import HTMLParser
 
 
-ntuple_dir = "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Ntuples/Herwig/"
+ntuple_dir = "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Ntuples/Herwig/DYJetsToLL"
+# ntuple_dir = "/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Ntuples/Herwig/QCD"
+ntuple_dirs = [
+"/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Ntuples/Herwig/DYJetsToLL",
+"/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Ntuples/Herwig/QCD"
+]
 
 # For all XML input snippets:
 common_attr = dict(NEventsMax="&NEVT;", Type="MC", Cacheable="False", Lumi= '1.0')
@@ -28,15 +33,18 @@ def create_xml_snippet(data_attrib, in_attribs):
 
 if __name__ == "__main__":
     xml_snippets = []
+    for nd in ntuple_dirs:
+        for f in os.listdir(nd):
+            # if not os.path.isfile(f):
+            #     continue
 
-    for f in os.listdir(ntuple_dir):
-        data_attrib = {
-            'Version': f.replace("Ntuple_", "").replace(".root", ""),
-        }
-        data_attrib.update(common_attr)
-        in_attrib = {"FileName": os.path.join(ntuple_dir, f), "Lumi": "0.0"}
-        snip = create_xml_snippet(data_attrib, [in_attrib])
-        xml_snippets.append(snip)
+            data_attrib = {
+                'Version': f.replace("Ntuple_", "").replace(".root", ""),
+            }
+            data_attrib.update(common_attr)
+            in_attrib = {"FileName": os.path.join(nd, f), "Lumi": "0.0"}
+            snip = create_xml_snippet(data_attrib, [in_attrib])
+            xml_snippets.append(snip)
 
     xml_filename = "input.xml"
 

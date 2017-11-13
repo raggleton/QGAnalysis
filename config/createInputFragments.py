@@ -80,13 +80,16 @@ def get_lumiweight(xml, shortname):
     tree = ET.fromstring("<root>"+contents+"</root>")
     filenames = [child.attrib['FileName'] for child in tree]
     num_events = get_num_events(filenames)
+    print "nevents", num_events
     xsec = get_xsec(df_bkg, shortname)
+    print "xsec:", xsec
     # print "LumiWeight: ", num_events/xsec
     return num_events/xsec
 
 
 if __name__ == "__main__":
     for shortname, xml in DO_THESE:
+        print shortname
         weight = get_lumiweight(xml, shortname)
         if not math.isnan(weight):
             # print shortname, "=", weight

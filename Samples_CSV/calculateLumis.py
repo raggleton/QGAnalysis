@@ -15,7 +15,7 @@ ROOT.gROOT.SetBatch(1)
 
 
 # Load CSV files as DataFrames
-df_bkg = pd.read_csv("Ntuple_production_(Run_II,_80X,_Moriond17)_-_Background_samples.csv", header=1)
+df_bkg = pd.read_csv("/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Samples_CSV/Ntuple_production_(Run_II,_80X,_Moriond17)_-_Background_samples.csv", header=1)
 
 
 def parse_sample(df, num_events=0, dataset=None, xml_filename=None):
@@ -68,55 +68,56 @@ def parse_samples(samples_dicts):
 
 if __name__ == "__main__":
     # List all your samples here
+    ntuple_dir = "../Ntuples/100K/"
     my_setup = [
         {
             "df": df_bkg,
-            "local_filenames" : ["../Ntuples/Ntuple_MC_DYJetsToLL_M-50_HT70to100.root"],
+            "local_filenames" : [ntuple_dir + "Ntuple_MC_DYJetsToLL_M-50_HT70to100.root"],
             "xml_filename": "MC_DYJetsToLL_M-50_HT-70to100"
         },
         {
             "df": df_bkg,
-            "local_filenames" : ["../Ntuples/Ntuple_MC_DYJetsToLL_M-50_HT100to200.root"],
+            "local_filenames" : [ntuple_dir + "Ntuple_MC_DYJetsToLL_M-50_HT100to200.root"],
             "xml_filename": "MC_DYJetsToLL_M-50_HT-100to200"
         },
         {
             "df": df_bkg,
-            "local_filenames" : ["../Ntuples/Ntuple_MC_DYJetsToLL_M-50_HT200to400.root"],
+            "local_filenames" : [ntuple_dir + "Ntuple_MC_DYJetsToLL_M-50_HT200to400.root"],
             "xml_filename": "MC_DYJetsToLL_M-50_HT-200to400"
         },
         {
             "df": df_bkg,
-            "local_filenames" : ["../Ntuples/Ntuple_MC_DYJetsToLL_M-50_HT400to600.root"],
+            "local_filenames" : [ntuple_dir + "Ntuple_MC_DYJetsToLL_M-50_HT400to600.root"],
             "xml_filename": "MC_DYJetsToLL_M-50_HT-400to600"
         },
         {
             "df": df_bkg,
-            "local_filenames" : ["../Ntuples/Ntuple_MC_DYJetsToLL_M-50_HT600to800.root"],
+            "local_filenames" : [ntuple_dir + "Ntuple_MC_DYJetsToLL_M-50_HT600to800.root"],
             "xml_filename": "MC_DYJetsToLL_M-50_HT-600to800"
         },
         {
             "df": df_bkg,
-            "local_filenames" : ["../Ntuples/Ntuple_MC_QCD_HT100to200.root"],
+            "local_filenames" : [ntuple_dir + "Ntuple_MC_QCD_HT100to200.root"],
             "xml_filename": "MC_QCD_HT100to200"
         },
         {
             "df": df_bkg,
-            "local_filenames" : ["../Ntuples/Ntuple_MC_QCD_HT200to300.root"],
+            "local_filenames" : [ntuple_dir + "Ntuple_MC_QCD_HT200to300.root"],
             "xml_filename": "MC_QCD_HT200to300"
         },
         {
             "df": df_bkg,
-            "local_filenames" : ["../Ntuples/Ntuple_MC_QCD_HT300to500.root"],
+            "local_filenames" : [ntuple_dir + "Ntuple_MC_QCD_HT300to500.root"],
             "xml_filename": "MC_QCD_HT300to500"
         },
         {
             "df": df_bkg,
-            "local_filenames" : ["../Ntuples/Ntuple_MC_QCD_HT500to700.root"],
+            "local_filenames" : [ntuple_dir + "Ntuple_MC_QCD_HT500to700.root"],
             "xml_filename": "MC_QCD_HT500to700"
         },
         {
             "df": df_bkg,
-            "local_filenames" : ["../Ntuples/Ntuple_MC_QCD_HT700to1000.root"],
+            "local_filenames" : [ntuple_dir + "Ntuple_MC_QCD_HT700to1000.root"],
             "xml_filename": "MC_QCD_HT700to1000"
         }
 
