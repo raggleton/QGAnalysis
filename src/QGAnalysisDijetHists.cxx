@@ -118,7 +118,7 @@ void QGAnalysisDijetHists::fill(const Event & event){
   double dPhi = fabs(deltaPhi(jet1, jet2));
   deta_jj_vs_pt_jet1->Fill(dEta, jet1_pt, weight);
   dphi_jj_vs_pt_jet1->Fill(dPhi, jet1_pt, weight);
-  sumeta_jj_vs_pt_jet1->Fill(jet1.eta() + jet2.eta(), weight);
+  sumeta_jj_vs_pt_jet1->Fill(jet1.eta() + jet2.eta(), jet1_pt, weight);
 
   met_sig_vs_pt_jet1->Fill(event.met->mEtSig(), jet1_pt, weight);
 
