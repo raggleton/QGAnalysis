@@ -46,6 +46,7 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   phi_jet2_vs_pt_jet1 = book<TH2F>("phi_jet2_vs_pt_jet1", ";#phi^{jet 2};p_{T}^{jet 1}", nbins_phi, -phi_max, phi_max, nbins_pt, 0, pt_max);
 
   flav_jet1_jet2 = book<TH2F>("flav_jet1_jet2", ";jet 1 flav;jet 2 flav;", 23, -0.5, 22.5, 23, -0.5, 22.5);
+  genparton_flav_jet1_jet2 = book<TH2F>("genparton_flav_jet1_jet2", ";jet 1 flav;jet 2 flav;", 23, -0.5, 22.5, 23, -0.5, 22.5);
 
   pt_jet1_jet2_ratio_vs_pt_jet1 = book<TH2F>("pt_jet1_jet2_ratio_vs_pt_jet1", ";p_{T}^{jet 2} / p_{T}^{jet 1};p_{T}^{jet 1};p_{T}^{jet 1}", 50, 0, 1, nbins_pt, 0, pt_max);
 
@@ -109,8 +110,9 @@ void QGAnalysisDijetHists::fill(const Event & event){
   phi_jet2_vs_pt_jet1->Fill(jet2.phi(), jet1_pt, weight);
 
   pt_jet1_jet2_ratio_vs_pt_jet1->Fill(jet2.pt() / jet1.pt(), jet1_pt, weight);
-  // flav_jet1_jet2->Fill(abs(jet1.genPartonFlavor()), abs(jet2.genPartonFlavor()), weight);
+
   flav_jet1_jet2->Fill(abs(jet1.flavor()), abs(jet2.flavor()), weight);
+  genparton_flav_jet1_jet2->Fill(abs(jet1.genPartonFlavor()), abs(jet2.genPartonFlavor()), weight);
 
   double mass = (jet1.v4() + jet2.v4()).M();
   m_jj_vs_pt_jet1->Fill(mass, jet1_pt, weight);
