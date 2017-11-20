@@ -97,7 +97,9 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   h_jet_flavour_vs_pt = book<TH2F>("jet_flavour_vs_pt", "jet flavour;PDGID;Jet p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
   h_jet_genParton_flavour_vs_pt = book<TH2F>("jet_genParton_flavour_vs_pt", "jet flavour;PDGID;Jet p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
+  h_jet1_flavour_vs_pt = book<TH2F>("jet1_flavour_vs_pt", "jet1 flavour;PDGID;Jet1 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
   h_jet1_genParton_flavour_vs_pt = book<TH2F>("jet1_genParton_flavour_vs_pt", "jet1 flavour;PDGID;Jet1 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
+  h_jet2_flavour_vs_pt = book<TH2F>("jet2_flavour_vs_pt", "jet2 flavour;PDGID;Jet2 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
   h_jet2_genParton_flavour_vs_pt = book<TH2F>("jet2_genParton_flavour_vs_pt", "jet2 flavour;PDGID;Jet2 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
   
   h_jet_flavour_vs_eta = book<TH2F>("jet_flavour_vs_eta", "jet flavour;PDGID;Jet #eta", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
@@ -316,10 +318,14 @@ void QGAnalysisHists::fill(const Event & event){
     h_jet_genParton_flavour->Fill(abs(thisjet.genPartonFlavor()), weight);
     h_jet_flavour_vs_pt->Fill(abs(thisjet.flavor()), jet_pt, weight);
     h_jet_genParton_flavour_vs_pt->Fill(abs(thisjet.genPartonFlavor()), jet_pt, weight);
-    if (i == 0)
+    if (i == 0) {
       h_jet1_genParton_flavour_vs_pt->Fill(abs(thisjet.genPartonFlavor()), jet_pt, weight);
-    else if (i == 1)
+      h_jet1_flavour_vs_pt->Fill(abs(thisjet.flavor()), jet_pt, weight);
+    }
+    else if (i == 1) {
       h_jet2_genParton_flavour_vs_pt->Fill(abs(thisjet.genPartonFlavor()), jet_pt, weight);
+      h_jet2_flavour_vs_pt->Fill(abs(thisjet.flavor()), jet_pt, weight);
+    }
     
     h_jet_flavour_vs_eta->Fill(abs(thisjet.flavor()), thisjet.eta(), weight);
     h_jet_genParton_flavour_vs_eta->Fill(abs(thisjet.genPartonFlavor()), thisjet.eta(), weight);

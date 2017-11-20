@@ -109,7 +109,8 @@ void QGAnalysisDijetHists::fill(const Event & event){
   phi_jet2_vs_pt_jet1->Fill(jet2.phi(), jet1_pt, weight);
 
   pt_jet1_jet2_ratio_vs_pt_jet1->Fill(jet2.pt() / jet1.pt(), jet1_pt, weight);
-  flav_jet1_jet2->Fill(abs(jet1.genPartonFlavor()), abs(jet2.genPartonFlavor()), weight);
+  // flav_jet1_jet2->Fill(abs(jet1.genPartonFlavor()), abs(jet2.genPartonFlavor()), weight);
+  flav_jet1_jet2->Fill(abs(jet1.flavor()), abs(jet2.flavor()), weight);
 
   double mass = (jet1.v4() + jet2.v4()).M();
   m_jj_vs_pt_jet1->Fill(mass, jet1_pt, weight);

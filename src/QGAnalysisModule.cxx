@@ -456,10 +456,12 @@ bool QGAnalysisModule::process(Event & event) {
     dijet_hists_presel->fill(event);
 
     // flav-specific preselection hists, useful for optimising selection
-    uint flav1 = event.jets->at(0).genPartonFlavor();
+    // uint flav1 = event.jets->at(0).genPartonFlavor();
+    uint flav1 = event.jets->at(0).flavor();
     uint flav2(99999999);
     if (event.jets->size() > 1) {
-        flav2 = event.jets->at(1).genPartonFlavor();
+        // flav2 = event.jets->at(1).genPartonFlavor();
+        flav2 = event.jets->at(1).flavor();
     }
     if (flav1 == PDGID::GLUON) {
         zplusjets_hists_presel_g->fill(event);
@@ -513,7 +515,8 @@ bool QGAnalysisModule::process(Event & event) {
 
     flav2 = 99999999;
     if ((event.jets->size() > 1) && (event.jets->at(1).pt() > ptCut)) {
-        flav2 = event.jets->at(1).genPartonFlavor();
+        // flav2 = event.jets->at(1).genPartonFlavor();
+        flav2 = event.jets->at(1).flavor();
     }
     dijet_hists_presel_highPt->fill(event);
 
