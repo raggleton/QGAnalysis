@@ -34,6 +34,8 @@
     <!ENTITY PYTHIA-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/PythiaOnly/QCD_Pt15to7000_Flat.xml">
     <!ENTITY POWHEG-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/Powheg-Pythia/Dijet.xml">
 
+    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/common.xml">
+
     <!-- Jet config snippets -->
     <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chs.xml">
     <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4puppi.xml">
@@ -180,10 +182,7 @@
         </InputData>
 
         <UserConfig>
-            <!-- define which collections to read from the input. Only specify what you need to save I/O time -->
-            <Item Name="PrimaryVertexCollection" Value="offlineSlimmedPrimaryVertices" />
-            <Item Name="ElectronCollection" Value="slimmedElectronsUSER" />
-            <Item Name="MuonCollection" Value="slimmedMuonsUSER" />
+            &COMMON;
 
             <!-- Choose your jet configuration -->
 
@@ -191,26 +190,6 @@
             <!-- &AK4PUPPI; -->
             <!-- &AK8CHS; -->
             <!-- &AK8PUPPI; -->
-
-            <Item Name="GenParticleCollection" Value="GenParticles" />
-
-            <!-- the class name of the AnalysisModule subclasses to run: -->
-            <Item Name="AnalysisModule" Value="QGAnalysisModule" />
-
-            <!-- tell AnalysisModuleRunner NOT to use the MC event weight from SFrame; rather let
-                 MCLumiWeight (called via CommonModules) calculate the MC event weight. The MC
-                 event weight assigned by MCLumiWeight is InputData.Lumi / Cycle.TargetLumi. -->
-            <Item Name="use_sframe_weight" Value="false" />
-
-
-            <!-- If you want to reweight herwig pT spectrum to match Pythia -->
-            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_weights_ak4chs.root" /> -->
-            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_weights_ak4puppi.root" /> -->
-            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_weights_ak8chs.root" /> -->
-            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_weights_ak8puppi.root" /> -->
-            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/pythiaOnlyFlat_weights_ak4chs.root" /> -->
-            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/pythiaOnlyFlat_weights_ak4puppi.root" /> -->
-            <Item Name="herwig_reweight_file" Value="" />
 
         </UserConfig>
     </Cycle>

@@ -1,0 +1,13 @@
+<Item Name="PrimaryVertexCollection" Value="offlineSlimmedPrimaryVertices" />
+<Item Name="ElectronCollection" Value="slimmedElectronsUSER" />
+<Item Name="MuonCollection" Value="slimmedMuonsUSER" />
+
+<Item Name="GenParticleCollection" Value="GenParticles" />
+
+<!-- the class name of the AnalysisModule subclasses to run: -->
+<Item Name="AnalysisModule" Value="QGAnalysisModule" />
+
+<!-- tell AnalysisModuleRunner NOT to use the MC event weight from SFrame; rather let
+ MCLumiWeight (called via CommonModules) calculate the MC event weight. The MC
+ event weight assigned by MCLumiWeight is InputData.Lumi / Cycle.TargetLumi. -->
+<Item Name="use_sframe_weight" Value="false" />
