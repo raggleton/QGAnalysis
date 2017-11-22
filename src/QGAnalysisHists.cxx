@@ -283,7 +283,8 @@ void QGAnalysisHists::fill(const Event & event){
     }
 
     // int jet_flav = get_jet_flavour(thisjet, event.genparticles);
-    int jet_flav = abs(thisjet.genPartonFlavor());
+    // int jet_flav = abs(thisjet.genPartonFlavor());
+    int jet_flav = abs(thisjet.flavor());
 
     // Split by actual jet flavour - these only make sense for MC
     if (jet_flav == 21) { // gluon jets
@@ -314,20 +315,20 @@ void QGAnalysisHists::fill(const Event & event){
       if (matchedJet) h_qjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
     }
 
-    h_jet_flavour->Fill(abs(thisjet.flavor()), weight);
+    h_jet_flavour->Fill(jet_flav, weight);
     h_jet_genParton_flavour->Fill(abs(thisjet.genPartonFlavor()), weight);
-    h_jet_flavour_vs_pt->Fill(abs(thisjet.flavor()), jet_pt, weight);
+    h_jet_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
     h_jet_genParton_flavour_vs_pt->Fill(abs(thisjet.genPartonFlavor()), jet_pt, weight);
     if (i == 0) {
       h_jet1_genParton_flavour_vs_pt->Fill(abs(thisjet.genPartonFlavor()), jet_pt, weight);
-      h_jet1_flavour_vs_pt->Fill(abs(thisjet.flavor()), jet_pt, weight);
+      h_jet1_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
     }
     else if (i == 1) {
       h_jet2_genParton_flavour_vs_pt->Fill(abs(thisjet.genPartonFlavor()), jet_pt, weight);
-      h_jet2_flavour_vs_pt->Fill(abs(thisjet.flavor()), jet_pt, weight);
+      h_jet2_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
     }
     
-    h_jet_flavour_vs_eta->Fill(abs(thisjet.flavor()), thisjet.eta(), weight);
+    h_jet_flavour_vs_eta->Fill(jet_flav, thisjet.eta(), weight);
     h_jet_genParton_flavour_vs_eta->Fill(abs(thisjet.genPartonFlavor()), thisjet.eta(), weight);
 
     //  Do lambda correlation hists
