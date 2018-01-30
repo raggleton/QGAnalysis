@@ -5,14 +5,15 @@
 
     <!-- Output directories -->
     <!ENTITY ODIR-SINGLEMU "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/SingleMu">
+    <!ENTITY ODIR-JETHT "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/JetHT">
 
     <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/commonData.xml">
 
     <!-- Jet config snippets -->
-    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chs.xml">
-    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4puppi.xml">
-    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8chs.xml">
-    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8puppi.xml">
+    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chsData.xml">
+    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4puppiData.xml">
+    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8chsData.xml">
+    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8puppiData.xml">
 ]>
 
 
@@ -34,8 +35,30 @@
    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-SINGLEMU;/" PostFix="" TargetLumi="1" >
 
         <!-- TEST FILES -->
-        <InputData Lumi="1" NEventsMax="10000" Type="DATA" Version="DATA_TEST" Cacheable="False">
+        <InputData Lumi="1" NEventsMax="10000" Type="DATA" Version="DATA_SINGLEMU_TEST" Cacheable="False">
         <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/SingleMuon/crab_SingleMuon_Run2016C-03Feb2017-v1_15_Jan_18_newRecoJetFlav_v5/180115_082326/0000/Ntuple_10.root" Lumi="0.0"/>
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+        
+        <UserConfig>
+            &COMMON;
+
+            <Item Name="lumi_file" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/common/data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.root"/>
+            <!-- Choose your jet configuration -->
+
+            &AK4CHS;
+            <!-- &AK4PUPPI; -->
+            <!-- &AK8CHS; -->
+            <!-- &AK8PUPPI; -->
+            <Item Name="useGenPartonFlav" Value="true"/>
+        </UserConfig>
+    </Cycle>
+
+    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-JETHT;/" PostFix="" TargetLumi="1" >
+
+        <!-- TEST FILES -->
+        <InputData Lumi="1" NEventsMax="10000" Type="DATA" Version="DATA_JETHT_TEST" Cacheable="False">
+        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/JetHT/crab_JetHT_Run2016C-03Feb2017-v1_17_Jan_18_newRecoJetFlav_v8/180117_092403/0000/Ntuple_10.root" Lumi="0.0"/>
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
@@ -45,12 +68,7 @@
             <Item Name="lumi_file" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/common/data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.root"/>
             <!-- Choose your jet configuration -->
 
-            <!-- ak4 CHS jets snippet -->
-            <Item Name="JetCone" Value="AK4" />
-            <Item Name="JetCollection" Value="slimmedJets" />
-            <Item Name="METName" Value="slimmedMETs" />
-            <Item Name="PURemoval" Value="CHS" />
-
+            &AK4CHS;
             <!-- &AK4PUPPI; -->
             <!-- &AK8CHS; -->
             <!-- &AK8PUPPI; -->
