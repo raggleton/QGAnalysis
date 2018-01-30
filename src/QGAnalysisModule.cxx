@@ -164,7 +164,7 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     common->disable_jersmear();
     common->disable_jec(); // do it manually below
     common->change_pf_id(JetPFID::wp::WP_LOOSE);
-    common->set_muon_id(AndId<Muon>(MuonIDMedium_ICHEP(), PtEtaCut(20.0, 2.4)));
+    common->set_muon_id(AndId<Muon>(MuonIDMedium_ICHEP(), PtEtaCut(26.0, 2.4), MuonIso(0.25)));
     common->set_electron_id(AndId<Electron>(ElectronID_Spring16_medium, PtEtaCut(20.0, 2.5)));
     common->switch_jetPtSorter(false);
     common->switch_jetlepcleaner(false);
