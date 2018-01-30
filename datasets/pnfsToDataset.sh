@@ -1,0 +1,1 @@
+find /pnfs/desy.de/cms/tier2/store/user/raggleto/JetHT/crab_JetHT_Run2016C-03Feb2017-v1_17_Jan_18_newRecoJetFlav_v8/180117_092403/ -name "*.root" -exec sh -c 'echo \<In FileName\=\""{}"  Lumi\=\"0.0\"/\>' \; > ../datasets/JetHT/RunC.xml
