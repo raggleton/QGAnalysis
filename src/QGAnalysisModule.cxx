@@ -109,14 +109,14 @@ private:
     std::unique_ptr<Hists> dijet_qg_hists_highPt;
 
     // for sweeping over PU
-    // std::vector<std::pair<int, int>> pu_bins = {
-    //     std::make_pair(5, 15),
-    //     std::make_pair(20, 25),
-    //     std::make_pair(30, 40)
-    // };
-    // std::vector< std::unique_ptr<Selection> > sel_pu_binned;
-    // std::vector< std::unique_ptr<Hists> > zplusjets_qg_hists_pu_binned;
-    // std::vector< std::unique_ptr<Hists> > dijet_qg_hists_pu_binned;
+    std::vector<std::pair<int, int>> pu_bins = {
+        std::make_pair(5, 15),
+        std::make_pair(20, 25),
+        std::make_pair(30, 40)
+    };
+    std::vector< std::unique_ptr<Selection> > sel_pu_binned;
+    std::vector< std::unique_ptr<Hists> > zplusjets_qg_hists_pu_binned;
+    std::vector< std::unique_ptr<Hists> > dijet_qg_hists_pu_binned;
 
     // Theory selections/hists
     std::unique_ptr<Selection> zplusjets_theory_sel, dijet_theory_sel;
@@ -140,6 +140,8 @@ private:
     const int runnr_FlateG = 280385;
 
     std::unique_ptr<EventNumberSelection> event_sel;
+
+    bool useGenPartonFlav;
 };
 
 
@@ -152,14 +154,15 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     cout << "Running analysis module" << endl;
 
     is_mc = ctx.get("dataset_type") == "MC";
+    useGenPartonFlav = ctx.get("useGenPartonFlav") == "true";
 
     common.reset(new CommonModules());
     common->disable_mcpileupreweight();
     common->disable_jersmear();
     common->disable_jec(); // do it manually below
     common->change_pf_id(JetPFID::wp::WP_LOOSE);
-    common->set_muon_id(MuonIDMedium_ICHEP());
-    common->set_electron_id(ElectronID_Spring16_medium);
+    common->set_muon_id(AndId<Muon>(MuonIDMedium_ICHEP(), PtEtaCut(20.0, 2.4)));
+    common->set_electron_id(AndId<Electron>(ElectronID_Spring16_medium, PtEtaCut(20.0, 2.5)));
     common->switch_jetPtSorter(false);
     common->switch_jetlepcleaner(false);
 
@@ -247,16 +250,18 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     jet_ele_cleaner.reset(new JetElectronOverlapRemoval(jetRadius));
     jet_mu_cleaner.reset(new JetMuonOverlapRemoval(jetRadius));
 
-    genjets_handle = ctx.declare_event_output< std::vector<GenJetWithParts> > ("GoodGenJets");
-    genmuons_handle = ctx.declare_event_output< std::vector<GenParticle> > ("GoodGenMuons");
+    if (is_mc) {
+        genjets_handle = ctx.declare_event_output< std::vector<GenJetWithParts> > ("GoodGenJets");
+        genmuons_handle = ctx.declare_event_output< std::vector<GenParticle> > ("GoodGenMuons");
+    }
 
     // Event Selections
     njet_sel.reset(new NJetSelection(1));
 
     zplusjets_sel.reset(new ZplusJetsSelection());
-    float deta = 1.2;
+    float deta = 12;
     float sumEta = 10.;
-    dijet_sel.reset(new DijetSelection(2, 0.94, 0.3, true, deta, sumEta));
+    dijet_sel.reset(new DijetSelection(2, 0.94, 0.3, false, deta, sumEta));
 
     // zplusjets_theory_sel.reset(new ZplusJetsTheorySelection(ctx));
     // dijet_theory_sel.reset(new DijetTheorySelection(ctx));
@@ -322,14 +327,14 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     //     dijet_hists_theory_pt_binned.push_back(std::move(b));
     // }
 
-    // for (auto puBin : pu_bins) {
-    //     std::unique_ptr<Selection> pu_sel(new NPVSelection(puBin.first, puBin.second));
-    //     sel_pu_binned.push_back(std::move(pu_sel));
-    //     std::unique_ptr<QGAnalysisHists> zpj(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), 1, "zplusjets"));
-    //     zplusjets_qg_hists_pu_binned.push_back(std::move(zpj));
-    //     std::unique_ptr<QGAnalysisHists> dj(new QGAnalysisHists(ctx, TString::Format("Dijet_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), 2, "dijet"));
-    //     dijet_qg_hists_pu_binned.push_back(std::move(dj));
-    // }
+    for (auto puBin : pu_bins) {
+        std::unique_ptr<Selection> pu_sel(new NPVSelection(puBin.first, puBin.second));
+        sel_pu_binned.push_back(std::move(pu_sel));
+        std::unique_ptr<QGAnalysisHists> zpj(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), 1, "zplusjets"));
+        zplusjets_qg_hists_pu_binned.push_back(std::move(zpj));
+        std::unique_ptr<QGAnalysisHists> dj(new QGAnalysisHists(ctx, TString::Format("Dijet_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), 2, "dijet"));
+        dijet_qg_hists_pu_binned.push_back(std::move(dj));
+    }
 
     // event_sel.reset(new EventNumberSelection({111}));
 }
@@ -339,6 +344,10 @@ bool QGAnalysisModule::process(Event & event) {
     // if (!event_sel->passes(event)) return false;
 
     if (PRINTOUT) {cout << "-- Event: " << event.event << endl;}
+    
+    printMuons(*event.muons, "Precleaning");
+    printElectrons(*event.electrons, "Precleaning");
+    printJets(*event.jets, "Precleaning");
 
     // This is the main procedure, called for each event.
     if (!common->process(event)) {return false;}
@@ -383,61 +392,63 @@ bool QGAnalysisModule::process(Event & event) {
 
     // THEORY PART
     // printGenParticles(*event.genparticles);
-
-    std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, event.genparticles, 5., 5., jetRadius);
-    if (goodGenJets.size() == 0) return false;
-    if (event.jets->size() == 0) return false;
-
-    // Check event weight is sensible based on pthat
-    if (event.genInfo->binningValues().size() > 0) {
-        double ptHat = event.genInfo->binningValues().at(0); // yes this is correct. no idea why
-        if (goodGenJets[0].pt() / ptHat > 2) return false;
-        // Again, need to do this as sometimes reco dodgy but gen ok can end up with dodgy weight
-        if (event.jets->at(0).pt() / ptHat > 2) return false;
-    }
-
-    event.set(genjets_handle, std::move(goodGenJets));
-
-    // Determine if weight is good - weight calculated based on leading jet
-    // Bad if it's a PU jet!
     if (is_mc) {
-        bool goodEvent = false;
-        for (const auto genjtr: event.get(genjets_handle)) {
-            if (deltaR(event.jets->at(0), genjtr) < jetRadius){
-                goodEvent = true;
-                break;
-            }
+
+        std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, event.genparticles, 5., 5., jetRadius);
+        if (goodGenJets.size() == 0) return false;
+        if (event.jets->size() == 0) return false;
+
+        // Check event weight is sensible based on pthat
+        if (event.genInfo->binningValues().size() > 0) {
+            double ptHat = event.genInfo->binningValues().at(0); // yes this is correct. no idea why
+            if (goodGenJets[0].pt() / ptHat > 2) return false;
+            // Again, need to do this as sometimes reco dodgy but gen ok can end up with dodgy weight
+            if (event.jets->at(0).pt() / ptHat > 2) return false;
         }
-        if (!goodEvent) return false;
+
+        event.set(genjets_handle, std::move(goodGenJets));
+
+        // Determine if weight is good - weight calculated based on leading jet
+        // Bad if it's a PU jet!
+        if (is_mc) {
+            bool goodEvent = false;
+            for (const auto genjtr: event.get(genjets_handle)) {
+                if (deltaR(event.jets->at(0), genjtr) < jetRadius){
+                    goodEvent = true;
+                    break;
+                }
+            }
+            if (!goodEvent) return false;
+        }
+
+        std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, 5., 2.5);
+        event.set(genmuons_handle, std::move(goodGenMuons));
+
+        // bool zpj_th = zplusjets_theory_sel->passes(event);
+        // bool dj_th = dijet_theory_sel->passes(event);
+
+        // if (zpj_th && dj_th) {
+        //     cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet theory criteria" << endl;
+        // }
+
+        // if (zpj_th) {
+        //     zplusjets_hists_theory->fill(event);
+        // }
+
+        // if (dj_th) {
+        //     dijet_hists_theory->fill(event);
+        // }
+
+        // ptMin binned hists
+        // for (uint i=0; i < theory_pt_bins.size(); i++) {
+        //     if (zplusjets_theory_sel_pt_binned.at(i)->passes(event)) {
+        //         zplusjets_hists_theory_pt_binned.at(i)->fill(event);
+        //     }
+        //     if (dijet_theory_sel_pt_binned.at(i)->passes(event)) {
+        //         dijet_hists_theory_pt_binned.at(i)->fill(event);
+        //     }
+        // }
     }
-
-    std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, 5., 2.5);
-    event.set(genmuons_handle, std::move(goodGenMuons));
-
-    // bool zpj_th = zplusjets_theory_sel->passes(event);
-    // bool dj_th = dijet_theory_sel->passes(event);
-
-    // if (zpj_th && dj_th) {
-    //     cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet theory criteria" << endl;
-    // }
-
-    // if (zpj_th) {
-    //     zplusjets_hists_theory->fill(event);
-    // }
-
-    // if (dj_th) {
-    //     dijet_hists_theory->fill(event);
-    // }
-
-    // ptMin binned hists
-    // for (uint i=0; i < theory_pt_bins.size(); i++) {
-    //     if (zplusjets_theory_sel_pt_binned.at(i)->passes(event)) {
-    //         zplusjets_hists_theory_pt_binned.at(i)->fill(event);
-    //     }
-    //     if (dijet_theory_sel_pt_binned.at(i)->passes(event)) {
-    //         dijet_hists_theory_pt_binned.at(i)->fill(event);
-    //     }
-    // }
 
     // RECO PART
     if (!njet_sel->passes(event)) return false;
@@ -449,19 +460,17 @@ bool QGAnalysisModule::process(Event & event) {
     }
 
     printJets(*event.jets);
-    printGenJets(event.get(genjets_handle), event.genparticles);
+    if (is_mc) printGenJets(event.get(genjets_handle), event.genparticles);
 
     // Preselection hists
     zplusjets_hists_presel->fill(event);
     dijet_hists_presel->fill(event);
 
     // flav-specific preselection hists, useful for optimising selection
-    // uint flav1 = event.jets->at(0).genPartonFlavor();
-    uint flav1 = event.jets->at(0).flavor();
+    uint flav1 = useGenPartonFlav ? event.jets->at(0).genPartonFlavor() : event.jets->at(0).flavor();
     uint flav2(99999999);
     if (event.jets->size() > 1) {
-        // flav2 = event.jets->at(1).genPartonFlavor();
-        flav2 = event.jets->at(1).flavor();
+        flav2 = useGenPartonFlav ? event.jets->at(1).genPartonFlavor() : event.jets->at(1).flavor();
     }
     if (flav1 == PDGID::GLUON) {
         zplusjets_hists_presel_g->fill(event);
@@ -507,6 +516,14 @@ bool QGAnalysisModule::process(Event & event) {
         dijet_qg_hists->fill(event);
     }
 
+    // do pu-binned hists
+    for (uint i=0; i<sel_pu_binned.size(); i++) {
+        if (sel_pu_binned.at(i)->passes(event)) {
+            if (zpj) zplusjets_qg_hists_pu_binned.at(i)->fill(event);
+            if (dj) dijet_qg_hists_pu_binned.at(i)->fill(event);
+        }
+    }
+
     // do high pt jet version - (sub)leading jets (only) must pass much higher pt threshold
     float ptCut = 500;
     if (event.jets->at(0).pt() < ptCut) return false;
@@ -515,8 +532,7 @@ bool QGAnalysisModule::process(Event & event) {
 
     flav2 = 99999999;
     if ((event.jets->size() > 1) && (event.jets->at(1).pt() > ptCut)) {
-        // flav2 = event.jets->at(1).genPartonFlavor();
-        flav2 = event.jets->at(1).flavor();
+        flav2 = useGenPartonFlav ? event.jets->at(1).genPartonFlavor() : event.jets->at(1).flavor();
     }
     dijet_hists_presel_highPt->fill(event);
 
@@ -561,14 +577,6 @@ bool QGAnalysisModule::process(Event & event) {
         dijet_hists_highPt->fill(event);
         dijet_qg_hists_highPt->fill(event);
     }
-
-    // do pu-binned hists
-    // for (uint i=0; i<sel_pu_binned.size(); i++) {
-    //     if (sel_pu_binned.at(i)->passes(event)) {
-    //         if (zpj) zplusjets_qg_hists_pu_binned.at(i)->fill(event);
-    //         if (dj) dijet_qg_hists_pu_binned.at(i)->fill(event);
-    //     }
-    // }
 
     if (zpj && dj) {
         cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet criteria" << endl;

@@ -44,6 +44,20 @@ bool ZplusJetsSelection::passes(const Event & event){
     if (event.jets->size() > 1) {
         const auto & jet2 = event.jets->at(1);
         auto jet_frac = jet2.pt() / z_cand.pt();
+        // if (jet_frac > 0.5) {
+        //     std::cout << "JET1: " << jet1.pt() << " : " << jet1.eta() << " : " << jet1.phi() << std::endl;
+        //     std::cout << "JET2: " << jet2.pt() << " : " << jet2.eta() << " : " << jet2.phi() << std::endl;
+        //     std::cout << "MU1: " << muon1.pt() << " : " << muon1.eta() << " : " << muon1.phi() << std::endl;
+        //     std::cout << "MU2: " << muon2.pt() << " : " << muon2.eta() << " : " << muon2.phi() << std::endl;
+        //     std::cout << "Z: " << z_cand.pt() << " : " << z_cand.eta() << " : " << z_cand.phi() << " : " << z_cand.M() << std::endl;
+
+        //     for (const auto & itr: *event.genparticles) {
+        //         if (abs(itr.pdgId()) == 13)
+        //             std::cout << "GP MUON: " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << " : " << itr.pdgId() << " : " << itr.status() << std::endl;
+        //         if (abs(itr.pdgId()) == 23)
+        //             std::cout << "GP Z: " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << " : " << itr.pdgId() << " : " << itr.status() << std::endl;
+        //     }
+        // }
         if (jet_frac > second_jet_frac_max_) return false;
     }
 
