@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE JobConfiguration PUBLIC "" "JobConfig.dtd" [
+
+    <!ENTITY NEVT "-1">
+
+    <!-- Output directories -->
+    <!ENTITY ODIR-SINGLEMU "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/SingleMu">
+
+    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/commonData.xml">
+
+    <!-- Jet config snippets -->
+    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chs.xml">
+    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4puppi.xml">
+    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8chs.xml">
+    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8puppi.xml">
+]>
+
+
+<!-- MUST run SFrameBatch inside QGAnalyis/config! -->
+<!-- split 150 for herwig -->
+<!-- split 3 for mgpythia -->
+
+<!--
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="3" />
+   <ConfigSGE RAM ="4" DISK ="2" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4chs_mgpythia_genPartonFlav_withLeptonOverlapVeto"/>
+-->
+
+
+<!-- OutputLevel controls which messages are printed; set to VERBOSE or DEBUG for more verbosity, to WARNING or ERROR for less -->
+<JobConfiguration JobName="ExampleCycleJob" OutputLevel="INFO">
+    <Library Name="libSUHH2QGAnalysis"/>
+    <Package Name="SUHH2QGAnalysis.par" />
+
+   <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-SINGLEMU;/" PostFix="" TargetLumi="1" >
+
+        <!-- TEST FILES -->
+        <InputData Lumi="1" NEventsMax="10000" Type="DATA" Version="DATA_TEST" Cacheable="False">
+        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/SingleMuon/crab_SingleMuon_Run2016C-03Feb2017-v1_15_Jan_18_newRecoJetFlav_v5/180115_082326/0000/Ntuple_10.root" Lumi="0.0"/>
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <UserConfig>
+            &COMMON;
+
+            <Item Name="lumi_file" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/common/data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.root"/>
+            <!-- Choose your jet configuration -->
+
+            <!-- ak4 CHS jets snippet -->
+            <Item Name="JetCone" Value="AK4" />
+            <Item Name="JetCollection" Value="slimmedJets" />
+            <Item Name="METName" Value="slimmedMETs" />
+            <Item Name="PURemoval" Value="CHS" />
+
+            <!-- &AK4PUPPI; -->
+            <!-- &AK8CHS; -->
+            <!-- &AK8PUPPI; -->
+            <Item Name="useGenPartonFlav" Value="true"/>
+        </UserConfig>
+    </Cycle>
+</JobConfiguration>

@@ -49,8 +49,8 @@
 <!-- split 3 for mgpythia -->
 
 <!--
-   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="2" />
-   <ConfigSGE RAM ="4" DISK ="2" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4chs_mgpythia_withPtRatio_0p94_withLeptonOverlapVeto_eta2p4_ssEta_dEta1p2"/>
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="3" />
+   <ConfigSGE RAM ="4" DISK ="2" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4chs_mgpythia_genPartonFlav_withLeptonOverlapVeto"/>
 -->
 
 
@@ -94,11 +94,12 @@
 
  -->       
         <!-- MG_PYTHIA -->
-<!--
+
         <InputData Lumi="44597.0902379" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-70to100" Cacheable="False">
         &MG-PYTHIA-DYJetsToLL_HT70to100;
         <InputTree Name="AnalysisTree"/>
         </InputData>
+       
         <InputData Lumi="58504.1863851" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-100to200" Cacheable="False">
         &MG-PYTHIA-DYJetsToLL_HT100to200;
         <InputTree Name="AnalysisTree"/>
@@ -173,16 +174,28 @@
         &MG-PYTHIA-QCD_HT2000toInf;
         <InputTree Name="AnalysisTree"/>
         </InputData>
--->
 
-<!-- TEST FILES -->
-        <InputData Lumi="1" NEventsMax="10000" Type="MC" Version="MC_Test_DY" Cacheable="False">
+        <!-- TEST FILES -->
+<!--         <InputData Lumi="1" NEventsMax="10000" Type="MC" Version="MC_Test_DY" Cacheable="False">
         <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/crab_DYJetsToLL_M-50_HT-100to200_mg-pythia_16_Nov_17_newRecoJetFlav_v2/171116_212405/0000/Ntuple_10.root" Lumi="0.0"/>
         <InputTree Name="AnalysisTree"/>
         </InputData>
-
+ -->
         <UserConfig>
             &COMMON;
+<!-- <Item Name="PrimaryVertexCollection" Value="offlineSlimmedPrimaryVertices" /> -->
+<!-- <Item Name="ElectronCollection" Value="slimmedElectronsUSER" /> -->
+<!-- <Item Name="MuonCollection" Value="slimmedMuonsUSER" /> -->
+
+<!-- <Item Name="GenParticleCollection" Value="GenParticles" /> -->
+
+<!-- the class name of the AnalysisModule subclasses to run: -->
+<!-- <Item Name="AnalysisModule" Value="QGAnalysisFlavModule" /> -->
+
+<!-- tell AnalysisModuleRunner NOT to use the MC event weight from SFrame; rather let
+ MCLumiWeight (called via CommonModules) calculate the MC event weight. The MC
+ event weight assigned by MCLumiWeight is InputData.Lumi / Cycle.TargetLumi. -->
+<!-- <Item Name="use_sframe_weight" Value="false" /> -->
 
             <!-- Choose your jet configuration -->
 
@@ -190,7 +203,7 @@
             <!-- &AK4PUPPI; -->
             <!-- &AK8CHS; -->
             <!-- &AK8PUPPI; -->
-
+            <Item Name="useGenPartonFlav" Value="true"/>
         </UserConfig>
     </Cycle>
 </JobConfiguration>

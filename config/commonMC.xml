@@ -1,5 +1,6 @@
 <Item Name="PrimaryVertexCollection" Value="offlineSlimmedPrimaryVertices" />
 <Item Name="ElectronCollection" Value="slimmedElectronsUSER" />
+<!-- <Item Name="ElectronCollection" Value="slimmedElectrons" /> -->
 <Item Name="MuonCollection" Value="slimmedMuonsUSER" />
 
 <Item Name="GenParticleCollection" Value="GenParticles" />
