@@ -5,3 +5,5 @@ uhh*.root
 Plots/
 *.pdf
 config/workdir*
+Selection
+*.txt
