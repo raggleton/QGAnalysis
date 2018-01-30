@@ -4,19 +4,21 @@
 
 #include "UHH2/core/include/AnalysisModule.h"
 #include "UHH2/core/include/Event.h"
+
+#include "UHH2/common/include/AdditionalSelections.h"
 #include "UHH2/common/include/CommonModules.h"
 #include "UHH2/common/include/CleaningModules.h"
 #include "UHH2/common/include/NSelections.h"
 #include "UHH2/common/include/MuonIds.h"
 #include "UHH2/common/include/ElectronIds.h"
+#include "UHH2/common/include/TriggerSelection.h"
+#include "UHH2/common/include/Utils.h"
+
 #include "UHH2/QGAnalysis/include/QGAnalysisSelections.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisZPlusJetsHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisDijetHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisTheoryHists.h"
-#include "UHH2/common/include/MuonHists.h"
-#include "UHH2/common/include/JetHists.h"
-#include "UHH2/common/include/Utils.h"
 
 using namespace std;
 using namespace uhh2;
@@ -89,6 +91,7 @@ private:
 
     // Reco selections/hists
     std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel;
+    std::unique_ptr<OrSelection> zplusjets_trigger_sel, dijet_trigger_sel;
 
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists;
     std::unique_ptr<Hists> zplusjets_hists_presel_q, zplusjets_hists_presel_g, zplusjets_hists_presel_unknown;
@@ -266,6 +269,24 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     // zplusjets_theory_sel.reset(new ZplusJetsTheorySelection(ctx));
     // dijet_theory_sel.reset(new DijetTheorySelection(ctx));
 
+    // Triggers for data
+    std::vector<std::string> zpj_trigger_names = {
+        "HLT_IsoMu24_v*",
+        "HLT_IsoTkMu24_v*",
+    };
+    zplusjets_trigger_sel.reset(new OrSelection());
+    for (const auto & trig: zpj_trigger_names) {
+        zplusjets_trigger_sel->add<TriggerSelection>(trig);
+    }
+
+    std::vector<std::string> dj_trigger_names = {
+        "HLT_PFJet40_v*"
+    };
+    dijet_trigger_sel.reset(new OrSelection());
+    for (const auto & trig: dj_trigger_names) {
+        dijet_trigger_sel->add<TriggerSelection>(trig);
+    }
+
     // Hists
     zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel"));
     // preselection hists, if jet is quark, or gluon
@@ -355,6 +376,11 @@ bool QGAnalysisModule::process(Event & event) {
     printMuons(*event.muons);
     printElectrons(*event.electrons);
     printGenParticles(*event.genparticles);
+
+    bool pass_zpj_trig = is_mc ? true : zplusjets_trigger_sel->passes(event);
+    bool pass_dj_trig = is_mc ? true : dijet_trigger_sel->passes(event);
+
+    if (!(pass_zpj_trig || pass_dj_trig)) return false;
 
     // Do additional cleaning & JEC manually to allow custom JEC (common only does AK4)
     // - Apply JEC
@@ -505,13 +531,13 @@ bool QGAnalysisModule::process(Event & event) {
     if (!njet_sel->passes(event)) return false;
 
     bool zpj = zplusjets_sel->passes(event);
-    if (zpj) {
+    if (zpj && pass_zpj_trig) {
         zplusjets_hists->fill(event);
         zplusjets_qg_hists->fill(event);
     }
 
     bool dj = dijet_sel->passes(event);
-    if (dj) {
+    if (dj && pass_dj_trig) {
         dijet_hists->fill(event);
         dijet_qg_hists->fill(event);
     }
