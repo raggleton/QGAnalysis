@@ -259,10 +259,11 @@ void QGAnalysisHists::fill(const Event & event){
   for (int i = 0; i < useNJets_; i++) {
     const Jet & thisjet = jets->at(i);
     int mult = thisjet.numberOfDaughters();
-    float lha = thisjet.LHA() / LHA_rescale;
-    float ptd = thisjet.pTD();
-    float width = thisjet.width() / width_rescale;
-    float thrust = thisjet.thrust() / thrust_rescale;
+    // FIXME
+    float lha = 0 / LHA_rescale;
+    float ptd = 0;
+    float width = 0 / width_rescale;
+    float thrust = 0 / thrust_rescale;
 
     float jet_pt = thisjet.pt();
     h_weights_vs_pt->Fill(weight, jet_pt);
