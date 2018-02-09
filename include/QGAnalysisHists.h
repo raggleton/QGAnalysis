@@ -6,6 +6,7 @@
 #include "UHH2/core/include/AnalysisModule.h"
 #include "UHH2/core/include/Hists.h"
 #include "UHH2/core/include/NtupleObjects.h"
+#include "UHH2/common/include/TriggerSelection.h"
 
 
 namespace uhh2examples {
@@ -76,6 +77,20 @@ protected:
 
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
     bool is_mc_;
+};
+
+
+class QGJetTrigHists: public uhh2::Hists {
+public:
+    QGJetTrigHists(uhh2::Context & ctx, const std::string & dirname, const std::vector<std::string> & trigNames_);
+    virtual void fill(const uhh2::Event & event) override;
+    virtual ~QGJetTrigHists();
+
+protected:
+    std::vector<TH2F*> hTrigs;
+    std::vector<TriggerSelection> trigSels;
+    std::vector<std::string> trigNames;
+    TH2F * hAll;
 };
 
 }

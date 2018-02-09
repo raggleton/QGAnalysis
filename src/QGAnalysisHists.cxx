@@ -496,3 +496,34 @@ std::vector<GenParticle*> QGAnalysisHists::get_genjet_genparticles(const GenJetW
 // }
 
 QGAnalysisHists::~QGAnalysisHists(){}
+
+
+QGJetTrigHists::QGJetTrigHists(Context & ctx, const string & dirname, const std::vector<std::string> & trigNames_):
+Hists(ctx, dirname),
+trigNames(trigNames_)
+{
+  int nPtBins = 100;
+  float ptMin(0.), ptMax(2000.);
+  int nEtaBins = 50;
+  float etaMin(-5), etaMax(5);
+  for (const auto & trig: trigNames) {
+    hTrigs.push_back(book<TH2F>("pt_vs_eta_" + trig, trig+";Jet p_{T} [GeV];Jet |#eta|", nPtBins, ptMin, ptMax, nEtaBins, etaMin, etaMax));
+    trigSels.push_back(TriggerSelection(trig));
+  }
+  hAll = book<TH2F>("pt_vs_eta_all", "All;Jet p_{T} [GeV];Jet |#eta|", nPtBins, ptMin, ptMax, nEtaBins, etaMin, etaMax);
+}
+
+void QGJetTrigHists::fill(const uhh2::Event & event) {
+  if (event.jets->size()==0) return;
+  
+  auto leadingJet = event.jets->at(0);
+  for (uint i=0; i < trigNames.size(); i++) {
+    if (trigSels[i].passes(event)) {
+      hTrigs[i]->Fill(leadingJet.pt(), leadingJet.eta(), event.weight);
+    }
+  }
+  hAll->Fill(leadingJet.pt(), leadingJet.eta(), event.weight);
+
+}
+
+QGJetTrigHists::~QGJetTrigHists(){}
