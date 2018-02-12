@@ -255,7 +255,7 @@ bool QGAnalysisJetTrigErrModule::process(Event & event) {
     }
 
     // Do jet cleaning
-    jet_cleaner->process(event);
+    // jet_cleaner->process(event);
     jet_ele_cleaner->process(event);
     jet_mu_cleaner->process(event);
 
