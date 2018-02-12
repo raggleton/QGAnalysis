@@ -16,6 +16,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   is_mc_ = ctx.get("dataset_type") == "MC";
   useGenPartonFlav_ = (ctx.get("useGenPartonFlav") == "true");
+  doPuppi_ = (ctx.get("PURemoval") == "PUPPI");
 
   if (useNJets_ < 0) useNJets_ = 99999; // Do them all
 
@@ -259,11 +260,26 @@ void QGAnalysisHists::fill(const Event & event){
   for (int i = 0; i < useNJets_; i++) {
     const Jet & thisjet = jets->at(i);
     int mult = thisjet.numberOfDaughters();
-    // FIXME
-    float lha = 0 / LHA_rescale;
-    float ptd = 0;
-    float width = 0 / width_rescale;
-    float thrust = 0 / thrust_rescale;
+
+    std::vector<PFParticle*> daughters = get_jet_pfparticles(thisjet, event.pfparticles);
+
+    // do special vars according to 1704.03878
+    float ptd = 0, lha = 0, width = 0, thrust = 0;
+    float pt_sum = 0;
+    for (auto dtr : daughters) {
+      float puppiWeight = (doPuppi_) ? dtr->puppiWeight() : 1.;
+      pt_sum += dtr->pt() * puppiWeight;
+    }
+
+    for (auto dtr : daughters) {
+      float puppiWeight = (doPuppi_) ? dtr->puppiWeight() : 1.;
+      float z = dtr->pt() * puppiWeight / pt_sum;
+      float theta = deltaR(dtr->v4(), thisjet.v4()) / jetRadius;
+      ptd += pow(z, 2);
+      lha += z * pow(theta, 0.5);
+      width += z * theta;
+      thrust += z * pow(theta, 2);
+    }
 
     float jet_pt = thisjet.pt();
     h_weights_vs_pt->Fill(weight, jet_pt);
@@ -475,6 +491,18 @@ std::vector<GenParticle*> QGAnalysisHists::get_genjet_genparticles(const GenJetW
     gp.push_back(&(genparticles->at(i)));
   }
   return gp;
+}
+
+
+/**
+ * Get the collection of PFParticle*s for a given Jet
+ */
+std::vector<PFParticle*> QGAnalysisHists::get_jet_pfparticles(const Jet & jet, std::vector<PFParticle>* pfparticles) {
+  std::vector<PFParticle*> pf;
+  for (const uint i : jet.daughterIndices()) {
+    pf.push_back(&(pfparticles->at(i)));
+  }
+  return pf;
 }
 
 /**

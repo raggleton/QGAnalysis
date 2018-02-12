@@ -27,6 +27,7 @@ public:
     virtual ~QGAnalysisHists();
 protected:
     std::vector<GenParticle*> get_genjet_genparticles(const GenJetWithParts &, std::vector<GenParticle>*);
+    std::vector<PFParticle*> get_jet_pfparticles(const Jet &, std::vector<PFParticle>*);
     int get_jet_flavour(const Jet & jet, std::vector<GenParticle> * genparticles);
 
     // reco jet hists
@@ -72,6 +73,7 @@ protected:
 
     int useNJets_;
     bool useGenPartonFlav_;
+    bool doPuppi_;
     bool doHerwigReweighting;
     TH1F * reweightHist;
 
