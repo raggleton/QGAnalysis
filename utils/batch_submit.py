@@ -24,17 +24,51 @@ inputDatasets = [
 # MG+HERWIG
 '/DYJetsToLL_M-50_TuneCUETHS1_13TeV-madgraphMLM-herwigpp/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v*/MINIAODSIM',
 '/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v*/MINIAODSIM',
+# '/QCD_Pt-15to7000_TuneCUETHS1_FlatP6_13TeV_herwigpp/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v*/MINIAODSIM',
 # PYTHIA ONLY
 '/QCD_Pt-15to7000_TuneCUETP8M1_FlatP6_13TeV_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v*/MINIAODSIM',
-#
-][-1:]
+# POWHEG
+'/Dijet_NNPDF30_powheg_pythia8_TuneCUETP8M1_13TeV_bornktmin150/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v2/MINIAODSIM',
+# aMCatNLO
+'/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext2-v1/MINIAODSIM',
+]
+
+inputDatasets = [
+    '/SingleMuon/Run2016B-03Feb2017_ver2-v2/MINIAOD',
+    '/SingleMuon/Run2016C-03Feb2017-v1/MINIAOD',
+    '/SingleMuon/Run2016D-03Feb2017-v1/MINIAOD',
+    '/SingleMuon/Run2016E-03Feb2017-v1/MINIAOD',
+    '/SingleMuon/Run2016F-03Feb2017-v1/MINIAOD',
+    '/SingleMuon/Run2016G-03Feb2017-v1/MINIAOD',
+    '/SingleMuon/Run2016H-03Feb2017_ver2-v1/MINIAOD',
+    '/SingleMuon/Run2016H-03Feb2017_ver3-v1/MINIAOD',
+
+    # '/DoubleMuon/Run2016B-03Feb2017_ver2-v2/MINIAOD',
+    # '/DoubleMuon/Run2016C-03Feb2017-v1/MINIAOD',
+    # '/DoubleMuon/Run2016D-03Feb2017-v1/MINIAOD',
+    # '/DoubleMuon/Run2016E-03Feb2017-v1/MINIAOD',
+    # '/DoubleMuon/Run2016F-03Feb2017-v1/MINIAOD',
+    # '/DoubleMuon/Run2016G-03Feb2017-v1/MINIAOD',
+    # '/DoubleMuon/Run2016H-03Feb2017_ver2-v1/MINIAOD',
+    # '/DoubleMuon/Run2016H-03Feb2017_ver3-v1/MINIAOD',
+
+    '/JetHT/Run2016B-03Feb2017_ver2-v2/MINIAOD',
+    '/JetHT/Run2016C-03Feb2017-v1/MINIAOD',
+    '/JetHT/Run2016D-03Feb2017-v1/MINIAOD',
+    '/JetHT/Run2016E-03Feb2017-v1/MINIAOD',
+    '/JetHT/Run2016F-03Feb2017-v1/MINIAOD',
+    '/JetHT/Run2016G-03Feb2017-v1/MINIAOD',
+    '/JetHT/Run2016H-03Feb2017_ver2-v1/MINIAOD',
+    '/JetHT/Run2016H-03Feb2017_ver3-v1/MINIAOD',
+
+]
 
 filter_keywords = [
 'GenJets5',
 'BGenFilter',
 ]
 
-requestNameCustom = "_test8"
+requestNameCustom = "_newRecoJetFlav_fixPuppi_v3"
 
 
 def filter_datasets(input_datasets):
@@ -46,7 +80,8 @@ def create_request_name(input_dataset):
     modified_name = (name.replace('_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','')
                          .replace('_TuneCUETHS1_13TeV-madgraphMLM-herwigpp', '')
                          .replace('_TuneCUETP8M1_FlatP6_13TeV_pythia8', '')
-                         .replace('_TuneCUETHS1_Flat_13TeV_herwigpp', ''))
+                         .replace('_TuneCUETHS1_Flat_13TeV_herwigpp', '')
+                         .replace('_pythia8_TuneCUETP8M1_13TeV_bornktmin150', ''))
     if 'ext' in input_dataset:
         modified_name += '_ext'
     if 'madgraphMLM-pythia8' in input_dataset:
@@ -57,6 +92,12 @@ def create_request_name(input_dataset):
         modified_name += '_pythia'
     elif '_herwigpp' in input_dataset:
         modified_name += '_herwig'
+    elif '_amcatnloFXFX' in input_dataset:
+        modified_name += '_amcatnlo'
+
+    if "Run2016" in input_dataset:
+        modified_name += "_" + input_dataset.split("/")[2]
+
     modified_name += "_" + strftime('%d_%b_%y') + requestNameCustom
     return modified_name
 
@@ -71,13 +112,14 @@ def create_crab_config(request_name, input_dataset):
     conf.JobType.pluginName = 'Analysis'
     conf.JobType.psetName = '../../core/python/ntuplewriter.py'
     conf.JobType.outputFiles = ["Ntuple.root"]
-    conf.JobType.maxMemoryMB = 3000
+    conf.JobType.maxMemoryMB = 2500
     #conf.JobType.inputFiles = ['/nfs/dust/cms/user/gonvaq/CMSSW/CMSSW_7_4_15_patch1/src/UHH2/core/python/Summer15_25nsV2_MC.db']
 
     conf.Data.inputDataset = input_dataset
     conf.Data.inputDBS = 'global'
     conf.Data.splitting = 'EventAwareLumiBased'
-    conf.Data.unitsPerJob = 50000
+    conf.Data.unitsPerJob = 17000
+    # conf.Data.unitsPerJob = 50000
     # conf.Data.totalUnits = 
     # conf.Data.outLFNDirBase = '/store/user/%s/QGNtuples/' % (getUsernameFromSiteDB())
     conf.Data.publication = False
@@ -85,6 +127,9 @@ def create_crab_config(request_name, input_dataset):
     #conf.Data.allowNonValidInputDataset = True
 
     conf.Site.storageSite = 'T2_DE_DESY'
+
+    if 'Run2016' in input_dataset:
+        conf.Data.lumiMask = "https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/ReReco/Final/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt"
 
     return conf
 
@@ -112,6 +157,10 @@ def main():
     config_filenames = [os.path.join('crab_configs', c.General.requestName, 'crab.py') for c in configs]
     for c, fn in zip(configs, config_filenames):
         write_crab_config_file(c, fn)
+        submit_config(fn)
+
+    return
+
     print "Submitting..."
     try:
         p = Pool(5)
