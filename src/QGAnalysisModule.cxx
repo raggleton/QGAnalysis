@@ -2,6 +2,8 @@
 #include <memory>
 #include <algorithm>
 
+#include <boost/lexical_cast.hpp>
+
 #include "UHH2/core/include/AnalysisModule.h"
 #include "UHH2/core/include/Event.h"
 
@@ -78,6 +80,7 @@ public:
     void printJets(const std::vector<Jet> & jets, const std::string & info="", Color::Code color=Color::FG_GREEN);
     void printMuons(const std::vector<Muon> & muons, const std::string & info="", Color::Code color=Color::FG_RED);
     void printElectrons(const std::vector<Electron> & electrons, const std::string & info="", Color::Code color=Color::FG_YELLOW);
+    float calcGenHT(const std::vector<GenParticle> & gps);
 
 private:
 
@@ -90,16 +93,12 @@ private:
     std::unique_ptr<JetMuonOverlapRemoval> jet_mu_cleaner;
 
     // Reco selections/hists
-    std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel;
+    std::unique_ptr<Selection> njet_sel, zplusjets_sel, zplusjets_presel, dijet_sel;
     std::unique_ptr<OrSelection> zplusjets_trigger_sel, dijet_trigger_sel;
 
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists;
     std::unique_ptr<Hists> zplusjets_hists_presel_q, zplusjets_hists_presel_g, zplusjets_hists_presel_unknown;
     std::unique_ptr<Hists> zplusjets_qg_hists;
-
-    std::unique_ptr<Hists> zplusjets_hists_presel_highPt, zplusjets_hists_highPt;
-    std::unique_ptr<Hists> zplusjets_hists_presel_q_highPt, zplusjets_hists_presel_g_highPt, zplusjets_hists_presel_unknown_highPt;
-    std::unique_ptr<Hists> zplusjets_qg_hists_highPt;
 
     std::unique_ptr<Hists> dijet_hists_presel, dijet_hists;
     std::unique_ptr<Hists> dijet_hists_presel_gg, dijet_hists_presel_qg, dijet_hists_presel_gq, dijet_hists_presel_qq;
@@ -137,10 +136,13 @@ private:
 
     bool is_mc;
     float jetRadius;
+    float htMax;
 
     const int runnr_BCD = 276811;
     const int runnr_EFearly = 278802;
     const int runnr_FlateG = 280385;
+
+    const bool DO_PU_BINNED_HISTS = false;
 
     std::unique_ptr<EventNumberSelection> event_sel;
 
@@ -158,6 +160,7 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
 
     is_mc = ctx.get("dataset_type") == "MC";
     useGenPartonFlav = ctx.get("useGenPartonFlav") == "true";
+    htMax =  boost::lexical_cast<float>(ctx.get("maxHT", "-1"));
 
     common.reset(new CommonModules());
     common->disable_mcpileupreweight();
@@ -261,10 +264,27 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     // Event Selections
     njet_sel.reset(new NJetSelection(1));
 
-    zplusjets_sel.reset(new ZplusJetsSelection());
+    // Z+JETS selection
+    float mu1_pt = 20.;
+    float mu2_pt = 20.;
+    float mZ_window = 20.;
+    float dphi_jet_z_min = 2.0;
+    float second_jet_frac_max_zpj = 0.3;
+    zplusjets_sel.reset(new ZplusJetsSelection(mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
+
+    // Preselection for Z+J - only 2 muons to reco Z
+    dphi_jet_z_min = 0.;
+    second_jet_frac_max_zpj = 999.;
+    zplusjets_presel.reset(new ZplusJetsSelection(mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
+
+    // DIJET selection
+    float dphi_min = 2.;
+    float second_jet_frac_max_dj = 0.94;
+    float third_jet_frac_max = 0.3;
+    bool ss_eta = false;
     float deta = 12;
     float sumEta = 10.;
-    dijet_sel.reset(new DijetSelection(2, 0.94, 0.3, false, deta, sumEta));
+    dijet_sel.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, third_jet_frac_max, ss_eta, deta, sumEta));
 
     // zplusjets_theory_sel.reset(new ZplusJetsTheorySelection(ctx));
     // dijet_theory_sel.reset(new DijetTheorySelection(ctx));
@@ -310,14 +330,6 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet"));
     dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", 2, "dijet"));
 
-    zplusjets_hists_presel_highPt.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_highPt"));
-    // preselection hists, if jet is quark, or gluon
-    zplusjets_hists_presel_q_highPt.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_q_highPt"));
-    zplusjets_hists_presel_g_highPt.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_g_highPt"));
-    zplusjets_hists_presel_unknown_highPt.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown_highPt"));
-    zplusjets_hists_highPt.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_highPt"));
-    zplusjets_qg_hists_highPt.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG_highPt", 1, "zplusjets"));
-
     dijet_hists_presel_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_highPt"));
     // preselection hiss, if both gluon jets, one gluon, or both quark, or one or both unknown
     dijet_hists_presel_gg_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gg_highPt"));
@@ -348,13 +360,15 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     //     dijet_hists_theory_pt_binned.push_back(std::move(b));
     // }
 
-    for (auto puBin : pu_bins) {
-        std::unique_ptr<Selection> pu_sel(new NPVSelection(puBin.first, puBin.second));
-        sel_pu_binned.push_back(std::move(pu_sel));
-        std::unique_ptr<QGAnalysisHists> zpj(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), 1, "zplusjets"));
-        zplusjets_qg_hists_pu_binned.push_back(std::move(zpj));
-        std::unique_ptr<QGAnalysisHists> dj(new QGAnalysisHists(ctx, TString::Format("Dijet_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), 2, "dijet"));
-        dijet_qg_hists_pu_binned.push_back(std::move(dj));
+    if (DO_PU_BINNED_HISTS) {
+        for (auto puBin : pu_bins) {
+            std::unique_ptr<Selection> pu_sel(new NPVSelection(puBin.first, puBin.second));
+            sel_pu_binned.push_back(std::move(pu_sel));
+            std::unique_ptr<QGAnalysisHists> zpj(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), 1, "zplusjets"));
+            zplusjets_qg_hists_pu_binned.push_back(std::move(zpj));
+            std::unique_ptr<QGAnalysisHists> dj(new QGAnalysisHists(ctx, TString::Format("Dijet_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), 2, "dijet"));
+            dijet_qg_hists_pu_binned.push_back(std::move(dj));
+        }
     }
 
     // event_sel.reset(new EventNumberSelection({111}));
@@ -365,10 +379,13 @@ bool QGAnalysisModule::process(Event & event) {
     // if (!event_sel->passes(event)) return false;
 
     if (PRINTOUT) {cout << "-- Event: " << event.event << endl;}
-    
+
     printMuons(*event.muons, "Precleaning");
     printElectrons(*event.electrons, "Precleaning");
     printJets(*event.jets, "Precleaning");
+
+    // Gen-level HT cut if necessary
+    if (is_mc && (htMax > 0) && (calcGenHT(*(event.genparticles)) > htMax)) { return false; }
 
     // This is the main procedure, called for each event.
     if (!common->process(event)) {return false;}
@@ -492,123 +509,118 @@ bool QGAnalysisModule::process(Event & event) {
     zplusjets_hists_presel->fill(event);
     dijet_hists_presel->fill(event);
 
+    bool zpj(false), dj(false), dj_highPt(false);
+
     // flav-specific preselection hists, useful for optimising selection
     uint flav1 = useGenPartonFlav ? event.jets->at(0).genPartonFlavor() : event.jets->at(0).flavor();
+
+    if (zplusjets_presel->passes(event)) {
+        if (flav1 == PDGID::GLUON) {
+            zplusjets_hists_presel_g->fill(event);
+        } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
+            zplusjets_hists_presel_q->fill(event);
+        } else if (flav1 == PDGID::UNKNOWN) {
+            zplusjets_hists_presel_unknown->fill(event);
+        }
+        zpj = zplusjets_sel->passes(event);
+        if (zpj && pass_zpj_trig) {
+            zplusjets_hists->fill(event);
+            zplusjets_qg_hists->fill(event);
+        }
+    }
+
     uint flav2(99999999);
     if (event.jets->size() > 1) {
         flav2 = useGenPartonFlav ? event.jets->at(1).genPartonFlavor() : event.jets->at(1).flavor();
-    }
-    if (flav1 == PDGID::GLUON) {
-        zplusjets_hists_presel_g->fill(event);
-        if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-            dijet_hists_presel_gq->fill(event);
-        } else if (flav2 == PDGID::GLUON) {
-            dijet_hists_presel_gg->fill(event);
-        } else if (flav2 == PDGID::UNKNOWN) {
-            dijet_hists_presel_g_unknown->fill(event);
+        if (flav1 == PDGID::GLUON) {
+            if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                dijet_hists_presel_gq->fill(event);
+            } else if (flav2 == PDGID::GLUON) {
+                dijet_hists_presel_gg->fill(event);
+            } else if (flav2 == PDGID::UNKNOWN) {
+                dijet_hists_presel_g_unknown->fill(event);
+            }
+        } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
+            if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                dijet_hists_presel_qq->fill(event);
+            } else if (flav2 == PDGID::GLUON) {
+                dijet_hists_presel_qg->fill(event);
+            } else if (flav2 == PDGID::UNKNOWN) {
+                dijet_hists_presel_q_unknown->fill(event);
+            }
+        } else if (flav1 == PDGID::UNKNOWN) {
+            if (flav2 == PDGID::GLUON) {
+                dijet_hists_presel_unknown_g->fill(event);
+            } else if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                dijet_hists_presel_unknown_q->fill(event);
+            } else if (flav2 == PDGID::UNKNOWN) {
+                dijet_hists_presel_unknown_unknown->fill(event);
+            }
         }
-    } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
-        zplusjets_hists_presel_q->fill(event);
-        if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-            dijet_hists_presel_qq->fill(event);
-        } else if (flav2 == PDGID::GLUON) {
-            dijet_hists_presel_qg->fill(event);
-        } else if (flav2 == PDGID::UNKNOWN) {
-            dijet_hists_presel_q_unknown->fill(event);
+
+        dj = dijet_sel->passes(event);
+        if (dj && pass_dj_trig) {
+            dijet_hists->fill(event);
+            dijet_qg_hists->fill(event);
         }
-    } else if (flav1 == PDGID::UNKNOWN) {
-        zplusjets_hists_presel_unknown->fill(event);
-        if (flav2 == PDGID::GLUON) {
-            dijet_hists_presel_unknown_g->fill(event);
-        } else if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-            dijet_hists_presel_unknown_q->fill(event);
-        } else if (flav2 == PDGID::UNKNOWN) {
-            dijet_hists_presel_unknown_unknown->fill(event);
-        }
-    }
-
-    // Do reco selection and hist filling
-    if (!njet_sel->passes(event)) return false;
-
-    bool zpj = zplusjets_sel->passes(event);
-    if (zpj && pass_zpj_trig) {
-        zplusjets_hists->fill(event);
-        zplusjets_qg_hists->fill(event);
-    }
-
-    bool dj = dijet_sel->passes(event);
-    if (dj && pass_dj_trig) {
-        dijet_hists->fill(event);
-        dijet_qg_hists->fill(event);
     }
 
     // do pu-binned hists
-    for (uint i=0; i<sel_pu_binned.size(); i++) {
-        if (sel_pu_binned.at(i)->passes(event)) {
-            if (zpj) zplusjets_qg_hists_pu_binned.at(i)->fill(event);
-            if (dj) dijet_qg_hists_pu_binned.at(i)->fill(event);
+    if (DO_PU_BINNED_HISTS) {
+        for (uint i=0; i<sel_pu_binned.size(); i++) {
+            if (sel_pu_binned.at(i)->passes(event)) {
+                if (zpj) zplusjets_qg_hists_pu_binned.at(i)->fill(event);
+                if (dj) dijet_qg_hists_pu_binned.at(i)->fill(event);
+            }
         }
     }
 
-    // do high pt jet version - (sub)leading jets (only) must pass much higher pt threshold
+    // do high pt jet version - both jets must pass much higher pt threshold
+    // don't need to do a Z+jets version as only care about leading jet.
     float ptCut = 500;
     if (event.jets->at(0).pt() < ptCut) return false;
-    // Preselection hists
-    zplusjets_hists_presel_highPt->fill(event);
-
     flav2 = 99999999;
     if ((event.jets->size() > 1) && (event.jets->at(1).pt() > ptCut)) {
         flav2 = useGenPartonFlav ? event.jets->at(1).genPartonFlavor() : event.jets->at(1).flavor();
-    }
-    dijet_hists_presel_highPt->fill(event);
+        dijet_hists_presel_highPt->fill(event);
 
-    // flav-specific preselection hists, useful for optimising selection
-    if (flav1 == PDGID::GLUON) {
-        zplusjets_hists_presel_g_highPt->fill(event);
-        if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-            dijet_hists_presel_gq_highPt->fill(event);
-        } else if (flav2 == PDGID::GLUON) {
-            dijet_hists_presel_gg_highPt->fill(event);
-        } else if (flav2 == PDGID::UNKNOWN) {
-            dijet_hists_presel_g_unknown_highPt->fill(event);
+        // flav-specific preselection hists, useful for optimising selection
+        if (flav1 == PDGID::GLUON) {
+            if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                dijet_hists_presel_gq_highPt->fill(event);
+            } else if (flav2 == PDGID::GLUON) {
+                dijet_hists_presel_gg_highPt->fill(event);
+            } else if (flav2 == PDGID::UNKNOWN) {
+                dijet_hists_presel_g_unknown_highPt->fill(event);
+            }
+        } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
+            if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                dijet_hists_presel_qq_highPt->fill(event);
+            } else if (flav2 == PDGID::GLUON) {
+                dijet_hists_presel_qg_highPt->fill(event);
+            } else if (flav2 == PDGID::UNKNOWN) {
+                dijet_hists_presel_q_unknown_highPt->fill(event);
+            }
+        } else if (flav1 == PDGID::UNKNOWN) {
+            if (flav2 == PDGID::GLUON) {
+                dijet_hists_presel_unknown_g_highPt->fill(event);
+            } else if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                dijet_hists_presel_unknown_q_highPt->fill(event);
+            } else if (flav2 == PDGID::UNKNOWN) {
+                dijet_hists_presel_unknown_unknown_highPt->fill(event);
+            }
         }
-    } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
-        zplusjets_hists_presel_q_highPt->fill(event);
-        if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-            dijet_hists_presel_qq_highPt->fill(event);
-        } else if (flav2 == PDGID::GLUON) {
-            dijet_hists_presel_qg_highPt->fill(event);
-        } else if (flav2 == PDGID::UNKNOWN) {
-            dijet_hists_presel_q_unknown_highPt->fill(event);
-        }
-    } else if (flav1 == PDGID::UNKNOWN) {
-        zplusjets_hists_presel_unknown_highPt->fill(event);
-        if (flav2 == PDGID::GLUON) {
-            dijet_hists_presel_unknown_g_highPt->fill(event);
-        } else if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-            dijet_hists_presel_unknown_q_highPt->fill(event);
-        } else if (flav2 == PDGID::UNKNOWN) {
-            dijet_hists_presel_unknown_unknown_highPt->fill(event);
-        }
-    }
 
-    bool zpj_highPt = zplusjets_sel->passes(event);
-    if (zpj_highPt) {
-        zplusjets_hists_highPt->fill(event);
-        zplusjets_qg_hists_highPt->fill(event);
-    }
-
-    bool dj_highPt = dijet_sel->passes(event);
-    if (dj_highPt && flav2 < 100) { // flav2 only sensible if passed pt cut
-        dijet_hists_highPt->fill(event);
-        dijet_qg_hists_highPt->fill(event);
+        dj_highPt = dijet_sel->passes(event);
+        if (dj_highPt && flav2 < 100) { // flav2 only sensible if passed pt cut
+            dijet_hists_highPt->fill(event);
+            dijet_qg_hists_highPt->fill(event);
+        }
     }
 
     if (zpj && dj) {
         cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet criteria" << endl;
     }
-
-
 
     // For checking genparticle/jet assignments:
     // std::cout << "JETS" << std::endl;
@@ -622,8 +634,7 @@ bool QGAnalysisModule::process(Event & event) {
     // }
 
     return zpj || dj;
-    return zpj || dj || zpj_highPt || dj_highPt;
-    // return zpj || dj || zpj_th || dj_th;
+    // return zpj || dj || dj_highPt;
 }
 
 
@@ -710,7 +721,7 @@ std::vector<Jet> QGAnalysisModule::getMatchedJets(std::vector<Jet> * jets, std::
 void QGAnalysisModule::printGenParticles(const std::vector<GenParticle> & gps, const std::string & label, Color::Code color) {
     if (!PRINTOUT) return;
     for (auto & itr: gps) {
-        if (itr.status() != 1) continue;
+        // if (itr.status() != 1) continue;
         cout << color << "GP";
         if (label != "") {
             cout << " [" << label << "]";
@@ -777,6 +788,16 @@ void QGAnalysisModule::printElectrons(const std::vector<Electron> & electrons, c
     }
 }
 
+
+float QGAnalysisModule::calcGenHT(const std::vector<GenParticle> & gps) {
+    float ht = 0.;
+    for (const auto & itr: gps) {
+        if (abs(itr.status()) == 23) {
+            ht += itr.pt();
+        }
+    }
+    return ht;
+}
 // as we want to run the ExampleCycleNew directly with AnalysisModuleRunner,
 // make sure the QGAnalysisModule is found by class name. This is ensured by this macro:
 UHH2_REGISTER_ANALYSIS_MODULE(QGAnalysisModule)
