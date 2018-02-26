@@ -47,10 +47,10 @@ enum PDGID {
 /** \brief Basic analysis preselection
  *
  */
-class QGAnalysisJetTrigErrModule: public AnalysisModule {
+class QGAnalysisJetTrigEffModule: public AnalysisModule {
 public:
 
-    explicit QGAnalysisJetTrigErrModule(Context & ctx);
+    explicit QGAnalysisJetTrigEffModule(Context & ctx);
     virtual bool process(Event & event) override;
 
 private:
@@ -67,8 +67,10 @@ private:
     std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel;
     std::unique_ptr<OrSelection> zplusjets_trigger_sel, dijet_trigger_sel;
     std::vector<TriggerSelection> dijet_trigger_sels;
-    
+
     std::unique_ptr<QGJetTrigHists> trigHists;
+    std::vector<QGJetTrigHists> jetTrigHists;
+    std::vector<TriggerSelection> jet_trig_sels;
 
     bool is_mc;
     float jetRadius;
@@ -78,7 +80,7 @@ private:
     const int runnr_FlateG = 280385;
 
     std::unique_ptr<EventNumberSelection> event_sel;
-    
+
     const std::vector<std::string> zpj_trigger_names = {
         "HLT_IsoMu24_v*",
         "HLT_IsoTkMu24_v*",
@@ -94,11 +96,25 @@ private:
         "HLT_PFJet400_v*",
         "HLT_PFJet450_v*",
         "HLT_PFJet500_v*"
+        // "HLT_AK4PFJet30_v*",
+        // "HLT_AK4PFJet50_v*",
+        // "HLT_AK4PFJet80_v*",
+        // "HLT_AK4PFJet100_v*",
+        // "HLT_AK8PFJet40_v*",
+        // "HLT_AK8PFJet60_v*",
+        // "HLT_AK8PFJet80_v*",
+        // "HLT_AK8PFJet140_v*",
+        // "HLT_AK8PFJet200_v*",
+        // "HLT_AK8PFJet260_v*",
+        // "HLT_AK8PFJet320_v*",
+        // "HLT_AK8PFJet400_v*",
+        // "HLT_AK8PFJet450_v*",
+        // "HLT_AK8PFJet500_v*",
     };
 };
 
 
-QGAnalysisJetTrigErrModule::QGAnalysisJetTrigErrModule(Context & ctx){
+QGAnalysisJetTrigEffModule::QGAnalysisJetTrigEffModule(Context & ctx){
     // In the constructor, the typical tasks are to initialize the
     // member variables, in particular the AnalysisModules such as
     // CommonModules or some cleaner module, Selections and Hists.
@@ -114,6 +130,7 @@ QGAnalysisJetTrigErrModule::QGAnalysisJetTrigErrModule(Context & ctx){
     common->disable_jersmear();
     common->disable_jec(); // do it manually below
     common->change_pf_id(JetPFID::wp::WP_LOOSE);
+    // common->change_pf_id(JetPFID::wp::WP_TIGHT_LEPVETO);
     common->set_muon_id(AndId<Muon>(MuonIDMedium_ICHEP(), PtEtaCut(26.0, 2.4), MuonIso(0.25)));
     common->set_electron_id(AndId<Electron>(ElectronID_Spring16_medium, PtEtaCut(20.0, 2.5)));
     common->switch_jetPtSorter(false);
@@ -212,21 +229,23 @@ QGAnalysisJetTrigErrModule::QGAnalysisJetTrigErrModule(Context & ctx){
         zplusjets_trigger_sel->add<TriggerSelection>(trig);
     }
 
-    trigHists.reset(new QGJetTrigHists(ctx, "PFJet", dj_trigger_names));
+    trigHists.reset(new QGJetTrigHists(ctx, "SingleMuRef", dj_trigger_names));
+
+    for (uint i=0; i < (dj_trigger_names.size()-1); i++) {
+        jet_trig_sels.push_back(TriggerSelection(dj_trigger_names[i]));
+        jetTrigHists.push_back(QGJetTrigHists(ctx, dj_trigger_names[i]+"Ref", std::vector<std::string>{dj_trigger_names[i+1]}));
+    }
 }
 
 
-bool QGAnalysisJetTrigErrModule::process(Event & event) {
+bool QGAnalysisJetTrigEffModule::process(Event & event) {
     // if (!event_sel->passes(event)) return false;
 
     if (PRINTOUT) {cout << "-- Event: " << event.event << endl;}
-    
+
     // This is the main procedure, called for each event.
     if (!common->process(event)) {return false;}
 
-    bool pass_zpj_trig = is_mc ? true : zplusjets_trigger_sel->passes(event);
-    
-    if (!pass_zpj_trig) return false;
 
     // Do additional cleaning & JEC manually to allow custom JEC (common only does AK4)
     // - Apply JEC
@@ -265,14 +284,20 @@ bool QGAnalysisJetTrigErrModule::process(Event & event) {
     // RECO PART
     if (!njet_sel->passes(event)) return false;
 
-    trigHists->fill(event);
+    if (zplusjets_trigger_sel->passes(event)) trigHists->fill(event);
+
+    for (uint i=0; i<jet_trig_sels.size(); i++) {
+        if (jet_trig_sels.at(i).passes(event))
+            jetTrigHists.at(i).fill(event);
+    }
+
 
     return true;
 }
 
 
 // as we want to run the ExampleCycleNew directly with AnalysisModuleRunner,
-// make sure the QGAnalysisJetTrigErrModule is found by class name. This is ensured by this macro:
-UHH2_REGISTER_ANALYSIS_MODULE(QGAnalysisJetTrigErrModule)
+// make sure the QGAnalysisJetTrigEffModule is found by class name. This is ensured by this macro:
+UHH2_REGISTER_ANALYSIS_MODULE(QGAnalysisJetTrigEffModule)
 
 }
