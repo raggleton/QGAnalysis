@@ -8,7 +8,7 @@
     <!ENTITY ODIR-JETHT "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/JetHT">
 
     <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/commonData.xml">
-  
+
     <!ENTITY SINGLEMU-B SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/SingleMu/RunB.xml">
     <!ENTITY SINGLEMU-C SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/SingleMu/RunC.xml">
     <!ENTITY SINGLEMU-D SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/SingleMu/RunD.xml">
@@ -17,6 +17,15 @@
     <!ENTITY SINGLEMU-G SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/SingleMu/RunG.xml">
     <!ENTITY SINGLEMU-H-v2 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/SingleMu/RunH_ver2.xml">
     <!ENTITY SINGLEMU-H-v3 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/SingleMu/RunH_ver3.xml">
+
+    <!ENTITY JETHT-B SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunB.xml">
+    <!ENTITY JETHT-C SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunC.xml">
+    <!ENTITY JETHT-D SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunD.xml">
+    <!ENTITY JETHT-E SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunE.xml">
+    <!ENTITY JETHT-F SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunF.xml">
+    <!ENTITY JETHT-G SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunG.xml">
+    <!ENTITY JETHT-H-v2 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunH_ver2.xml">
+    <!ENTITY JETHT-H-v3 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunH_ver3.xml">
 
     <!-- Jet config snippets -->
     <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chsData.xml">
@@ -31,8 +40,8 @@
 <!-- split 3 for mgpythia -->
 
 <!--
-   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="200" />
-   <ConfigSGE RAM ="4" DISK ="2" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4chs_jettrig"/>
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="75" />
+   <ConfigSGE RAM ="4" DISK ="2" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak8puppi_jettrig"/>
 -->
 
 
@@ -41,11 +50,16 @@
     <Library Name="libSUHH2QGAnalysis"/>
     <Package Name="SUHH2QGAnalysis.par" />
 
-    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-SINGLEMU;/" PostFix="" TargetLumi="1" >
+    <!-- <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-SINGLEMU;/" PostFix="" TargetLumi="1" > -->
+    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-JETHT;/" PostFix="" TargetLumi="1" >
 
         <!-- TEST FILES -->
-        <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_SingleMu_JetTrig" Cacheable="False">
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/SingleMuon/crab_SingleMuon_Run2016E-03Feb2017-v1_10_Feb_18_newRecoJetFlav_fixPuppi_v3/180210_120754/0000/Ntuple_1.root" Lumi="0.0"/> -->
+<!--         <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_SingleMu_JetTrig" Cacheable="False">
+        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/SingleMuon/crab_SingleMuon_Run2016E-03Feb2017-v1_10_Feb_18_newRecoJetFlav_fixPuppi_v3/180210_120754/0000/Ntuple_1.root" Lumi="0.0"/>
+        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/SingleMuon/crab_SingleMuon_Run2016E-03Feb2017-v1_10_Feb_18_newRecoJetFlav_fixPuppi_v3/180210_120754/0000/Ntuple_10.root" Lumi="0.0"/>
+        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/SingleMuon/crab_SingleMuon_Run2016E-03Feb2017-v1_10_Feb_18_newRecoJetFlav_fixPuppi_v3/180210_120754/0000/Ntuple_2.root" Lumi="0.0"/>
+        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/SingleMuon/crab_SingleMuon_Run2016E-03Feb2017-v1_10_Feb_18_newRecoJetFlav_fixPuppi_v3/180210_120754/0000/Ntuple_20.root" Lumi="0.0"/>
+
         &SINGLEMU-B;
         &SINGLEMU-C;
         &SINGLEMU-D;
@@ -56,12 +70,20 @@
         &SINGLEMU-H-v3;
         <InputTree Name="AnalysisTree"/>
         </InputData>
-
-        <!-- <InputData Lumi="1" NEventsMax="10000" Type="DATA" Version="Data_JetHT" Cacheable="False">
-        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/SingleMuon/crab_SingleMuon_Run2016C-03Feb2017-v1_15_Jan_18_newRecoJetFlav_v5/180115_082326/0000/Ntuple_10.root" Lumi="0.0"/>
+ -->
+        <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_JetHT" Cacheable="False">
+        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/SingleMuon/crab_SingleMuon_Run2016C-03Feb2017-v1_15_Jan_18_newRecoJetFlav_v5/180115_082326/0000/Ntuple_10.root" Lumi="0.0"/> -->
+        &JETHT-B;
+        &JETHT-C;
+        &JETHT-D;
+        &JETHT-E;
+        &JETHT-F;
+        &JETHT-G;
+        &JETHT-H-v2;
+        &JETHT-H-v3;
         <InputTree Name="AnalysisTree"/>
         </InputData>
-         -->
+
         <UserConfig>
             <Item Name="PrimaryVertexCollection" Value="offlineSlimmedPrimaryVertices" />
             <Item Name="ElectronCollection" Value="slimmedElectronsUSER" />
@@ -71,7 +93,7 @@
             <!-- <Item Name="GenParticleCollection" Value="GenParticles" /> -->
 
             <!-- the class name of the AnalysisModule subclasses to run: -->
-            <Item Name="AnalysisModule" Value="QGAnalysisJetTrigErrModule" />
+            <Item Name="AnalysisModule" Value="QGAnalysisJetTrigEffModule" />
 
             <!-- tell AnalysisModuleRunner NOT to use the MC event weight from SFrame; rather let
              MCLumiWeight (called via CommonModules) calculate the MC event weight. The MC
@@ -82,10 +104,10 @@
             <Item Name="lumi_file" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/common/data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.root"/>
             <!-- Choose your jet configuration -->
 
-            &AK4CHS;
+            <!-- &AK4CHS; -->
             <!-- &AK4PUPPI; -->
             <!-- &AK8CHS; -->
-            <!-- &AK8PUPPI; -->
+            &AK8PUPPI;
             <Item Name="useGenPartonFlav" Value="true"/>
         </UserConfig>
     </Cycle>
