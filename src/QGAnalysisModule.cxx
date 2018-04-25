@@ -47,13 +47,7 @@ public:
 
 private:
 
-    std::unique_ptr<CommonModules> common;
-
-    std::unique_ptr<JetCorrector> jet_corrector_MC, jet_corrector_BCD, jet_corrector_EFearly, jet_corrector_FlateG, jet_corrector_H;
-    std::unique_ptr<GenericJetResolutionSmearer> jet_resolution_smearer;
-    std::unique_ptr<JetCleaner> jet_cleaner;
-    std::unique_ptr<JetElectronOverlapRemoval> jet_ele_cleaner;
-    std::unique_ptr<JetMuonOverlapRemoval> jet_mu_cleaner;
+    std::unique_ptr<GeneralEventSetup> common_setup;
 
     // Reco selections/hists
     std::unique_ptr<Selection> njet_sel, zplusjets_sel, zplusjets_presel, dijet_sel;
@@ -118,66 +112,17 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
     useGenPartonFlav = ctx.get("useGenPartonFlav") == "true";
     htMax =  boost::lexical_cast<float>(ctx.get("maxHT", "-1"));
 
-    common.reset(new CommonModules());
-    common->disable_mcpileupreweight();
-    common->disable_jersmear();
-    common->disable_jec(); // do it manually below
-    common->change_pf_id(JetPFID::wp::WP_LOOSE);
-    common->set_muon_id(AndId<Muon>(MuonIDMedium_ICHEP(), PtEtaCut(26.0, 2.4), MuonIso(0.25)));
-    common->set_electron_id(AndId<Electron>(ElectronID_Spring16_medium, PtEtaCut(20.0, 2.5)));
-    common->switch_jetPtSorter(false);
-    common->switch_jetlepcleaner(false);
-
-    common->init(ctx);
-
-    // Cleaning/JEC modules
-    // Do manually and not in CommonModules to select correct cone size etc
     string jet_cone = ctx.get("JetCone", "AK4");
     string pu_removal = ctx.get("PURemoval", "CHS");
     if (pu_removal != "CHS" && pu_removal != "PUPPI") {
         throw runtime_error("Only PURemoval == CHS, PUPPI supported for now");
     }
-
-    if (jet_cone.find("AK4") != string::npos)
-        jetRadius = 0.4;
-    else if (jet_cone.find("AK8") != string::npos)
-        jetRadius = 0.8;
-    else if (jet_cone.find("ca15") != string::npos)
-        jetRadius = 1.5;
-    else
-        throw runtime_error("Cannot determine jetRadius in QGAnalysisTheoryHists");
+    jetRadius = get_jet_radius(jet_cone);
 
     cout << "Running with jet cone: " << jet_cone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
 
-
-    std::vector<std::string> JEC_MC;
-    std::string resolutionFilename;
-    if (pu_removal == "CHS") {
-        if (jet_cone == "AK4") {
-            JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK4PFchs_MC;
-            resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK4PFchs.txt";
-        } else if (jet_cone == "AK8") {
-            JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK8PFchs_MC;
-            resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK8PFchs.txt";  // actually doesn't matter, they're all the same
-        }
-    } else if (pu_removal == "PUPPI") {
-        if (jet_cone == "AK4") {
-            JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK4PFPuppi_MC;
-            resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK4PFchs.txt";
-        } else if (jet_cone == "AK8") {
-            JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK8PFPuppi_MC;
-            resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK8PFchs.txt";
-        }
-    }
-
-    jet_corrector_MC.reset(new JetCorrector(ctx, JEC_MC));
-    // jet_resolution_smearer.reset(new JetResolutionSmearer(ctx));
-    jet_resolution_smearer.reset(new GenericJetResolutionSmearer(ctx, "jets", "genjets", true, JERSmearing::SF_13TeV_2016_03Feb2017, resolutionFilename));
-
-    jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.4)));
-    jet_ele_cleaner.reset(new JetElectronOverlapRemoval(jetRadius));
-    jet_mu_cleaner.reset(new JetMuonOverlapRemoval(jetRadius));
+    common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jetRadius));
 
     genjets_handle = ctx.declare_event_output< std::vector<GenJetWithParts> > ("GoodGenJets");
     genmuons_handle = ctx.declare_event_output< std::vector<GenParticle> > ("GoodGenMuons");
@@ -290,28 +235,11 @@ bool QGAnalysisModule::process(Event & event) {
     // Gen-level HT cut if necessary
     if ((htMax > 0) && (calcGenHT(*(event.genparticles)) > htMax)) { return false; }
 
-    // This is the main procedure, called for each event.
-    if (!common->process(event)) {return false;}
+    if (!common_setup->process(event)) {return false;}
 
     if (PRINTOUT) printMuons(*event.muons);
     if (PRINTOUT) printElectrons(*event.electrons);
     if (PRINTOUT) printGenParticles(*event.genparticles);
-
-    // Do additional cleaning & JEC manually to allow custom JEC (common only does AK4)
-    // - Apply JEC
-    // - correct MET
-    // - Smear jets if MC
-    jet_corrector_MC->process(event);
-    jet_corrector_MC->correct_met(event);
-    jet_resolution_smearer->process(event);
-
-    // Do jet cleaning
-    jet_cleaner->process(event);
-    jet_ele_cleaner->process(event);
-    jet_mu_cleaner->process(event);
-
-    // Resort by pT
-    sort_by_pt(*event.jets);
 
     // THEORY PART
     // if (PRINTOUT) printGenParticles(*event.genparticles);
@@ -369,7 +297,6 @@ bool QGAnalysisModule::process(Event & event) {
     //         dijet_hists_theory_pt_binned.at(i)->fill(event);
     //     }
     // }
-
 
     // RECO PART
     if (!njet_sel->passes(event)) return false;
