@@ -32,13 +32,13 @@ namespace uhh2examples {
 const bool PRINTOUT = false;
 
 
-/** \brief Basic analysis preselection
- *
+/**
+ * Analysis module for data datasets
  */
-class QGAnalysisPreselDataModule: public AnalysisModule {
+class QGAnalysisDataModule: public AnalysisModule {
 public:
 
-    explicit QGAnalysisPreselDataModule(Context & ctx);
+    explicit QGAnalysisDataModule(Context & ctx);
     virtual bool process(Event & event) override;
 
 private:
@@ -61,7 +61,7 @@ private:
 };
 
 
-QGAnalysisPreselDataModule::QGAnalysisPreselDataModule(Context & ctx){
+QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     cout << "Running analysis module" << endl;
 
     string jet_cone = ctx.get("JetCone", "AK4");
@@ -167,7 +167,7 @@ QGAnalysisPreselDataModule::QGAnalysisPreselDataModule(Context & ctx){
 }
 
 
-bool QGAnalysisPreselDataModule::process(Event & event) {
+bool QGAnalysisDataModule::process(Event & event) {
     // if (!event_sel->passes(event)) return false;
 
     if (PRINTOUT) {cout << "-- Event: " << event.event << endl; }
@@ -221,7 +221,7 @@ bool QGAnalysisPreselDataModule::process(Event & event) {
 }
 
 // as we want to run the ExampleCycleNew directly with AnalysisModuleRunner,
-// make sure the QGAnalysisPreselDataModule is found by class name. This is ensured by this macro:
-UHH2_REGISTER_ANALYSIS_MODULE(QGAnalysisPreselDataModule)
+// make sure the QGAnalysisDataModule is found by class name. This is ensured by this macro:
+UHH2_REGISTER_ANALYSIS_MODULE(QGAnalysisDataModule)
 
 }

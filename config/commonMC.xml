@@ -7,7 +7,7 @@
 <Item Name="PFParticleCollection" Value="JetPFParticles" />
 
 <!-- the class name of the AnalysisModule subclasses to run: -->
-<Item Name="AnalysisModule" Value="QGAnalysisModule" />
+<Item Name="AnalysisModule" Value="QGAnalysisMCModule" />
 
 <!-- tell AnalysisModuleRunner NOT to use the MC event weight from SFrame; rather let
  MCLumiWeight (called via CommonModules) calculate the MC event weight. The MC

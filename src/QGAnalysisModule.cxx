@@ -32,13 +32,13 @@ namespace uhh2examples {
 const bool PRINTOUT = false;
 
 
-/** \brief Basic analysis preselection
- *
+/**
+ * Analysis module for MC datasets
  */
-class QGAnalysisModule: public AnalysisModule {
+class QGAnalysisMCModule: public AnalysisModule {
 public:
 
-    explicit QGAnalysisModule(Context & ctx);
+    explicit QGAnalysisMCModule(Context & ctx);
     virtual bool process(Event & event) override;
     std::vector<GenJetWithParts> getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=1.5, float lepton_overlap_dr=0.2);
     std::vector<GenParticle> getGenMuons(std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=2.5);
@@ -101,7 +101,7 @@ private:
 };
 
 
-QGAnalysisModule::QGAnalysisModule(Context & ctx){
+QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // In the constructor, the typical tasks are to initialize the
     // member variables, in particular the AnalysisModules such as
     // CommonModules or some cleaner module, Selections and Hists.
@@ -223,7 +223,7 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
 }
 
 
-bool QGAnalysisModule::process(Event & event) {
+bool QGAnalysisMCModule::process(Event & event) {
     // if (!event_sel->passes(event)) return false;
 
     if (PRINTOUT) {cout << "-- Event: " << event.event << endl;}
@@ -444,7 +444,7 @@ bool QGAnalysisModule::process(Event & event) {
 /**
  * Get GenJets, ignoring those that are basically a lepton, and have some minimum pt and maximum eta.
  */
-std::vector<GenJetWithParts> QGAnalysisModule::getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min, float eta_max, float lepton_overlap_dr) {
+std::vector<GenJetWithParts> QGAnalysisMCModule::getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min, float eta_max, float lepton_overlap_dr) {
     std::vector<GenJetWithParts> genjets;
     for (const auto itr : *jets) {
         bool found = (std::find(genjets.begin(), genjets.end(), itr) != genjets.end());
@@ -466,7 +466,7 @@ std::vector<GenJetWithParts> QGAnalysisModule::getGenJets(std::vector<GenJetWith
 /**
  * Select gen muons from all genparticles, that have some minimum pt and maximum eta
  */
-std::vector<GenParticle> QGAnalysisModule::getGenMuons(std::vector<GenParticle> * genparticles, float pt_min, float eta_max) {
+std::vector<GenParticle> QGAnalysisMCModule::getGenMuons(std::vector<GenParticle> * genparticles, float pt_min, float eta_max) {
     std::vector<GenParticle> muons;
     // Do in reverse order to pick up most evolved muons first
     for (auto itr = genparticles->rbegin(); itr != genparticles->rend(); ++itr){
@@ -489,7 +489,7 @@ std::vector<GenParticle> QGAnalysisModule::getGenMuons(std::vector<GenParticle> 
  * uniqueMatch controls whether matching GenJets must be unique (i.e 2 reco jets can't match the same GenJet)
  *
  */
-std::vector<Jet> QGAnalysisModule::getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax, bool uniqueMatch) {
+std::vector<Jet> QGAnalysisMCModule::getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax, bool uniqueMatch) {
     std::vector<Jet> goodJets;
     std::vector<uint> matchedIndices;
     for (auto & jtr: *jets) {
@@ -522,7 +522,7 @@ std::vector<Jet> QGAnalysisModule::getMatchedJets(std::vector<Jet> * jets, std::
 }
 
 
-float QGAnalysisModule::calcGenHT(const std::vector<GenParticle> & gps) {
+float QGAnalysisMCModule::calcGenHT(const std::vector<GenParticle> & gps) {
     float ht = 0.;
     for (const auto & itr: gps) {
         if (abs(itr.status()) == 23) {
@@ -532,7 +532,7 @@ float QGAnalysisModule::calcGenHT(const std::vector<GenParticle> & gps) {
     return ht;
 }
 // as we want to run the ExampleCycleNew directly with AnalysisModuleRunner,
-// make sure the QGAnalysisModule is found by class name. This is ensured by this macro:
-UHH2_REGISTER_ANALYSIS_MODULE(QGAnalysisModule)
+// make sure the QGAnalysisMCModule is found by class name. This is ensured by this macro:
+UHH2_REGISTER_ANALYSIS_MODULE(QGAnalysisMCModule)
 
 }
