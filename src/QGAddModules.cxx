@@ -174,3 +174,14 @@ bool GeneralEventSetup::process(uhh2::Event & event) {
 
   return true;
 }
+
+float get_jet_radius(const std::string & jet_cone) {
+  if (jet_cone.find("AK4") != std::string::npos)
+    return 0.4;
+  else if (jet_cone.find("AK8") != std::string::npos)
+    return 0.8;
+  else if (jet_cone.find("ca15") != std::string::npos)
+    return 1.5;
+  else
+    throw std::runtime_error("Cannot determine jet radius from jet_cone string");
+}

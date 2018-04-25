@@ -69,17 +69,7 @@ QGAnalysisPreselDataModule::QGAnalysisPreselDataModule(Context & ctx){
     if (pu_removal != "CHS" && pu_removal != "PUPPI") {
         throw runtime_error("Only PURemoval == CHS, PUPPI supported for now");
     }
-    
-    float jet_radius(0);
-
-    if (jet_cone.find("AK4") != string::npos)
-        jet_radius = 0.4;
-    else if (jet_cone.find("AK8") != string::npos)
-        jet_radius = 0.8;
-    else if (jet_cone.find("ca15") != string::npos)
-        jet_radius = 1.5;
-    else
-        throw runtime_error("Cannot determine jet_radius in QGAnalysisTheoryHists");
+    float jet_radius = get_jet_radius(jet_cone);
 
     cout << "Running with jet cone: " << jet_cone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
