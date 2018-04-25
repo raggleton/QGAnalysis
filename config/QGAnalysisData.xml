@@ -81,14 +81,13 @@
         <UserConfig>
             &COMMON;
 
-            <Item Name="lumi_file" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/common/data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.root"/>
             <!-- Choose your jet configuration -->
 
             <!-- &AK4CHS; -->
             &AK4PUPPI;
             <!-- &AK8CHS; -->
             <!-- &AK8PUPPI; -->
-            <Item Name="useGenPartonFlav" Value="true"/>
+
         </UserConfig>
     </Cycle>
 
