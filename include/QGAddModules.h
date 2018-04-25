@@ -7,6 +7,12 @@
 #include "UHH2/core/include/Hists.h"
 #include "UHH2/core/include/NtupleObjects.h"
 #include "UHH2/common/include/JetCorrections.h"
+#include "UHH2/common/include/ObjectIdUtils.h"
+#include "UHH2/common/include/NSelections.h"
+#include "UHH2/common/include/JetIds.h"
+#include "UHH2/common/include/CleaningModules.h"
+#include "UHH2/common/include/MCWeight.h"
+
 
 
 namespace uhh2examples{
@@ -52,6 +58,30 @@ public:
 private:
   std::unique_ptr<JetCorrector> jet_corrector;
   std::unique_ptr<GenericJetResolutionSmearer> jet_resolution_smearer;
+};
+
+
+/**
+ * Standardised way of cleaning objects, applying IDs, corrections, etc
+ */
+class GeneralEventSetup : public uhh2::AnalysisModule {
+public:
+  GeneralEventSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  bool is_mc;
+  std::unique_ptr<Selection> lumi_selection;
+  std::unique_ptr<AndSelection> metfilters_selection;
+  std::unique_ptr<PrimaryVertexCleaner> pv_cleaner;
+  std::unique_ptr<ElectronCleaner> electron_cleaner;
+  std::unique_ptr<MuonCleaner> muon_cleaner;
+  std::unique_ptr<JetCleaner> jet_pf_id;
+  std::unique_ptr<AnalysisModule> jet_met_corrector;
+  std::unique_ptr<MCLumiWeight> lumi_weighter;
+  std::unique_ptr<MCPileupReweight> pileup_reweighter;
+  std::unique_ptr<JetCleaner> jet_cleaner;
+  std::unique_ptr<JetElectronOverlapRemoval> jet_ele_cleaner;
+  std::unique_ptr<JetMuonOverlapRemoval> jet_mu_cleaner;
 };
 
 };

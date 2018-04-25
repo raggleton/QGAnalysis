@@ -1,4 +1,11 @@
 #include "UHH2/QGAnalysis/include/QGAddModules.h"
+#include "UHH2/common/include/JetCorrections.h"
+#include "UHH2/common/include/EventVariables.h"
+#include "UHH2/common/include/LumiSelection.h"
+#include "UHH2/common/include/Utils.h"
+#include "UHH2/common/include/TriggerSelection.h"
+#include "UHH2/common/include/MuonIds.h"
+#include "UHH2/common/include/ElectronIds.h"
 
 using namespace std;
 using namespace uhh2;
@@ -95,5 +102,75 @@ bool MCJetMetCorrector::process(uhh2::Event & event) {
   jet_corrector->process(event);
   jet_corrector->correct_met(event);
   jet_resolution_smearer->process(event);
+  return true;
+}
+
+
+GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius) {
+  is_mc = ctx.get("dataset_type") == "MC";
+
+  if (!is_mc) lumi_selection.reset(new LumiSelection(ctx));
+
+  metfilters_selection.reset(new AndSelection(ctx, "metfilters"));
+  metfilters_selection->add<TriggerSelection>("HBHENoiseFilter", "Flag_HBHENoiseFilter");
+  metfilters_selection->add<TriggerSelection>("HBHENoiseIsoFilter", "Flag_HBHENoiseIsoFilter");
+  metfilters_selection->add<TriggerSelection>("globalTightHalo2016Filter", "Flag_globalTightHalo2016Filter");
+  metfilters_selection->add<TriggerSelection>("EcalDeadCellTriggerPrimitiveFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter");
+  metfilters_selection->add<TriggerSelection>("eeBadScFilter", "Flag_eeBadScFilter");
+  PrimaryVertexId pvid = StandardPrimaryVertexId();
+  metfilters_selection->add<NPVSelection>("1 good PV", 1, -1, pvid);
+
+  pv_cleaner.reset(new PrimaryVertexCleaner(pvid));
+
+  electron_cleaner.reset(new ElectronCleaner(AndId<Electron>(ElectronID_Spring16_medium, PtEtaCut(20.0, 2.5))));
+
+  muon_cleaner.reset(new MuonCleaner(AndId<Muon>(MuonIDMedium_ICHEP(), PtEtaCut(26.0, 2.4), MuonIso(0.25))));
+
+  jet_pf_id.reset(new JetCleaner(ctx, JetPFID(JetPFID::wp::WP_LOOSE)));
+
+  if (is_mc) {
+    jet_met_corrector.reset(new MCJetMetCorrector(ctx, pu_removal, jet_cone));
+    lumi_weighter.reset(new MCLumiWeight(ctx));
+    pileup_reweighter.reset(new MCPileupReweight(ctx, "central"));
+  } else {
+    jet_met_corrector.reset(new DataJetMetCorrector(ctx, pu_removal, jet_cone));
+  }
+
+  jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 4.7)));
+
+  jet_ele_cleaner.reset(new JetElectronOverlapRemoval(jet_radius));
+
+  jet_mu_cleaner.reset(new JetMuonOverlapRemoval(jet_radius));
+}
+
+bool GeneralEventSetup::process(uhh2::Event & event) {
+
+  if(event.isRealData && !lumi_selection->passes(event)) return false;
+
+  if(!metfilters_selection->passes(event)) return false;
+
+  pv_cleaner->process(event);
+
+  electron_cleaner->process(event);
+
+  muon_cleaner->process(event);
+
+  jet_pf_id->process(event);
+
+  jet_met_corrector->process(event);
+
+  if (is_mc) {
+    lumi_weighter->process(event);
+    pileup_reweighter->process(event);
+  }
+
+  jet_cleaner->process(event);
+
+  jet_ele_cleaner->process(event);
+
+  jet_mu_cleaner->process(event);
+
+  sort_by_pt(*event.jets);
+
   return true;
 }

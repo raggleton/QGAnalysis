@@ -43,12 +43,7 @@ public:
 
 private:
 
-    std::unique_ptr<CommonModules> common;
-
-    std::unique_ptr<DataJetMetCorrector> jet_met_corrector;
-    std::unique_ptr<JetCleaner> jet_cleaner_loose, jet_cleaner_tight;
-    std::unique_ptr<JetElectronOverlapRemoval> jet_ele_cleaner;
-    std::unique_ptr<JetMuonOverlapRemoval> jet_mu_cleaner;
+    std::unique_ptr<GeneralEventSetup> common_setup;
 
     // Reco selections/hists
     std::unique_ptr<Selection> njet_sel, zplusjets_sel, zplusjets_presel, dijet_sel;
@@ -61,59 +56,35 @@ private:
 
     std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_qg_hists;
 
-    float jetRadius;
-
     std::unique_ptr<EventNumberSelection> event_sel;
 
 };
 
 
 QGAnalysisPreselDataModule::QGAnalysisPreselDataModule(Context & ctx){
-    // In the constructor, the typical tasks are to initialize the
-    // member variables, in particular the AnalysisModules such as
-    // CommonModules or some cleaner module, Selections and Hists.
-    // But you can do more and e.g. access the configuration, as shown below.
-
     cout << "Running analysis module" << endl;
 
-    common.reset(new CommonModules());
-    common->disable_mcpileupreweight();
-    common->disable_jersmear();
-    common->disable_jec(); // do it manually below
-    common->change_pf_id(JetPFID::wp::WP_LOOSE);
-    common->set_muon_id(AndId<Muon>(MuonIDMedium_ICHEP(), PtEtaCut(26.0, 2.4), MuonIso(0.25)));
-    common->set_electron_id(AndId<Electron>(ElectronID_Spring16_medium, PtEtaCut(20.0, 2.5)));
-    common->switch_jetPtSorter(false);
-    common->switch_jetlepcleaner(false);
-
-    common->init(ctx);
-
-    // Cleaning/JEC modules
-    // Do manually and not in CommonModules to select correct cone size etc
     string jet_cone = ctx.get("JetCone", "AK4");
     string pu_removal = ctx.get("PURemoval", "CHS");
     if (pu_removal != "CHS" && pu_removal != "PUPPI") {
         throw runtime_error("Only PURemoval == CHS, PUPPI supported for now");
     }
+    
+    float jet_radius(0);
 
     if (jet_cone.find("AK4") != string::npos)
-        jetRadius = 0.4;
+        jet_radius = 0.4;
     else if (jet_cone.find("AK8") != string::npos)
-        jetRadius = 0.8;
+        jet_radius = 0.8;
     else if (jet_cone.find("ca15") != string::npos)
-        jetRadius = 1.5;
+        jet_radius = 1.5;
     else
-        throw runtime_error("Cannot determine jetRadius in QGAnalysisTheoryHists");
+        throw runtime_error("Cannot determine jet_radius in QGAnalysisTheoryHists");
 
     cout << "Running with jet cone: " << jet_cone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
 
-    jet_met_corrector.reset(new DataJetMetCorrector(ctx, pu_removal, jet_cone));
-    
-    jet_cleaner_loose.reset(new JetCleaner(ctx, PtEtaCut(30.0, 4.7)));
-    jet_cleaner_tight.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.4)));
-    jet_ele_cleaner.reset(new JetElectronOverlapRemoval(jetRadius));
-    jet_mu_cleaner.reset(new JetMuonOverlapRemoval(jetRadius));
+    common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jet_radius));
 
     // Event Selections
     njet_sel.reset(new NJetSelection(1));
@@ -215,11 +186,6 @@ bool QGAnalysisPreselDataModule::process(Event & event) {
     if (PRINTOUT) printElectrons(*event.electrons, "Precleaning");
     if (PRINTOUT) printJets(*event.jets, "Precleaning");
 
-    if (!common->process(event)) {return false;}
-
-    if (PRINTOUT) printMuons(*event.muons);
-    if (PRINTOUT) printElectrons(*event.electrons);
-
     bool pass_zpj_trig = zplusjets_trigger_sel->passes(event);
     // have to do dijet bit before any jet ID to figure out which jet fired trigger
     bool pass_dj_trig = dijet_trigger_sel->passes(event);
@@ -227,16 +193,10 @@ bool QGAnalysisPreselDataModule::process(Event & event) {
 
     if (!(pass_zpj_trig || pass_dj_trig)) return false;
 
-    // Do jet cleaning/correcting
-    jet_met_corrector->process(event);
+    if (!common_setup->process(event)) {return false;}
 
-    // jet_cleaner_loose->process(event);
-    jet_cleaner_tight->process(event);
-    jet_ele_cleaner->process(event);
-    jet_mu_cleaner->process(event);
-
-    // Resort by pT
-    sort_by_pt(*event.jets);
+    if (PRINTOUT) printMuons(*event.muons);
+    if (PRINTOUT) printElectrons(*event.electrons);
 
     // RECO PART
     if (!njet_sel->passes(event)) return false;
@@ -265,10 +225,6 @@ bool QGAnalysisPreselDataModule::process(Event & event) {
             dijet_hists->fill(event);
             dijet_qg_hists->fill(event);
         }
-    }
-
-    if (zpj && dj) {
-        cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet criteria" << endl;
     }
 
     return zpj || dj;
