@@ -103,7 +103,7 @@ bool MCJetMetCorrector::process(uhh2::Event & event) {
 }
 
 
-void printGenParticles(const std::vector<GenParticle> & gps, const std::string & label, Color::Code color) {
+void uhh2examples::printGenParticles(const std::vector<GenParticle> & gps, const std::string & label, Color::Code color) {
   for (auto & itr: gps) {
     // if (itr.status() != 1) continue;
     cout << color << "GP";
@@ -114,7 +114,7 @@ void printGenParticles(const std::vector<GenParticle> & gps, const std::string &
   }
 }
 
-std::vector<GenParticle*> print_genjet_genparticles(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles) {
+std::vector<GenParticle*> uhh2examples::print_genjet_genparticles(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles) {
   std::vector<GenParticle*> gp;
   for (const uint i : jet.genparticles_indices()) {
     gp.push_back(&(genparticles->at(i)));
@@ -125,18 +125,18 @@ std::vector<GenParticle*> print_genjet_genparticles(const GenJetWithParts & jet,
   return gp;
 }
 
-void printGenJets(const std::vector<GenJetWithParts> & gps, std::vector<GenParticle>* genparticles, const std::string & label, Color::Code color) {
+void uhh2examples::printGenJets(const std::vector<GenJetWithParts> & gps, std::vector<GenParticle>* genparticles, const std::string & label, Color::Code color) {
   for (auto & itr: gps) {
     std::cout << color << "GenJet";
     if (label != "") {
         std::cout << " [" << label << "]";
     }
     std::cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << std::endl;
-    // print_genjet_genparticles(itr, genparticles);  // broken - ambiguous
+    print_genjet_genparticles(itr, genparticles);  // requires the print* funcs to have namespace explicitly written
   }
 }
 
-void printJets(const std::vector<Jet> & jets, const std::string & label, Color::Code color) {
+void uhh2examples::printJets(const std::vector<Jet> & jets, const std::string & label, Color::Code color) {
   for (auto & itr: jets) {
     std::cout << color << "jet";
     if (label != "") {
@@ -146,7 +146,7 @@ void printJets(const std::vector<Jet> & jets, const std::string & label, Color::
   }
 }
 
-void printMuons(const std::vector<Muon> & muons, const std::string & label, Color::Code color) {
+void uhh2examples::printMuons(const std::vector<Muon> & muons, const std::string & label, Color::Code color) {
   for (auto & itr: muons) {
     std::cout << color << "muon";
     if (label != "") {
@@ -156,7 +156,7 @@ void printMuons(const std::vector<Muon> & muons, const std::string & label, Colo
   }
 }
 
-void printElectrons(const std::vector<Electron> & electrons, const std::string & label, Color::Code color) {
+void uhh2examples::printElectrons(const std::vector<Electron> & electrons, const std::string & label, Color::Code color) {
   for (auto & itr: electrons) {
     std::cout << color << "electron";
     if (label != "") {
