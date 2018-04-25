@@ -61,25 +61,7 @@ private:
 
     std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_qg_hists;
 
-    std::unique_ptr<Hists> dijet_hists_presel_highPt, dijet_hists_highPt, dijet_qg_hists_highPt;
-
-    // for sweeping over PU
-    std::vector<std::pair<int, int>> pu_bins = {
-        std::make_pair(5, 15),
-        std::make_pair(20, 25),
-        std::make_pair(30, 40)
-    };
-    std::vector< std::unique_ptr<Selection> > sel_pu_binned;
-    std::vector< std::unique_ptr<Hists> > zplusjets_qg_hists_pu_binned;
-    std::vector< std::unique_ptr<Hists> > dijet_qg_hists_pu_binned;
-
     float jetRadius;
-
-    const int runnr_BCD = 276811;
-    const int runnr_EFearly = 278802;
-    const int runnr_FlateG = 280385;
-
-    const bool DO_PU_BINNED_HISTS = false;
 
     std::unique_ptr<EventNumberSelection> event_sel;
 
@@ -213,28 +195,12 @@ QGAnalysisPreselDataModule::QGAnalysisPreselDataModule(Context & ctx){
 
     // Hists
     zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel"));
-    // preselection hists, if jet is quark, or gluon
     zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets"));
     zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1, "zplusjets"));
 
     dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel"));
     dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet"));
     dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", 2, "dijet"));
-
-    dijet_hists_presel_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_highPt"));
-    dijet_hists_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_highPt"));
-    dijet_qg_hists_highPt.reset(new QGAnalysisHists(ctx, "Dijet_QG_highPt", 2, "dijet"));
-
-    if (DO_PU_BINNED_HISTS) {
-        for (auto puBin : pu_bins) {
-            std::unique_ptr<Selection> pu_sel(new NPVSelection(puBin.first, puBin.second));
-            sel_pu_binned.push_back(std::move(pu_sel));
-            std::unique_ptr<QGAnalysisHists> zpj(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), 1, "zplusjets"));
-            zplusjets_qg_hists_pu_binned.push_back(std::move(zpj));
-            std::unique_ptr<QGAnalysisHists> dj(new QGAnalysisHists(ctx, TString::Format("Dijet_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), 2, "dijet"));
-            dijet_qg_hists_pu_binned.push_back(std::move(dj));
-        }
-    }
 
     // event_sel.reset(new EventNumberSelection({111}));
 }
@@ -249,9 +215,6 @@ bool QGAnalysisPreselDataModule::process(Event & event) {
     if (PRINTOUT) printElectrons(*event.electrons, "Precleaning");
     if (PRINTOUT) printJets(*event.jets, "Precleaning");
 
-    // Gen-level HT cut if necessary
-
-    // This is the main procedure, called for each event.
     if (!common->process(event)) {return false;}
 
     if (PRINTOUT) printMuons(*event.muons);
@@ -285,7 +248,7 @@ bool QGAnalysisPreselDataModule::process(Event & event) {
     dijet_hists_presel->fill(event);
 
     // Full selection & hists
-    bool zpj(false), dj(false), dj_highPt(false);
+    bool zpj(false), dj(false);
 
     // if (zplusjets_presel->passes(event)) {
     //     zpj = zplusjets_sel->passes(event);
@@ -304,35 +267,11 @@ bool QGAnalysisPreselDataModule::process(Event & event) {
         }
     }
 
-    // do pu-binned hists
-    if (DO_PU_BINNED_HISTS) {
-        for (uint i=0; i<sel_pu_binned.size(); i++) {
-            if (sel_pu_binned.at(i)->passes(event)) {
-                if (zpj) zplusjets_qg_hists_pu_binned.at(i)->fill(event);
-                if (dj) dijet_qg_hists_pu_binned.at(i)->fill(event);
-            }
-        }
-    }
-
-    // do high pt jet version - both jets must pass much higher pt threshold
-    // don't need to do a Z+jets version as only care about leading jet.
-    // float ptCut = 500;
-    // if ((event.jets->size() > 1) && (event.jets->at(0).pt() > ptCut) && (event.jets->at(1).pt() > ptCut)) {
-    //     dijet_hists_presel_highPt->fill(event);
-
-    //     dj_highPt = dijet_sel->passes(event);
-    //     if (dj_highPt) { // flav2 only sensible if passed pt cut
-    //         dijet_hists_highPt->fill(event);
-    //         dijet_qg_hists_highPt->fill(event);
-    //     }
-    // }
-
     if (zpj && dj) {
         cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet criteria" << endl;
     }
 
     return zpj || dj;
-    // return zpj || dj || dj_highPt;
 }
 
 // as we want to run the ExampleCycleNew directly with AnalysisModuleRunner,
