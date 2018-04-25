@@ -282,7 +282,7 @@ bool QGAnalysisJetTrigEffModule::process(Event & event) {
     sort_by_pt(*event.jets);
 
     // RECO PART
-    if (!njet_sel->passes(event)) return false;
+    // if (!njet_sel->passes(event)) return false;
 
     if (zplusjets_trigger_sel->passes(event)) trigHists->fill(event);
 
