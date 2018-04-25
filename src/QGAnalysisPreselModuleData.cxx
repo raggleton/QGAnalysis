@@ -39,9 +39,6 @@ public:
 
     explicit QGAnalysisPreselDataModule(Context & ctx);
     virtual bool process(Event & event) override;
-    void printJets(const std::vector<Jet> & jets, const std::string & info="", Color::Code color=Color::FG_GREEN);
-    void printMuons(const std::vector<Muon> & muons, const std::string & info="", Color::Code color=Color::FG_RED);
-    void printElectrons(const std::vector<Electron> & electrons, const std::string & info="", Color::Code color=Color::FG_YELLOW);
 
 private:
 
@@ -247,17 +244,17 @@ bool QGAnalysisPreselDataModule::process(Event & event) {
 
     if (PRINTOUT) {cout << "-- Event: " << event.event << endl; }
 
-    printMuons(*event.muons, "Precleaning");
-    printElectrons(*event.electrons, "Precleaning");
-    printJets(*event.jets, "Precleaning");
+    if (PRINTOUT) printMuons(*event.muons, "Precleaning");
+    if (PRINTOUT) printElectrons(*event.electrons, "Precleaning");
+    if (PRINTOUT) printJets(*event.jets, "Precleaning");
 
     // Gen-level HT cut if necessary
 
     // This is the main procedure, called for each event.
     if (!common->process(event)) {return false;}
 
-    printMuons(*event.muons);
-    printElectrons(*event.electrons);
+    if (PRINTOUT) printMuons(*event.muons);
+    if (PRINTOUT) printElectrons(*event.electrons);
 
     bool pass_zpj_trig = zplusjets_trigger_sel->passes(event);
     // have to do dijet bit before any jet ID to figure out which jet fired trigger
@@ -280,7 +277,7 @@ bool QGAnalysisPreselDataModule::process(Event & event) {
     // RECO PART
     if (!njet_sel->passes(event)) return false;
 
-    printJets(*event.jets);
+    if (PRINTOUT) printJets(*event.jets);
 
     // Preselection hists
     zplusjets_hists_presel->fill(event);
@@ -335,39 +332,6 @@ bool QGAnalysisPreselDataModule::process(Event & event) {
 
     return zpj || dj;
     // return zpj || dj || dj_highPt;
-}
-
-void QGAnalysisPreselDataModule::printJets(const std::vector<Jet> & jets, const std::string & label, Color::Code color) {
-    if (!PRINTOUT) return;
-    for (auto & itr: jets) {
-        cout << color << "jet";
-        if (label != "") {
-            cout << " [" << label << "]";
-        }
-        cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
-    }
-}
-
-void QGAnalysisPreselDataModule::printMuons(const std::vector<Muon> & muons, const std::string & label, Color::Code color) {
-    if (!PRINTOUT) return;
-    for (auto & itr: muons) {
-        cout << color << "muon";
-        if (label != "") {
-            cout << " [" << label << "]";
-        }
-        cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
-    }
-}
-
-void QGAnalysisPreselDataModule::printElectrons(const std::vector<Electron> & electrons, const std::string & label, Color::Code color) {
-    if (!PRINTOUT) return;
-    for (auto & itr: electrons) {
-        cout << color << "electron";
-        if (label != "") {
-            cout << " [" << label << "]";
-        }
-        cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
-    }
 }
 
 // as we want to run the ExampleCycleNew directly with AnalysisModuleRunner,

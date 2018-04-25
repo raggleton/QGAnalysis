@@ -101,3 +101,67 @@ bool MCJetMetCorrector::process(uhh2::Event & event) {
   jet_resolution_smearer->process(event);
   return true;
 }
+
+
+void printGenParticles(const std::vector<GenParticle> & gps, const std::string & label, Color::Code color) {
+  for (auto & itr: gps) {
+    // if (itr.status() != 1) continue;
+    cout << color << "GP";
+    if (label != "") {
+      cout << " [" << label << "]";
+    }
+    cout << ": " << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << std::endl;
+  }
+}
+
+std::vector<GenParticle*> print_genjet_genparticles(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles) {
+  std::vector<GenParticle*> gp;
+  for (const uint i : jet.genparticles_indices()) {
+    gp.push_back(&(genparticles->at(i)));
+  }
+  for (const auto *itr : gp) {
+    std::cout << itr->pdgId() << " : " << itr->pt() << " : " << deltaR(jet.v4(), itr->v4()) << std::endl;
+  }
+  return gp;
+}
+
+void printGenJets(const std::vector<GenJetWithParts> & gps, std::vector<GenParticle>* genparticles, const std::string & label, Color::Code color) {
+  for (auto & itr: gps) {
+    std::cout << color << "GenJet";
+    if (label != "") {
+        std::cout << " [" << label << "]";
+    }
+    std::cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << std::endl;
+    // print_genjet_genparticles(itr, genparticles);  // broken - ambiguous
+  }
+}
+
+void printJets(const std::vector<Jet> & jets, const std::string & label, Color::Code color) {
+  for (auto & itr: jets) {
+    std::cout << color << "jet";
+    if (label != "") {
+        std::cout << " [" << label << "]";
+    }
+    std::cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << std::endl;
+  }
+}
+
+void printMuons(const std::vector<Muon> & muons, const std::string & label, Color::Code color) {
+  for (auto & itr: muons) {
+    std::cout << color << "muon";
+    if (label != "") {
+        std::cout << " [" << label << "]";
+    }
+    std::cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << std::endl;
+  }
+}
+
+void printElectrons(const std::vector<Electron> & electrons, const std::string & label, Color::Code color) {
+  for (auto & itr: electrons) {
+    std::cout << color << "electron";
+    if (label != "") {
+        std::cout << " [" << label << "]";
+    }
+    std::cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << std::endl;
+  }
+}

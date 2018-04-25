@@ -42,12 +42,6 @@ public:
     std::vector<GenJetWithParts> getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=1.5, float lepton_overlap_dr=0.2);
     std::vector<GenParticle> getGenMuons(std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=2.5);
     std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax=0.8, bool uniqueMatch=true);
-    void printGenParticles(const std::vector<GenParticle> & gps, const std::string & info="", Color::Code color=Color::FG_DEFAULT);
-    std::vector<GenParticle*> print_genjet_genparticles(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles);
-    void printGenJets(const std::vector<GenJetWithParts> & gps, std::vector<GenParticle>* genparticles, const std::string & info="", Color::Code color=Color::FG_BLUE);
-    void printJets(const std::vector<Jet> & jets, const std::string & info="", Color::Code color=Color::FG_GREEN);
-    void printMuons(const std::vector<Muon> & muons, const std::string & info="", Color::Code color=Color::FG_RED);
-    void printElectrons(const std::vector<Electron> & electrons, const std::string & info="", Color::Code color=Color::FG_YELLOW);
     float calcGenHT(const std::vector<GenParticle> & gps);
 
 private:
@@ -62,7 +56,10 @@ private:
 
     // Reco selections/hists
     std::unique_ptr<Selection> njet_sel, zplusjets_sel, zplusjets_presel, dijet_sel;
-    std::unique_ptr<OrSelection> zplusjets_trigger_sel, dijet_trigger_sel;
+    std::unique_ptr<OrSelection> zplusjets_trigger_sel;
+    std::unique_ptr<DataJetSelection> dijet_trigger_sel;
+    std::vector<std::string> dj_trig_names;
+    std::vector<float> dj_trig_prescales, dj_trig_thresholds;
 
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists;
     std::unique_ptr<Hists> zplusjets_hists_presel_q, zplusjets_hists_presel_g, zplusjets_hists_presel_unknown;
@@ -267,13 +264,48 @@ QGAnalysisModule::QGAnalysisModule(Context & ctx){
         zplusjets_trigger_sel->add<TriggerSelection>(trig);
     }
 
-    std::vector<std::string> dj_trigger_names = {
-        "HLT_PFJet40_v*"
+    // TODO find some better structure to hold this data together?
+    dj_trig_names = {
+        "HLT_PFJet60_v*",
+        "HLT_PFJet80_v*",
+        "HLT_PFJet140_v*",
+        "HLT_PFJet200_v*",
+        "HLT_PFJet260_v*",
+        "HLT_PFJet320_v*",
+        "HLT_PFJet400_v*",
+        "HLT_PFJet450_v*"
     };
-    dijet_trigger_sel.reset(new OrSelection());
-    for (const auto & trig: dj_trigger_names) {
-        dijet_trigger_sel->add<TriggerSelection>(trig);
+
+    dj_trig_thresholds = {
+        80,
+        103,
+        191,
+        258,
+        332,
+        362,
+        457,
+        492
+    };
+
+    dj_trig_prescales = {
+        49891.9453547,
+        13120.4895678,
+        1496.44452961,
+        348.686346954,
+        61.0210313345,
+        20.446914767,
+        3*2.38456,
+        1.00010464076
+    };
+
+
+    std::vector<std::pair<float, float>> dj_trigger_bins;
+    for (uint i=0; i<dj_trig_thresholds.size(); i++) {
+        float lowerPt = dj_trig_thresholds.at(i);
+        float upperPt = (i == dj_trig_thresholds.size()-1) ? 999999 : dj_trig_thresholds.at(i+1);
+        dj_trigger_bins.push_back(std::make_pair(lowerPt, upperPt));
     }
+    dijet_trigger_sel.reset(new DataJetSelection(dj_trig_names, dj_trigger_bins));
 
     // Hists
     zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel"));
@@ -348,9 +380,9 @@ bool QGAnalysisModule::process(Event & event) {
 
     if (PRINTOUT) {cout << "-- Event: " << event.event << endl;}
 
-    printMuons(*event.muons, "Precleaning");
-    printElectrons(*event.electrons, "Precleaning");
-    printJets(*event.jets, "Precleaning");
+    if (PRINTOUT) printMuons(*event.muons, "Precleaning");
+    if (PRINTOUT) printElectrons(*event.electrons, "Precleaning");
+    if (PRINTOUT) printJets(*event.jets, "Precleaning");
 
     // Gen-level HT cut if necessary
     if (is_mc && (htMax > 0) && (calcGenHT(*(event.genparticles)) > htMax)) { return false; }
@@ -358,9 +390,9 @@ bool QGAnalysisModule::process(Event & event) {
     // This is the main procedure, called for each event.
     if (!common->process(event)) {return false;}
 
-    printMuons(*event.muons);
-    printElectrons(*event.electrons);
-    printGenParticles(*event.genparticles);
+    if (PRINTOUT) printMuons(*event.muons);
+    if (PRINTOUT) printElectrons(*event.electrons);
+    if (PRINTOUT) printGenParticles(*event.genparticles);
 
     bool pass_zpj_trig = is_mc ? true : zplusjets_trigger_sel->passes(event);
     bool pass_dj_trig = is_mc ? true : dijet_trigger_sel->passes(event);
@@ -402,7 +434,7 @@ bool QGAnalysisModule::process(Event & event) {
     sort_by_pt(*event.jets);
 
     // THEORY PART
-    // printGenParticles(*event.genparticles);
+    // if (PRINTOUT) printGenParticles(*event.genparticles);
     if (is_mc) {
 
         std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, event.genparticles, 5., 5., jetRadius);
@@ -466,12 +498,12 @@ bool QGAnalysisModule::process(Event & event) {
 
     // Ask reco jets to find matching GenJet
     // But we still use the event.jets as all interesting
-    if (is_mc) {
-        std::vector<Jet> goodJets = getMatchedJets(event.jets, &event.get(genjets_handle), jetRadius/2.);
-    }
+    // if (is_mc) {
+    //     std::vector<Jet> goodJets = getMatchedJets(event.jets, &event.get(genjets_handle), jetRadius/2.);
+    // }
 
-    printJets(*event.jets);
-    if (is_mc) printGenJets(event.get(genjets_handle), event.genparticles);
+    if (PRINTOUT) printJets(*event.jets);
+    if (is_mc) if (PRINTOUT) printGenJets(event.get(genjets_handle), event.genparticles);
 
     // Preselection hists
     zplusjets_hists_presel->fill(event);
@@ -684,76 +716,6 @@ std::vector<Jet> QGAnalysisModule::getMatchedJets(std::vector<Jet> * jets, std::
         }
     }
     return goodJets;
-}
-
-void QGAnalysisModule::printGenParticles(const std::vector<GenParticle> & gps, const std::string & label, Color::Code color) {
-    if (!PRINTOUT) return;
-    for (auto & itr: gps) {
-        // if (itr.status() != 1) continue;
-        cout << color << "GP";
-        if (label != "") {
-            cout << " [" << label << "]";
-        }
-        cout << ": " << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
-    }
-}
-
-std::vector<GenParticle*> QGAnalysisModule::print_genjet_genparticles(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles) {
-  std::vector<GenParticle*> gp;
-  for (const uint i : jet.genparticles_indices()) {
-    gp.push_back(&(genparticles->at(i)));
-  }
-  // if (gp.size() < 6) {
-    // std::cout << "low mult jet" << std::endl;
-    for (const auto *itr : gp) {std::cout << itr->pdgId() << " : " << itr->pt() << " : " << deltaR(jet.v4(), itr->v4()) << std::endl;}
-    // for(const auto & itr : *genparticles) {std::cout << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << " : " << deltaR(itr.v4(), jet.v4()) << std::endl;}
-  // }
-  return gp;
-}
-
-void QGAnalysisModule::printGenJets(const std::vector<GenJetWithParts> & gps, std::vector<GenParticle>* genparticles, const std::string & label, Color::Code color) {
-    if (!PRINTOUT) return;
-    for (auto & itr: gps) {
-        cout << color << "GenJet";
-        if (label != "") {
-            cout << " [" << label << "]";
-        }
-        cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
-        print_genjet_genparticles(itr, genparticles);
-    }
-}
-
-void QGAnalysisModule::printJets(const std::vector<Jet> & jets, const std::string & label, Color::Code color) {
-    if (!PRINTOUT) return;
-    for (auto & itr: jets) {
-        cout << color << "jet";
-        if (label != "") {
-            cout << " [" << label << "]";
-        }
-        cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
-    }
-}
-
-void QGAnalysisModule::printMuons(const std::vector<Muon> & muons, const std::string & label, Color::Code color) {
-    if (!PRINTOUT) return;
-    for (auto & itr: muons) {
-        cout << color << "muon";
-        if (label != "") {
-            cout << " [" << label << "]";
-        }
-        cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
-    }
-}
-
-void QGAnalysisModule::printElectrons(const std::vector<Electron> & electrons, const std::string & label, Color::Code color) {
-    if (!PRINTOUT) return;
-    for (auto & itr: electrons) {
-        cout << color << "electron";
-        if (label != "") {
-            cout << " [" << label << "]";
-        }
-        cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << endl;
-    }
 }
 
 
