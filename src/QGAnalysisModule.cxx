@@ -21,47 +21,15 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisZPlusJetsHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisDijetHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisTheoryHists.h"
+#include "UHH2/QGAnalysis/include/QGAddModules.h"
 
 using namespace std;
 using namespace uhh2;
-
-namespace Color {
-    enum Code {
-        FG_RED      = 31,
-        FG_GREEN    = 32,
-        FG_YELLOW   = 33,
-        FG_BLUE     = 34,
-        FG_MAGENTA  = 35,
-        FG_CYAN     = 36,
-        FG_DEFAULT  = 39,
-        BG_RED      = 41,
-        BG_GREEN    = 42,
-        BG_BLUE     = 44,
-        BG_DEFAULT  = 49
-    };
-    std::ostream& operator<<(std::ostream& os, Code code) {
-        return os << "\033[" << static_cast<int>(code) << "m";
-    }
-}
 
 namespace uhh2examples {
 
 const bool PRINTOUT = false;
 
-// Easy way to refer to PDGIDs
-enum PDGID {
-    UNKNOWN = 0,
-    DOWN_QUARK = 1,
-    UP_QUARK = 2,
-    STRANGE_QUARK = 3,
-    CHARM_QUARK = 4,
-    BOTTOM_QUARK = 5,
-    TOP_QUARK = 6,
-    ELECTRON = 11,
-    MUON = 13,
-    TAU = 15,
-    GLUON = 21
-};
 
 /** \brief Basic analysis preselection
  *
