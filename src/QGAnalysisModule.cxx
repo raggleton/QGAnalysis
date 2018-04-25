@@ -22,6 +22,7 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisDijetHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisTheoryHists.h"
 #include "UHH2/QGAnalysis/include/QGAddModules.h"
+#include "UHH2/QGAnalysis/include/QGAnalysisPrinters.h"
 
 using namespace std;
 using namespace uhh2;
