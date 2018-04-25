@@ -194,3 +194,43 @@ EventNumberSelection::EventNumberSelection(std::vector<unsigned long> eventNums)
 bool EventNumberSelection::passes(const Event & event) {
     return std::find(eventNums_.begin(), eventNums_.end(), event.event) != eventNums_.end();
 }
+
+
+DataJetSelection::DataJetSelection(const std::vector<std::string> & triggers, const std::vector<std::pair<float, float>> & ptBins):
+    passBinInd_(-1)
+{
+    for (const auto & itr : triggers) {
+        TriggerSelection trig(itr);
+        std::cout << "Adding trigger " << itr << std::endl;
+        trigSel_.push_back(trig);
+    }
+    for (const auto & ptValues : ptBins) {
+        if (ptValues.second < ptValues.first) {
+            throw std::runtime_error("trigger thresholds must be ordered ascending");
+        }
+        std::cout << "Adding pt cut " << ptValues.first << " - " << ptValues.second << std::endl;
+        PtEtaCut ptcut(ptValues.first, 999, ptValues.second, -999);
+        ptSel_.push_back(ptcut);
+    }
+}
+
+bool DataJetSelection::passes(const Event & event) {
+    int ind = -1;
+    // iterate in reverse so as to get the highest trigger threshold that fires
+    // (assumes you loaded the triggers in ascending order!)
+    if (event.jets->size() == 0) return false;
+    // std::cout << "Leading jet: "<< event.jets->at(0).pt() << " : " << event.jets->at(0).eta() << std::endl;
+    for (ind = trigSel_.size()-1; ind >= 0; ind--) {
+        // if (trigSel_[ind].passes(event)) std::cout << "Fired " << ind << std::endl;
+        if (trigSel_[ind].passes(event) && ptSel_[ind](event.jets->at(0), event)) {
+            passBinInd_ = ind;
+            return true;
+        }
+    }
+    passBinInd_ = ind;
+    return false;
+}
+
+int DataJetSelection::passIndex() {
+    return passBinInd_;
+}

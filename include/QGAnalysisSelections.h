@@ -5,6 +5,9 @@
 #include "UHH2/core/include/NtupleObjects.h"
 #include "UHH2/core/include/Event.h"
 #include "UHH2/core/include/AnalysisModule.h"
+#include "UHH2/common/include/AdditionalSelections.h"
+#include "UHH2/common/include/ObjectIdUtils.h"
+#include "UHH2/common/include/TriggerSelection.h"
 
 
 namespace uhh2examples {
@@ -89,5 +92,22 @@ public:
     virtual bool passes(const uhh2::Event & event) override;
 private:
     std::vector<unsigned long> eventNums_;
+};
+
+
+
+/**
+ * Select event based on trigger and leading jet pt range
+ * Also return bin index to say which passed.
+ */
+class DataJetSelection: public uhh2::Selection {
+public:
+    DataJetSelection(const std::vector<std::string> & triggers, const std::vector<std::pair<float, float>> & ptBins);
+    virtual bool passes(const uhh2::Event & event) override;
+    virtual int passIndex();
+private:
+    std::vector<TriggerSelection> trigSel_;
+    std::vector<PtEtaCut> ptSel_;
+    int passBinInd_;
 };
 }
