@@ -48,6 +48,7 @@ public:
 private:
 
     std::unique_ptr<GeneralEventSetup> common_setup;
+    std::unique_ptr<MCReweighting> mc_reweight;
 
     // Reco selections/hists
     std::unique_ptr<Selection> njet_sel, zplusjets_sel, zplusjets_presel, dijet_sel;
@@ -123,6 +124,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     cout << "Running with PUS: " << pu_removal << endl;
 
     common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jetRadius));
+    mc_reweight.reset(new MCReweighting(ctx));
 
     genjets_handle = ctx.declare_event_output< std::vector<GenJetWithParts> > ("GoodGenJets");
     genmuons_handle = ctx.declare_event_output< std::vector<GenParticle> > ("GoodGenMuons");
@@ -236,6 +238,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     if ((htMax > 0) && (calcGenHT(*(event.genparticles)) > htMax)) { return false; }
 
     if (!common_setup->process(event)) {return false;}
+    mc_reweight->process(event);
 
     if (PRINTOUT) printMuons(*event.muons);
     if (PRINTOUT) printElectrons(*event.electrons);

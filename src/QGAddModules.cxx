@@ -130,13 +130,11 @@ GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx, const std::string & pu
 
   if (is_mc) {
     jet_met_corrector.reset(new MCJetMetCorrector(ctx, pu_removal, jet_cone));
-    lumi_weighter.reset(new MCLumiWeight(ctx));
-    pileup_reweighter.reset(new MCPileupReweight(ctx, "central"));
   } else {
     jet_met_corrector.reset(new DataJetMetCorrector(ctx, pu_removal, jet_cone));
   }
 
-  jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 4.7)));
+  jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.4)));
 
   jet_ele_cleaner.reset(new JetElectronOverlapRemoval(jet_radius));
 
@@ -159,11 +157,6 @@ bool GeneralEventSetup::process(uhh2::Event & event) {
 
   jet_met_corrector->process(event);
 
-  if (is_mc) {
-    lumi_weighter->process(event);
-    pileup_reweighter->process(event);
-  }
-
   jet_cleaner->process(event);
 
   jet_ele_cleaner->process(event);
@@ -174,6 +167,48 @@ bool GeneralEventSetup::process(uhh2::Event & event) {
 
   return true;
 }
+
+
+MCReweighting::MCReweighting(uhh2::Context & ctx) {
+  lumi_weighter.reset(new MCLumiWeight(ctx));
+
+  pileup_reweighter.reset(new MCPileupReweight(ctx, "central"));
+
+  std::string sf_path_name = locate_file("common/data/MuonID_EfficienciesAndSF_average_RunBtoH.root");
+  std::string sf_name = "MC_NUM_MediumID_DEN_genTracks_PAR_pt_eta";
+  muon_id_reweighter_pt_eta.reset(new MCMuonScaleFactor(ctx, sf_path_name, sf_name, 100));
+
+  sf_name = "MC_NUM_MediumID2016_DEN_genTracks_PAR_vtx";
+  // Doesn't work
+  // muon_id_reweighter_vtx.reset(new MCMuonScaleFactor(ctx, sf_path_name, sf_name, 100));
+
+  sf_path_name = locate_file("common/data/MuonTrigger_EfficienciesAndSF_average_RunBtoH.root");
+  sf_name = "IsoMu24_OR_IsoTkMu24_PtEtaBins";
+  muon_trg_reweighter.reset(new MCMuonScaleFactor(ctx, sf_path_name, sf_name, 100));
+
+  std::string trk_path_name = locate_file("common/data/general_eff_aeta_dr030e030_corr_ratio.txt");
+  muon_trk_reweighter.reset(new MCMuonTrkScaleFactor(ctx, trk_path_name, 100));
+}
+
+
+bool MCReweighting::process(uhh2::Event & event) {
+  if (event.isRealData) return true;
+
+  lumi_weighter->process(event);
+
+  pileup_reweighter->process(event);
+
+  muon_id_reweighter_pt_eta->process(event);
+
+  // muon_id_reweighter_vtx->process(event);
+
+  muon_trg_reweighter->process(event);
+
+  muon_trk_reweighter->process(event);
+
+  return true;
+}
+
 
 float get_jet_radius(const std::string & jet_cone) {
   if (jet_cone.find("AK4") != std::string::npos)

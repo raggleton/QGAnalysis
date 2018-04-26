@@ -77,14 +77,26 @@ private:
   std::unique_ptr<MuonCleaner> muon_cleaner;
   std::unique_ptr<JetCleaner> jet_pf_id;
   std::unique_ptr<AnalysisModule> jet_met_corrector;
-  std::unique_ptr<MCLumiWeight> lumi_weighter;
-  std::unique_ptr<MCPileupReweight> pileup_reweighter;
   std::unique_ptr<JetCleaner> jet_cleaner;
   std::unique_ptr<JetElectronOverlapRemoval> jet_ele_cleaner;
   std::unique_ptr<JetMuonOverlapRemoval> jet_mu_cleaner;
 };
 
 
+/**
+ * Apply weights/SF specifically for MC
+ */
+class MCReweighting : public uhh2::AnalysisModule {
+public:
+  MCReweighting(uhh2::Context & ctx);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  std::unique_ptr<MCLumiWeight> lumi_weighter;
+  std::unique_ptr<MCPileupReweight> pileup_reweighter;
+  std::unique_ptr<MCMuonScaleFactor> muon_id_reweighter_pt_eta, muon_id_reweighter_vtx, muon_trg_reweighter;
+  std::unique_ptr<MCMuonTrkScaleFactor> muon_trk_reweighter;
+};
 
 };
+
 float get_jet_radius(const std::string & jet_cone);
