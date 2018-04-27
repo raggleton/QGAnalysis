@@ -25,7 +25,7 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
 
   // book all histograms here
   // jets
-  int nbins_pt = 200;
+  int nbins_pt = 400;
   float pt_max = 2000;
 
   int nbins_eta = 200;
