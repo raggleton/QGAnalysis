@@ -60,6 +60,7 @@ private:
     std::unique_ptr<DataJetSelection> dijet_trigger_sel;
     std::vector<std::string> dj_trig_names;
     std::vector<float> dj_trig_prescales, dj_trig_thresholds;
+    float jetht_zb_pt_boundary;
 
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists, zplusjets_qg_hists;
 
@@ -168,6 +169,8 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     }
     dijet_trigger_sel.reset(new DataJetSelection(dj_trig_names, dj_trigger_bins));
 
+    jetht_zb_pt_boundary = dj_trig_thresholds.at(0);
+
     // Hists
     zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel"));
     zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets"));
@@ -202,8 +205,11 @@ bool QGAnalysisDataModule::process(Event & event) {
         // have to do dijet bit before any jet ID to figure out which jet fired trigger
         dj_trig_ind = dijet_trigger_sel->passIndex();
     } else if (dataset == DATASET::ZeroBias) {
-        // for ZB dont use a trigger
-        passTrigger = true;
+        // for ZB dont use a trigger, but to ensure we don't doublecount events
+        // that are also in JetHT, we ensure that the first jet has pT < the first
+        // bin in JetHT. (inside dijet_trigger_sel is an equivalent check for JetHT)
+        // passTrigger = true;
+        passTrigger = (event.jets->at(0).pt() < jetht_zb_pt_boundary);
     }
     if (!passTrigger) return false;
 
