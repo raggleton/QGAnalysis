@@ -27,6 +27,14 @@
 using namespace std;
 using namespace uhh2;
 
+namespace DATASET {
+    enum Name {
+        SingleMu=0,
+        JetHT,
+        ZeroBias
+    };
+};
+
 namespace uhh2examples {
 
 const bool PRINTOUT = false;
@@ -40,6 +48,7 @@ public:
 
     explicit QGAnalysisDataModule(Context & ctx);
     virtual bool process(Event & event) override;
+    DATASET::Name matchDatasetName(const std::string & name);
 
 private:
 
@@ -57,12 +66,17 @@ private:
     std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_qg_hists;
 
     std::unique_ptr<EventNumberSelection> event_sel;
+    DATASET::Name dataset;
 
 };
 
 
 QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     cout << "Running analysis module" << endl;
+
+    string datasetStr = ctx.get("Dataset", "");
+    dataset = matchDatasetName(datasetStr);
+    cout << "Running over " << datasetStr << endl;
 
     string jet_cone = ctx.get("JetCone", "AK4");
     string pu_removal = ctx.get("PURemoval", "CHS");
@@ -176,48 +190,70 @@ bool QGAnalysisDataModule::process(Event & event) {
     if (PRINTOUT) printElectrons(*event.electrons, "Precleaning");
     if (PRINTOUT) printJets(*event.jets, "Precleaning");
 
-    bool pass_zpj_trig = zplusjets_trigger_sel->passes(event);
-    // have to do dijet bit before any jet ID to figure out which jet fired trigger
-    bool pass_dj_trig = dijet_trigger_sel->passes(event);
-    int dj_trig_ind = dijet_trigger_sel->passIndex();
+    if (!njet_sel->passes(event)) return false;
 
-    if (!(pass_zpj_trig || pass_dj_trig)) return false;
+    // Check trigger
+    bool passTrigger(false);
+    int dj_trig_ind(0);
+    if (dataset == DATASET::SingleMu) {
+        passTrigger = zplusjets_trigger_sel->passes(event);
+    } else if (dataset == DATASET::JetHT) {
+        passTrigger = dijet_trigger_sel->passes(event);
+        // have to do dijet bit before any jet ID to figure out which jet fired trigger
+        dj_trig_ind = dijet_trigger_sel->passIndex();
+    } else if (dataset == DATASET::ZeroBias) {
+        // for ZB dont use a trigger
+        passTrigger = true;
+    }
+    if (!passTrigger) return false;
 
-    if (!common_setup->process(event)) {return false;}
-
+    if (!common_setup->process(event)) return false;
+    
     if (PRINTOUT) printMuons(*event.muons);
     if (PRINTOUT) printElectrons(*event.electrons);
 
-    // RECO PART
-    if (!njet_sel->passes(event)) return false;
+    if (!njet_sel->passes(event)) return false; //redo 1 jet cut again after cleaning etc
 
     if (PRINTOUT) printJets(*event.jets);
 
-    // Preselection hists
-    zplusjets_hists_presel->fill(event);
-    dijet_hists_presel->fill(event);
+    // Selection & hists
+    bool selected(false);
 
-    // Full selection & hists
-    bool zpj(false), dj(false);
-
-    // if (zplusjets_presel->passes(event)) {
-    //     zpj = zplusjets_sel->passes(event);
-    //     if (zpj && pass_zpj_trig) {
-    //         zplusjets_hists->fill(event);
-    //         zplusjets_qg_hists->fill(event);
-    //     }
-    // }
-
-    if (event.jets->size() > 1) {
-        dj = dijet_sel->passes(event);
-        if (dj && pass_dj_trig) {
-            event.weight *= dj_trig_prescales.at(dj_trig_ind);
-            dijet_hists->fill(event);
-            dijet_qg_hists->fill(event);
+    if (dataset == DATASET::SingleMu) {
+        if (zplusjets_presel->passes(event)) {
+            zplusjets_hists_presel->fill(event);
+            selected = zplusjets_sel->passes(event);
+            if (selected) {
+                zplusjets_hists->fill(event);
+                zplusjets_qg_hists->fill(event);
+            }
+        }
+    } else if (dataset == DATASET::JetHT || dataset == DATASET::ZeroBias) {
+        dijet_hists_presel->fill(event);
+        if (event.jets->size() > 1) {
+            selected = dijet_sel->passes(event);
+            if (selected) {
+                if (dataset == DATASET::JetHT) event.weight *= dj_trig_prescales.at(dj_trig_ind);
+                dijet_hists->fill(event);
+                dijet_qg_hists->fill(event);
+            }
         }
     }
 
-    return zpj || dj;
+    return selected;
+}
+
+
+DATASET::Name QGAnalysisDataModule::matchDatasetName(const std::string & name) {
+    if (name == "SingleMu") {
+        return DATASET::SingleMu;
+    } else if (name == "JetHT") {
+        return DATASET::JetHT;
+    } else if (name == "ZeroBias") {
+        return DATASET::ZeroBias;
+    } else {
+        throw std::runtime_error("Cannot understand dataset with name " + name);
+    }
 }
 
 // as we want to run the ExampleCycleNew directly with AnalysisModuleRunner,
