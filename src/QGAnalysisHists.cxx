@@ -15,7 +15,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   useNJets_(useNJets){
 
   is_mc_ = ctx.get("dataset_type") == "MC";
-  useGenPartonFlav_ = (ctx.get("useGenPartonFlav") == "true");
+  useGenPartonFlav_ = (is_mc_ && ctx.get("useGenPartonFlav") == "true");
   doPuppi_ = (ctx.get("PURemoval") == "PUPPI");
 
   if (useNJets_ < 0) useNJets_ = 99999; // Do them all
