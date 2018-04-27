@@ -6,6 +6,7 @@
     <!-- Output directories -->
     <!ENTITY ODIR-SINGLEMU "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/SingleMu">
     <!ENTITY ODIR-JETHT "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/JetHT">
+    <!ENTITY ODIR-ZB "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/ZeroBias">
 
     <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/commonData.xml">
 
@@ -26,6 +27,15 @@
     <!ENTITY JETHT-G SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunG.xml">
     <!ENTITY JETHT-H-v2 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunH_ver2.xml">
     <!ENTITY JETHT-H-v3 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunH_ver3.xml">
+
+    <!ENTITY ZB-B SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunB.xml">
+    <!ENTITY ZB-C SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunC.xml">
+    <!ENTITY ZB-D SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunD.xml">
+    <!ENTITY ZB-E SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunE.xml">
+    <!ENTITY ZB-F SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunF.xml">
+    <!ENTITY ZB-G SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunG.xml">
+    <!ENTITY ZB-H-v2 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunH_ver2.xml">
+    <!ENTITY ZB-H-v3 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunH_ver3.xml">
 
     <!-- Jet config snippets -->
     <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chsData.xml">
@@ -48,8 +58,9 @@
     <Library Name="libSUHH2QGAnalysis"/>
     <Package Name="SUHH2QGAnalysis.par" />
 
-    <!-- <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-SINGLEMU;/" PostFix="" TargetLumi="1" > -->
-    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-JETHT;/" PostFix="" TargetLumi="1" >
+    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-SINGLEMU;/" PostFix="" TargetLumi="1" >
+    <!-- <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-JETHT;/" PostFix="" TargetLumi="1" > -->
+    <!-- <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-ZB;/" PostFix="" TargetLumi="1" > -->
 
         <!-- TEST FILES -->
 <!--         <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_SingleMu" Cacheable="False">
@@ -65,6 +76,7 @@
         <InputTree Name="AnalysisTree"/>
         </InputData>
  -->
+<!--
         <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_JetHT" Cacheable="False">
         <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/JetHT/crab_JetHT_Run2016F-03Feb2017-v1_10_Feb_18_newRecoJetFlav_fixPuppi_v3/180210_122328/0000/Ntuple_1.root" Lumi="0.0"/>
         &JETHT-B;
@@ -77,6 +89,20 @@
         &JETHT-H-v3;
         <InputTree Name="AnalysisTree"/>
         </InputData>
+ -->
+
+        <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_ZeroBias" Cacheable="False">
+        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/ZeroBias/crab_ZeroBias_Run2016E-03Feb2017-v1_26_Apr_18_newRecoJetFlav_fixPuppi_v3/180426_114626/0000/Ntuple_1.root" Lumi="0.0"/>
+<!--         &ZB-B;
+        &ZB-C;
+        &ZB-D;
+        &ZB-E;
+        &ZB-F;
+        &ZB-G;
+        &ZB-H-v2;
+        &ZB-H-v3;
+ -->        <InputTree Name="AnalysisTree"/>
+        </InputData>
 
         <UserConfig>
             &COMMON;
@@ -88,6 +114,9 @@
             <!-- &AK8CHS; -->
             <!-- &AK8PUPPI; -->
 
+            <!-- <Item Name="Dataset" Value="SingleMu" /> -->
+            <!-- <Item Name="Dataset" Value="JetHT" /> -->
+            <Item Name="Dataset" Value="ZeroBias" />
         </UserConfig>
     </Cycle>
 
