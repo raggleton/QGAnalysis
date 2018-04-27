@@ -216,9 +216,11 @@ DataJetSelection::DataJetSelection(const std::vector<std::string> & triggers, co
 
 bool DataJetSelection::passes(const Event & event) {
     int ind = -1;
+    // Do basic check to see if leading jet exists, and passes the looses pt cut
+    if (event.jets->size() == 0) return false;
+    if (!ptSel_.at(0)(event.jets->at(0), event)) return false;
     // iterate in reverse so as to get the highest trigger threshold that fires
     // (assumes you loaded the triggers in ascending order!)
-    if (event.jets->size() == 0) return false;
     // std::cout << "Leading jet: "<< event.jets->at(0).pt() << " : " << event.jets->at(0).eta() << std::endl;
     for (ind = trigSel_.size()-1; ind >= 0; ind--) {
         // if (trigSel_[ind].passes(event)) std::cout << "Fired " << ind << std::endl;
