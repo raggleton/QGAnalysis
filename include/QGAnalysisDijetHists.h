@@ -21,7 +21,7 @@ protected:
     TH2F *eta_jet1_vs_pt_jet1, *phi_jet1_vs_pt_jet1;
     TH2F *eta_jet1_vs_eta_jet2;
     TH2F *pt_jet2_vs_pt_jet1, *eta_jet2_vs_pt_jet1, *phi_jet2_vs_pt_jet1;
-    TH2F *m_jj_vs_pt_jet1, *pt_jet1_jet2_ratio_vs_pt_jet1, *deta_jj_vs_pt_jet1, *dphi_jj_vs_pt_jet1, *sumeta_jj_vs_pt_jet1;
+    TH2F *m_jj_vs_pt_jet1, *pt_jet1_jet2_ratio_vs_pt_jet1, *deta_jj_vs_pt_jet1, *dphi_jj_vs_pt_jet1, *sumeta_jj_vs_pt_jet1, *jet1_jet2_asym_vs_pt_jet1;
     TH2F *pt_jet3_vs_pt_jet1, *eta_jet3_vs_pt_jet1, *pt_jet3_frac_vs_pt_jet1;
 
     TH2F *deta_dphi_jj, *flav_jet1_jet2, *genparton_flav_jet1_jet2;
@@ -30,6 +30,7 @@ protected:
 
     bool doHerwigReweighting;
     TH1F * reweightHist;
+    TH1F * n_pv;
 };
 
 }
