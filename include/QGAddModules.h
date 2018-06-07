@@ -97,6 +97,18 @@ private:
   std::unique_ptr<MCMuonTrkScaleFactor> muon_trk_reweighter;
 };
 
+
+/**
+ * find the Z->mumu
+ */
+class ZFinder : public uhh2::AnalysisModule {
+public:
+  ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std::string & outputLabel_);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  uhh2::Event::Handle<std::vector<FlavorParticle>> hndlInput, hndlZ;
+};
+
 };
 
 float get_jet_radius(const std::string & jet_cone);
