@@ -18,6 +18,7 @@ public:
 protected:
     TH2F *n_jets_vs_pt_jet1;
     TH1F *pt_jet1;
+    TH1F *gen_ht;
     TH2F *eta_jet1_vs_pt_jet1, *pt_jet1_z_ratio_vs_pt_jet1;
     TH2F *pt_jet2_vs_pt_jet1, *eta_jet2_vs_pt_jet1, *pt_jet2_z_ratio_vs_pt_jet1;
     TH2F *n_mu_vs_pt_jet1, *pt_mu1_vs_pt_jet1, *eta_mu1_vs_pt_jet1, *reliso_mu1_vs_pt_jet1;
@@ -29,6 +30,7 @@ protected:
 
     bool doHerwigReweighting;
     TH1F * reweightHist;
+    TH1F * n_pv;
 };
 
 }

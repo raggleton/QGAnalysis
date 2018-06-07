@@ -1,4 +1,5 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisZPlusJetsHists.h"
+#include "UHH2/QGAnalysis/include/QGAddModules.h"
 #include "UHH2/core/include/Event.h"
 
 #include "TFile.h"
@@ -40,6 +41,8 @@ QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string &
   eta_jet1_vs_pt_jet1 = book<TH2F>("eta_jet1_vs_pt_jet1", ";#eta^{jet 1};p_{T}^{jet 1}", nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
   pt_jet1_z_ratio_vs_pt_jet1 = book<TH2F>("pt_jet1_z_ratio_vs_pt_jet1", ";p_{T}^{jet 1} / p_{T}^{Z};p_{T}^{jet 1}", 50, 0, 5, nbins_pt, 0, pt_max);
 
+  gen_ht = book<TH1F>("gen_ht", ";H_{T}^{Gen}", 500, 0, 5000);
+
   pt_jet2_vs_pt_jet1 = book<TH2F>("pt_jet2_vs_pt_jet1", ";p_{T}^{jet 2};p_{T}^{jet 1}", nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
   eta_jet2_vs_pt_jet1 = book<TH2F>("eta_jet2_vs_pt_jet1", ";#eta^{jet 2};p_{T}^{jet 1}", nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
   pt_jet2_z_ratio_vs_pt_jet1 = book<TH2F>("pt_jet2_z_ratio_vs_pt_jet1", ";p_{T}^{jet 2} / p_{T}^{Z};p_{T}^{jet 1}", 60, 0, 3, nbins_pt, 0, pt_max);
@@ -72,7 +75,7 @@ QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string &
   dphi_mumu_jet1_vs_pt_jet1 = book<TH2F>("dphi_mumu_jet1_vs_pt_jet1", ";|#Delta #phi_{#mu#mu, jet1}|;p_{T}^{jet 1}", nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
 
   // primary vertices
-  book<TH1F>("N_pv", ";N^{PV}", 50, 0, 50);
+  n_pv = book<TH1F>("N_pv", ";N^{PV};", 50, 0, 50);
 
 }
 
@@ -137,6 +140,8 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   pt_jet1->Fill(jet1_pt, weight);
   eta_jet1_vs_pt_jet1->Fill(jet1.eta(), jet1_pt, weight);
 
+  if (!event.isRealData) gen_ht->Fill(calcGenHT(*(event.genparticles)), weight);
+
   pt_jet1_z_ratio_vs_pt_jet1->Fill(jet1.pt() / z_cand.pt(), jet1_pt, weight);
   diff = z_cand - jet1.v4();
   deta_mumu_jet1_vs_pt_jet1->Fill(fabs(diff.eta()), jet1_pt, weight);
@@ -153,7 +158,7 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   }
 
   int Npvs = event.pvs->size();
-  hist("N_pv")->Fill(Npvs, weight);
+  n_pv->Fill(Npvs, weight);
 }
 
 QGAnalysisZPlusJetsHists::~QGAnalysisZPlusJetsHists(){}
