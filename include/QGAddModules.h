@@ -29,7 +29,10 @@ enum PDGID {
   ELECTRON = 11,
   MUON = 13,
   TAU = 15,
-  GLUON = 21
+  GLUON = 21,
+  PHOTON = 22,
+  Z = 23,
+  W = 24
 };
 
 
