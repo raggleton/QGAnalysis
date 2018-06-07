@@ -9,31 +9,18 @@
 #include "UHH2/common/include/NSelections.h"
 #include "UHH2/common/include/MuonIds.h"
 #include "UHH2/common/include/ElectronIds.h"
-#include "UHH2/QGAnalysis/include/QGAnalysisSelections.h"
-#include "UHH2/QGAnalysis/include/QGAnalysisFlavCompHists.h"
 #include "UHH2/common/include/MuonHists.h"
 #include "UHH2/common/include/JetHists.h"
 #include "UHH2/common/include/Utils.h"
+
+#include "UHH2/QGAnalysis/include/QGAnalysisSelections.h"
+#include "UHH2/QGAnalysis/include/QGAnalysisFlavCompHists.h"
+#include "UHH2/QGAnalysis/include/QGAddModules.h"
 
 using namespace std;
 using namespace uhh2;
 
 namespace uhh2examples {
-
-// Easy way to refer to PDGIDs
-enum PDGID {
-    UNKNOWN = 0,
-    DOWN_QUARK = 1,
-    UP_QUARK = 2,
-    STRANGE_QUARK = 3,
-    CHARM_QUARK = 4,
-    BOTTOM_QUARK = 5,
-    TOP_QUARK = 6,
-    ELECTRON = 11,
-    MUON = 13,
-    TAU = 15,
-    GLUON = 21
-};
 
 /** \brief Basic analysis preselection
  *
@@ -44,21 +31,16 @@ public:
     explicit QGAnalysisFlavModule(Context & ctx);
     virtual bool process(Event & event) override;
     std::vector<GenJetWithParts> getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=1.5, float lepton_overlap_dr=0.2);
+    std::vector<GenParticle> getGenMuons(std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=2.5);
+    std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax=0.8, bool uniqueMatch=true);
 
 private:
 
-    std::unique_ptr<CommonModules> common;
-
-    std::unique_ptr<JetCorrector> jet_corrector_MC, jet_corrector_BCD, jet_corrector_EFearly, jet_corrector_FlateG, jet_corrector_H;
-    std::unique_ptr<GenericJetResolutionSmearer> jet_resolution_smearer;
-    std::unique_ptr<JetCleaner> jet_cleaner;
-    std::unique_ptr<JetElectronOverlapRemoval> jet_ele_cleaner;
-    std::unique_ptr<JetMuonOverlapRemoval> jet_mu_cleaner;
+    std::unique_ptr<GeneralEventSetup> common_setup;
+    std::unique_ptr<MCReweighting> mc_reweight;
 
     // Reco selections/hists
     std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel;
-
-    std::unique_ptr<Hists> dijet_flav_correlation_presel, zpj_flav_correlation_presel;
 
     Event::Handle<std::vector<GenJetWithParts>> genjets_handle;
 
@@ -69,7 +51,8 @@ private:
     const int runnr_EFearly = 278802;
     const int runnr_FlateG = 280385;
 
-    std::vector<float> pt_mins = {30, 50, 100, 200, 500, 1000};
+    std::vector<std::pair<float, float>> pt_bins = {{30, 50}, {75, 100}, {100, 200}, {300, 500}, {500, 1000}};
+    std::vector<std::pair<float, float>> eta_bins = {{0.0, 1.4}, {1.4, 2.6}, {2.6, 3.2}, {3.2, 4.7}};
     std::vector<std::unique_ptr<Hists>> zplusjets_hists_binned;
     std::vector<std::unique_ptr<Hists>> dijet_hists_binned;
 };
@@ -85,169 +68,57 @@ QGAnalysisFlavModule::QGAnalysisFlavModule(Context & ctx){
 
     is_mc = ctx.get("dataset_type") == "MC";
 
-    common.reset(new CommonModules());
-    common->disable_mcpileupreweight();
-    common->disable_jersmear();
-    common->disable_jec(); // do it manually below
-    common->change_pf_id(JetPFID::wp::WP_LOOSE);
-    common->set_muon_id(MuonIDMedium_ICHEP());
-    common->set_electron_id(ElectronID_Spring16_medium);
-    common->switch_jetPtSorter(false);
-    common->switch_jetlepcleaner(false);
 
-    common->init(ctx);
-
-    // Cleaning/JEC modules
-    // Do manually and not in CommonModules to select correct cone size etc
     string jet_cone = ctx.get("JetCone", "AK4");
     string pu_removal = ctx.get("PURemoval", "CHS");
     if (pu_removal != "CHS" && pu_removal != "PUPPI") {
         throw runtime_error("Only PURemoval == CHS, PUPPI supported for now");
     }
-
-    if (jet_cone.find("AK4") != string::npos)
-        jetRadius = 0.4;
-    else if (jet_cone.find("AK8") != string::npos)
-        jetRadius = 0.8;
-    else if (jet_cone.find("ca15") != string::npos)
-        jetRadius = 1.5;
-    else
-        throw runtime_error("Cannot determine jetRadius in QGAnalysisTheoryHists");
+    jetRadius = get_jet_radius(jet_cone);
 
     cout << "Running with jet cone: " << jet_cone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
 
-    if (is_mc) {
-        std::vector<std::string> JEC_MC;
-        std::string resolutionFilename;
-        if (pu_removal == "CHS") {
-            if (jet_cone == "AK4") {
-                JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK4PFchs_MC;
-                resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK4PFchs.txt";
-            } else if (jet_cone == "AK8") {
-                JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK8PFchs_MC;
-                resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK8PFchs.txt";  // actually doesn't matter, they're all the same
-            }
-        } else if (pu_removal == "PUPPI") {
-            if (jet_cone == "AK4") {
-                JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK4PFPuppi_MC;
-                resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK4PFchs.txt";
-            } else if (jet_cone == "AK8") {
-                JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK8PFPuppi_MC;
-                resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK8PFchs.txt";
-            }
-        }
-
-        jet_corrector_MC.reset(new JetCorrector(ctx, JEC_MC));
-        // jet_resolution_smearer.reset(new JetResolutionSmearer(ctx));
-        jet_resolution_smearer.reset(new GenericJetResolutionSmearer(ctx, "jets", "genjets", true, JERSmearing::SF_13TeV_2016_03Feb2017, resolutionFilename));
-    } else {
-        std::vector<std::string> JEC_BCD, JEC_EFearly, JEC_FlateG, JEC_H;
-        if (pu_removal == "CHS") {
-            if (jet_cone == "AK4") {
-                JEC_BCD = JERFiles::Summer16_23Sep2016_V4_BCD_L123_AK4PFchs_DATA;
-                JEC_EFearly = JERFiles::Summer16_23Sep2016_V4_EF_L123_AK4PFchs_DATA;
-                JEC_FlateG = JERFiles::Summer16_23Sep2016_V4_G_L123_AK4PFchs_DATA;
-                JEC_H = JERFiles::Summer16_23Sep2016_V4_H_L123_AK4PFchs_DATA;
-            } else if (jet_cone == "AK8") {
-                JEC_BCD = JERFiles::Summer16_23Sep2016_V4_BCD_L123_AK8PFchs_DATA;
-                JEC_EFearly = JERFiles::Summer16_23Sep2016_V4_EF_L123_AK8PFchs_DATA;
-                JEC_FlateG = JERFiles::Summer16_23Sep2016_V4_G_L123_AK8PFchs_DATA;
-                JEC_H = JERFiles::Summer16_23Sep2016_V4_H_L123_AK8PFchs_DATA;
-            }
-        } else if (pu_removal == "PUPPI") {
-            if (jet_cone == "AK4") {
-                JEC_BCD = JERFiles::Summer16_23Sep2016_V4_BCD_L123_AK4PFPuppi_DATA;
-                JEC_EFearly = JERFiles::Summer16_23Sep2016_V4_EF_L123_AK4PFPuppi_DATA;
-                JEC_FlateG = JERFiles::Summer16_23Sep2016_V4_G_L123_AK4PFPuppi_DATA;
-                JEC_H = JERFiles::Summer16_23Sep2016_V4_H_L123_AK4PFPuppi_DATA;
-            } else if (jet_cone == "AK8") {
-                JEC_BCD = JERFiles::Summer16_23Sep2016_V4_BCD_L123_AK8PFPuppi_DATA;
-                JEC_EFearly = JERFiles::Summer16_23Sep2016_V4_EF_L123_AK8PFPuppi_DATA;
-                JEC_FlateG = JERFiles::Summer16_23Sep2016_V4_G_L123_AK8PFPuppi_DATA;
-                JEC_H = JERFiles::Summer16_23Sep2016_V4_H_L123_AK8PFPuppi_DATA;
-            }
-        }
-
-        jet_corrector_BCD.reset(new JetCorrector(ctx, JEC_BCD));
-        jet_corrector_EFearly.reset(new JetCorrector(ctx, JEC_EFearly));
-        jet_corrector_FlateG.reset(new JetCorrector(ctx, JEC_FlateG));
-        jet_corrector_H.reset(new JetCorrector(ctx, JEC_H));
-    }
-
-    jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.4)));
-    jet_ele_cleaner.reset(new JetElectronOverlapRemoval(jetRadius));
-    jet_mu_cleaner.reset(new JetMuonOverlapRemoval(jetRadius));
+    common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jetRadius));
+    mc_reweight.reset(new MCReweighting(ctx));
 
     genjets_handle = ctx.declare_event_output< std::vector<GenJetWithParts> > ("GoodGenJets");
 
     // Event Selections
     njet_sel.reset(new NJetSelection(1));
 
-    zplusjets_sel.reset(new ZplusJetsSelection());
+    zplusjets_sel.reset(new ZplusJetsSelection(20, 20, 20, 2, 1));
     float deta = 1.2;
     float sumEta = 10.;
-    dijet_sel.reset(new DijetSelection(2, 0.94, 0.3, true, deta, sumEta));
+    dijet_sel.reset(new DijetSelection(2, 1, 1, false, 100, 100));
 
     // Hists
-    dijet_flav_correlation_presel.reset(new QGAnalysisFlavCompHists(ctx, "Dijet_presel", 2, "dijet", 0));
-    zpj_flav_correlation_presel.reset(new QGAnalysisFlavCompHists(ctx, "ZPlusJets_presel", 1, "zplusjets", 0));
-
-    for (auto ptMin : pt_mins ) {
-        std::unique_ptr<QGAnalysisFlavCompHists> dj(new QGAnalysisFlavCompHists(ctx, TString::Format("Dijet_%d", int(ptMin)).Data(), 2, "dijet", ptMin));
-        dijet_hists_binned.push_back(std::move(dj));
-        std::unique_ptr<QGAnalysisFlavCompHists> zpj(new QGAnalysisFlavCompHists(ctx, TString::Format("ZPlusJets_%d", int(ptMin)).Data(), 1, "zplusjets", ptMin));
-        zplusjets_hists_binned.push_back(std::move(zpj));
+    for (auto ptBin : pt_bins ) {
+        float ptMin = ptBin.first;
+        float ptMax = ptBin.second;
+        for (auto etaBin : eta_bins) {
+            float etaMin = etaBin.first;
+            float etaMax = etaBin.second;
+            std::unique_ptr<QGAnalysisFlavCompHists> dj(new QGAnalysisFlavCompHists(ctx, TString::Format("Dijet_Pt%dto%d_Eta%gto%g", int(ptMin), int(ptMax), etaMin, etaMax).Data(), 2, "dijet", ptMin, ptMax, etaMin, etaMax));
+            dijet_hists_binned.push_back(std::move(dj));
+            std::unique_ptr<QGAnalysisFlavCompHists> zpj(new QGAnalysisFlavCompHists(ctx, TString::Format("ZPlusJets_Pt%dto%d_Eta%gto%g", int(ptMin), int(ptMax), etaMin, etaMax).Data(), 1, "zplusjets", ptMin, ptMax, etaMin, etaMax));
+            zplusjets_hists_binned.push_back(std::move(zpj));
+        }
     }
 }
 
 
 bool QGAnalysisFlavModule::process(Event & event) {
+    // cout << "event" << endl;
+    if (!common_setup->process(event)) {return false;}
+    mc_reweight->process(event);
 
-    // This is the main procedure, called for each event.
-    if (!common->process(event)) {return false;}
-
-
-    // Do additional cleaning & JEC manually to allow custom JEC (common only does AK4)
-    // - Apply JEC
-    // - correct MET
-    // - Smear jets if MC
-   if (is_mc) {
-        jet_corrector_MC->process(event);
-        jet_corrector_MC->correct_met(event);
-        jet_resolution_smearer->process(event);
-    } else {
-        if (event.run <= runnr_BCD) {
-            jet_corrector_BCD->process(event);
-            jet_corrector_BCD->correct_met(event);
-        } else if (event.run < runnr_EFearly) { //< is correct, not <=
-            jet_corrector_EFearly->process(event);
-            jet_corrector_EFearly->correct_met(event);
-        } else if (event.run <= runnr_FlateG) {
-            jet_corrector_FlateG->process(event);
-            jet_corrector_FlateG->correct_met(event);
-        } else if (event.run > runnr_FlateG) {
-            jet_corrector_H->process(event);
-            jet_corrector_H->correct_met(event);
-        } else {
-            throw runtime_error("CommonModules.cxx: run number not covered by if-statements in process-routine.");
-        }
-    }
-
-    // Do jet cleaning
-    jet_cleaner->process(event);
-    jet_ele_cleaner->process(event);
-    jet_mu_cleaner->process(event);
-
-    // Resort by pT
-    sort_by_pt(*event.jets);
-
-    // THEORY PART
-    // printGenParticles(*event.genparticles);
+    if (!njet_sel->passes(event)) return false;
 
     std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, event.genparticles, 5., 5., jetRadius);
     if (goodGenJets.size() == 0) return false;
     if (event.jets->size() == 0) return false;
+    sort_by_pt(goodGenJets);
 
     // Check event weight is sensible based on pthat
     if (event.genInfo->binningValues().size() > 0) {
@@ -272,27 +143,29 @@ bool QGAnalysisFlavModule::process(Event & event) {
         if (!goodEvent) return false;
     }
 
+    std::vector<Jet> goodJets = getMatchedJets(event.jets, &event.get(genjets_handle), jetRadius/2.);
+    std::swap(goodJets, *event.jets);
+
     // RECO PART
     if (!njet_sel->passes(event)) return false;
-    zpj_flav_correlation_presel->fill(event);
     
-    if (event.jets->size() >=2) dijet_flav_correlation_presel->fill(event);
-
     bool zpj = zplusjets_sel->passes(event);
-    if (zpj) {
-        for (uint i=0; i < pt_mins.size(); i++) {
-            zplusjets_hists_binned.at(i)->fill(event);
-        }
-    }
-
     bool dj = dijet_sel->passes(event);
-    if (dj) {
-        for (uint i=0; i < pt_mins.size(); i++) {
-            dijet_hists_binned.at(i)->fill(event);
+    if (!zpj && !dj) return false;
+
+    for (uint i=0; i < pt_bins.size(); i++) {
+        for (uint j=0; j < eta_bins.size(); j++) {
+            uint ind = i*(pt_bins.size()-1) + j;
+            if (dj) {
+                dijet_hists_binned.at(ind)->fill(event);
+            }
+            if (zpj) {
+                zplusjets_hists_binned.at(ind)->fill(event);
+            }
         }
     }
 
-    return zpj || dj;
+    return true;
 }
 
 
@@ -307,13 +180,74 @@ std::vector<GenJetWithParts> QGAnalysisFlavModule::getGenJets(std::vector<GenJet
         bool leptonOverlap = false;
         if (genparticles != nullptr) {
             for (const auto & ptr : *genparticles) {
-                leptonOverlap = leptonOverlap || (((abs(ptr.pdgId()) == PDGID::MUON) || (abs(ptr.pdgId()) == PDGID::ELECTRON) || (abs(ptr.pdgId()) == PDGID::TAU)) && (deltaR(ptr.v4(), itr.v4()) < lepton_overlap_dr));
+                leptonOverlap = leptonOverlap || (((abs(ptr.pdgId()) == PDGID::MUON) || (abs(ptr.pdgId()) == PDGID::ELECTRON) || (abs(ptr.pdgId()) == PDGID::TAU)) && (deltaR(ptr.v4(), itr.v4()) < lepton_overlap_dr) && (abs(itr.pdgId()) == 23));
             }
         }
         if ((itr.pt() > pt_min) && (fabs(itr.eta()) < eta_max) && !found && !leptonOverlap) genjets.push_back(itr);
     }
     sort_by_pt(genjets);
     return genjets;
+}
+
+
+
+/**
+ * Select gen muons from all genparticles, that have some minimum pt and maximum eta
+ */
+std::vector<GenParticle> QGAnalysisFlavModule::getGenMuons(std::vector<GenParticle> * genparticles, float pt_min, float eta_max) {
+    std::vector<GenParticle> muons;
+    // Do in reverse order to pick up most evolved muons first
+    for (auto itr = genparticles->rbegin(); itr != genparticles->rend(); ++itr){
+        // We check to see if we already have a very similar, bu tno exact, muon
+        // since the MC "evolves" the particle and slightly changes pt/eta/phi
+        bool alreadyFound = std::any_of(muons.begin(), muons.end(), [&itr] (const GenParticle & mtr) { return deltaR(*itr, mtr) < 0.05 && itr->charge() == mtr.charge(); });
+        if ((abs(itr->pdgId()) == PDGID::MUON) && (itr->status() == 1) && (itr->pt() > pt_min) && (fabs(itr->eta()) < eta_max) && !alreadyFound) {
+            muons.push_back(*itr);
+        }
+    }
+    // turn this off, because we want the latest muons, not similar ones
+    sort_by_pt(muons);
+    return muons;
+}
+
+/**
+ * Select reco jets that have a matching GenJet within some DR
+ * Also stores index of matching GenJets in the passed Jet collection
+ * Will take the closest matching GenJet as the match, provided it is within drMax.
+ * uniqueMatch controls whether matching GenJets must be unique (i.e 2 reco jets can't match the same GenJet)
+ *
+ */
+std::vector<Jet> QGAnalysisFlavModule::getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax, bool uniqueMatch) {
+    std::vector<Jet> goodJets;
+    std::vector<uint> matchedIndices;
+    for (auto & jtr: *jets) {
+        double minDR = 9999.;
+        int matchInd = -1; // sensible default - not 0!
+
+        for (uint gjInd=0; gjInd < genjets->size(); gjInd++) {
+            // If we want unique matches and we've already matched then skip this genjet
+            if (uniqueMatch && std::find(matchedIndices.begin(), matchedIndices.end(), gjInd) != matchedIndices.end())
+                continue;
+
+            const auto genjtr = genjets->at(gjInd);
+            auto thisDR = deltaR(jtr, genjtr);
+            if (thisDR < drMax && thisDR < minDR) {
+                matchInd = gjInd;
+                minDR = thisDR;
+            }
+        }
+
+        jtr.set_genjet_index(matchInd);
+        if (matchInd > -1) {
+            jtr.set_genjet_index(matchInd);
+            goodJets.push_back(jtr);
+            matchedIndices.push_back(matchInd);
+            // cout << "Found a match at index " << matchInd << " with dr " << minDR << endl;
+            // cout << "RECO pt/eta/phi: " << jtr.pt() << " : " << jtr.eta() << " : " << jtr.phi() << endl;
+            // cout << "GEN pt/eta/phi: " << genjets->at(matchInd).pt() << " : " << genjets->at(matchInd).eta() << " : " << genjets->at(matchInd).phi() << endl;
+        }
+    }
+    return goodJets;
 }
 
 // as we want to run the ExampleCycleNew directly with AnalysisModuleRunner,
