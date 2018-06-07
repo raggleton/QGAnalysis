@@ -20,15 +20,15 @@ namespace uhh2examples {
 class QGAnalysisFlavCompHists: public uhh2::Hists {
 public:
     // use the same constructor arguments as Hists for forwarding:
-    QGAnalysisFlavCompHists(uhh2::Context & ctx, const std::string & dirname, int useNJets, const std::string & selection, float jetPtMin);
+    QGAnalysisFlavCompHists(uhh2::Context & ctx, const std::string & dirname, int useNJets, const std::string & selection, float jetPtMin, float jetPtMax, float jetEtaMin, float jetEtaMax);
 
     virtual void fill(const uhh2::Event & ev) override;
     virtual ~QGAnalysisFlavCompHists();
 protected:
-    TH2F * h_jet_flavour_vs_genparton_flavour;
+    TH2F * h_jet_flavour_vs_genparton_flavour, *h_jet_flavour_vs_hadron_flavour;
 
     int useNJets_;
-    float jetPtMin_;
+    float jetPtMin_, jetPtMax_, jetEtaMin_, jetEtaMax_;
     bool doHerwigReweighting;
     TH1F * reweightHist;
 

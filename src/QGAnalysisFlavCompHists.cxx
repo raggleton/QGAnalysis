@@ -10,21 +10,24 @@ using namespace std;
 using namespace uhh2;
 using namespace uhh2examples;
 
-QGAnalysisFlavCompHists::QGAnalysisFlavCompHists(Context & ctx, const string & dirname, int useNJets, const string & selection, float jetPtMin): 
+QGAnalysisFlavCompHists::QGAnalysisFlavCompHists(Context & ctx, const string & dirname, int useNJets, const string & selection, float jetPtMin, float jetPtMax, float jetEtaMin, float jetEtaMax): 
   Hists(ctx, dirname), 
   useNJets_(useNJets),
-  jetPtMin_(jetPtMin) 
+  jetPtMin_(jetPtMin),
+  jetPtMax_(jetPtMax),
+  jetEtaMin_(jetEtaMin),
+  jetEtaMax_(jetEtaMax)
 {
   if (useNJets_ < 0) useNJets_ = 99999; // Do them all
 
   if (useNJets_ == 0) throw runtime_error("useNJets should be > 0, or < 0 to use all jets in the event");
 
-  if (selection != "dijet" && selection != "zplusjets") {
-    throw runtime_error("selection must be dijet or zplusjets");
-  }
 
   doHerwigReweighting = ctx.get("herwig_reweight_file", "") != "";
   if (doHerwigReweighting) {
+    if (selection != "dijet" && selection != "zplusjets") {
+      throw runtime_error("selection must be dijet or zplusjets");
+    }
     TFile f_weight(ctx.get("herwig_reweight_file", "").c_str());
     if (selection == "dijet")
       reweightHist = (TH1F*) f_weight.Get("dijet_reco");
@@ -40,6 +43,7 @@ QGAnalysisFlavCompHists::QGAnalysisFlavCompHists(Context & ctx, const string & d
   }
 
   h_jet_flavour_vs_genparton_flavour = book<TH2F>("jet_flavour_vs_genparton_flavour", ";parton flavour;genParton flavour", 23, -0.5, 22.5, 23, -0.5, 22.5);
+  h_jet_flavour_vs_hadron_flavour = book<TH2F>("jet_flavour_vs_hadron_flavour", ";parton flavour;hadron flavour", 23, -0.5, 22.5, 6, -0.5, 5.5);
   
 }
 
@@ -70,12 +74,16 @@ void QGAnalysisFlavCompHists::fill(const Event & event){
   // Fill reco jet hists
   for (int i = 0; i < useNJets_; i++) {
     const Jet & thisjet = jets->at(i);
-    if (thisjet.pt() < jetPtMin_)
+    float pt = thisjet.pt();
+    float absEta = fabs(thisjet.eta());
+    if ((pt < jetPtMin_) || (pt > jetPtMax_) || (absEta < jetEtaMin_) || (absEta > jetEtaMax_))
       continue;
     int jet_genparton_flav = abs(thisjet.genPartonFlavor());
     int jet_flav = abs(thisjet.flavor());
+    int jet_hadronflav = abs(thisjet.hadronFlavor());
 
     h_jet_flavour_vs_genparton_flavour->Fill(jet_flav, jet_genparton_flav, weight);
+    h_jet_flavour_vs_hadron_flavour->Fill(jet_flav, jet_hadronflav, weight);
   }
 }
 
