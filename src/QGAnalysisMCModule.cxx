@@ -513,6 +513,7 @@ std::vector<Jet> QGAnalysisMCModule::getMatchedJets(std::vector<Jet> * jets, std
 
         jtr.set_genjet_index(matchInd);
         if (matchInd > -1) {
+            jtr.set_genjet_index(matchInd);
             goodJets.push_back(jtr);
             matchedIndices.push_back(matchInd);
             // cout << "Found a match at index " << matchInd << " with dr " << minDR << endl;
