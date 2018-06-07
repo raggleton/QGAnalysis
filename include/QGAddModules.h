@@ -100,3 +100,5 @@ private:
 };
 
 float get_jet_radius(const std::string & jet_cone);
+
+float calcGenHT(const std::vector<GenParticle> & gps);

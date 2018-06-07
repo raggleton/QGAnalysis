@@ -220,3 +220,16 @@ float get_jet_radius(const std::string & jet_cone) {
   else
     throw std::runtime_error("Cannot determine jet radius from jet_cone string");
 }
+
+
+float calcGenHT(const std::vector<GenParticle> & gps) {
+  float ht = 0.;
+  for (const auto & itr: gps) {
+    if (abs(itr.status()) != 23) continue;
+    uint pdg = abs(itr.pdgId());
+    if (( pdg <= PDGID::TOP_QUARK && pdg >= PDGID::DOWN_QUARK) || pdg == PDGID::GLUON) {
+      ht += itr.pt();
+    }
+  }
+  return ht;
+}
