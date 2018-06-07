@@ -56,6 +56,7 @@ private:
 
     // Reco selections/hists
     std::unique_ptr<Selection> njet_sel, zplusjets_sel, zplusjets_presel, dijet_sel;
+    std::unique_ptr<Selection> zerobias_trigger_sel;
     std::unique_ptr<OrSelection> zplusjets_trigger_sel;
     std::unique_ptr<DataJetSelection> dijet_trigger_sel;
     std::vector<std::string> dj_trig_names;
@@ -117,6 +118,8 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     dijet_sel.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, third_jet_frac_max, ss_eta, deta, sumEta));
 
     // Triggers for data
+    zerobias_trigger_sel.reset(new TriggerSelection("HLT_ZeroBias_v*"));
+
     std::vector<std::string> zpj_trigger_names = {
         "HLT_IsoMu24_v*",
         "HLT_IsoTkMu24_v*",
@@ -201,15 +204,16 @@ bool QGAnalysisDataModule::process(Event & event) {
     if (dataset == DATASET::SingleMu) {
         passTrigger = zplusjets_trigger_sel->passes(event);
     } else if (dataset == DATASET::JetHT) {
+        if ((event.jets->at(0).pt() < jetht_zb_pt_boundary)) return false;
         passTrigger = dijet_trigger_sel->passes(event);
         // have to do dijet bit before any jet ID to figure out which jet fired trigger
         dj_trig_ind = dijet_trigger_sel->passIndex();
     } else if (dataset == DATASET::ZeroBias) {
-        // for ZB dont use a trigger, but to ensure we don't doublecount events
+        // to ensure we don't doublecount events
         // that are also in JetHT, we ensure that the first jet has pT < the first
         // bin in JetHT. (inside dijet_trigger_sel is an equivalent check for JetHT)
         // passTrigger = true;
-        passTrigger = (event.jets->at(0).pt() < jetht_zb_pt_boundary);
+        passTrigger = (zerobias_trigger_sel->passes(event)) && (event.jets->at(0).pt() < jetht_zb_pt_boundary);
     }
     if (!passTrigger) return false;
 
