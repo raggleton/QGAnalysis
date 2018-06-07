@@ -43,7 +43,6 @@ public:
     std::vector<GenJetWithParts> getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=1.5, float lepton_overlap_dr=0.2);
     std::vector<GenParticle> getGenMuons(std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=2.5);
     std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax=0.8, bool uniqueMatch=true);
-    float calcGenHT(const std::vector<GenParticle> & gps);
 
 private:
 
@@ -525,15 +524,6 @@ std::vector<Jet> QGAnalysisMCModule::getMatchedJets(std::vector<Jet> * jets, std
 }
 
 
-float QGAnalysisMCModule::calcGenHT(const std::vector<GenParticle> & gps) {
-    float ht = 0.;
-    for (const auto & itr: gps) {
-        if (abs(itr.status()) == 23) {
-            ht += itr.pt();
-        }
-    }
-    return ht;
-}
 // as we want to run the ExampleCycleNew directly with AnalysisModuleRunner,
 // make sure the QGAnalysisMCModule is found by class name. This is ensured by this macro:
 UHH2_REGISTER_ANALYSIS_MODULE(QGAnalysisMCModule)
