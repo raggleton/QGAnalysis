@@ -228,6 +228,9 @@ bool QGAnalysisMCModule::process(Event & event) {
     // if (!event_sel->passes(event)) return false;
 
     if (PRINTOUT) {cout << "-- Event: " << event.event << endl;}
+    // cout << "-- Event: " << event.event << endl;
+
+    if (!njet_sel->passes(event)) return false;
 
     if (PRINTOUT) printMuons(*event.muons, "Precleaning");
     if (PRINTOUT) printElectrons(*event.electrons, "Precleaning");
@@ -239,6 +242,8 @@ bool QGAnalysisMCModule::process(Event & event) {
     if (!common_setup->process(event)) {return false;}
     mc_reweight->process(event);
 
+    if (!njet_sel->passes(event)) return false;
+
     if (PRINTOUT) printMuons(*event.muons);
     if (PRINTOUT) printElectrons(*event.electrons);
     if (PRINTOUT) printGenParticles(*event.genparticles);
@@ -248,21 +253,18 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, event.genparticles, 5., 5., jetRadius);
     if (goodGenJets.size() == 0) return false;
-    if (event.jets->size() == 0) return false;
+    sort_by_pt(goodGenJets);
 
     // Check event weight is sensible based on pthat
     if (event.genInfo->binningValues().size() > 0) {
         double ptHat = event.genInfo->binningValues().at(0); // yes this is correct. no idea why
         if (goodGenJets[0].pt() / ptHat > 2) return false;
-        // Again, need to do this as sometimes reco dodgy but gen ok can end up with dodgy weight
         if (event.jets->at(0).pt() / ptHat > 2) return false;
     }
 
     event.set(genjets_handle, std::move(goodGenJets));
 
-    // Determine if weight is good - weight calculated based on leading jet
-    // Bad if it's a PU jet!
-
+    // Determine if good event if leading jet is a true jet or not (ie PU)
     bool goodEvent = false;
     for (const auto genjtr: event.get(genjets_handle)) {
         if (deltaR(event.jets->at(0), genjtr) < jetRadius){
