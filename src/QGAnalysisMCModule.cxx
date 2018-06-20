@@ -152,8 +152,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     // DIJET selection
     float dphi_min = 2.;
-    float second_jet_frac_max_dj = 0.94;
-    float third_jet_frac_max = 0.3;
+    float second_jet_frac_max_dj = 10.94;
+    float third_jet_frac_max = 10.3;
     bool ss_eta = false;
     float deta = 12;
     float sumEta = 10.;
