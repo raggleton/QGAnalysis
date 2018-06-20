@@ -155,7 +155,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
         332,
         362,
         457,
-        492
+        565
     };
 
     dj_trig_prescales = {
