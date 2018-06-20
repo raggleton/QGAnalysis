@@ -51,8 +51,8 @@ QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string &
   // muons
   n_mu_vs_pt_jet1 = book<TH2F>("n_mu_vs_pt_jet1", ";N^{#mu};p_{T}^{jet 1}", 10, 0, 10, nbins_pt, 0, pt_max);
 
-  int nbins_reliso = 60;
-  float reliso_max = 0.3;
+  int nbins_reliso = 100;
+  float reliso_max = 1;
 
   float mu_pt_max = 1000;
 
