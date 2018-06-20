@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "UHH2/core/include/fwd.h"
 #include "UHH2/core/include/Selection.h"
 #include "UHH2/core/include/NtupleObjects.h"
@@ -17,9 +19,10 @@ namespace uhh2examples {
  */
 class ZplusJetsSelection: public uhh2::Selection {
 public:
-    ZplusJetsSelection(float mu1_pt=20., float mu2_pt=20., float mZ_window=20., float dphi_jet_z_min=2.0, float second_jet_frac_max=0.3);
+    ZplusJetsSelection(uhh2::Context & ctx, const std::string & zLabel_, float mu1_pt=20., float mu2_pt=20., float mZ_window=20., float dphi_jet_z_min=2.0, float second_jet_frac_max=0.3);
     virtual bool passes(const uhh2::Event & event) override;
 private:
+    uhh2::Event::Handle<std::vector<Muon>> hndlZ;
     float mu1_pt_, mu2_pt_, mZ_window_, dphi_jet_z_min_, second_jet_frac_max_;
 };
 

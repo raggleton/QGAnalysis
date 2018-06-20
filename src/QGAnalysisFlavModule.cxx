@@ -40,6 +40,7 @@ private:
     std::unique_ptr<MCReweighting> mc_reweight;
 
     // Reco selections/hists
+    std::unique_ptr<ZFinder> zFinder;
     std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel;
 
     Event::Handle<std::vector<GenJetWithParts>> genjets_handle;
@@ -55,6 +56,8 @@ private:
     std::vector<std::pair<float, float>> eta_bins = {{0.0, 1.4}, {1.4, 2.6}, {2.6, 3.2}, {3.2, 4.7}};
     std::vector<std::unique_ptr<Hists>> zplusjets_hists_binned;
     std::vector<std::unique_ptr<Hists>> dijet_hists_binned;
+
+    std::string zLabel;
 };
 
 
@@ -87,7 +90,10 @@ QGAnalysisFlavModule::QGAnalysisFlavModule(Context & ctx){
     // Event Selections
     njet_sel.reset(new NJetSelection(1));
 
-    zplusjets_sel.reset(new ZplusJetsSelection(20, 20, 20, 2, 1));
+    zLabel = "zMuonCand";
+    zFinder.reset(new ZFinder(ctx, "muons", zLabel));
+
+    zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, 20, 20, 20, 2, 1));
     float deta = 1.2;
     float sumEta = 10.;
     dijet_sel.reset(new DijetSelection(2, 1, 1, false, 100, 100));
@@ -148,8 +154,8 @@ bool QGAnalysisFlavModule::process(Event & event) {
 
     // RECO PART
     if (!njet_sel->passes(event)) return false;
-    
-    bool zpj = zplusjets_sel->passes(event);
+
+    bool zpj = zFinder->process(event) && zplusjets_sel->passes(event);
     bool dj = dijet_sel->passes(event);
     if (!zpj && !dj) return false;
 

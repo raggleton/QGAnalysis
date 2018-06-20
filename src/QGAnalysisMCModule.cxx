@@ -50,6 +50,7 @@ private:
     std::unique_ptr<MCReweighting> mc_reweight;
 
     // Reco selections/hists
+    std::unique_ptr<ZFinder> zFinder;
     std::unique_ptr<Selection> njet_sel, zplusjets_sel, zplusjets_presel, dijet_sel;
 
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists;
@@ -97,6 +98,8 @@ private:
 
     std::unique_ptr<EventNumberSelection> event_sel;
 
+    std::string zLabel;
+
     bool useGenPartonFlav;
 };
 
@@ -131,18 +134,21 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // Event Selections
     njet_sel.reset(new NJetSelection(1));
 
+    zLabel = "zMuonCand";
+    zFinder.reset(new ZFinder(ctx, "muons", zLabel));
+
     // Z+JETS selection
     float mu1_pt = 20.;
     float mu2_pt = 20.;
     float mZ_window = 20.;
     float dphi_jet_z_min = 2.0;
-    float second_jet_frac_max_zpj = 0.3;
-    zplusjets_sel.reset(new ZplusJetsSelection(mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
+    float second_jet_frac_max_zpj = 10.3;
+    zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
 
     // Preselection for Z+J - only 2 muons to reco Z
     dphi_jet_z_min = 0.;
     second_jet_frac_max_zpj = 999.;
-    zplusjets_presel.reset(new ZplusJetsSelection(mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
+    zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
 
     // DIJET selection
     float dphi_min = 2.;
@@ -321,7 +327,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     // flav-specific preselection hists, useful for optimising selection
     uint flav1 = useGenPartonFlav ? event.jets->at(0).genPartonFlavor() : event.jets->at(0).flavor();
 
-    if (zplusjets_presel->passes(event)) {
+    if (zFinder->process(event) && zplusjets_presel->passes(event)) {
         if (flav1 == PDGID::GLUON) {
             zplusjets_hists_presel_g->fill(event);
         } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {

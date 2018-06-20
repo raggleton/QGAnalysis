@@ -223,16 +223,19 @@ float get_jet_radius(const std::string & jet_cone) {
 
 
 ZFinder::ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std::string & outputLabel_):
-  hndlInput(ctx.get_handle<vector<FlavorParticle>>(inputLabel_)),
-  hndlZ(ctx.get_handle<vector<FlavorParticle>>(outputLabel_))
+  // Would like more generic FlavourParticle handle, but may need to do additional declare_event_input?
+  hndlInput(ctx.get_handle<vector<Muon>>(inputLabel_)),
+  hndlZ(ctx.get_handle<vector<Muon>>(outputLabel_))
 {}
 
 bool ZFinder::process(uhh2::Event & event) {
   auto inputs = event.get(hndlInput);
   if (inputs.size() < 2) return false;
+  // Do we also want to consider more than leading & subleading?
+  // Prob v.v.litle diff as not often > 2 leptons that pass selection
   auto zCand = inputs[0].v4() + inputs[1].v4();
   if ((fabs(zCand.M() - 90) < 20) && (inputs[0].charge() * inputs[1].charge() < 0)) {
-    std::vector<FlavorParticle> cands = {inputs[0], inputs[1]};
+    std::vector<Muon> cands = {inputs[0], inputs[1]};
     event.set(hndlZ, cands);
     return true;
   }

@@ -55,6 +55,7 @@ private:
     std::unique_ptr<GeneralEventSetup> common_setup;
 
     // Reco selections/hists
+    std::unique_ptr<ZFinder> zFinder;
     std::unique_ptr<Selection> njet_sel, zplusjets_sel, zplusjets_presel, dijet_sel;
     std::unique_ptr<Selection> zerobias_trigger_sel;
     std::unique_ptr<OrSelection> zplusjets_trigger_sel;
@@ -69,6 +70,8 @@ private:
 
     std::unique_ptr<EventNumberSelection> event_sel;
     DATASET::Name dataset;
+
+    std::string zLabel;
 
 };
 
@@ -95,18 +98,21 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     // Event Selections
     njet_sel.reset(new NJetSelection(1));
 
+    zLabel = "zMuonCand";
+    zFinder.reset(new ZFinder(ctx, "muons", zLabel));
+
     // Z+JETS selection
     float mu1_pt = 20.;
     float mu2_pt = 20.;
     float mZ_window = 20.;
     float dphi_jet_z_min = 2.0;
     float second_jet_frac_max_zpj = 0.3;
-    zplusjets_sel.reset(new ZplusJetsSelection(mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
+    zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
 
     // Preselection for Z+J - only 2 muons to reco Z
     dphi_jet_z_min = 0.;
     second_jet_frac_max_zpj = 999.;
-    zplusjets_presel.reset(new ZplusJetsSelection(mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
+    zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
 
     // DIJET selection
     float dphi_min = 2.;
@@ -218,7 +224,7 @@ bool QGAnalysisDataModule::process(Event & event) {
     if (!passTrigger) return false;
 
     if (!common_setup->process(event)) return false;
-    
+
     if (PRINTOUT) printMuons(*event.muons);
     if (PRINTOUT) printElectrons(*event.electrons);
 
@@ -229,7 +235,10 @@ bool QGAnalysisDataModule::process(Event & event) {
     // Selection & hists
     bool selected(false);
 
+
     if (dataset == DATASET::SingleMu) {
+        if (!zFinder->process(event))
+            return false;
         if (zplusjets_presel->passes(event)) {
             zplusjets_hists_presel->fill(event);
             selected = zplusjets_sel->passes(event);

@@ -8,7 +8,8 @@ using namespace uhh2examples;
 using namespace uhh2;
 
 
-ZplusJetsSelection::ZplusJetsSelection(float mu1_pt, float mu2_pt, float mZ_window, float dphi_jet_z_min, float second_jet_frac_max):
+ZplusJetsSelection::ZplusJetsSelection(uhh2::Context & ctx, const std::string & zLabel_, float mu1_pt, float mu2_pt, float mZ_window, float dphi_jet_z_min, float second_jet_frac_max):
+    hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_)),
     mu1_pt_(mu1_pt),
     mu2_pt_(mu2_pt),
     mZ_window_(mZ_window),
@@ -17,21 +18,23 @@ ZplusJetsSelection::ZplusJetsSelection(float mu1_pt, float mu2_pt, float mZ_wind
     {}
 
 bool ZplusJetsSelection::passes(const Event & event){
-    if (event.muons->size() < 2) return false;
-    std::vector<Muon> muons;
-    for (const auto & itr : *event.muons) {
-        if (itr.pt() > mu2_pt_) muons.push_back(itr);
-    }
-    if (muons.size() < 2) return false;
+    auto zMuons = event.get(hndlZ);
+    if (zMuons.size() < 2) return false;
 
-    const auto & muon1 = muons.at(0);
-    const auto & muon2 = muons.at(1);
+    // std::vector<Muon> muons;
+    // for (const auto & itr : *zMuons) {
+    //     if (itr.pt() > mu2_pt_) muons.push_back(itr);
+    // }
+    // if (muons.size() < 2) return false;
 
-    if (muon1.pt() < mu1_pt_ || muon2.pt() < mu2_pt_) return false;
+    const auto & muon1 = zMuons.at(0);
+    const auto & muon2 = zMuons.at(1);
+
+    // if (muon1.pt() < mu1_pt_ || muon2.pt() < mu2_pt_) return false;
 
     // TODO: what if > 2 muons? how to pick the Z candidate?
 
-    if (muon1.charge() == muon2.charge()) return false;
+    // if (muon1.charge() == muon2.charge()) return false;
 
     const auto z_cand = muon1.v4() + muon2.v4();
 
