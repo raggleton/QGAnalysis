@@ -181,8 +181,8 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     jetht_zb_pt_boundary = dj_trig_thresholds.at(0);
 
     // Hists
-    zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel"));
-    zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets"));
+    zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLabel));
+    zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
     zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1, "zplusjets"));
 
     dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel"));
@@ -249,13 +249,11 @@ bool QGAnalysisDataModule::process(Event & event) {
         }
     } else if (dataset == DATASET::JetHT || dataset == DATASET::ZeroBias) {
         dijet_hists_presel->fill(event);
-        if (event.jets->size() > 1) {
-            selected = dijet_sel->passes(event);
-            if (selected) {
-                if (dataset == DATASET::JetHT) event.weight *= dj_trig_prescales.at(dj_trig_ind);
-                dijet_hists->fill(event);
-                dijet_qg_hists->fill(event);
-            }
+        selected = dijet_sel->passes(event);
+        if (selected) {
+            if (dataset == DATASET::JetHT) event.weight *= dj_trig_prescales.at(dj_trig_ind);
+            dijet_hists->fill(event);
+            dijet_qg_hists->fill(event);
         }
     }
 

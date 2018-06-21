@@ -163,12 +163,12 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // dijet_theory_sel.reset(new DijetTheorySelection(ctx));
 
     // Hists
-    zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel"));
+    zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLabel));
     // preselection hists, if jet is quark, or gluon
-    zplusjets_hists_presel_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_q"));
-    zplusjets_hists_presel_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_g"));
-    zplusjets_hists_presel_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown"));
-    zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets"));
+    zplusjets_hists_presel_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_q", zLabel));
+    zplusjets_hists_presel_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_g", zLabel));
+    zplusjets_hists_presel_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown", zLabel));
+    zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
     zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1, "zplusjets"));
 
     dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel"));
@@ -318,32 +318,32 @@ bool QGAnalysisMCModule::process(Event & event) {
     if (PRINTOUT) printJets(*event.jets);
     if (PRINTOUT) printGenJets(event.get(genjets_handle), event.genparticles);
 
-    // Preselection hists
-    zplusjets_hists_presel->fill(event);
-    dijet_hists_presel->fill(event);
-
     bool zpj(false), dj(false), dj_highPt(false);
 
     // flav-specific preselection hists, useful for optimising selection
     uint flav1 = useGenPartonFlav ? event.jets->at(0).genPartonFlavor() : event.jets->at(0).flavor();
 
-    if (zFinder->process(event) && zplusjets_presel->passes(event)) {
-        if (flav1 == PDGID::GLUON) {
-            zplusjets_hists_presel_g->fill(event);
-        } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
-            zplusjets_hists_presel_q->fill(event);
-        } else if (flav1 == PDGID::UNKNOWN) {
-            zplusjets_hists_presel_unknown->fill(event);
-        }
-        zpj = zplusjets_sel->passes(event);
-        if (zpj) {
-            zplusjets_hists->fill(event);
-            zplusjets_qg_hists->fill(event);
+    if (zFinder->process(event)) {
+        zplusjets_hists_presel->fill(event);
+        if (zplusjets_presel->passes(event)) {
+            if (flav1 == PDGID::GLUON) {
+                zplusjets_hists_presel_g->fill(event);
+            } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
+                zplusjets_hists_presel_q->fill(event);
+            } else if (flav1 == PDGID::UNKNOWN) {
+                zplusjets_hists_presel_unknown->fill(event);
+            }
+            zpj = zplusjets_sel->passes(event);
+            if (zpj) {
+                zplusjets_hists->fill(event);
+                zplusjets_qg_hists->fill(event);
+            }
         }
     }
 
     uint flav2(99999999);
     if (event.jets->size() > 1) {
+        dijet_hists_presel->fill(event);
         flav2 = useGenPartonFlav ? event.jets->at(1).genPartonFlavor() : event.jets->at(1).flavor();
         if (flav1 == PDGID::GLUON) {
             if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
