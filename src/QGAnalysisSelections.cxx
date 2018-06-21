@@ -18,7 +18,7 @@ ZplusJetsSelection::ZplusJetsSelection(uhh2::Context & ctx, const std::string & 
     {}
 
 bool ZplusJetsSelection::passes(const Event & event){
-    auto zMuons = event.get(hndlZ);
+    auto & zMuons = event.get(hndlZ);
     if (zMuons.size() < 2) return false;
 
     // std::vector<Muon> muons;
