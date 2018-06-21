@@ -101,6 +101,8 @@ private:
     std::string zLabel;
 
     bool useGenPartonFlav;
+
+    uint nOverlap;
 };
 
 
@@ -227,6 +229,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     }
 
     // event_sel.reset(new EventNumberSelection({111}));
+
+    nOverlap = 0;
 }
 
 
@@ -432,7 +436,8 @@ bool QGAnalysisMCModule::process(Event & event) {
     }
 
     if (zpj && dj) {
-        cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet criteria" << endl;
+        nOverlap++;
+        cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet criteria (" << nOverlap << " total)" << endl;
     }
 
     // For checking genparticle/jet assignments:
