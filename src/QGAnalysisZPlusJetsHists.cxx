@@ -12,7 +12,10 @@ using namespace std;
 using namespace uhh2;
 using namespace uhh2examples;
 
-QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string & dirname): Hists(ctx, dirname){
+QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string & dirname, const std::string & zLabel_): 
+Hists(ctx, dirname),
+hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
+{
   doHerwigReweighting = ctx.get("herwig_reweight_file", "") != "";
   if (doHerwigReweighting) {
     TFile f_weight(ctx.get("herwig_reweight_file", "").c_str());
@@ -36,43 +39,49 @@ QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string &
   int nbins_phi = 128;
   float phi_max = 3.2;
 
-  n_jets_vs_pt_jet1 = book<TH2F>("n_jets_vs_pt_jet1", ";N_{jets};p_{T}^{jet 1}", 10, 0, 10, nbins_pt, 0, pt_max);
-  pt_jet1 = book<TH1F>("pt_jet1", ";p_{T}^{jet 1}", nbins_pt, 0, pt_max);
-  eta_jet1_vs_pt_jet1 = book<TH2F>("eta_jet1_vs_pt_jet1", ";#eta^{jet 1};p_{T}^{jet 1}", nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
-  pt_jet1_z_ratio_vs_pt_jet1 = book<TH2F>("pt_jet1_z_ratio_vs_pt_jet1", ";p_{T}^{jet 1} / p_{T}^{Z};p_{T}^{jet 1}", 50, 0, 5, nbins_pt, 0, pt_max);
+  TString zName = "Z";
+  // TString zName = "#mu#mu";
+  TString binByVarLabel = TString::Format("p_{T}^{%s} [GeV]", zName.Data());
+  TString binByVar = "pt_z";
+
+  n_jets_vs_pt = book<TH2F>(TString::Format("n_jets_vs_%s", binByVar.Data()), TString::Format(";N_{jets};%s", binByVarLabel.Data()), 10, 0, 10, nbins_pt, 0, pt_max);
+  pt_jet1 = book<TH1F>("pt_jet1", ";p_{T}^{jet 1} [GeV];", nbins_pt, 0, pt_max);
+  eta_jet1_vs_pt = book<TH2F>(TString::Format("eta_jet1_vs_%s", binByVar.Data()), TString::Format(";#eta^{jet 1};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
+  pt_jet1_z_ratio_vs_pt = book<TH2F>(TString::Format("pt_jet1_z_ratio_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{jet 1}/ p_{T}^{%s};%s", zName.Data(), binByVarLabel.Data()), 50, 0, 5, nbins_pt, 0, pt_max);
 
   gen_ht = book<TH1F>("gen_ht", ";H_{T}^{Gen}", 500, 0, 5000);
 
-  pt_jet2_vs_pt_jet1 = book<TH2F>("pt_jet2_vs_pt_jet1", ";p_{T}^{jet 2};p_{T}^{jet 1}", nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
-  eta_jet2_vs_pt_jet1 = book<TH2F>("eta_jet2_vs_pt_jet1", ";#eta^{jet 2};p_{T}^{jet 1}", nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
-  pt_jet2_z_ratio_vs_pt_jet1 = book<TH2F>("pt_jet2_z_ratio_vs_pt_jet1", ";p_{T}^{jet 2} / p_{T}^{Z};p_{T}^{jet 1}", 60, 0, 3, nbins_pt, 0, pt_max);
-  pt_jet1_z_pt_jet2_z_ratio = book<TH2F>("pt_jet1_z_pt_jet2_z_ratio", ";p_{T}^{jet 1} / p_{T}^{Z};p_{T}^{jet 2} / p_{T}^{Z}", 50, 0, 5, 60, 0, 3);
+  pt_jet2_vs_pt = book<TH2F>(TString::Format("pt_jet2_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{jet 2};%s", binByVarLabel.Data()), nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
+  eta_jet2_vs_pt = book<TH2F>(TString::Format("eta_jet2_vs_%s", binByVar.Data()), TString::Format(";#eta^{jet 2};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
+  pt_jet2_z_ratio_vs_pt = book<TH2F>(TString::Format("pt_jet2_z_ratio_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{jet 2} / p_{T}^{%s};%s", zName.Data(), binByVarLabel.Data()), 60, 0, 3, nbins_pt, 0, pt_max);
+  pt_jet1_z_pt_jet2_z_ratio = book<TH2F>("pt_jet1_z_pt_jet2_z_ratio", TString::Format(";p_{T}^{jet 1} / p_{T}^{%s};p_{T}^{jet 2} / p_{T}^{%s}", zName.Data(), zName.Data()), 50, 0, 5, 60, 0, 3);
 
   // muons
-  n_mu_vs_pt_jet1 = book<TH2F>("n_mu_vs_pt_jet1", ";N^{#mu};p_{T}^{jet 1}", 10, 0, 10, nbins_pt, 0, pt_max);
+  n_mu_vs_pt = book<TH2F>(TString::Format("n_mu_vs_%s", binByVar.Data()), TString::Format(";N^{#mu};%s", binByVarLabel.Data()), 10, 0, 10, nbins_pt, 0, pt_max);
 
   int nbins_reliso = 100;
   float reliso_max = 1;
 
   float mu_pt_max = 1000;
 
-  pt_mu1_vs_pt_jet1 = book<TH2F>("pt_mu1_vs_pt_jet1", ";p_{T}^{#mu1};p_{T}^{jet 1}", nbins_pt, 0, mu_pt_max, nbins_pt, 0, pt_max);
-  eta_mu1_vs_pt_jet1 = book<TH2F>("eta_mu1_vs_pt_jet1", ";#eta^{#mu1};p_{T}^{jet 1}", nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
-  reliso_mu1_vs_pt_jet1 = book<TH2F>("reliso_mu1_vs_pt_jet1", ";#mu1 rel. Iso;p_{T}^{jet 1}", nbins_reliso, 0, reliso_max, nbins_pt, 0, pt_max);
+  pt_mu1_vs_pt = book<TH2F>(TString::Format("pt_mu1_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{#mu1};%s", binByVarLabel.Data()), nbins_pt, 0, mu_pt_max, nbins_pt, 0, pt_max);
+  eta_mu1_vs_pt = book<TH2F>(TString::Format("eta_mu1_vs_%s", binByVar.Data()), TString::Format(";#eta^{#mu1};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
+  reliso_mu1_vs_pt = book<TH2F>(TString::Format("reliso_mu1_vs_%s", binByVar.Data()), TString::Format(";#mu1 rel. Iso;%s", binByVarLabel.Data()), nbins_reliso, 0, reliso_max, nbins_pt, 0, pt_max);
 
-  pt_mu2_vs_pt_jet1 = book<TH2F>("pt_mu2_vs_pt_jet1", ";p_{T}^{#mu2};p_{T}^{jet 1}", nbins_pt, 0, mu_pt_max, nbins_pt, 0, pt_max);
-  eta_mu2_vs_pt_jet1 = book<TH2F>("eta_mu2_vs_pt_jet1", ";#eta^{#mu2};p_{T}^{jet 1}", nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
-  reliso_mu2_vs_pt_jet1 = book<TH2F>("reliso_mu2_vs_pt_jet1", ";#mu2 rel. Iso;p_{T}^{jet 1}", nbins_reliso, 0, reliso_max, nbins_pt, 0, pt_max);
+  pt_mu2_vs_pt = book<TH2F>(TString::Format("pt_mu2_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{#mu2};%s", binByVarLabel.Data()), nbins_pt, 0, mu_pt_max, nbins_pt, 0, pt_max);
+  eta_mu2_vs_pt = book<TH2F>(TString::Format("eta_mu2_vs_%s", binByVar.Data()), TString::Format(";#eta^{#mu2};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
+  reliso_mu2_vs_pt = book<TH2F>(TString::Format("reliso_mu2_vs_%s", binByVar.Data()), TString::Format(";#mu2 rel. Iso;%s", binByVarLabel.Data()), nbins_reliso, 0, reliso_max, nbins_pt, 0, pt_max);
 
-  m_mumu_vs_pt_jet1 = book<TH2F>("m_mumu_vs_pt_jet1", ";m_{#mu#mu} [GeV];p_{T}^{jet 1}", 80, 90-40, 90+40, nbins_pt, 0, pt_max);
-  pt_mumu_vs_pt_jet1 = book<TH2F>("pt_mumu_vs_pt_jet1", ";p_{T, #mu#mu} [GeV];p_{T}^{jet 1}", nbins_pt, 0, 750, nbins_pt, 0, pt_max);
+  m_mumu_vs_pt = book<TH2F>(TString::Format("m_mumu_vs_%s", binByVar.Data()), TString::Format(";m_{%s} [GeV];%s", zName.Data(), binByVarLabel.Data()), 80, 90-40, 90+40, nbins_pt, 0, pt_max);
+  pt_jet1_vs_pt = book<TH2F>(TString::Format("pt_jet1_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{jet 1} [GeV];%s", binByVarLabel.Data()), 2*nbins_pt, 0, pt_max, 2*nbins_pt, 0, 2*pt_max);
+  pt_mumu = book<TH1F>("pt_mumu", ";p_{T}^{%s} [GeV];", nbins_pt, 0, pt_max);
 
-  dphi_j_z_vs_pt_jet1 = book<TH2F>("dphi_jet1_z_vs_pt_jet1", ";|#Delta #phi_{#mu#mu, jet1}|;p_{T}^{jet 1}", 60, 0, 6, nbins_pt, 0, pt_max);
+  dphi_j_z_vs_pt = book<TH2F>(TString::Format("dphi_jet1_z_vs_%s", binByVar.Data()), TString::Format(";|#Delta #phi_{%s, jet 1}|;%s", zName.Data(), binByVarLabel.Data()), 60, 0, 6, nbins_pt, 0, pt_max);
 
-  deta_mumu_vs_pt_jet1 = book<TH2F>("deta_mumu_vs_pt_jet1", ";|#Delta #eta_{#mu#mu}|;p_{T}^{jet 1}", nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
-  dphi_mumu_vs_pt_jet1 = book<TH2F>("dphi_mumu_vs_pt_jet1", ";|#Delta #phi_{#mu#mu}|;p_{T}^{jet 1}", nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
-  deta_mumu_jet1_vs_pt_jet1 = book<TH2F>("deta_mumu_jet1_vs_pt_jet1", ";|#Delta #eta_{#mu#mu, jet 1}|;p_{T}^{jet 1}", nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
-  dphi_mumu_jet1_vs_pt_jet1 = book<TH2F>("dphi_mumu_jet1_vs_pt_jet1", ";|#Delta #phi_{#mu#mu, jet1}|;p_{T}^{jet 1}", nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
+  deta_mumu_vs_pt = book<TH2F>(TString::Format("deta_mumu_vs_%s", binByVar.Data()), TString::Format(";|#Delta #eta_{%s}|;%s", zName.Data(), binByVarLabel.Data()), nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
+  dphi_mumu_vs_pt = book<TH2F>(TString::Format("dphi_mumu_vs_%s", binByVar.Data()), TString::Format(";|#Delta #phi_{%s}|;%s", zName.Data(), binByVarLabel.Data()), nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
+  deta_mumu_jet1_vs_pt = book<TH2F>(TString::Format("deta_mumu_jet1_vs_%s", binByVar.Data()), TString::Format(";|#Delta #eta_{%s, jet 1}|;%s", zName.Data(), binByVarLabel.Data()), nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
+  dphi_mumu_jet1_vs_pt = book<TH2F>(TString::Format("dphi_mumu_jet1_vs_%s", binByVar.Data()), TString::Format(";|#Delta #phi_{%s, jet 1}|;%s", zName.Data(), binByVarLabel.Data()), nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
 
   // primary vertices
   n_pv = book<TH1F>("N_pv", ";N^{PV};", 50, 0, 50);
@@ -105,56 +114,59 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   if (Njets >= 1) {
     jet1_pt = jets->at(0).pt();
   }
-
+  
   // Muons
-  std::vector<Muon> * muons = event.muons;
-  int Nmuons = muons->size();
-  n_mu_vs_pt_jet1->Fill(Nmuons, jet1_pt, weight);
-
-  if (Nmuons < 2) return;
-
-  Muon mu1 = muons->at(0);
-  pt_mu1_vs_pt_jet1->Fill(mu1.pt(), jet1_pt, weight);
-  eta_mu1_vs_pt_jet1->Fill(mu1.eta(), jet1_pt, weight);
-  reliso_mu1_vs_pt_jet1->Fill(mu1.relIso(), jet1_pt, weight);
-
-  Muon mu2 = muons->at(1);
-  pt_mu2_vs_pt_jet1->Fill(mu2.pt(), jet1_pt, weight);
-  eta_mu2_vs_pt_jet1->Fill(mu2.eta(), jet1_pt, weight);
-  reliso_mu2_vs_pt_jet1->Fill(mu2.relIso(), jet1_pt, weight);
-
+  auto & muons = event.get(hndlZ);
+  Muon mu1 = muons.at(0);
+  Muon mu2 = muons.at(1);
   LorentzVector z_cand = mu1.v4() + mu2.v4();
-  m_mumu_vs_pt_jet1->Fill(z_cand.M(), jet1_pt, weight);
-  pt_mumu_vs_pt_jet1->Fill(z_cand.pt(), jet1_pt, weight);
+  float z_pt = z_cand.pt();
+  pt_mumu->Fill(z_pt, weight);
+
+  float binPt = z_pt;
+  
+  int Nmuons = muons.size();
+  n_mu_vs_pt->Fill(Nmuons, binPt, weight);
+
+  pt_mu1_vs_pt->Fill(mu1.pt(), binPt, weight);
+  eta_mu1_vs_pt->Fill(mu1.eta(), binPt, weight);
+  reliso_mu1_vs_pt->Fill(mu1.relIso(), binPt, weight);
+
+  pt_mu2_vs_pt->Fill(mu2.pt(), binPt, weight);
+  eta_mu2_vs_pt->Fill(mu2.eta(), binPt, weight);
+  reliso_mu2_vs_pt->Fill(mu2.relIso(), binPt, weight);
+
+  m_mumu_vs_pt->Fill(z_cand.M(), binPt, weight);
+  pt_jet1_vs_pt->Fill(jet1_pt, binPt, weight);
 
   auto diff = mu1.v4() - mu2.v4();
-  deta_mumu_vs_pt_jet1->Fill(fabs(diff.eta()), jet1_pt,  weight);
-  dphi_mumu_vs_pt_jet1->Fill(fabs(diff.phi()), jet1_pt, weight);
+  deta_mumu_vs_pt->Fill(fabs(diff.eta()), binPt,  weight);
+  dphi_mumu_vs_pt->Fill(fabs(diff.phi()), binPt, weight);
 
   // Jets
-  n_jets_vs_pt_jet1->Fill(Njets, jet1_pt, weight);
+  n_jets_vs_pt->Fill(Njets, binPt, weight);
 
   if (Njets < 1) return;
 
-  Jet jet1 = jets->at(0);
+  Jet & jet1 = jets->at(0);
   pt_jet1->Fill(jet1_pt, weight);
-  eta_jet1_vs_pt_jet1->Fill(jet1.eta(), jet1_pt, weight);
+  eta_jet1_vs_pt->Fill(jet1.eta(), binPt, weight);
 
   if (!event.isRealData) gen_ht->Fill(calcGenHT(*(event.genparticles)), weight);
 
-  pt_jet1_z_ratio_vs_pt_jet1->Fill(jet1.pt() / z_cand.pt(), jet1_pt, weight);
+  pt_jet1_z_ratio_vs_pt->Fill(jet1_pt / z_pt, binPt, weight);
   diff = z_cand - jet1.v4();
-  deta_mumu_jet1_vs_pt_jet1->Fill(fabs(diff.eta()), jet1_pt, weight);
-  dphi_mumu_jet1_vs_pt_jet1->Fill(fabs(diff.phi()), jet1_pt, weight);
+  deta_mumu_jet1_vs_pt->Fill(fabs(diff.eta()), binPt, weight);
+  dphi_mumu_jet1_vs_pt->Fill(fabs(diff.phi()), binPt, weight);
 
-  dphi_j_z_vs_pt_jet1->Fill(deltaPhi(z_cand, jet1), jet1_pt, weight);
+  dphi_j_z_vs_pt->Fill(deltaPhi(z_cand, jet1), binPt, weight);
 
   if (Njets >= 2) {
     Jet jet2 = jets->at(1);
-    pt_jet2_vs_pt_jet1->Fill(jet2.pt(), jet1_pt, weight);
-    eta_jet2_vs_pt_jet1->Fill(jet2.eta(), jet1_pt, weight);
-    pt_jet2_z_ratio_vs_pt_jet1->Fill(jet2.pt() / z_cand.pt(), jet1_pt, weight);
-    pt_jet1_z_pt_jet2_z_ratio->Fill(jet1.pt() / z_cand.pt(), jet2.pt() / z_cand.pt(), weight);
+    pt_jet2_vs_pt->Fill(jet2.pt(), binPt, weight);
+    eta_jet2_vs_pt->Fill(jet2.eta(), binPt, weight);
+    pt_jet2_z_ratio_vs_pt->Fill(jet2.pt() / z_pt, binPt, weight);
+    pt_jet1_z_pt_jet2_z_ratio->Fill(jet1_pt / z_pt, jet2.pt() / z_cand.pt(), weight);
   }
 
   int Npvs = event.pvs->size();
