@@ -29,21 +29,6 @@ namespace uhh2examples {
 
 const bool PRINTOUT = false;
 
-// Easy way to refer to PDGIDs
-enum PDGID {
-    UNKNOWN = 0,
-    DOWN_QUARK = 1,
-    UP_QUARK = 2,
-    STRANGE_QUARK = 3,
-    CHARM_QUARK = 4,
-    BOTTOM_QUARK = 5,
-    TOP_QUARK = 6,
-    ELECTRON = 11,
-    MUON = 13,
-    TAU = 15,
-    GLUON = 21
-};
-
 /** \brief Basic analysis preselection
  *
  */
