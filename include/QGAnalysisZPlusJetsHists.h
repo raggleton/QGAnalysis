@@ -6,6 +6,8 @@
 #include "UHH2/core/include/Event.h"
 #include "UHH2/core/include/AnalysisModule.h"
 
+#include "UHH2/QGAnalysis/include/QGAddModules.h"
+
 namespace uhh2examples {
 
 /**  \brief Control histograms for Z+jets selection. Basically a sanity check.
@@ -30,7 +32,7 @@ protected:
     TH2F *dphi_j_z_vs_pt;
     TH2F *deta_mumu_vs_pt, *dphi_mumu_vs_pt;
     TH2F *deta_mumu_jet1_vs_pt, *dphi_mumu_jet1_vs_pt;
-    TH2F *pt_jet1_z_pt_jet2_z_ratio;
+    TH2F *pt_jet1_pt_jet2_ratio_vs_pt;
 
     bool doHerwigReweighting;
     TH1F * reweightHist;

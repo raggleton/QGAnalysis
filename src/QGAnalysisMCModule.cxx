@@ -137,20 +137,20 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     njet_sel.reset(new NJetSelection(1));
 
     zLabel = "zMuonCand";
-    zFinder.reset(new ZFinder(ctx, "muons", zLabel));
+    zFinder.reset(new ZFinder(ctx, "muons", zLabel, ctx.get("z_reweight_file", "")));
 
     // Z+JETS selection
     float mu1_pt = 20.;
     float mu2_pt = 20.;
     float mZ_window = 20.;
     float dphi_jet_z_min = 2.0;
-    float second_jet_frac_max_zpj = 10.3;
+    float second_jet_frac_max_zpj = 0.3;
     zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
 
     // Preselection for Z+J - only 2 muons to reco Z
-    dphi_jet_z_min = 0.;
-    second_jet_frac_max_zpj = 999.;
-    zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
+    // dphi_jet_z_min = 0.;
+    // second_jet_frac_max_zpj = 999.;
+    zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, 0, 999));
 
     // DIJET selection
     float dphi_min = 2.;

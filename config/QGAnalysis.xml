@@ -194,6 +194,8 @@
 
             <!-- If false use new flavour -->
             <Item Name="useGenPartonFlav" Value="false"/>
+            <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
+            <!-- <Item Name="maxHT" Value="70"/> -->
         </UserConfig>
     </Cycle>
 </JobConfiguration>

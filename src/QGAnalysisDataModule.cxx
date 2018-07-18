@@ -106,7 +106,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     float mu2_pt = 20.;
     float mZ_window = 20.;
     float dphi_jet_z_min = 2.0;
-    float second_jet_frac_max_zpj = 10.3;
+    float second_jet_frac_max_zpj = 0.3;
     zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
 
     // Preselection for Z+J - only 2 muons to reco Z

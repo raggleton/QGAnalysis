@@ -13,6 +13,8 @@
 #include "UHH2/common/include/CleaningModules.h"
 #include "UHH2/common/include/MCWeight.h"
 
+#include "TFile.h"
+#include "TGraph.h"
 
 
 namespace uhh2examples{
@@ -100,16 +102,29 @@ private:
   std::unique_ptr<MCMuonTrkScaleFactor> muon_trk_reweighter;
 };
 
+/**
+ * Get k factor for Z(ll)+jets
+ */
+class ZllKFactor {
+public:
+  ZllKFactor(const std::string & weightFilename_);
+  virtual float getKFactor(float zPt);
+private:
+  std::unique_ptr<TFile> file;
+  std::unique_ptr<TGraph> grNNLO;
+
+};
 
 /**
  * find the Z->mumu
  */
 class ZFinder : public uhh2::AnalysisModule {
 public:
-  ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std::string & outputLabel_);
+  ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std::string & outputLabel_, const std::string & weightFilename_="");
   virtual bool process(uhh2::Event & event) override;
 private:
   uhh2::Event::Handle<std::vector<Muon>> hndlInput, hndlZ;
+  std::unique_ptr<uhh2examples::ZllKFactor> zReweight;
 };
 
 };
@@ -117,3 +132,4 @@ private:
 float get_jet_radius(const std::string & jet_cone);
 
 float calcGenHT(const std::vector<GenParticle> & gps);
+

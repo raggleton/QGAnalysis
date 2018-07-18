@@ -7,6 +7,7 @@
 #include "UHH2/common/include/MuonIds.h"
 #include "UHH2/common/include/ElectronIds.h"
 
+
 using namespace std;
 using namespace uhh2;
 using namespace uhh2examples;
@@ -223,11 +224,14 @@ float get_jet_radius(const std::string & jet_cone) {
 }
 
 
-ZFinder::ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std::string & outputLabel_):
+ZFinder::ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std::string & outputLabel_, const std::string & weightFilename_):
   // Would like more generic FlavourParticle handle, but may need to do additional declare_event_input?
   hndlInput(ctx.get_handle<vector<Muon>>(inputLabel_)),
   hndlZ(ctx.get_handle<vector<Muon>>(outputLabel_))
-{}
+{
+  if (weightFilename_ != "")
+    zReweight.reset(new ZllKFactor(weightFilename_));
+}
 
 bool ZFinder::process(uhh2::Event & event) {
   auto inputs = event.get(hndlInput);
@@ -238,6 +242,11 @@ bool ZFinder::process(uhh2::Event & event) {
   if ((fabs(zCand.M() - 90) < 20) && (inputs[0].charge() * inputs[1].charge() < 0)) {
     std::vector<Muon> cands = {inputs[0], inputs[1]};
     event.set(hndlZ, cands);
+
+    if (zReweight) {
+      event.weight *= zReweight->getKFactor(zCand.pt());
+    }
+
     return true;
   }
   return false;
@@ -255,3 +264,22 @@ float calcGenHT(const std::vector<GenParticle> & gps) {
   }
   return ht;
 }
+
+ZllKFactor::ZllKFactor(const std::string & weightFilename_)
+{
+  file.reset(TFile::Open(locate_file(weightFilename_).c_str()));
+  grNNLO.reset((TGraph*) file->Get("kNNLO"));
+}
+
+float ZllKFactor::getKFactor(float zPt) {
+  float factor = 1.;
+  if (zPt > grNNLO->GetXaxis()->GetXmin() && zPt < grNNLO->GetXaxis()->GetXmax()) {
+    factor = grNNLO->Eval(zPt);
+  } else if (zPt < grNNLO->GetXaxis()->GetXmin()) {
+    factor = grNNLO->Eval(grNNLO->GetXaxis()->GetXmin());
+  } else {
+    factor = grNNLO->Eval(grNNLO->GetXaxis()->GetXmax());
+  }
+  return factor;
+}
+
