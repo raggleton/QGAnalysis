@@ -185,8 +185,9 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
     zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1, "zplusjets"));
 
-    dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel"));
-    dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet"));
+    std::string binning_method = "ave";
+    dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
+    dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet", binning_method));
     dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", 2, "dijet"));
 
     // event_sel.reset(new EventNumberSelection({111}));
