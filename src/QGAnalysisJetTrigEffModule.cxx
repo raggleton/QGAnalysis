@@ -49,12 +49,13 @@ private:
     std::unique_ptr<JetMuonOverlapRemoval> jet_mu_cleaner;
 
     // Reco selections/hists
-    std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel;
-    std::unique_ptr<OrSelection> zplusjets_trigger_sel, dijet_trigger_sel;
-    std::vector<TriggerSelection> dijet_trigger_sels;
+    std::unique_ptr<Selection> njet_sel;
+    std::unique_ptr<OrSelection> zplusjets_trigger_sel;
+    std::unique_ptr<TriggerSelection> zb_trigger_sel;
 
-    std::unique_ptr<QGJetTrigHists> trigHists;
+    std::unique_ptr<QGJetTrigHists> singleMuTrigHists;
     std::vector<QGJetTrigHists> jetTrigHists;
+    std::unique_ptr<QGJetTrigHists> zbTrigHists;
     std::vector<TriggerSelection> jet_trig_sels;
 
     bool is_mc;
@@ -69,6 +70,9 @@ private:
     const std::vector<std::string> zpj_trigger_names = {
         "HLT_IsoMu24_v*",
         "HLT_IsoTkMu24_v*",
+    };
+    const std::vector<std::string> zb_trigger_names = {
+        "HLT_ZeroBias_v*",
     };
     const std::vector<std::string> dj_trigger_names = {
         "HLT_PFJet40_v*",
@@ -213,12 +217,14 @@ QGAnalysisJetTrigEffModule::QGAnalysisJetTrigEffModule(Context & ctx){
     for (const auto & trig: zpj_trigger_names) {
         zplusjets_trigger_sel->add<TriggerSelection>(trig);
     }
+    singleMuTrigHists.reset(new QGJetTrigHists(ctx, "SingleMuRef", dj_trigger_names));
 
-    trigHists.reset(new QGJetTrigHists(ctx, "SingleMuRef", dj_trigger_names));
+    zb_trigger_sel.reset(new TriggerSelection(zb_trigger_names[0]));
+    zbTrigHists.reset(new QGJetTrigHists(ctx, "ZeroBiasRef", dj_trigger_names));
 
     for (uint i=0; i < (dj_trigger_names.size()-1); i++) {
         jet_trig_sels.push_back(TriggerSelection(dj_trigger_names[i]));
-        jetTrigHists.push_back(QGJetTrigHists(ctx, dj_trigger_names[i]+"Ref", std::vector<std::string>{dj_trigger_names[i+1]}));
+        jetTrigHists.push_back(QGJetTrigHists(ctx, dj_trigger_names[i]+"Ref", std::vector<std::string>{}));
     }
 }
 
@@ -226,11 +232,25 @@ QGAnalysisJetTrigEffModule::QGAnalysisJetTrigEffModule(Context & ctx){
 bool QGAnalysisJetTrigEffModule::process(Event & event) {
     // if (!event_sel->passes(event)) return false;
 
-    if (PRINTOUT) {cout << "-- Event: " << event.event << endl;}
+    // if (PRINTOUT) {cout << "-- Event: " << event.event << endl;}
 
     // This is the main procedure, called for each event.
-    if (!common->process(event)) {return false;}
+    if (!common->process(event)) {
+        if (PRINTOUT) cout << " failed commonmodules" << endl;
+        return false;
+    }
 
+    if (PRINTOUT) {
+        auto trigNames = event.get_current_triggernames();
+        for (auto titr : trigNames) {
+            // if (titr.find("HLT_") != std::string::npos) {
+            if (titr.find("HLT_PFJet") != std::string::npos) {
+                auto ti = event.get_trigger_index(titr);
+                if (event.passes_trigger(ti))
+                    cout << "    " << titr << " : " << event.passes_trigger(ti) << endl;
+            }
+        }
+    }
 
     // Do additional cleaning & JEC manually to allow custom JEC (common only does AK4)
     // - Apply JEC
@@ -269,11 +289,15 @@ bool QGAnalysisJetTrigEffModule::process(Event & event) {
     // RECO PART
     // if (!njet_sel->passes(event)) return false;
 
-    if (zplusjets_trigger_sel->passes(event)) trigHists->fill(event);
+    if (zb_trigger_sel->passes(event)) zbTrigHists->fill(event);
+
+    if (zplusjets_trigger_sel->passes(event)) singleMuTrigHists->fill(event);
 
     for (uint i=0; i<jet_trig_sels.size(); i++) {
-        if (jet_trig_sels.at(i).passes(event))
+        if (jet_trig_sels.at(i).passes(event)) {
+            // if (i==4) cout << "Firing: " << dj_trigger_names[i] << endl;
             jetTrigHists.at(i).fill(event);
+        }
     }
 
 
