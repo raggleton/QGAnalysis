@@ -530,7 +530,7 @@ QGJetTrigHists::QGJetTrigHists(Context & ctx, const string & dirname, const std:
 Hists(ctx, dirname),
 trigNames(trigNames_)
 {
-  int nPtBins = 400;
+  int nPtBins = 800;
   float ptMin(0.), ptMax(2000.);
   int nEtaBins = 50;
   float etaMin(-5), etaMax(5);
