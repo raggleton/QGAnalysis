@@ -8,10 +8,11 @@
 
     <!-- Full datasets -->
     <!ENTITY HERWIG-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/HerwigOnly/QCD_Pt15to7000_Flat.xml">
-    <!ENTITY MG-HERWIG-DY SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Herwig/DYJetsToLL.xml">
-    <!ENTITY PYTHIA-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/PythiaOnly/QCD_Pt15to7000_Flat.xml">
-    <!ENTITY POWHEG-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/Powheg-Pythia/Dijet.xml">
+    <!-- is actually herwig only, despite its CMS dataset name -->
+    <!ENTITY HERWIG-DY SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/HerwigOnly/DYJetsToLL.xml">
     
+    <!ENTITY MG-HERWIG-DY SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Herwig/DYJetsToLL.xml">
+
     <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/commonMC.xml">
 
     <!-- Jet config snippets -->
@@ -27,8 +28,8 @@
 <!-- split 3 for mgpythia -->
 
 <!--
-   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="75" />
-   <ConfigSGE RAM ="4" DISK ="2" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_herwig_newFlav_properPreSel"/>
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="25" />
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak8puppi_herwig_newFlav_binByAve_withResponse_trigBinningBetter_jetAsymCut"/>
 -->
 
 
@@ -40,29 +41,36 @@
     <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-HERWIG;/" PostFix="" TargetLumi="1" >
 
         <!-- HERWIG -->
+
         <InputData Lumi="1" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_QCD" Cacheable="False">
         &HERWIG-QCD;
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
-        <InputData Lumi="1" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_DY" Cacheable="False">
+        <InputData Lumi="1" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_DYJetsToLL" Cacheable="False">
+        &HERWIG-DY;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="1" NEventsMax="&NEVT;" Type="MC" Version="MC_MG_HERWIG_DYJetsToLL" Cacheable="False">
         &MG-HERWIG-DY;
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
-<!--         <InputData Lumi="1" NEventsMax="-1" Type="MC" Version="MC_HERWIG_DY_TEST" Cacheable="False">
+<!--         <InputData Lumi="1" NEventsMax="10000" Type="MC" Version="MC_HERWIG_DY_TEST" Cacheable="False">
         <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp/crab_QCD_Pt-15to7000_herwig_10_Feb_18_newRecoJetFlav_fixPuppi/180210_102451/0000/Ntuple_1.root" Lumi="0.0"/>
         <InputTree Name="AnalysisTree"/>
-        </InputData> -->
-
+        <OutputTree Name="AnalysisTree"/>
+        </InputData>
+ -->
         <UserConfig>
             &COMMON;
 
             <!-- Choose your jet configuration -->
             <!-- &AK4CHS; -->
-            &AK4PUPPI;
+            <!-- &AK4PUPPI; -->
             <!-- &AK8CHS; -->
-            <!-- &AK8PUPPI; -->
+            &AK8PUPPI;
 
             <!-- If you want to reweight herwig pT spectrum to match Pythia -->
             <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_weights_ak4chs.root" /> -->
@@ -72,8 +80,8 @@
             <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/pythiaOnlyFlat_weights_ak4chs.root" /> -->
             <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_newflav_weights_ak4chs.root" /> -->
             <Item Name="herwig_reweight_file" Value="" />
-
             <Item Name="useGenPartonFlav" Value="false"/>
+            <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
 
         </UserConfig>
     </Cycle>
