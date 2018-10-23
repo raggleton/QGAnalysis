@@ -326,15 +326,18 @@ bool QGAnalysisMCModule::process(Event & event) {
     // }
 
     // RECO PART
-    if (!njet_sel->passes(event)) return false;
+
+    if (PRINTOUT) printJets(*event.jets, "Original jets");
 
     // Ask reco jets to find matching GenJet
     // But we still use the event.jets as all interesting
     std::vector<Jet> goodJets = getMatchedJets(event.jets, &event.get(genjets_handle), jetRadius/2.);
+    // std::swap(goodJets, *event.jets);
 
-    if (PRINTOUT) printJets(*event.jets);
-    if (PRINTOUT) printGenJets(event.get(genjets_handle), event.genparticles);
+    if (!njet_sel->passes(event)) return false;
 
+    if (PRINTOUT) printJets(*event.jets, "Matched Jets");
+    if (PRINTOUT) printGenJetsWithParts(event.get(genjets_handle), event.genparticles, "GoodGenJets");
     bool zpj(false), dj(false), dj_highPt(false);
 
     // flav-specific preselection hists, useful for optimising selection
