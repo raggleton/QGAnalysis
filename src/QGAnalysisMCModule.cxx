@@ -265,14 +265,21 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     if (PRINTOUT) printMuons(*event.muons);
     if (PRINTOUT) printElectrons(*event.electrons);
-    if (PRINTOUT) printGenParticles(*event.genparticles);
+    // if (PRINTOUT) printGenParticles(*event.genparticles);
 
     // THEORY PART
     // if (PRINTOUT) printGenParticles(*event.genparticles);
 
-    std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, event.genparticles, 5., 5., jetRadius);
+    std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, 5., 2.4+(jetRadius/2.));
+    event.set(genmuons_handle, std::move(goodGenMuons));
+
+    std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, &event.get(genmuons_handle), 5., 2.4+(jetRadius/2.), jetRadius);
     if (goodGenJets.size() == 0) return false;
     sort_by_pt(goodGenJets);
+
+    // Cut on pt/genHt to avoid weird events
+    // Requirement on genHT since eg Herwig might have 0
+    if (genHT > 0 && ((event.jets->at(0).pt() / genHT) > 2.5)) { return false; }
 
     // Check event weight is sensible based on pthat
     if (event.genInfo->binningValues().size() > 0) {
@@ -292,9 +299,6 @@ bool QGAnalysisMCModule::process(Event & event) {
         }
     }
     if (!goodEvent) return false;
-
-    std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, 5., 2.5);
-    event.set(genmuons_handle, std::move(goodGenMuons));
 
     // bool zpj_th = zplusjets_theory_sel->passes(event);
     // bool dj_th = dijet_theory_sel->passes(event);
