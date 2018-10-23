@@ -33,7 +33,17 @@ std::vector<GenParticle*> uhh2examples::print_genjet_genparticles(const GenJetWi
   return gp;
 }
 
-void uhh2examples::printGenJets(const std::vector<GenJetWithParts> & gps, std::vector<GenParticle>* genparticles, const std::string & label, Color::Code color) {
+void uhh2examples::printGenJets(const std::vector<GenJetWithParts> & gps, const std::string & label, Color::Code color) {
+  for (auto & itr: gps) {
+    std::cout << color << "GenJet";
+    if (label != "") {
+        std::cout << " [" << label << "]";
+    }
+    std::cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << std::endl;
+  }
+}
+
+void uhh2examples::printGenJetsWithParts(const std::vector<GenJetWithParts> & gps, std::vector<GenParticle>* genparticles, const std::string & label, Color::Code color) {
   for (auto & itr: gps) {
     std::cout << color << "GenJet";
     if (label != "") {
@@ -50,7 +60,7 @@ void uhh2examples::printJets(const std::vector<Jet> & jets, const std::string & 
     if (label != "") {
         std::cout << " [" << label << "]";
     }
-    std::cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << std::endl;
+    std::cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << " : GenJet: " << itr.genjet_index() << Color::FG_DEFAULT << std::endl;
   }
 }
 
