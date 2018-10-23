@@ -80,80 +80,81 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_thrust = book<TH1F>("jet_thrust", ";Thrust (#lambda_{2}^{1});", nBins, 0, 1);
 
   // gen-reco response hists
-  float rsp_max = 2.;
+  float rsp_max = 5.;
+  int nBinsNormRsp = 500;
   h_jet_multiplicity_response = book<TH2F>("jet_multiplicity_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
-  h_jet_multiplicity_norm_response = book<TH2F>("jet_multiplicity_norm_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nMultBins, 0, rsp_max);
+  h_jet_multiplicity_norm_response = book<TH2F>("jet_multiplicity_norm_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
   // 2D hist for each pT bin
-  multiplicity_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
-  for (int i=0; i < nbins_pt_response; i++) {
-    for (int j=0; j < nbins_pt_response; j++) {
-      multiplicity_response_binned[i][j] = book<TH2F>(TString::Format("jet_multiplicity_response_bin_%d_%d", i, j),
-                                                      TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO)",
-                                                                      bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
-                                                      nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
-    }
-  }
+  // multiplicity_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
+  // for (int i=0; i < nbins_pt_response; i++) {
+  //   for (int j=0; j < nbins_pt_response; j++) {
+  //     multiplicity_response_binned[i][j] = book<TH2F>(TString::Format("jet_multiplicity_response_bin_%d_%d", i, j),
+  //                                                     TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO)",
+  //                                                                     bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+  //                                                     nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
+  //   }
+  // }
 
   h_jet_puppiMultiplicity_response = book<TH2F>("jet_puppiMultiplicity_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
-  h_jet_puppiMultiplicity_norm_response = book<TH2F>("jet_puppiMultiplicity_norm_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nMultBins, 0, rsp_max);
-  puppiMultiplicity_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
-  for (int i=0; i < nbins_pt_response; i++) {
-    for (int j=0; j < nbins_pt_response; j++) {
-      puppiMultiplicity_response_binned[i][j] = book<TH2F>(TString::Format("jet_puppiMultiplicity_response_bin_%d_%d", i, j),
-                                                      TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO)",
-                                                                      bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
-                                                      nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
-    }
-  }
+  h_jet_puppiMultiplicity_norm_response = book<TH2F>("jet_puppiMultiplicity_norm_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
+  // puppiMultiplicity_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
+  // for (int i=0; i < nbins_pt_response; i++) {
+  //   for (int j=0; j < nbins_pt_response; j++) {
+  //     puppiMultiplicity_response_binned[i][j] = book<TH2F>(TString::Format("jet_puppiMultiplicity_response_bin_%d_%d", i, j),
+  //                                                     TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO)",
+  //                                                                     bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+  //                                                     nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
+  //   }
+  // }
 
   h_jet_LHA_response = book<TH2F>("jet_LHA_response", ";LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO)", nBins, 0, 1, nBins, 0, 1);
-  h_jet_LHA_norm_response = book<TH2F>("jet_LHA_norm_response", ";LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO / GEN)", nBins, 0, 1, nBins, 0, rsp_max);
-  LHA_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
-  for (int i=0; i < nbins_pt_response; i++) {
-    for (int j=0; j < nbins_pt_response; j++) {
-      LHA_response_binned[i][j] = book<TH2F>(TString::Format("jet_lha_response_bin_%d_%d", i, j),
-                                                      TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO)",
-                                                                      bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
-                                                      nBins, 0, 1, nBins, 0, 1);
-    }
-  }
+  h_jet_LHA_norm_response = book<TH2F>("jet_LHA_norm_response", ";LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+  // LHA_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
+  // for (int i=0; i < nbins_pt_response; i++) {
+  //   for (int j=0; j < nbins_pt_response; j++) {
+  //     LHA_response_binned[i][j] = book<TH2F>(TString::Format("jet_lha_response_bin_%d_%d", i, j),
+  //                                                     TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO)",
+  //                                                                     bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+  //                                                     nBins, 0, 1, nBins, 0, 1);
+  //   }
+  // }
 
 
   h_jet_pTD_response = book<TH2F>("jet_pTD_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO)", nBins, 0, 1, nBins, 0, 1);
-  h_jet_pTD_norm_response = book<TH2F>("jet_pTD_norm_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO / GEN)", nBins, 0, 1, nBins, 0, rsp_max);
-  pTD_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
-  for (int i=0; i < nbins_pt_response; i++) {
-    for (int j=0; j < nbins_pt_response; j++) {
-      pTD_response_binned[i][j] = book<TH2F>(TString::Format("jet_pTD_response_bin_%d_%d", i, j),
-                                                      TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO)",
-                                                                      bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
-                                                      nBins, 0, 1, nBins, 0, 1);
-    }
-  }
+  h_jet_pTD_norm_response = book<TH2F>("jet_pTD_norm_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+  // pTD_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
+  // for (int i=0; i < nbins_pt_response; i++) {
+  //   for (int j=0; j < nbins_pt_response; j++) {
+  //     pTD_response_binned[i][j] = book<TH2F>(TString::Format("jet_pTD_response_bin_%d_%d", i, j),
+  //                                                     TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO)",
+  //                                                                     bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+  //                                                     nBins, 0, 1, nBins, 0, 1);
+  //   }
+  // }
 
   h_jet_width_response = book<TH2F>("jet_width_response", ";Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO)", nBins, 0, 1, nBins, 0, 1);
-  h_jet_width_norm_response = book<TH2F>("jet_width_norm_response", ";Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO / GEN)", nBins, 0, 1, nBins, 0, rsp_max);
-  width_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
-  for (int i=0; i < nbins_pt_response; i++) {
-    for (int j=0; j < nbins_pt_response; j++) {
-      width_response_binned[i][j] = book<TH2F>(TString::Format("jet_width_response_bin_%d_%d", i, j),
-                                                      TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO)",
-                                                                      bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
-                                                      nBins, 0, 1, nBins, 0, 1);
-    }
-  }
+  h_jet_width_norm_response = book<TH2F>("jet_width_norm_response", ";Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+  // width_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
+  // for (int i=0; i < nbins_pt_response; i++) {
+  //   for (int j=0; j < nbins_pt_response; j++) {
+  //     width_response_binned[i][j] = book<TH2F>(TString::Format("jet_width_response_bin_%d_%d", i, j),
+  //                                                     TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO)",
+  //                                                                     bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+  //                                                     nBins, 0, 1, nBins, 0, 1);
+  //   }
+  // }
 
   h_jet_thrust_response = book<TH2F>("jet_thrust_response", ";Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO)", nBins, 0, 1, nBins, 0, 1);
-  h_jet_thrust_norm_response = book<TH2F>("jet_thrust_norm_response", ";Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO / GEN)", nBins, 0, 1, nBins, 0, rsp_max);
-  thrust_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
-  for (int i=0; i < nbins_pt_response; i++) {
-    for (int j=0; j < nbins_pt_response; j++) {
-      thrust_response_binned[i][j] = book<TH2F>(TString::Format("jet_thrust_response_bin_%d_%d", i, j),
-                                                      TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO)",
-                                                                      bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
-                                                      nBins, 0, 1, nBins, 0, 1);
-    }
-  }
+  h_jet_thrust_norm_response = book<TH2F>("jet_thrust_norm_response", ";Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+  // thrust_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
+  // for (int i=0; i < nbins_pt_response; i++) {
+  //   for (int j=0; j < nbins_pt_response; j++) {
+  //     thrust_response_binned[i][j] = book<TH2F>(TString::Format("jet_thrust_response_bin_%d_%d", i, j),
+  //                                                     TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO)",
+  //                                                                     bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+  //                                                     nBins, 0, 1, nBins, 0, 1);
+  //   }
+  // }
 
   // q jet only
   h_qjet_multiplicity = book<TH1F>("qjet_multiplicity", "q-flavour;# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
@@ -409,6 +410,7 @@ void QGAnalysisHists::fill(const Event & event){
         response = jet_pt/genjet_pt;
         h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
 
+        // Response hists over all pt
         float gen_mult = genjet.genparticles_indices().size();
         h_jet_multiplicity_response->Fill(gen_mult, mult, weight);
         h_jet_puppiMultiplicity_response->Fill(gen_mult, puppiMult, weight);
@@ -430,26 +432,27 @@ void QGAnalysisHists::fill(const Event & event){
         h_jet_thrust_response->Fill(gen_thrust, thrust, weight);
         h_jet_thrust_norm_response->Fill(gen_thrust, thrust/gen_thrust, weight);
 
-        auto genit = std::lower_bound(bins_pt_response.begin(), bins_pt_response.end(), genjet_pt);
-        int genind = genit - bins_pt_response.begin() - 1; // need the -1 to get the offset correct
-        if (genind < 0) {
-          throw std::runtime_error("Invalid genind pos - bins start at too high a value");
-        } else if (genind >= (int) multiplicity_response_binned.size()) {
-          throw std::runtime_error("Invalid genind pos - bins don't extend far enough");
-        }
-        auto recoit = std::lower_bound(bins_pt_response.begin(), bins_pt_response.end(), jet_pt);
-        int recoind = recoit - bins_pt_response.begin() - 1;
-        if (recoind < 0) {
-          throw std::runtime_error("Invalid recoind pos - bins start at too high a value");
-        } else if (recoind >= (int) multiplicity_response_binned[genind].size()) {
-          throw std::runtime_error("Invalid recoind pos - bins don't extend far enough");
-        }
-        multiplicity_response_binned[genind][recoind]->Fill(gen_mult, mult, weight);
-        puppiMultiplicity_response_binned[genind][recoind]->Fill(gen_mult, puppiMult, weight);
-        LHA_response_binned[genind][recoind]->Fill(gen_lha, lha, weight);
-        pTD_response_binned[genind][recoind]->Fill(gen_ptd, ptd, weight);
-        width_response_binned[genind][recoind]->Fill(gen_width, width, weight);
-        thrust_response_binned[genind][recoind]->Fill(gen_thrust, thrust, weight);
+        // Response hists per pt bin
+        // auto genit = std::lower_bound(bins_pt_response.begin(), bins_pt_response.end(), genjet_pt);
+        // int genind = genit - bins_pt_response.begin() - 1; // need the -1 to get the offset correct
+        // if (genind < 0) {
+        //   throw std::runtime_error("Invalid genind pos - bins start at too high a value");
+        // } else if (genind >= (int) multiplicity_response_binned.size()) {
+        //   throw std::runtime_error("Invalid genind pos - bins don't extend far enough");
+        // }
+        // auto recoit = std::lower_bound(bins_pt_response.begin(), bins_pt_response.end(), jet_pt);
+        // int recoind = recoit - bins_pt_response.begin() - 1;
+        // if (recoind < 0) {
+        //   throw std::runtime_error("Invalid recoind pos - bins start at too high a value");
+        // } else if (recoind >= (int) multiplicity_response_binned[genind].size()) {
+        //   throw std::runtime_error("Invalid recoind pos - bins don't extend far enough");
+        // }
+        // multiplicity_response_binned[genind][recoind]->Fill(gen_mult, mult, weight);
+        // puppiMultiplicity_response_binned[genind][recoind]->Fill(gen_mult, puppiMult, weight);
+        // LHA_response_binned[genind][recoind]->Fill(gen_lha, lha, weight);
+        // pTD_response_binned[genind][recoind]->Fill(gen_ptd, ptd, weight);
+        // width_response_binned[genind][recoind]->Fill(gen_width, width, weight);
+        // thrust_response_binned[genind][recoind]->Fill(gen_thrust, thrust, weight);
       }
 
       // int jet_flav = get_jet_flavour(thisjet, event.genparticles);

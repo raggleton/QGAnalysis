@@ -50,7 +50,7 @@ protected:
     // gen-reco response hists
     TH2F * h_jet_multiplicity_response, *h_jet_puppiMultiplicity_response, *h_jet_LHA_response, *h_jet_pTD_response, *h_jet_width_response, *h_jet_thrust_response;
     TH2F * h_jet_multiplicity_norm_response, *h_jet_puppiMultiplicity_norm_response, *h_jet_LHA_norm_response, *h_jet_pTD_norm_response, *h_jet_width_norm_response, *h_jet_thrust_norm_response;
-    std::vector<std::vector<TH2F *>> multiplicity_response_binned, puppiMultiplicity_response_binned, LHA_response_binned, pTD_response_binned, width_response_binned, thrust_response_binned;
+    // std::vector<std::vector<TH2F *>> multiplicity_response_binned, puppiMultiplicity_response_binned, LHA_response_binned, pTD_response_binned, width_response_binned, thrust_response_binned;
 
     // lambda correlation hists
     // TH2F *h_jet_multiplicity_vs_LHA, *h_jet_multiplicity_vs_pTD, *h_jet_multiplicity_vs_width, *h_jet_multiplicity_vs_thrust;
