@@ -84,21 +84,21 @@ private:
         "HLT_PFJet320_v*",
         "HLT_PFJet400_v*",
         "HLT_PFJet450_v*",
-        "HLT_PFJet500_v*"
+        "HLT_PFJet500_v*",
         // "HLT_AK4PFJet30_v*",
         // "HLT_AK4PFJet50_v*",
         // "HLT_AK4PFJet80_v*",
         // "HLT_AK4PFJet100_v*",
-        // "HLT_AK8PFJet40_v*",
-        // "HLT_AK8PFJet60_v*",
-        // "HLT_AK8PFJet80_v*",
-        // "HLT_AK8PFJet140_v*",
-        // "HLT_AK8PFJet200_v*",
-        // "HLT_AK8PFJet260_v*",
-        // "HLT_AK8PFJet320_v*",
-        // "HLT_AK8PFJet400_v*",
-        // "HLT_AK8PFJet450_v*",
-        // "HLT_AK8PFJet500_v*",
+        "HLT_AK8PFJet40_v*",
+        "HLT_AK8PFJet60_v*",
+        "HLT_AK8PFJet80_v*",
+        "HLT_AK8PFJet140_v*",
+        "HLT_AK8PFJet200_v*",
+        "HLT_AK8PFJet260_v*",
+        "HLT_AK8PFJet320_v*",
+        "HLT_AK8PFJet400_v*",
+        "HLT_AK8PFJet450_v*",
+        "HLT_AK8PFJet500_v*",
     };
 };
 
@@ -294,12 +294,13 @@ bool QGAnalysisJetTrigEffModule::process(Event & event) {
     if (zplusjets_trigger_sel->passes(event)) singleMuTrigHists->fill(event);
 
     for (uint i=0; i<jet_trig_sels.size(); i++) {
-        if (jet_trig_sels.at(i).passes(event)) {
+        // Add check first to ensure trigger in event, otherwise throws
+        auto ti = event.get_trigger_index(dj_trigger_names[i]);
+        if (event.lookup_trigger_index(ti) && jet_trig_sels.at(i).passes(event)) {
             // if (i==4) cout << "Firing: " << dj_trigger_names[i] << endl;
             jetTrigHists.at(i).fill(event);
         }
     }
-
 
     return true;
 }
