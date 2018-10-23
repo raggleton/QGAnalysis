@@ -477,16 +477,16 @@ bool QGAnalysisMCModule::process(Event & event) {
  */
 std::vector<GenJetWithParts> QGAnalysisMCModule::getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min, float eta_max, float lepton_overlap_dr) {
     std::vector<GenJetWithParts> genjets;
-    for (const auto itr : *jets) {
-        bool found = (std::find(genjets.begin(), genjets.end(), itr) != genjets.end());
+    for (const auto jet : *jets) {
+        bool found = (std::find(genjets.begin(), genjets.end(), jet) != genjets.end());
         // avoid jets that are just leptons + a few spurious gluons
         bool leptonOverlap = false;
         if (genparticles != nullptr) {
             for (const auto & ptr : *genparticles) {
-                leptonOverlap = leptonOverlap || (((abs(ptr.pdgId()) == PDGID::MUON) || (abs(ptr.pdgId()) == PDGID::ELECTRON) || (abs(ptr.pdgId()) == PDGID::TAU)) && (deltaR(ptr.v4(), itr.v4()) < lepton_overlap_dr) && (abs(itr.pdgId()) == PDGID::Z));
+                leptonOverlap = leptonOverlap || (((abs(ptr.pdgId()) == PDGID::MUON) || (abs(ptr.pdgId()) == PDGID::ELECTRON) || (abs(ptr.pdgId()) == PDGID::TAU)) && (deltaR(ptr.v4(), jet.v4()) < lepton_overlap_dr));
             }
         }
-        if ((itr.pt() > pt_min) && (fabs(itr.eta()) < eta_max) && !found && !leptonOverlap) genjets.push_back(itr);
+        if ((jet.pt() > pt_min) && (fabs(jet.eta()) < eta_max) && !found && !leptonOverlap) genjets.push_back(jet);
     }
     sort_by_pt(genjets);
     return genjets;
@@ -501,7 +501,7 @@ std::vector<GenParticle> QGAnalysisMCModule::getGenMuons(std::vector<GenParticle
     std::vector<GenParticle> muons;
     // Do in reverse order to pick up most evolved muons first
     for (auto itr = genparticles->rbegin(); itr != genparticles->rend(); ++itr){
-        // We check to see if we already have a very similar, bu tno exact, muon
+        // We check to see if we already have a very similar, but not exact, muon
         // since the MC "evolves" the particle and slightly changes pt/eta/phi
         bool alreadyFound = std::any_of(muons.begin(), muons.end(), [&itr] (const GenParticle & mtr) { return deltaR(*itr, mtr) < 0.05 && itr->charge() == mtr.charge(); });
         if ((abs(itr->pdgId()) == PDGID::MUON) && (itr->status() == 1) && (itr->pt() > pt_min) && (fabs(itr->eta()) < eta_max) && !alreadyFound) {
@@ -548,6 +548,8 @@ std::vector<Jet> QGAnalysisMCModule::getMatchedJets(std::vector<Jet> * jets, std
             // cout << "Found a match at index " << matchInd << " with dr " << minDR << endl;
             // cout << "RECO pt/eta/phi: " << jtr.pt() << " : " << jtr.eta() << " : " << jtr.phi() << endl;
             // cout << "GEN pt/eta/phi: " << genjets->at(matchInd).pt() << " : " << genjets->at(matchInd).eta() << " : " << genjets->at(matchInd).phi() << endl;
+        } else {
+            if (PRINTOUT) cout << "Cannot find match for jet " << jtr.pt() << " : " << jtr.eta() << " : " << jtr.phi() << endl;
         }
     }
     return goodJets;
