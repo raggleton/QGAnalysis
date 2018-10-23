@@ -682,10 +682,13 @@ trigNames(trigNames_)
 
 void QGJetTrigHists::fill(const uhh2::Event & event) {
   if (event.jets->size()==0) return;
-  
+
   auto leadingJet = event.jets->at(0);
   for (uint i=0; i < trigNames.size(); i++) {
-    if (trigSels[i].passes(event)) {
+    // Add check first to ensure trigger in event, otherwise throws
+    auto ti = event.get_trigger_index(trigNames[i]);
+    if (event.lookup_trigger_index(ti) && trigSels[i].passes(event)) {
+      // cout << "fill: Fired: " << trigNames[i] << endl;
       hTrigs[i]->Fill(leadingJet.pt(), leadingJet.eta(), event.weight);
     }
   }
