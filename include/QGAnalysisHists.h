@@ -47,12 +47,17 @@ protected:
     TH2F *h_gjet_multiplicity_vs_pt, *h_gjet_LHA_vs_pt, *h_gjet_pTD_vs_pt, *h_gjet_width_vs_pt, *h_gjet_thrust_vs_pt, *h_gjet_response_vs_genjet_pt;
     TH2F *h_jet_puppiMultiplicity_vs_pt, *h_qjet_puppiMultiplicity_vs_pt, *h_gjet_puppiMultiplicity_vs_pt;
 
+    // gen-reco response hists
+    TH2F * h_jet_multiplicity_response, *h_jet_puppiMultiplicity_response, *h_jet_LHA_response, *h_jet_pTD_response, *h_jet_width_response, *h_jet_thrust_response;
+    TH2F * h_jet_multiplicity_norm_response, *h_jet_puppiMultiplicity_norm_response, *h_jet_LHA_norm_response, *h_jet_pTD_norm_response, *h_jet_width_norm_response, *h_jet_thrust_norm_response;
+    std::vector<std::vector<TH2F *>> multiplicity_response_binned, puppiMultiplicity_response_binned, LHA_response_binned, pTD_response_binned, width_response_binned, thrust_response_binned;
+
     // lambda correlation hists
     // TH2F *h_jet_multiplicity_vs_LHA, *h_jet_multiplicity_vs_pTD, *h_jet_multiplicity_vs_width, *h_jet_multiplicity_vs_thrust;
     // TH2F *h_jet_LHA_vs_pTD, *h_jet_LHA_vs_width, *h_jet_LHA_vs_thrust;
     // TH2F *h_jet_pTD_vs_width, *h_jet_pTD_vs_thrust;
     // TH2F *h_jet_width_vs_thrust;
-    
+
     // TH2F *h_qjet_multiplicity_vs_LHA, *h_qjet_multiplicity_vs_pTD, *h_qjet_multiplicity_vs_width, *h_qjet_multiplicity_vs_thrust;
     // TH2F *h_qjet_LHA_vs_pTD, *h_qjet_LHA_vs_width, *h_qjet_LHA_vs_thrust;
     // TH2F *h_qjet_pTD_vs_width, *h_qjet_pTD_vs_thrust;
@@ -76,6 +81,9 @@ protected:
     bool doPuppi_;
     bool doHerwigReweighting;
     TH1F * reweightHist;
+
+    std::vector<float> bins_pt_response;
+    int nbins_pt_response;
 
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
     bool is_mc_;

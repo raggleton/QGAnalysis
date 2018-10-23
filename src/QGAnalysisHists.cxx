@@ -1,4 +1,5 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisHists.h"
+#include "UHH2/QGAnalysis/include/QGAddModules.h"
 #include "UHH2/core/include/Event.h"
 
 #include "TFile.h"
@@ -12,7 +13,10 @@ using namespace uhh2examples;
 
 QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useNJets, const string & selection):
   Hists(ctx, dirname),
-  useNJets_(useNJets){
+  useNJets_(useNJets),
+  bins_pt_response(get_pt_bin_edges(3500, 1.3)),
+  nbins_pt_response(bins_pt_response.size() - 1)
+  {
 
   is_mc_ = ctx.get("dataset_type") == "MC";
   useGenPartonFlav_ = (is_mc_ && ctx.get("useGenPartonFlav") == "true");
@@ -54,7 +58,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   // RECO jet hists
   // --------------
   // For all jets
-  int nPtBins = 100;
+  int nPtBins = 2000;
   float ptMin(0.), ptMax(2000.);
   h_jet_pt = book<TH1F>("jet_pt", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, ptMax); // use as a catch-all to see we haven't missed highPT jets
   h_jet_pt_unweighted = book<TH1F>("jet_pt_unweighted", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, ptMax); // use as a catch-all to see we haven't missed highPT jets
@@ -74,6 +78,82 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_pTD = book<TH1F>("jet_pTD", ";p_{T}^{D} (#lambda_{0}^{2});", nBins, 0, 1);
   h_jet_width = book<TH1F>("jet_width", ";Width (#lambda_{1}^{1});", nBins, 0, 1);
   h_jet_thrust = book<TH1F>("jet_thrust", ";Thrust (#lambda_{2}^{1});", nBins, 0, 1);
+
+  // gen-reco response hists
+  float rsp_max = 2.;
+  h_jet_multiplicity_response = book<TH2F>("jet_multiplicity_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
+  h_jet_multiplicity_norm_response = book<TH2F>("jet_multiplicity_norm_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nMultBins, 0, rsp_max);
+  // 2D hist for each pT bin
+  multiplicity_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
+  for (int i=0; i < nbins_pt_response; i++) {
+    for (int j=0; j < nbins_pt_response; j++) {
+      multiplicity_response_binned[i][j] = book<TH2F>(TString::Format("jet_multiplicity_response_bin_%d_%d", i, j),
+                                                      TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO)",
+                                                                      bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+                                                      nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
+    }
+  }
+
+  h_jet_puppiMultiplicity_response = book<TH2F>("jet_puppiMultiplicity_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
+  h_jet_puppiMultiplicity_norm_response = book<TH2F>("jet_puppiMultiplicity_norm_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nMultBins, 0, rsp_max);
+  puppiMultiplicity_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
+  for (int i=0; i < nbins_pt_response; i++) {
+    for (int j=0; j < nbins_pt_response; j++) {
+      puppiMultiplicity_response_binned[i][j] = book<TH2F>(TString::Format("jet_puppiMultiplicity_response_bin_%d_%d", i, j),
+                                                      TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO)",
+                                                                      bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+                                                      nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
+    }
+  }
+
+  h_jet_LHA_response = book<TH2F>("jet_LHA_response", ";LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_LHA_norm_response = book<TH2F>("jet_LHA_norm_response", ";LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO / GEN)", nBins, 0, 1, nBins, 0, rsp_max);
+  LHA_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
+  for (int i=0; i < nbins_pt_response; i++) {
+    for (int j=0; j < nbins_pt_response; j++) {
+      LHA_response_binned[i][j] = book<TH2F>(TString::Format("jet_lha_response_bin_%d_%d", i, j),
+                                                      TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO)",
+                                                                      bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+                                                      nBins, 0, 1, nBins, 0, 1);
+    }
+  }
+
+
+  h_jet_pTD_response = book<TH2F>("jet_pTD_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_pTD_norm_response = book<TH2F>("jet_pTD_norm_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO / GEN)", nBins, 0, 1, nBins, 0, rsp_max);
+  pTD_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
+  for (int i=0; i < nbins_pt_response; i++) {
+    for (int j=0; j < nbins_pt_response; j++) {
+      pTD_response_binned[i][j] = book<TH2F>(TString::Format("jet_pTD_response_bin_%d_%d", i, j),
+                                                      TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO)",
+                                                                      bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+                                                      nBins, 0, 1, nBins, 0, 1);
+    }
+  }
+
+  h_jet_width_response = book<TH2F>("jet_width_response", ";Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_width_norm_response = book<TH2F>("jet_width_norm_response", ";Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO / GEN)", nBins, 0, 1, nBins, 0, rsp_max);
+  width_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
+  for (int i=0; i < nbins_pt_response; i++) {
+    for (int j=0; j < nbins_pt_response; j++) {
+      width_response_binned[i][j] = book<TH2F>(TString::Format("jet_width_response_bin_%d_%d", i, j),
+                                                      TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO)",
+                                                                      bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+                                                      nBins, 0, 1, nBins, 0, 1);
+    }
+  }
+
+  h_jet_thrust_response = book<TH2F>("jet_thrust_response", ";Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_thrust_norm_response = book<TH2F>("jet_thrust_norm_response", ";Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO / GEN)", nBins, 0, 1, nBins, 0, rsp_max);
+  thrust_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
+  for (int i=0; i < nbins_pt_response; i++) {
+    for (int j=0; j < nbins_pt_response; j++) {
+      thrust_response_binned[i][j] = book<TH2F>(TString::Format("jet_thrust_response_bin_%d_%d", i, j),
+                                                      TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO)",
+                                                                      bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+                                                      nBins, 0, 1, nBins, 0, 1);
+    }
+  }
 
   // q jet only
   h_qjet_multiplicity = book<TH1F>("qjet_multiplicity", "q-flavour;# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
@@ -259,37 +339,45 @@ void QGAnalysisHists::fill(const Event & event){
   // Fill reco jet hists
   for (int i = 0; i < useNJets_; i++) {
     const Jet & thisjet = jets->at(i);
-    int mult = thisjet.numberOfDaughters();
+    float mult = thisjet.numberOfDaughters();
 
     std::vector<PFParticle*> daughters = get_jet_pfparticles(thisjet, event.pfparticles);
 
     // do special vars according to 1704.03878
-    float ptd = 0, lha = 0, width = 0, thrust = 0;
-    float pt_sum = 0;
-    for (auto dtr : daughters) {
-      float puppiWeight = (doPuppi_) ? dtr->puppiWeight() : 1.;
-      pt_sum += dtr->pt() * puppiWeight;
-    }
+    // float ptd = 0, lha = 0, width = 0, thrust = 0;
+    // float pt_sum = 0;
+    // for (auto dtr : daughters) {
+    //   float puppiWeight = (doPuppi_) ? dtr->puppiWeight() : 1.;
+    //   pt_sum += dtr->pt() * puppiWeight;
+    // }
+    // // cout << "this pt_sum: " << pt_sum << endl;
 
-    for (auto dtr : daughters) {
-      float puppiWeight = (doPuppi_) ? dtr->puppiWeight() : 1.;
-      float z = dtr->pt() * puppiWeight / pt_sum;
-      float theta = deltaR(dtr->v4(), thisjet.v4()) / jetRadius;
-      ptd += pow(z, 2);
-      lha += z * pow(theta, 0.5);
-      width += z * theta;
-      thrust += z * pow(theta, 2);
-    }
+    // for (auto dtr : daughters) {
+    //   float puppiWeight = (doPuppi_) ? dtr->puppiWeight() : 1.;
+    //   float z = dtr->pt() * puppiWeight / pt_sum;
+    //   float theta = deltaR(dtr->v4(), thisjet.v4()) / jetRadius;
+    //   ptd += pow(z, 2);
+    //   lha += z * pow(theta, 0.5);
+    //   // cout << "Adding to original LHA: " <<  z * pow(theta, 0.5) << endl;
+    //   width += z * theta;
+    //   thrust += z * pow(theta, 2);
+    // }
+
+    LambdaCalculator<PFParticle> recoJetCalc(daughters, jetRadius, thisjet.v4(), doPuppi_);
+    float lha = recoJetCalc.getLambda(1, 0.5);
+    float ptd = recoJetCalc.getLambda(2, 0);
+    float width = recoJetCalc.getLambda(1, 1);
+    float thrust = recoJetCalc.getLambda(1, 2);
 
     float jet_pt = thisjet.pt();
     h_weights_vs_pt->Fill(weight, jet_pt);
-    if (i == 0) {
-      h_weights_vs_pt->Fill(weight, thisjet.pt());
-      if (is_mc_) {
-        if (event.genInfo->binningValues().size() > 0)
-          h_pthat_vs_jet_pt->Fill(thisjet.pt(), event.genInfo->binningValues()[0]);
-      }
+    // if (i == 0) {
+    h_weights_vs_pt->Fill(weight, thisjet.pt());
+    if (is_mc_) {
+      if (event.genInfo->binningValues().size() > 0)
+        h_pthat_vs_jet_pt->Fill(thisjet.pt(), event.genInfo->binningValues()[0]);
     }
+    // }
     h_jet_pt_unweighted->Fill(jet_pt);
     h_jet_pt->Fill(jet_pt, weight);
     h_jet_eta->Fill(thisjet.eta(), weight);
@@ -310,6 +398,7 @@ void QGAnalysisHists::fill(const Event & event){
     h_jet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
 
     if (is_mc_) {
+      // Store variables for matched GenJet
       bool matchedJet = false;
       float genjet_pt = -1.;
       float response = -1.;
@@ -319,6 +408,48 @@ void QGAnalysisHists::fill(const Event & event){
         genjet_pt = genjet.pt();
         response = jet_pt/genjet_pt;
         h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+
+        float gen_mult = genjet.genparticles_indices().size();
+        h_jet_multiplicity_response->Fill(gen_mult, mult, weight);
+        h_jet_puppiMultiplicity_response->Fill(gen_mult, puppiMult, weight);
+        h_jet_multiplicity_norm_response->Fill(gen_mult, mult/gen_mult, weight);
+        h_jet_puppiMultiplicity_norm_response->Fill(gen_mult, puppiMult/gen_mult, weight);
+
+        std::vector<GenParticle*> matchedDaughters = get_genjet_genparticles(genjet, event.genparticles);
+        LambdaCalculator<GenParticle> matchedGenJetCalc(matchedDaughters, jetRadius, genjet.v4(), false);
+        float gen_lha = matchedGenJetCalc.getLambda(1, 0.5);
+        h_jet_LHA_response->Fill(gen_lha, lha, weight);
+        h_jet_LHA_norm_response->Fill(gen_lha, lha/gen_lha, weight);
+        float gen_ptd = matchedGenJetCalc.getLambda(2, 0);
+        h_jet_pTD_response->Fill(gen_ptd, ptd, weight);
+        h_jet_pTD_norm_response->Fill(gen_ptd, ptd/gen_ptd, weight);
+        float gen_width = matchedGenJetCalc.getLambda(1, 1);
+        h_jet_width_response->Fill(gen_width, width, weight);
+        h_jet_width_norm_response->Fill(gen_width, width/gen_width, weight);
+        float gen_thrust = matchedGenJetCalc.getLambda(1, 2);
+        h_jet_thrust_response->Fill(gen_thrust, thrust, weight);
+        h_jet_thrust_norm_response->Fill(gen_thrust, thrust/gen_thrust, weight);
+
+        auto genit = std::lower_bound(bins_pt_response.begin(), bins_pt_response.end(), genjet_pt);
+        int genind = genit - bins_pt_response.begin() - 1; // need the -1 to get the offset correct
+        if (genind < 0) {
+          throw std::runtime_error("Invalid genind pos - bins start at too high a value");
+        } else if (genind >= (int) multiplicity_response_binned.size()) {
+          throw std::runtime_error("Invalid genind pos - bins don't extend far enough");
+        }
+        auto recoit = std::lower_bound(bins_pt_response.begin(), bins_pt_response.end(), jet_pt);
+        int recoind = recoit - bins_pt_response.begin() - 1;
+        if (recoind < 0) {
+          throw std::runtime_error("Invalid recoind pos - bins start at too high a value");
+        } else if (recoind >= (int) multiplicity_response_binned[genind].size()) {
+          throw std::runtime_error("Invalid recoind pos - bins don't extend far enough");
+        }
+        multiplicity_response_binned[genind][recoind]->Fill(gen_mult, mult, weight);
+        puppiMultiplicity_response_binned[genind][recoind]->Fill(gen_mult, puppiMult, weight);
+        LHA_response_binned[genind][recoind]->Fill(gen_lha, lha, weight);
+        pTD_response_binned[genind][recoind]->Fill(gen_ptd, ptd, weight);
+        width_response_binned[genind][recoind]->Fill(gen_width, width, weight);
+        thrust_response_binned[genind][recoind]->Fill(gen_thrust, thrust, weight);
       }
 
       // int jet_flav = get_jet_flavour(thisjet, event.genparticles);
@@ -433,23 +564,30 @@ void QGAnalysisHists::fill(const Event & event){
       h_genjet_eta->Fill(thisjet.eta(), weight);
 
       // do special vars according to 1704.03878
-      uint mult = 0;
-      float ptd = 0, lha = 0, width = 0, thrust = 0;
-      float pt_sum = 0;
+      LambdaCalculator<GenParticle> genJetCalc(daughters, jetRadius, thisjet.v4(), false);
+      float lha = genJetCalc.getLambda(1, 0.5);
+      float ptd = genJetCalc.getLambda(2, 0);
+      float width = genJetCalc.getLambda(1, 1);
+      float thrust = genJetCalc.getLambda(1, 2);
+      uint mult = daughters.size();
 
-      for (auto dtr : daughters) {
-        pt_sum += dtr->pt();
-        mult += 1;
-      }
+      // uint mult = 0;
+      // float ptd = 0, lha = 0, width = 0, thrust = 0;
+      // float pt_sum = 0;
 
-      for (auto dtr : daughters) {
-        float z = dtr->pt() / pt_sum;
-        float theta = deltaR(dtr->v4(), thisjet.v4()) / jetRadius;
-        ptd += pow(z, 2);
-        lha += z * pow(theta, 0.5);
-        width += z*theta;
-        thrust += z * pow(theta, 2);
-      }
+      // for (auto dtr : daughters) {
+      //   pt_sum += dtr->pt();
+      //   mult += 1;
+      // }
+
+      // for (auto dtr : daughters) {
+      //   float z = dtr->pt() / pt_sum;
+      //   float theta = deltaR(dtr->v4(), thisjet.v4()) / jetRadius;
+      //   ptd += pow(z, 2);
+      //   lha += z * pow(theta, 0.5);
+      //   width += z*theta;
+      //   thrust += z * pow(theta, 2);
+      // }
 
       h_genjet_multiplicity->Fill(mult, weight);
       h_genjet_LHA->Fill(lha, weight);
@@ -532,6 +670,7 @@ trigNames(trigNames_)
 {
   int nPtBins = 800;
   float ptMin(0.), ptMax(2000.);
+  nPtBins = (int)ptMax;
   int nEtaBins = 50;
   float etaMin(-5), etaMax(5);
   for (const auto & trig: trigNames) {
