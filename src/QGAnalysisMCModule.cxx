@@ -251,7 +251,12 @@ bool QGAnalysisMCModule::process(Event & event) {
     if (PRINTOUT) printJets(*event.jets, "Precleaning");
 
     // Gen-level HT cut if necessary
-    if ((htMax > 0) && (calcGenHT(*(event.genparticles)) > htMax)) { return false; }
+    float genHT = 0;
+    if (!event.isRealData) {
+        genHT = calcGenHT(*(event.genparticles));
+    }
+    if ((htMax > 0) && (genHT > htMax)) { return false; }
+
 
     if (!common_setup->process(event)) {return false;}
     mc_reweight->process(event);
