@@ -551,7 +551,7 @@ void QGAnalysisHists::fill(const Event & event){
     //   const GenJetWithParts & thisjet = genjets->at(i);
     int counter = 0;
     for (const auto & thisjet : *genjets) {
-      if (!(thisjet.pt() > 100 && fabs(thisjet.eta()) < 1.5))
+      if (!(thisjet.pt() > 30 && fabs(thisjet.eta()) < 2.4))
         continue;
 
       counter++;
