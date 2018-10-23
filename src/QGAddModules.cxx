@@ -283,6 +283,66 @@ float ZllKFactor::getKFactor(float zPt) {
   return factor;
 }
 
+namespace uhh2examples {
+
+
+template<class T>
+LambdaCalculator<T>::LambdaCalculator(std::vector<T*> daughters, float jet_radius, const LorentzVector & jet_vector, bool usePuppiWeight):
+  daughters_(daughters),
+  jetRadius_(jet_radius),
+  ptSum_(0),
+  jetVector_(jet_vector),
+  usePuppiWeight_(usePuppiWeight)
+{
+  // cache pt_sum
+  for (auto dtr : daughters_) {
+    float weight = usePuppiWeight_ ? dtr->puppiWeight() : 1.;
+    ptSum_ += weight*dtr->pt();
+  }
+  // cout << "calc ptSum: " << ptSum_ << endl;
+}
+
+template<>
+LambdaCalculator<GenParticle>::LambdaCalculator(std::vector<GenParticle*> daughters, float jet_radius, const LorentzVector & jet_vector, bool usePuppiWeight):
+  daughters_(daughters),
+  jetRadius_(jet_radius),
+  ptSum_(0),
+  jetVector_(jet_vector),
+  usePuppiWeight_(usePuppiWeight)
+{
+  // cache pt_sum
+  for (auto dtr : daughters_) {
+    ptSum_ += dtr->pt();
+  }
+}
+
+template<class T>
+float LambdaCalculator<T>::getLambda(float kappa, float beta)
+{
+  float result = 0.;
+  for (auto dtr : daughters_) {
+    float weight = usePuppiWeight_ ? dtr->puppiWeight() : 1.;
+    float z = (kappa != 0) ? dtr->pt() / ptSum_ : 1.;
+    z *= weight;
+    float theta = (beta != 0) ? deltaR(dtr->v4(), jetVector_) / jetRadius_ : 1.; // 1 as puppi doesn't change direction
+    result += (pow(z, kappa) * pow(theta, beta));
+  }
+  return result;
+}
+
+template<>
+float LambdaCalculator<GenParticle>::getLambda(float kappa, float beta)
+{
+  float result = 0.;
+  for (auto dtr : daughters_) {
+    float z = (kappa != 0) ? dtr->pt() / ptSum_ : 1.;
+    float theta = (beta != 0) ? deltaR(dtr->v4(), jetVector_) / jetRadius_ : 1.;
+    result += (pow(z, kappa) * pow(theta, beta));
+  }
+  return result;
+}
+}
+
 std::vector<float> calc_pt_bin_edges(float start, float end, float factor)
 {
   std::vector<float> values;

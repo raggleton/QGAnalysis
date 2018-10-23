@@ -127,6 +127,22 @@ private:
   std::unique_ptr<uhh2examples::ZllKFactor> zReweight;
 };
 
+/**
+ * Calculate any LesHouches variable from jet constituents
+ */
+template <class T> class LambdaCalculator {
+public:
+  LambdaCalculator(std::vector<T*> daughters, float jet_radius, const LorentzVector & jet_vector, bool usePuppiWeight);
+  float getLambda(float kappa, float beta);
+private:
+  std::vector<T*> daughters_;
+  float jetRadius_, ptSum_;
+  LorentzVector jetVector_;
+  bool usePuppiWeight_;
+};
+
+template class LambdaCalculator<PFParticle>;
+template class LambdaCalculator<GenParticle>;
 };
 
 float get_jet_radius(const std::string & jet_cone);
