@@ -51,16 +51,16 @@ private:
 
     // Reco selections/hists
     std::unique_ptr<ZFinder> zFinder;
-    std::unique_ptr<Selection> njet_sel, zplusjets_sel, zplusjets_presel, dijet_sel;
+    std::unique_ptr<Selection> njet_sel, zplusjets_sel, zplusjets_presel, dijet_sel, dijet_sel_tighter;
 
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists;
     std::unique_ptr<Hists> zplusjets_hists_presel_q, zplusjets_hists_presel_g, zplusjets_hists_presel_unknown;
     std::unique_ptr<Hists> zplusjets_qg_hists;
 
-    std::unique_ptr<Hists> dijet_hists_presel, dijet_hists;
+    std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_hists_tighter;
     std::unique_ptr<Hists> dijet_hists_presel_gg, dijet_hists_presel_qg, dijet_hists_presel_gq, dijet_hists_presel_qq;
     std::unique_ptr<Hists> dijet_hists_presel_q_unknown, dijet_hists_presel_g_unknown, dijet_hists_presel_unknown_unknown, dijet_hists_presel_unknown_q, dijet_hists_presel_unknown_g;
-    std::unique_ptr<Hists> dijet_qg_hists;
+    std::unique_ptr<Hists> dijet_qg_hists, dijet_qg_hists_tighter;
 
     std::unique_ptr<Hists> dijet_hists_presel_highPt, dijet_hists_highPt;
     std::unique_ptr<Hists> dijet_hists_presel_gg_highPt, dijet_hists_presel_qg_highPt, dijet_hists_presel_gq_highPt, dijet_hists_presel_qq_highPt;
@@ -155,11 +155,12 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // DIJET selection
     float dphi_min = 2.;
     float second_jet_frac_max_dj = 10.94;
-    float third_jet_frac_max = 10.3;
+    float jet_asym_max = 0.3;
     bool ss_eta = false;
     float deta = 12;
     float sumEta = 10.;
-    dijet_sel.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, third_jet_frac_max, ss_eta, deta, sumEta));
+    dijet_sel.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, 1000, ss_eta, deta, sumEta));
+    dijet_sel_tighter.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta));
 
     // zplusjets_theory_sel.reset(new ZplusJetsTheorySelection(ctx));
     // dijet_theory_sel.reset(new DijetTheorySelection(ctx));
@@ -186,21 +187,23 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     dijet_hists_presel_q_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_q_unknown", binning_method));
     dijet_hists_presel_g_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_g_unknown", binning_method));
     dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet", binning_method));
+    dijet_hists_tighter.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
     dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", 2, "dijet"));
+    dijet_qg_hists_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter", 2, "dijet"));
 
-    dijet_hists_presel_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_highPt", binning_method));
+    // dijet_hists_presel_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_highPt", binning_method));
     // preselection hiss, if both gluon jets, one gluon, or both quark, or one or both unknown
-    dijet_hists_presel_gg_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gg_highPt", binning_method));
-    dijet_hists_presel_qg_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qg_highPt", binning_method));
-    dijet_hists_presel_gq_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gq_highPt", binning_method));
-    dijet_hists_presel_qq_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qq_highPt", binning_method));
-    dijet_hists_presel_unknown_q_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_q_highPt", binning_method));
-    dijet_hists_presel_unknown_g_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_g_highPt", binning_method));
-    dijet_hists_presel_unknown_unknown_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_unknown_highPt", binning_method));
-    dijet_hists_presel_q_unknown_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_q_unknown_highPt", binning_method));
-    dijet_hists_presel_g_unknown_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_g_unknown_highPt", binning_method));
-    dijet_hists_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_highPt", binning_method));
-    dijet_qg_hists_highPt.reset(new QGAnalysisHists(ctx, "Dijet_QG_highPt", 2, "dijet"));
+    // dijet_hists_presel_gg_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gg_highPt", binning_method));
+    // dijet_hists_presel_qg_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qg_highPt", binning_method));
+    // dijet_hists_presel_gq_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gq_highPt", binning_method));
+    // dijet_hists_presel_qq_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qq_highPt", binning_method));
+    // dijet_hists_presel_unknown_q_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_q_highPt", binning_method));
+    // dijet_hists_presel_unknown_g_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_g_highPt", binning_method));
+    // dijet_hists_presel_unknown_unknown_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_unknown_highPt", binning_method));
+    // dijet_hists_presel_q_unknown_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_q_unknown_highPt", binning_method));
+    // dijet_hists_presel_g_unknown_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_g_unknown_highPt", binning_method));
+    // dijet_hists_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_highPt", binning_method));
+    // dijet_qg_hists_highPt.reset(new QGAnalysisHists(ctx, "Dijet_QG_highPt", 2, "dijet"));
 
 
     // zplusjets_hists_theory.reset(new QGAnalysisTheoryHists(ctx, "ZPlusJets_genjet", 1, "zplusjets"));
@@ -375,11 +378,14 @@ bool QGAnalysisMCModule::process(Event & event) {
                 dijet_hists_presel_unknown_unknown->fill(event);
             }
         }
-
         dj = dijet_sel->passes(event);
         if (dj) {
             dijet_hists->fill(event);
             dijet_qg_hists->fill(event);
+        }
+        if (dijet_sel_tighter->passes(event)) {
+            dijet_hists_tighter->fill(event);
+            dijet_qg_hists_tighter->fill(event);
         }
     }
 

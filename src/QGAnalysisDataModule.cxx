@@ -117,11 +117,11 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     // DIJET selection
     float dphi_min = 2.;
     float second_jet_frac_max_dj = 10.94;
-    float third_jet_frac_max = 10.3;
+    float jet_asym_max = 0.3;
     bool ss_eta = false;
     float deta = 12;
     float sumEta = 10.;
-    dijet_sel.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, third_jet_frac_max, ss_eta, deta, sumEta));
+    dijet_sel.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta));
 
     // Triggers for data
     zerobias_trigger_sel.reset(new TriggerSelection("HLT_ZeroBias_v*"));
@@ -187,8 +187,8 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
 
     std::string binning_method = "ave";
     dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
-    dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet", binning_method));
-    dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", 2, "dijet"));
+    dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
+    dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter", 2, "dijet"));
 
     // event_sel.reset(new EventNumberSelection({111}));
 }
