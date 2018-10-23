@@ -68,10 +68,10 @@ bool ZplusJetsSelection::passes(const Event & event){
 }
 
 
-DijetSelection::DijetSelection(float dphi_min, float second_jet_frac_max, float third_jet_frac_max, bool ss_eta, float deta_max, float sum_eta):
+DijetSelection::DijetSelection(float dphi_min, float second_jet_frac_max, float jet_asym_max, bool ss_eta, float deta_max, float sum_eta):
     dphi_min_(dphi_min),
     second_jet_frac_max_(second_jet_frac_max),
-    third_jet_frac_max_(third_jet_frac_max),
+    jet_asym_max_(jet_asym_max),
     ss_eta_(ss_eta),
     deta_max_(deta_max),
     sum_eta_(sum_eta)
@@ -94,11 +94,13 @@ bool DijetSelection::passes(const Event & event){
 
     if (fabs(eta1 - eta2) > deta_max_) return false;
 
-    if (event.jets->size() == 2) return true;
+    if (((jet1.pt() - jet2.pt())/(jet1.pt() + jet2.pt())) > jet_asym_max_) return false;
 
-    const auto & jet3 = event.jets->at(2);
-    auto third_jet_frac = jet3.pt() / (0.5 * (jet1.pt() + jet2.pt()));
-    return third_jet_frac < third_jet_frac_max_;
+    return true;
+
+    // const auto & jet3 = event.jets->at(2);
+    // auto third_jet_frac = jet3.pt() / (0.5 * (jet1.pt() + jet2.pt()));
+    // return third_jet_frac < third_jet_frac_max_;
 }
 
 

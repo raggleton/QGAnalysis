@@ -32,10 +32,10 @@ private:
  */
 class DijetSelection: public uhh2::Selection {
 public:
-    DijetSelection(float dphi_min=2.0, float second_jet_frac_max=0.94, float third_jet_frac_max=0.3, bool ss_eta=false, float deta_max=10, float sum_eta=10);
+    DijetSelection(float dphi_min=2.0, float second_jet_frac_max=0.94, float jet_asym_max=0.3, bool ss_eta=false, float deta_max=10, float sum_eta=10);
     virtual bool passes(const uhh2::Event & event) override;
 private:
-    float dphi_min_, second_jet_frac_max_, third_jet_frac_max_, ss_eta_, deta_max_, sum_eta_;
+    float dphi_min_, second_jet_frac_max_, jet_asym_max_, ss_eta_, deta_max_, sum_eta_;
 };
 
 
