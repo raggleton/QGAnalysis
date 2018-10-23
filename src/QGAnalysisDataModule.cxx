@@ -60,8 +60,8 @@ private:
     std::unique_ptr<Selection> zerobias_trigger_sel;
     std::unique_ptr<OrSelection> zplusjets_trigger_sel;
     std::unique_ptr<DataJetSelection> dijet_trigger_sel;
-    std::vector<std::string> dj_trig_names;
-    std::vector<float> dj_trig_prescales, dj_trig_thresholds;
+    std::vector<std::string> dj_trig_names, ak4dj_trig_names, ak8dj_trig_names;
+    std::vector<float> dj_trig_prescales, ak4dj_trig_prescales, ak8dj_trig_prescales, dj_trig_thresholds;
     float jetht_zb_pt_boundary;
 
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists, zplusjets_qg_hists;
@@ -136,7 +136,8 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     }
 
     // TODO find some better structure to hold this data together?
-    dj_trig_names = {
+    ak4dj_trig_names = {
+        "HLT_PFJet40_v*",
         "HLT_PFJet60_v*",
         "HLT_PFJet80_v*",
         "HLT_PFJet140_v*",
@@ -146,27 +147,62 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
         "HLT_PFJet400_v*",
         "HLT_PFJet450_v*"
     };
-
-    dj_trig_thresholds = {
-        80,
-        103,
-        191,
-        258,
-        332,
-        362,
-        457,
-        565
+    ak8dj_trig_names = {
+        "HLT_AK8PFJet40_v*",
+        "HLT_AK8PFJet60_v*",
+        "HLT_AK8PFJet80_v*",
+        "HLT_AK8PFJet140_v*",
+        "HLT_AK8PFJet200_v*",
+        "HLT_AK8PFJet260_v*",
+        "HLT_AK8PFJet320_v*",
+        "HLT_AK8PFJet400_v*",
+        "HLT_AK8PFJet450_v*"
     };
 
-    dj_trig_prescales = {
-        49891.9453547,
-        13120.4895678,
-        1496.44452961,
-        348.686346954,
-        61.0210313345,
-        20.446914767,
-        3*2.38456,
-        1.00010464076
+    dj_trig_thresholds = {
+        65,
+        88,
+        114,
+        180,
+        254,
+        318,
+        400,
+        500,
+        625,
+        // 50,
+        // 65,
+        // 88,
+        // 109,
+        // 180,
+        // 250,
+        // 318,
+        // 388,
+        // 479,
+        // 535,
+    };
+
+    ak4dj_trig_prescales = {
+        135892.2580,
+        49972.7348,
+        13168.7348,
+        1499.7422,
+        349.8364,
+        61.1339,
+        20.4793,
+        6.9885,
+        1.0000,
+    };
+
+    ak8dj_trig_prescales = {
+        674753.7,
+        102172.0,
+        33363.6,
+        3316.4,
+        390.9,
+        64.7,
+        22.0,
+        7.3,
+        1.0,
     };
 
 
@@ -176,7 +212,13 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
         float upperPt = (i == dj_trig_thresholds.size()-1) ? 999999 : dj_trig_thresholds.at(i+1);
         dj_trigger_bins.push_back(std::make_pair(lowerPt, upperPt));
     }
-    dijet_trigger_sel.reset(new DataJetSelection(dj_trig_names, dj_trigger_bins));
+    if (jet_cone == "AK8") {
+        dijet_trigger_sel.reset(new DataJetSelection(ak8dj_trig_names, dj_trigger_bins));
+        dj_trig_prescales = ak8dj_trig_prescales;
+    } else {
+        dijet_trigger_sel.reset(new DataJetSelection(ak4dj_trig_names, dj_trigger_bins));
+        dj_trig_prescales = ak4dj_trig_prescales;
+    }
 
     jetht_zb_pt_boundary = dj_trig_thresholds.at(0);
 
