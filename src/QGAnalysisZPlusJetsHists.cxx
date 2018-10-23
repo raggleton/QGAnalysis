@@ -1,4 +1,6 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisZPlusJetsHists.h"
+#include "UHH2/QGAnalysis/include/QGAddModules.h"
+
 #include "UHH2/core/include/Event.h"
 
 #include "TFile.h"
@@ -11,9 +13,11 @@ using namespace std;
 using namespace uhh2;
 using namespace uhh2examples;
 
-QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string & dirname, const std::string & zLabel_): 
+QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string & dirname, const std::string & zLabel_):
 Hists(ctx, dirname),
-hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
+hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_)),
+bins_pt_response(calc_pt_bin_edges(5, 3500, 1.3)),
+nbins_pt_response(bins_pt_response.size() - 1)
 {
   doHerwigReweighting = ctx.get("herwig_reweight_file", "") != "";
   if (doHerwigReweighting) {
@@ -26,6 +30,11 @@ hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
       reweightHist->SetDirectory(0);
     }
   }
+
+  string jet_cone = ctx.get("JetCone", "AK4");
+  jetRadius = get_jet_radius(jet_cone);
+
+  if (ctx.get("dataset_type") == "MC") genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > ("GoodGenJets");
 
   // book all histograms here
   // jets
@@ -45,8 +54,15 @@ hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
 
   n_jets_vs_pt = book<TH2F>(TString::Format("n_jets_vs_%s", binByVar.Data()), TString::Format(";N_{jets};%s", binByVarLabel.Data()), 10, 0, 10, nbins_pt, 0, pt_max);
   pt_jet1 = book<TH1F>("pt_jet1", ";p_{T}^{jet 1} [GeV];", nbins_pt, 0, pt_max);
+  pt_jet_response_binning = book<TH1F>("pt_jet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt_response, &bins_pt_response[0]);
+  pt_genjet_response_binning = book<TH1F>("pt_genjet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt_response, &bins_pt_response[0]);
+
   eta_jet1_vs_pt = book<TH2F>(TString::Format("eta_jet1_vs_%s", binByVar.Data()), TString::Format(";#eta^{jet 1};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
   pt_jet1_z_ratio_vs_pt = book<TH2F>(TString::Format("pt_jet1_z_ratio_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{jet 1}/ p_{T}^{%s};%s", zName.Data(), binByVarLabel.Data()), 50, 0, 5, nbins_pt, 0, pt_max);
+  pt_jet_genHT_ratio = book<TH1F>("pt_jet_genHT_ratio", ";p_{T}^{jet 1}/GenHT", 250, 0, 25);
+  pt_jet_response_fine = book<TH2F>("pt_jet_response_fine", ";p_{T}^{jet 1} (GEN);p_{T}^{jet 1} (RECO)", nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
+  pt_jet_response = book<TH2F>("pt_jet_response", ";p_{T}^{jet 1} (GEN);p_{T}^{jet 1} (RECO)", nbins_pt_response, &bins_pt_response[0], nbins_pt_response, &bins_pt_response[0]);
+  eta_jet_response = book<TH2F>("eta_jet_response", ";#eta^{jet} (GEN);#eta^{jet} (RECO)", nbins_eta, -eta_max, eta_max, nbins_eta, -eta_max, eta_max);
 
   gen_ht = book<TH1F>("gen_ht", ";H_{T}^{Gen} [GeV]", 500, 0, 5000);
 
@@ -55,6 +71,14 @@ hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
   pt_jet2_z_ratio_vs_pt = book<TH2F>(TString::Format("pt_jet2_z_ratio_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{jet 2} / p_{T}^{%s};%s", zName.Data(), binByVarLabel.Data()), 60, 0, 3, nbins_pt, 0, pt_max);
   pt_jet1_pt_jet2_ratio_vs_pt = book<TH2F>(TString::Format("pt_jet1_pt_jet2_ratio_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{jet 1} / p_{T}^{jet 2};%s", binByVarLabel.Data()), 100, 0, 5, nbins_pt, 0, pt_max);
 
+  int nbins_jet_ind = 5;
+  genjet1_ind_vs_pt_jet1 = book<TH2F>("genjet1_ind_vs_pt_jet1", ";GenJet index;p_{T}^{jet 1} [GeV]", nbins_jet_ind, 0-0.5, nbins_jet_ind-0.5, nbins_pt, 0, pt_max);
+  for (int i=0; i < nbins_pt_response; i++) {
+    TH2F * tmp = book<TH2F>(TString::Format("genjet_ind_recojet_ind_pt_%g_%g", bins_pt_response.at(i), bins_pt_response.at(i+1)),
+                            TString::Format("%g < p_{T}^{Gen} < %g GeV;GenJet index; RecoJet index", bins_pt_response.at(i), bins_pt_response.at(i+1)),
+                            nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5);
+    genjet_recojet_ind_binned.push_back(tmp);
+  }
   // muons
   n_mu_vs_pt = book<TH2F>(TString::Format("n_mu_vs_%s", binByVar.Data()), TString::Format(";N_{#mu};%s", binByVarLabel.Data()), 10, 0, 10, nbins_pt, 0, pt_max);
 
@@ -113,7 +137,7 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   if (Njets >= 1) {
     jet1_pt = jets->at(0).pt();
   }
-  
+
   // Muons
   auto & muons = event.get(hndlZ);
   Muon mu1 = muons.at(0);
@@ -123,7 +147,7 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   pt_mumu->Fill(z_pt, weight);
 
   float binPt = z_pt;
-  
+
   int Nmuons = event.muons->size();
   n_mu_vs_pt->Fill(Nmuons, binPt, weight);
 
@@ -149,9 +173,95 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
 
   Jet & jet1 = jets->at(0);
   pt_jet1->Fill(jet1_pt, weight);
+  pt_jet_response_binning->Fill(jet1_pt, weight);
   eta_jet1_vs_pt->Fill(jet1.eta(), binPt, weight);
 
-  if (!event.isRealData) gen_ht->Fill(calcGenHT(*(event.genparticles)), weight);
+  if (!event.isRealData) {
+    float genHT = calcGenHT(*(event.genparticles));
+    gen_ht->Fill(genHT, weight);
+    pt_jet_genHT_ratio->Fill(jet1_pt / genHT, weight);
+
+    const std::vector<GenJetWithParts> * genjets = &event.get(genJets_handle);
+    int gj_ind1 = jet1.genjet_index();
+
+    // if (gj_ind1 < 0) throw std::runtime_error("gj_ind1 is < 0");
+    if (gj_ind1 >= int(genjets->size())) throw std::runtime_error("gj_ind1 is larger than genjet collection");
+
+    genjet1_ind_vs_pt_jet1->Fill(gj_ind1, jet1_pt);
+
+    if (gj_ind1 >=0 ) {
+      auto genjet1 = genjets->at(gj_ind1);
+
+      pt_jet_response->Fill(genjet1.pt(), jet1_pt, weight);
+      pt_jet_response_fine->Fill(genjet1.pt(), jet1_pt, weight);
+      eta_jet_response->Fill(genjet1.eta(), jet1.eta(), weight);
+      pt_genjet_response_binning->Fill(genjet1.pt(), weight);
+    }
+
+    // plot indices of matching genjets/recojets
+    int genjet_ind = 0;
+    std::vector<int> matches;
+    for (const auto & gjItr : *genjets) {
+      if (genjet_ind > 5) break;
+
+      // find matching recojet for this genjet
+      float dr_min = 9999;
+      int reco_ind = -1;
+      for (uint rj_ind=0; rj_ind < jets->size(); rj_ind++) {
+        // skip if already matched reco jet
+        if (std::find(matches.begin(), matches.end(), rj_ind) != matches.end()) continue;
+
+        float this_dr = deltaR(jets->at(rj_ind), gjItr);
+        if (this_dr < dr_min && this_dr < (jetRadius/2.)) {
+          reco_ind = rj_ind;
+        }
+      }
+      if (reco_ind >= 0) matches.push_back(reco_ind);
+      //  find which bin is suitable
+      auto pos = std::lower_bound(bins_pt_response.begin(), bins_pt_response.end(), gjItr.pt()) - bins_pt_response.begin();
+      if (pos > (int) genjet_recojet_ind_binned.size()+1) {
+        cout << pos << endl;
+        cout << gjItr.pt() << endl;
+        for (auto b : bins_pt_response) {
+          cout << b << " ";
+        }
+        cout << endl;
+        throw std::runtime_error("Invalid pos");
+      }
+      // need -1 as it will find the upper edge
+      genjet_recojet_ind_binned.at(pos-1)->Fill(genjet_ind, reco_ind, weight);
+
+      genjet_ind++;
+
+      // now go through the recojets and see if there are any missing matches
+      int recojet_ind = 0;
+      for (const auto & rjItr : *event.jets) {
+        if (rjItr.genjet_index() < 0) {
+          auto match = std::find(matches.begin(), matches.end(), recojet_ind);
+          if (match != matches.end()) {
+            cout << "Found match for recojet " << recojet_ind << " with genjet " << match - matches.begin() << endl;
+            throw std::runtime_error("recojet.genjet_index indicates no match, but genjet match found");
+          }
+
+          //  find which bin is suitable
+          //  not really correct as we're using reco pt, but there's no genjet anyway
+          auto pos = std::lower_bound(bins_pt_response.begin(), bins_pt_response.end(), rjItr.pt()) - bins_pt_response.begin();
+          if (pos > (int) genjet_recojet_ind_binned.size()+1) {
+            cout << pos << endl;
+            cout << rjItr.pt() << endl;
+            for (auto b : bins_pt_response) {
+              cout << b << " ";
+            }
+            cout << endl;
+            throw std::runtime_error("Invalid pos");
+          }
+          // need -1 as it will find the upper edge
+          genjet_recojet_ind_binned.at(pos-1)->Fill(-1, recojet_ind, weight);
+        }
+        recojet_ind++;
+      }
+    }
+  }
 
   pt_jet1_z_ratio_vs_pt->Fill(jet1_pt / z_pt, binPt, weight);
   diff = z_cand - jet1.v4();

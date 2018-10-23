@@ -6,8 +6,6 @@
 #include "UHH2/core/include/Event.h"
 #include "UHH2/core/include/AnalysisModule.h"
 
-#include "UHH2/QGAnalysis/include/QGAddModules.h"
-
 namespace uhh2examples {
 
 /**  \brief Control histograms for Z+jets selection. Basically a sanity check.
@@ -23,7 +21,8 @@ public:
 
 protected:
     TH2F *n_jets_vs_pt;
-    TH1F *pt_jet1, *pt_mumu;
+    TH1F *pt_jet1, *pt_jet_response_binning, *pt_genjet_response_binning;
+    TH1F *pt_mumu;
     TH1F *gen_ht;
     TH2F *eta_jet1_vs_pt, *pt_jet1_z_ratio_vs_pt;
     TH2F *pt_jet2_vs_pt, *eta_jet2_vs_pt, *pt_jet2_z_ratio_vs_pt;
@@ -33,12 +32,21 @@ protected:
     TH2F *deta_mumu_vs_pt, *dphi_mumu_vs_pt;
     TH2F *deta_mumu_jet1_vs_pt, *dphi_mumu_jet1_vs_pt;
     TH2F *pt_jet1_pt_jet2_ratio_vs_pt;
+    TH2F *genjet1_ind_vs_pt_jet1, *pt_jet_response, *pt_jet_response_fine, *eta_jet_response;
+    TH1F *pt_jet_genHT_ratio;
+    std::vector<TH2F*> genjet_recojet_ind_binned;
 
     bool doHerwigReweighting;
     TH1F * reweightHist;
     TH1F * n_pv;
 
+    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
     uhh2::Event::Handle<std::vector<Muon>> hndlZ;
+
+    std::vector<float> bins_pt_response;
+    int nbins_pt_response;
+
+    float jetRadius;
 };
 
 }

@@ -283,3 +283,46 @@ float ZllKFactor::getKFactor(float zPt) {
   return factor;
 }
 
+std::vector<float> calc_pt_bin_edges(float start, float end, float factor)
+{
+  std::vector<float> values;
+  float f = start;
+  while (f <= end) {
+    values.push_back(f);
+    f = round(f*factor);
+  }
+  values.push_back(f);
+  // need an effective infinity
+  values.push_back(10000.);
+  return values;
+}
+
+std::vector<float> get_pt_bin_edges(float end, float factor)
+{
+  // need the lowest 0 to ensure all jet get put somewhere
+  std::vector<float> trig_bins = {
+   50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 1000, 1300, 1700, 2200, 3000, 4000, 5000, 10000
+  };
+  std::vector<float> values = {0, 22, 29, 38};
+  // Add in bins below lowest trig bin threshold
+  // float f = trig_bins.at(0);
+  // while (f > 5) {
+  //   f = round(f/factor);
+  //   values.push_back(f);
+  // }
+  // values.push_back(0); // don't forget this
+  // // reverse cos the values are currently high to low
+  // std::reverse(values.begin(), values.end());
+  // add in trigger based bins
+  values.insert(values.end(), trig_bins.begin(), trig_bins.end());
+  // now add in higher pt bins
+  // float f = values.at(values.size()-1);
+  // while (f <= end) {
+  //   f = round(f*factor);
+  //   values.push_back(f);
+  // }
+  // values.push_back(5000.);
+  // need an effective infinity
+  // values.push_back(10000.);
+  return values;
+}

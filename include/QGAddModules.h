@@ -133,3 +133,7 @@ float get_jet_radius(const std::string & jet_cone);
 
 float calcGenHT(const std::vector<GenParticle> & gps);
 
+std::vector<float> calc_pt_bin_edges(float start=5, float end=3500, float factor=1.25);
+
+std::vector<float> get_pt_bin_edges(float end, float factor);
+

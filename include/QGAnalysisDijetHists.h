@@ -1,6 +1,10 @@
 #pragma once
 
+#include "UHH2/core/include/fwd.h"
+#include "UHH2/core/include/Selection.h"
+#include "UHH2/core/include/Event.h"
 #include "UHH2/core/include/Hists.h"
+#include "UHH2/core/include/NtupleObjects.h"
 
 namespace uhh2examples {
 
@@ -16,8 +20,10 @@ public:
     virtual ~QGAnalysisDijetHists();
 
 protected:
+    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+
     TH2F *n_jets_vs_pt_jet;
-    TH1F *pt_jet;
+    TH1F *pt_jet, *pt_jet_response_binning, *pt_genjet_response_binning;
     TH2F *eta_jet1_vs_pt_jet, *phi_jet1_vs_pt_jet;
     TH2F *eta_jet1_vs_eta_jet2;
     TH2F *pt_jet2_vs_pt_jet, *eta_jet2_vs_pt_jet, *phi_jet2_vs_pt_jet;
@@ -28,11 +34,25 @@ protected:
 
     TH2F *met_sig_vs_pt_jet;
 
-    bool doHerwigReweighting;
+    TH2F *pt_jet_response_fine, *pt_jet_response, *eta_jet_response;
+    TH1F *pt_jet_qScale_ratio;
+    TH1F *pt_jet_genHT_ratio;
+    TH2F *pt_jet_vs_pdf_scalePDF;
+    TH2F *pt_jet_vs_genHT;
+
+    TH2F *genjet1_ind_vs_pt_jet1, *genjet2_ind_vs_pt_jet2;
+    std::vector<TH2F*> genjet_recojet_ind_binned;
+
+    bool doHerwigReweighting, is_mc_;
     TH1F * reweightHist;
     TH1F * n_pv;
 
     std::string binning;
+
+    std::vector<float> bins_pt_response;
+    int nbins_pt_response;
+
+    float jetRadius;
 };
 
 }
