@@ -407,7 +407,7 @@ bool QGAnalysisMCModule::process(Event & event) {
             }
         }
     }
-
+/*
     // do high pt jet version - both jets must pass much higher pt threshold
     // don't need to do a Z+jets version as only care about leading jet.
     float ptCut = 500;
@@ -450,7 +450,7 @@ bool QGAnalysisMCModule::process(Event & event) {
             dijet_qg_hists_highPt->fill(event);
         }
     }
-
+*/
     if (zpj && dj) {
         nOverlap++;
         cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet criteria (" << nOverlap << " total)" << endl;
