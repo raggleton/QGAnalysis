@@ -354,9 +354,18 @@ void QGAnalysisHists::fill(const Event & event){
   // Fill reco jet hists
   for (int i = 0; i < useNJets_; i++) {
     const Jet & thisjet = jets->at(i);
-    float mult = thisjet.numberOfDaughters();
 
-    std::vector<PFParticle*> daughters = get_jet_pfparticles(thisjet, event.pfparticles);
+    std::vector<PFParticle*> orig_daughters = get_jet_pfparticles(thisjet, event.pfparticles);
+    std::vector<PFParticle*> daughters;
+    float puppiMult = 0;
+    for (auto dau : orig_daughters) {
+      if (dau->pt() > 1.) {
+        daughters.push_back(dau);
+        puppiMult += dau->puppiWeight();
+      }
+    }
+
+    float mult = daughters.size();
 
     // do special vars according to 1704.03878
     // float ptd = 0, lha = 0, width = 0, thrust = 0;
@@ -409,7 +418,7 @@ void QGAnalysisHists::fill(const Event & event){
     h_jet_width_vs_pt->Fill(width, jet_pt, weight);
     h_jet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
 
-    float puppiMult = thisjet.get_tag(Jet::puppiMultiplicity);
+    // float puppiMult = thisjet.get_tag(Jet::puppiMultiplicity);
     h_jet_puppiMultiplicity->Fill(puppiMult, weight);
     h_jet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
 
@@ -425,14 +434,20 @@ void QGAnalysisHists::fill(const Event & event){
         response = jet_pt/genjet_pt;
         h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
 
+        std::vector<GenParticle*> orig_matchedDaughters = get_genjet_genparticles(genjet, event.genparticles);
+        std::vector<GenParticle*> matchedDaughters;
+        for (auto dau : orig_matchedDaughters) {
+          if (dau->pt() > 1) {
+            matchedDaughters.push_back(dau);
+          }
+        }
         // Response hists over all pt
-        float gen_mult = genjet.genparticles_indices().size();
+        float gen_mult = matchedDaughters.size();
         h_jet_multiplicity_response->Fill(gen_mult, mult, weight);
         h_jet_puppiMultiplicity_response->Fill(gen_mult, puppiMult, weight);
         h_jet_multiplicity_rel_response->Fill(gen_mult, mult/gen_mult, weight);
         h_jet_puppiMultiplicity_rel_response->Fill(gen_mult, puppiMult/gen_mult, weight);
 
-        std::vector<GenParticle*> matchedDaughters = get_genjet_genparticles(genjet, event.genparticles);
         LambdaCalculator<GenParticle> matchedGenJetCalc(matchedDaughters, jetRadius, genjet.v4(), false);
         float gen_lha = matchedGenJetCalc.getLambda(1, 0.5);
         h_jet_LHA_response->Fill(gen_lha, lha, weight);
