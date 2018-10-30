@@ -72,6 +72,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   int nMultBins = 150;
   h_jet_multiplicity = book<TH1F>("jet_multiplicity", ";# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
+  h_jet_puppiMultiplicity = book<TH1F>("jet_puppiMultiplicity", ";# of PUPPI-weighted constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
 
   int nBins = 100;
   h_jet_LHA = book<TH1F>("jet_LHA", ";LHA (#lambda_{0.5}^{1});", nBins, 0, 1);
@@ -409,6 +410,7 @@ void QGAnalysisHists::fill(const Event & event){
     h_jet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
 
     float puppiMult = thisjet.get_tag(Jet::puppiMultiplicity);
+    h_jet_puppiMultiplicity->Fill(puppiMult, weight);
     h_jet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
 
     if (is_mc_) {
