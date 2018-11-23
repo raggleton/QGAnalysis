@@ -152,6 +152,10 @@
             <Item Name="herwig_reweight_file" Value="" />
             <Item Name="useGenPartonFlav" Value="false"/>
             <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
+            <Item Name="neutralHadronShift" Value="nominal"/>
+            <!-- <Item Name="neutralHadronShift" Value="down"/> -->
+            <!-- <Item Name="neutralHadronShift" Value="up"/> -->
+
         </UserConfig>
     </Cycle>
 </JobConfiguration>
