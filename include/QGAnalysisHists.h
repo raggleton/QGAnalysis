@@ -28,7 +28,9 @@ public:
 protected:
     std::vector<GenParticle*> get_genjet_genparticles(const GenJetWithParts &, std::vector<GenParticle>*);
     std::vector<PFParticle*> get_jet_pfparticles(const Jet &, std::vector<PFParticle>*);
+    void shift_neutral_hadron_pfparticles(std::vector<PFParticle*> pfparticles, float direction, float rel_shift);
     int get_jet_flavour(const Jet & jet, std::vector<GenParticle> * genparticles);
+    std::vector<PFParticle*> create_copy(std::vector<PFParticle*> pfparticles);
 
     // reco jet hists
     float jetRadius, LHA_rescale, width_rescale, thrust_rescale;
@@ -89,6 +91,7 @@ protected:
 
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
     bool is_mc_;
+    int neutral_pf_hadron_shift_;
 };
 
 

@@ -15,7 +15,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   Hists(ctx, dirname),
   useNJets_(useNJets),
   bins_pt_response(get_pt_bin_edges(3500, 1.3)),
-  nbins_pt_response(bins_pt_response.size() - 1)
+  nbins_pt_response(bins_pt_response.size() - 1),
+  neutral_pf_hadron_shift_(0.)
   {
 
   is_mc_ = ctx.get("dataset_type") == "MC";
@@ -315,6 +316,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   thrust_rescale = pow(jetRadius, 2.0);
 
   if (is_mc_) genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > ("GoodGenJets");
+
+  std::string neutralPfShift = ctx.get("neutralHadronShift", "nominal");
+  if (neutralPfShift == "nominal") {
+    neutral_pf_hadron_shift_ = 0.;
+  } else if (neutralPfShift == "up") {
+    neutral_pf_hadron_shift_ = 1.;
+  } else if (neutralPfShift == "down") {
+    neutral_pf_hadron_shift_ = -1;
+  } else {
+    throw runtime_error("neutralPfShift must be nominal, up, or down");
+  }
 }
 
 
@@ -356,6 +368,14 @@ void QGAnalysisHists::fill(const Event & event){
     const Jet & thisjet = jets->at(i);
 
     std::vector<PFParticle*> orig_daughters = get_jet_pfparticles(thisjet, event.pfparticles);
+
+    // Do uncertainty shifting of neutral hadron components
+    if (neutral_pf_hadron_shift_ != 0) {
+      std::vector<PFParticle*> daughters_copy = create_copy(orig_daughters);
+      shift_neutral_hadron_pfparticles(daughters_copy, neutral_pf_hadron_shift_, 0.1);
+      orig_daughters = daughters_copy;
+    }
+
     std::vector<PFParticle*> daughters;
     float puppiMult = 0;
     for (auto dau : orig_daughters) {
@@ -366,26 +386,6 @@ void QGAnalysisHists::fill(const Event & event){
     }
 
     float mult = daughters.size();
-
-    // do special vars according to 1704.03878
-    // float ptd = 0, lha = 0, width = 0, thrust = 0;
-    // float pt_sum = 0;
-    // for (auto dtr : daughters) {
-    //   float puppiWeight = (doPuppi_) ? dtr->puppiWeight() : 1.;
-    //   pt_sum += dtr->pt() * puppiWeight;
-    // }
-    // // cout << "this pt_sum: " << pt_sum << endl;
-
-    // for (auto dtr : daughters) {
-    //   float puppiWeight = (doPuppi_) ? dtr->puppiWeight() : 1.;
-    //   float z = dtr->pt() * puppiWeight / pt_sum;
-    //   float theta = deltaR(dtr->v4(), thisjet.v4()) / jetRadius;
-    //   ptd += pow(z, 2);
-    //   lha += z * pow(theta, 0.5);
-    //   // cout << "Adding to original LHA: " <<  z * pow(theta, 0.5) << endl;
-    //   width += z * theta;
-    //   thrust += z * pow(theta, 2);
-    // }
 
     LambdaCalculator<PFParticle> recoJetCalc(daughters, jetRadius, thisjet.v4(), doPuppi_);
     float lha = recoJetCalc.getLambda(1, 0.5);
@@ -435,12 +435,14 @@ void QGAnalysisHists::fill(const Event & event){
         h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
 
         std::vector<GenParticle*> orig_matchedDaughters = get_genjet_genparticles(genjet, event.genparticles);
+
         std::vector<GenParticle*> matchedDaughters;
         for (auto dau : orig_matchedDaughters) {
           if (dau->pt() > 1) {
             matchedDaughters.push_back(dau);
           }
         }
+
         // Response hists over all pt
         float gen_mult = matchedDaughters.size();
         h_jet_multiplicity_response->Fill(gen_mult, mult, weight);
@@ -650,24 +652,6 @@ void QGAnalysisHists::fill(const Event & event){
       float thrust = genJetCalc.getLambda(1, 2);
       uint mult = daughters.size();
 
-      // uint mult = 0;
-      // float ptd = 0, lha = 0, width = 0, thrust = 0;
-      // float pt_sum = 0;
-
-      // for (auto dtr : daughters) {
-      //   pt_sum += dtr->pt();
-      //   mult += 1;
-      // }
-
-      // for (auto dtr : daughters) {
-      //   float z = dtr->pt() / pt_sum;
-      //   float theta = deltaR(dtr->v4(), thisjet.v4()) / jetRadius;
-      //   ptd += pow(z, 2);
-      //   lha += z * pow(theta, 0.5);
-      //   width += z*theta;
-      //   thrust += z * pow(theta, 2);
-      // }
-
       h_genjet_multiplicity->Fill(mult, weight);
       h_genjet_LHA->Fill(lha, weight);
       h_genjet_pTD->Fill(ptd, weight);
@@ -720,6 +704,29 @@ std::vector<PFParticle*> QGAnalysisHists::get_jet_pfparticles(const Jet & jet, s
     pf.push_back(&(pfparticles->at(i)));
   }
   return pf;
+}
+
+
+void QGAnalysisHists::shift_neutral_hadron_pfparticles(std::vector<PFParticle*> pfparticles, float direction, float rel_shift) {
+  for (auto & itr : pfparticles) {
+    if (itr->particleID() == PFParticle::eH0) {
+      itr->set_pt(itr->pt() * (1 + (direction * rel_shift)));
+    }
+  }
+}
+
+
+std::vector<PFParticle*> QGAnalysisHists::create_copy(std::vector<PFParticle*> pfparticles) {
+  std::vector<PFParticle*> pfCopy;
+  for (const auto & itr: pfparticles) {
+    PFParticle * newPf = new PFParticle();
+    newPf->set_particleID(itr->particleID());
+    newPf->set_puppiWeight(itr->puppiWeight());
+    newPf->set_v4(itr->v4());
+    newPf->set_charge(itr->charge());
+    pfCopy.push_back(newPf);
+  }
+  return pfCopy;
 }
 
 /**
