@@ -17,6 +17,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   bins_pt_response(get_pt_bin_edges(3500, 1.3)),
   nbins_pt_response(bins_pt_response.size() - 1),
   neutral_pf_hadron_shift_(0.),
+  photon_shift_(0.),
   rsp_pt_cut_(250.)
   {
 
@@ -395,6 +396,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   } else {
     throw runtime_error("neutralPfShift must be nominal, up, or down");
   }
+
+  std::string photonShift = ctx.get("photonShift", "nominal");
+  if (photonShift == "nominal") {
+    photon_shift_ = 0.;
+  } else if (photonShift == "up") {
+    photon_shift_ = 1.;
+  } else if (photonShift == "down") {
+    photon_shift_ = -1;
+  } else {
+    throw runtime_error("photonShift must be nominal, up, or down");
+  }
 }
 
 
@@ -441,6 +453,12 @@ void QGAnalysisHists::fill(const Event & event){
     if (neutral_pf_hadron_shift_ != 0) {
       std::vector<PFParticle*> daughters_copy = create_copy(orig_daughters);
       shift_neutral_hadron_pfparticles(daughters_copy, neutral_pf_hadron_shift_, 0.1);
+      orig_daughters = daughters_copy;
+    }
+    // Do uncertainty shifting of photon components
+    if (photon_shift_ != 0) {
+      std::vector<PFParticle*> daughters_copy = create_copy(orig_daughters);
+      shift_photon_pfparticles(daughters_copy, photon_shift_, 0.01);
       orig_daughters = daughters_copy;
     }
 
@@ -828,6 +846,13 @@ void QGAnalysisHists::shift_neutral_hadron_pfparticles(std::vector<PFParticle*> 
   }
 }
 
+void QGAnalysisHists::shift_photon_pfparticles(std::vector<PFParticle*> pfparticles, float direction, float rel_shift) {
+  for (auto & itr : pfparticles) {
+    if (itr->particleID() == PFParticle::eGamma) {
+      itr->set_pt(itr->pt() * (1 + (direction * rel_shift)));
+    }
+  }
+}
 
 std::vector<PFParticle*> QGAnalysisHists::create_copy(std::vector<PFParticle*> pfparticles) {
   std::vector<PFParticle*> pfCopy;

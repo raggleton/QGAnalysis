@@ -110,6 +110,7 @@ protected:
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
     bool is_mc_;
     int neutral_pf_hadron_shift_;
+    int photon_shift_;
     float rsp_pt_cut_;
 };
 
