@@ -16,7 +16,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   useNJets_(useNJets),
   bins_pt_response(get_pt_bin_edges(3500, 1.3)),
   nbins_pt_response(bins_pt_response.size() - 1),
-  neutral_pf_hadron_shift_(0.)
+  neutral_pf_hadron_shift_(0.),
+  rsp_pt_cut_(250.)
   {
 
   is_mc_ = ctx.get("dataset_type") == "MC";
@@ -84,11 +85,22 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   // gen-reco response hists
   float rsp_max = 5.;
   int nBinsNormRsp = 500;
-  // hist names must always end in _repsone or _rel_response
+  // hist names must always end in _response or _rel_response
   h_jet_multiplicity_response = book<TH2F>("jet_multiplicity_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
   h_jet_multiplicity_charged_response = book<TH2F>("jet_multiplicity_charged_response", ";# of constituents (#lambda_{0}^{0}) (GEN, charged only);# of constituents (#lambda_{0}^{0}) (RECO), charged only", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
   h_jet_multiplicity_rel_response = book<TH2F>("jet_multiplicity_rel_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
   h_jet_multiplicity_charged_rel_response = book<TH2F>("jet_multiplicity_charged_rel_response", ";# of constituents (#lambda_{0}^{0}) (GEN, charged only);# of constituents (#lambda_{0}^{0}) (RECO / GEN, charged only)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
+
+  h_jet_multiplicity_lowPt_response = book<TH2F>("jet_multiplicity_lowPt_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
+  h_jet_multiplicity_charged_lowPt_response = book<TH2F>("jet_multiplicity_charged_lowPt_response", ";# of constituents (#lambda_{0}^{0}) (GEN, charged only);# of constituents (#lambda_{0}^{0}) (RECO), charged only", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
+  h_jet_multiplicity_lowPt_rel_response = book<TH2F>("jet_multiplicity_lowPt_rel_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
+  h_jet_multiplicity_charged_lowPt_rel_response = book<TH2F>("jet_multiplicity_charged_lowPt_rel_response", ";# of constituents (#lambda_{0}^{0}) (GEN, charged only);# of constituents (#lambda_{0}^{0}) (RECO / GEN, charged only)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
+
+  h_jet_multiplicity_highPt_response = book<TH2F>("jet_multiplicity_highPt_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
+  h_jet_multiplicity_charged_highPt_response = book<TH2F>("jet_multiplicity_charged_highPt_response", ";# of constituents (#lambda_{0}^{0}) (GEN, charged only);# of constituents (#lambda_{0}^{0}) (RECO), charged only", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
+  h_jet_multiplicity_highPt_rel_response = book<TH2F>("jet_multiplicity_highPt_rel_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
+  h_jet_multiplicity_charged_highPt_rel_response = book<TH2F>("jet_multiplicity_charged_highPt_rel_response", ";# of constituents (#lambda_{0}^{0}) (GEN, charged only);# of constituents (#lambda_{0}^{0}) (RECO / GEN, charged only)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
+
   // 2D hist for each pT bin
   // multiplicity_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
   // for (int i=0; i < nbins_pt_response; i++) {
@@ -104,6 +116,18 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_puppiMultiplicity_charged_response = book<TH2F>("jet_puppiMultiplicity_charged_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN, charged only);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO, charged only)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
   h_jet_puppiMultiplicity_rel_response = book<TH2F>("jet_puppiMultiplicity_rel_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
   h_jet_puppiMultiplicity_charged_rel_response = book<TH2F>("jet_puppiMultiplicity_charged_rel_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN, charged only);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO / GEN, charged only)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
+
+  h_jet_puppiMultiplicity_lowPt_response = book<TH2F>("jet_puppiMultiplicity_lowPt_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
+  h_jet_puppiMultiplicity_charged_lowPt_response = book<TH2F>("jet_puppiMultiplicity_charged_lowPt_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN, charged only);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO, charged only)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
+  h_jet_puppiMultiplicity_lowPt_rel_response = book<TH2F>("jet_puppiMultiplicity_lowPt_rel_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
+  h_jet_puppiMultiplicity_charged_lowPt_rel_response = book<TH2F>("jet_puppiMultiplicity_charged_lowPt_rel_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN, charged only);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO / GEN, charged only)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
+
+  h_jet_puppiMultiplicity_highPt_response = book<TH2F>("jet_puppiMultiplicity_highPt_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
+  h_jet_puppiMultiplicity_charged_highPt_response = book<TH2F>("jet_puppiMultiplicity_charged_highPt_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN, charged only);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO, charged only)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
+  h_jet_puppiMultiplicity_highPt_rel_response = book<TH2F>("jet_puppiMultiplicity_highPt_rel_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
+  h_jet_puppiMultiplicity_charged_highPt_rel_response = book<TH2F>("jet_puppiMultiplicity_charged_highPt_rel_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN, charged only);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO / GEN, charged only)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
+
+  // 2D hist for each pT bin
   // puppiMultiplicity_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
   // for (int i=0; i < nbins_pt_response; i++) {
   //   for (int j=0; j < nbins_pt_response; j++) {
@@ -118,6 +142,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_LHA_charged_response = book<TH2F>("jet_LHA_charged_response", ";LHA (#lambda_{0.5}^{1}) (GEN, charged only);LHA (#lambda_{0.5}^{1}) (RECO, charged only)", nBins, 0, 1, nBins, 0, 1);
   h_jet_LHA_rel_response = book<TH2F>("jet_LHA_rel_response", ";LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
   h_jet_LHA_charged_rel_response = book<TH2F>("jet_LHA_charged_rel_response", ";LHA (#lambda_{0.5}^{1}) (GEN, charged only);LHA (#lambda_{0.5}^{1}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+
+  h_jet_LHA_lowPt_response = book<TH2F>("jet_LHA_lowPt_response", ";LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_LHA_charged_lowPt_response = book<TH2F>("jet_LHA_charged_lowPt_response", ";LHA (#lambda_{0.5}^{1}) (GEN, charged only);LHA (#lambda_{0.5}^{1}) (RECO, charged only)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_LHA_lowPt_rel_response = book<TH2F>("jet_LHA_lowPt_rel_response", ";LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+  h_jet_LHA_charged_lowPt_rel_response = book<TH2F>("jet_LHA_charged_lowPt_rel_response", ";LHA (#lambda_{0.5}^{1}) (GEN, charged only);LHA (#lambda_{0.5}^{1}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+
+  h_jet_LHA_highPt_response = book<TH2F>("jet_LHA_highPt_response", ";LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_LHA_charged_highPt_response = book<TH2F>("jet_LHA_charged_highPt_response", ";LHA (#lambda_{0.5}^{1}) (GEN, charged only);LHA (#lambda_{0.5}^{1}) (RECO, charged only)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_LHA_highPt_rel_response = book<TH2F>("jet_LHA_highPt_rel_response", ";LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+  h_jet_LHA_charged_highPt_rel_response = book<TH2F>("jet_LHA_charged_highPt_rel_response", ";LHA (#lambda_{0.5}^{1}) (GEN, charged only);LHA (#lambda_{0.5}^{1}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+
   // LHA_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
   // for (int i=0; i < nbins_pt_response; i++) {
   //   for (int j=0; j < nbins_pt_response; j++) {
@@ -133,6 +168,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_pTD_charged_response = book<TH2F>("jet_pTD_charged_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN, charged);p_{T}^{D} (#lambda_{0}^{2}) (RECO, charged only)", nBins, 0, 1, nBins, 0, 1);
   h_jet_pTD_rel_response = book<TH2F>("jet_pTD_rel_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
   h_jet_pTD_charged_rel_response = book<TH2F>("jet_pTD_charged_rel_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+
+  h_jet_pTD_lowPt_response = book<TH2F>("jet_pTD_lowPt_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_pTD_charged_lowPt_response = book<TH2F>("jet_pTD_charged_lowPt_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN, charged);p_{T}^{D} (#lambda_{0}^{2}) (RECO, charged only)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_pTD_lowPt_rel_response = book<TH2F>("jet_pTD_lowPt_rel_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+  h_jet_pTD_charged_lowPt_rel_response = book<TH2F>("jet_pTD_charged_lowPt_rel_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+
+  h_jet_pTD_highPt_response = book<TH2F>("jet_pTD_highPt_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_pTD_charged_highPt_response = book<TH2F>("jet_pTD_charged_highPt_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN, charged);p_{T}^{D} (#lambda_{0}^{2}) (RECO, charged only)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_pTD_highPt_rel_response = book<TH2F>("jet_pTD_highPt_rel_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+  h_jet_pTD_charged_highPt_rel_response = book<TH2F>("jet_pTD_charged_highPt_rel_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+
   // pTD_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
   // for (int i=0; i < nbins_pt_response; i++) {
   //   for (int j=0; j < nbins_pt_response; j++) {
@@ -147,6 +193,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_width_charged_response = book<TH2F>("jet_width_charged_response", ";Width (#lambda_{1}^{1}) (GEN, charged);Width (#lambda_{1}^{1}) (RECO, charged only)", nBins, 0, 1, nBins, 0, 1);
   h_jet_width_rel_response = book<TH2F>("jet_width_rel_response", ";Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
   h_jet_width_charged_rel_response = book<TH2F>("jet_width_charged_rel_response", ";Width (#lambda_{1}^{1}) (GEN, charged);Width (#lambda_{1}^{1}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+
+  h_jet_width_lowPt_response = book<TH2F>("jet_width_lowPt_response", ";Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_width_charged_lowPt_response = book<TH2F>("jet_width_charged_lowPt_response", ";Width (#lambda_{1}^{1}) (GEN, charged);Width (#lambda_{1}^{1}) (RECO, charged only)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_width_lowPt_rel_response = book<TH2F>("jet_width_lowPt_rel_response", ";Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+  h_jet_width_charged_lowPt_rel_response = book<TH2F>("jet_width_charged_lowPt_rel_response", ";Width (#lambda_{1}^{1}) (GEN, charged);Width (#lambda_{1}^{1}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+
+  h_jet_width_highPt_response = book<TH2F>("jet_width_highPt_response", ";Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_width_charged_highPt_response = book<TH2F>("jet_width_charged_highPt_response", ";Width (#lambda_{1}^{1}) (GEN, charged);Width (#lambda_{1}^{1}) (RECO, charged only)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_width_highPt_rel_response = book<TH2F>("jet_width_highPt_rel_response", ";Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+  h_jet_width_charged_highPt_rel_response = book<TH2F>("jet_width_charged_highPt_rel_response", ";Width (#lambda_{1}^{1}) (GEN, charged);Width (#lambda_{1}^{1}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+
   // width_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
   // for (int i=0; i < nbins_pt_response; i++) {
   //   for (int j=0; j < nbins_pt_response; j++) {
@@ -161,6 +218,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_thrust_charged_response = book<TH2F>("jet_thrust_charged_response", ";Thrust (#lambda_{2}^{1}) (GEN, charged);Thrust (#lambda_{2}^{1}) (RECO, charged only)", nBins, 0, 1, nBins, 0, 1);
   h_jet_thrust_rel_response = book<TH2F>("jet_thrust_rel_response", ";Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
   h_jet_thrust_charged_rel_response = book<TH2F>("jet_thrust_charged_rel_response", ";Thrust (#lambda_{2}^{1}) (GEN, charged);Thrust (#lambda_{2}^{1}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+
+  h_jet_thrust_lowPt_response = book<TH2F>("jet_thrust_lowPt_response", ";Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_thrust_charged_lowPt_response = book<TH2F>("jet_thrust_charged_lowPt_response", ";Thrust (#lambda_{2}^{1}) (GEN, charged);Thrust (#lambda_{2}^{1}) (RECO, charged only)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_thrust_lowPt_rel_response = book<TH2F>("jet_thrust_lowPt_rel_response", ";Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+  h_jet_thrust_charged_lowPt_rel_response = book<TH2F>("jet_thrust_charged_lowPt_rel_response", ";Thrust (#lambda_{2}^{1}) (GEN, charged);Thrust (#lambda_{2}^{1}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+
+  h_jet_thrust_highPt_response = book<TH2F>("jet_thrust_highPt_response", ";Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_thrust_charged_highPt_response = book<TH2F>("jet_thrust_charged_highPt_response", ";Thrust (#lambda_{2}^{1}) (GEN, charged);Thrust (#lambda_{2}^{1}) (RECO, charged only)", nBins, 0, 1, nBins, 0, 1);
+  h_jet_thrust_highPt_rel_response = book<TH2F>("jet_thrust_highPt_rel_response", ";Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+  h_jet_thrust_charged_highPt_rel_response = book<TH2F>("jet_thrust_charged_highPt_rel_response", ";Thrust (#lambda_{2}^{1}) (GEN, charged);Thrust (#lambda_{2}^{1}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
+
   // thrust_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
   // for (int i=0; i < nbins_pt_response; i++) {
   //   for (int j=0; j < nbins_pt_response; j++) {
@@ -442,27 +510,44 @@ void QGAnalysisHists::fill(const Event & event){
             matchedDaughters.push_back(dau);
           }
         }
-
-        // Response hists over all pt
+        // Response hists over all pt, and high/low pt split ones
         float gen_mult = matchedDaughters.size();
-        h_jet_multiplicity_response->Fill(gen_mult, mult, weight);
-        h_jet_puppiMultiplicity_response->Fill(gen_mult, puppiMult, weight);
-        h_jet_multiplicity_rel_response->Fill(gen_mult, mult/gen_mult, weight);
-        h_jet_puppiMultiplicity_rel_response->Fill(gen_mult, puppiMult/gen_mult, weight);
+
+        fill_lambda_rsp_hists(mult, gen_mult, weight,
+          h_jet_multiplicity_response, h_jet_multiplicity_rel_response,
+          jet_pt, h_jet_multiplicity_lowPt_response, h_jet_multiplicity_highPt_response,
+          h_jet_multiplicity_lowPt_rel_response, h_jet_multiplicity_highPt_rel_response);
+
+        fill_lambda_rsp_hists(puppiMult, gen_mult, weight,
+          h_jet_puppiMultiplicity_response, h_jet_puppiMultiplicity_rel_response,
+          jet_pt, h_jet_puppiMultiplicity_lowPt_response, h_jet_puppiMultiplicity_highPt_response,
+          h_jet_puppiMultiplicity_lowPt_rel_response, h_jet_puppiMultiplicity_highPt_rel_response);
 
         LambdaCalculator<GenParticle> matchedGenJetCalc(matchedDaughters, jetRadius, genjet.v4(), false);
+
         float gen_lha = matchedGenJetCalc.getLambda(1, 0.5);
-        h_jet_LHA_response->Fill(gen_lha, lha, weight);
-        h_jet_LHA_rel_response->Fill(gen_lha, lha/gen_lha, weight);
+        fill_lambda_rsp_hists(lha, gen_lha, weight,
+          h_jet_LHA_response, h_jet_LHA_rel_response,
+          jet_pt, h_jet_LHA_lowPt_response, h_jet_LHA_highPt_response,
+          h_jet_LHA_lowPt_rel_response, h_jet_LHA_highPt_rel_response);
+
         float gen_ptd = matchedGenJetCalc.getLambda(2, 0);
-        h_jet_pTD_response->Fill(gen_ptd, ptd, weight);
-        h_jet_pTD_rel_response->Fill(gen_ptd, ptd/gen_ptd, weight);
+        fill_lambda_rsp_hists(ptd, gen_ptd, weight,
+          h_jet_pTD_response, h_jet_pTD_rel_response,
+          jet_pt, h_jet_pTD_lowPt_response, h_jet_pTD_highPt_response,
+          h_jet_pTD_lowPt_rel_response, h_jet_pTD_highPt_rel_response);
+
         float gen_width = matchedGenJetCalc.getLambda(1, 1);
-        h_jet_width_response->Fill(gen_width, width, weight);
-        h_jet_width_rel_response->Fill(gen_width, width/gen_width, weight);
+        fill_lambda_rsp_hists(width, gen_width, weight,
+          h_jet_width_response, h_jet_width_rel_response,
+          jet_pt, h_jet_width_lowPt_response, h_jet_width_highPt_response,
+          h_jet_width_lowPt_rel_response, h_jet_width_highPt_rel_response);
+
         float gen_thrust = matchedGenJetCalc.getLambda(1, 2);
-        h_jet_thrust_response->Fill(gen_thrust, thrust, weight);
-        h_jet_thrust_rel_response->Fill(gen_thrust, thrust/gen_thrust, weight);
+        fill_lambda_rsp_hists(thrust, gen_thrust, weight,
+          h_jet_thrust_response, h_jet_thrust_rel_response,
+          jet_pt, h_jet_thrust_lowPt_response, h_jet_thrust_highPt_response,
+          h_jet_thrust_lowPt_rel_response, h_jet_thrust_highPt_rel_response);
 
         // Charged-only daughters version
         std::vector<PFParticle*> chargedDaughters;
@@ -483,32 +568,44 @@ void QGAnalysisHists::fill(const Event & event){
         }
         float gen_mult_charged = matchedChargedDaughters.size();
         float mult_charged = chargedDaughters.size();
-        h_jet_multiplicity_charged_response->Fill(gen_mult_charged, mult_charged, weight);
-        h_jet_multiplicity_charged_rel_response->Fill(gen_mult_charged, mult_charged/gen_mult_charged, weight);
+        fill_lambda_rsp_hists(mult_charged, gen_mult_charged, weight,
+          h_jet_multiplicity_charged_response, h_jet_multiplicity_charged_rel_response,
+          jet_pt, h_jet_multiplicity_charged_lowPt_response, h_jet_multiplicity_charged_highPt_response,
+          h_jet_multiplicity_charged_lowPt_rel_response, h_jet_multiplicity_charged_highPt_rel_response);
 
-        h_jet_puppiMultiplicity_charged_response->Fill(gen_mult_charged, puppiMult_charged, weight);
-        h_jet_puppiMultiplicity_charged_rel_response->Fill(gen_mult_charged, puppiMult_charged/gen_mult_charged, weight);
+        fill_lambda_rsp_hists(puppiMult_charged, gen_mult_charged, weight,
+          h_jet_puppiMultiplicity_charged_response, h_jet_puppiMultiplicity_charged_rel_response,
+          jet_pt, h_jet_puppiMultiplicity_charged_lowPt_response, h_jet_puppiMultiplicity_charged_highPt_response,
+          h_jet_puppiMultiplicity_charged_lowPt_rel_response, h_jet_puppiMultiplicity_charged_highPt_rel_response);
 
         LambdaCalculator<GenParticle> matchedGenJetCalcCharged(matchedChargedDaughters, jetRadius, genjet.v4(), false);
         float lha_charged = recoJetCalcCharged.getLambda(1, 0.5);
         float gen_lha_charged = matchedGenJetCalcCharged.getLambda(1, 0.5);
-        h_jet_LHA_charged_response->Fill(gen_lha_charged, lha_charged, weight);
-        h_jet_LHA_charged_rel_response->Fill(gen_lha_charged, lha_charged/gen_lha_charged, weight);
+        fill_lambda_rsp_hists(lha_charged, gen_lha_charged, weight,
+          h_jet_LHA_charged_response, h_jet_LHA_charged_rel_response,
+          jet_pt, h_jet_LHA_charged_lowPt_response, h_jet_LHA_charged_highPt_response,
+          h_jet_LHA_charged_lowPt_rel_response, h_jet_LHA_charged_highPt_rel_response);
 
         float ptd_charged = recoJetCalcCharged.getLambda(2, 0);
         float gen_ptd_charged = matchedGenJetCalcCharged.getLambda(2, 0);
-        h_jet_pTD_charged_response->Fill(gen_ptd_charged, ptd_charged, weight);
-        h_jet_pTD_charged_rel_response->Fill(gen_ptd_charged, ptd_charged/gen_ptd_charged, weight);
+        fill_lambda_rsp_hists(ptd_charged, gen_ptd_charged, weight,
+          h_jet_pTD_charged_response, h_jet_pTD_charged_rel_response,
+          jet_pt, h_jet_pTD_charged_lowPt_response, h_jet_pTD_charged_highPt_response,
+          h_jet_pTD_charged_lowPt_rel_response, h_jet_pTD_charged_highPt_rel_response);
 
         float width_charged = recoJetCalcCharged.getLambda(1, 1);
         float gen_width_charged = matchedGenJetCalcCharged.getLambda(1, 1);
-        h_jet_width_charged_response->Fill(gen_width_charged, width_charged, weight);
-        h_jet_width_charged_rel_response->Fill(gen_width_charged, width_charged/gen_width_charged, weight);
+        fill_lambda_rsp_hists(width_charged, gen_width_charged, weight,
+          h_jet_width_charged_response, h_jet_width_charged_rel_response,
+          jet_pt, h_jet_width_charged_lowPt_response, h_jet_width_charged_highPt_response,
+          h_jet_width_charged_lowPt_rel_response, h_jet_width_charged_highPt_rel_response);
 
         float thrust_charged = recoJetCalcCharged.getLambda(1, 2);
         float gen_thrust_charged = matchedGenJetCalcCharged.getLambda(1, 2);
-        h_jet_thrust_charged_response->Fill(gen_thrust_charged, thrust_charged, weight);
-        h_jet_thrust_charged_rel_response->Fill(gen_thrust_charged, thrust_charged/gen_thrust_charged, weight);
+        fill_lambda_rsp_hists(thrust_charged, gen_thrust_charged, weight,
+          h_jet_thrust_charged_response, h_jet_thrust_charged_rel_response,
+          jet_pt, h_jet_thrust_charged_lowPt_response, h_jet_thrust_charged_highPt_response,
+          h_jet_thrust_charged_lowPt_rel_response, h_jet_thrust_charged_highPt_rel_response);
 
         // Response hists per pt bin
         // auto genit = std::lower_bound(bins_pt_response.begin(), bins_pt_response.end(), genjet_pt);
@@ -679,6 +776,22 @@ void QGAnalysisHists::fill(const Event & event){
       //   h_qgenjet_thrust->Fill(thrust / thrust_rescale, weight);
       // }
     }
+  }
+}
+
+void QGAnalysisHists::fill_lambda_rsp_hists(float reco_val, float gen_val, float weight,
+                                            TH2F * response, TH2F * rel_response,
+                                            float jet_pt,
+                                            TH2F * response_lowPt, TH2F * response_highPt,
+                                            TH2F * rel_response_lowPt, TH2F * rel_response_highPt) {
+  float rsp = reco_val / gen_val; // TODO handle infs
+  response->Fill(gen_val, reco_val, weight);
+  rel_response->Fill(gen_val, rsp, weight);
+  if (response_lowPt != nullptr && response_highPt != nullptr) {
+    (jet_pt > rsp_pt_cut_) ? response_highPt->Fill(gen_val, reco_val, weight) : response_lowPt->Fill(gen_val, reco_val, weight);
+  }
+  if (rel_response_lowPt != nullptr && rel_response_highPt != nullptr) {
+    (jet_pt > rsp_pt_cut_) ? rel_response_highPt->Fill(gen_val, rsp, weight) : rel_response_lowPt->Fill(gen_val, rsp, weight);
   }
 }
 

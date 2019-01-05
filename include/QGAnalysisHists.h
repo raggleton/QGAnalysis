@@ -29,8 +29,14 @@ protected:
     std::vector<GenParticle*> get_genjet_genparticles(const GenJetWithParts &, std::vector<GenParticle>*);
     std::vector<PFParticle*> get_jet_pfparticles(const Jet &, std::vector<PFParticle>*);
     void shift_neutral_hadron_pfparticles(std::vector<PFParticle*> pfparticles, float direction, float rel_shift);
+    void shift_photon_pfparticles(std::vector<PFParticle*> pfparticles, float direction, float rel_shift);
     int get_jet_flavour(const Jet & jet, std::vector<GenParticle> * genparticles);
     std::vector<PFParticle*> create_copy(std::vector<PFParticle*> pfparticles);
+    void fill_lambda_rsp_hists(float reco_val, float gen_val, float weight,
+                               TH2F * response, TH2F * rel_response,
+                               float jet_pt,
+                               TH2F * response_lowPt, TH2F * response_highPt,
+                               TH2F * rel_response_lowPt, TH2F * rel_response_highPt);
 
     // reco jet hists
     float jetRadius, LHA_rescale, width_rescale, thrust_rescale;
@@ -54,6 +60,18 @@ protected:
     TH2F * h_jet_multiplicity_charged_response, *h_jet_puppiMultiplicity_charged_response, *h_jet_LHA_charged_response, *h_jet_pTD_charged_response, *h_jet_width_charged_response, *h_jet_thrust_charged_response;
     TH2F * h_jet_multiplicity_rel_response, *h_jet_puppiMultiplicity_rel_response, *h_jet_LHA_rel_response, *h_jet_pTD_rel_response, *h_jet_width_rel_response, *h_jet_thrust_rel_response;
     TH2F * h_jet_multiplicity_charged_rel_response, *h_jet_puppiMultiplicity_charged_rel_response, *h_jet_LHA_charged_rel_response, *h_jet_pTD_charged_rel_response, *h_jet_width_charged_rel_response, *h_jet_thrust_charged_rel_response;
+
+    // and split by low & high pt
+    TH2F * h_jet_multiplicity_lowPt_response, *h_jet_puppiMultiplicity_lowPt_response, *h_jet_LHA_lowPt_response, *h_jet_pTD_lowPt_response, *h_jet_width_lowPt_response, *h_jet_thrust_lowPt_response;
+    TH2F * h_jet_multiplicity_charged_lowPt_response, *h_jet_puppiMultiplicity_charged_lowPt_response, *h_jet_LHA_charged_lowPt_response, *h_jet_pTD_charged_lowPt_response, *h_jet_width_charged_lowPt_response, *h_jet_thrust_charged_lowPt_response;
+    TH2F * h_jet_multiplicity_lowPt_rel_response, *h_jet_puppiMultiplicity_lowPt_rel_response, *h_jet_LHA_lowPt_rel_response, *h_jet_pTD_lowPt_rel_response, *h_jet_width_lowPt_rel_response, *h_jet_thrust_lowPt_rel_response;
+    TH2F * h_jet_multiplicity_charged_lowPt_rel_response, *h_jet_puppiMultiplicity_charged_lowPt_rel_response, *h_jet_LHA_charged_lowPt_rel_response, *h_jet_pTD_charged_lowPt_rel_response, *h_jet_width_charged_lowPt_rel_response, *h_jet_thrust_charged_lowPt_rel_response;
+
+    TH2F * h_jet_multiplicity_highPt_response, *h_jet_puppiMultiplicity_highPt_response, *h_jet_LHA_highPt_response, *h_jet_pTD_highPt_response, *h_jet_width_highPt_response, *h_jet_thrust_highPt_response;
+    TH2F * h_jet_multiplicity_charged_highPt_response, *h_jet_puppiMultiplicity_charged_highPt_response, *h_jet_LHA_charged_highPt_response, *h_jet_pTD_charged_highPt_response, *h_jet_width_charged_highPt_response, *h_jet_thrust_charged_highPt_response;
+    TH2F * h_jet_multiplicity_highPt_rel_response, *h_jet_puppiMultiplicity_highPt_rel_response, *h_jet_LHA_highPt_rel_response, *h_jet_pTD_highPt_rel_response, *h_jet_width_highPt_rel_response, *h_jet_thrust_highPt_rel_response;
+    TH2F * h_jet_multiplicity_charged_highPt_rel_response, *h_jet_puppiMultiplicity_charged_highPt_rel_response, *h_jet_LHA_charged_highPt_rel_response, *h_jet_pTD_charged_highPt_rel_response, *h_jet_width_charged_highPt_rel_response, *h_jet_thrust_charged_highPt_rel_response;
+
     // std::vector<std::vector<TH2F *>> multiplicity_response_binned, puppiMultiplicity_response_binned, LHA_response_binned, pTD_response_binned, width_response_binned, thrust_response_binned;
 
     // lambda correlation hists
@@ -92,6 +110,7 @@ protected:
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
     bool is_mc_;
     int neutral_pf_hadron_shift_;
+    float rsp_pt_cut_;
 };
 
 
