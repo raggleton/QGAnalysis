@@ -38,8 +38,8 @@
 <!-- split 3 for mgpythia -->
 
 <!--
-   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="25" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak8puppi_pythia_newFlav_binByAve_trigBinningBetter_jetAsymCut_multResponse"/>
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="15" />
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_pythia_newFlav_withAllResponses_jetAsymCut_chargedResp_pt1Constituents_V11JEC_JER_shiftPileupDown"/>
 -->
 
 
@@ -49,7 +49,7 @@
     <Package Name="SUHH2QGAnalysis.par" />
 
     <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-PYTHIA;/" PostFix="" TargetLumi="35918" >
-        
+
         <!-- PYTHIA ONLY -->
         <!-- <InputData Lumi="1" NEventsMax="&NEVT;" Type="MC" Version="MC_QCD_PYTHIA_ONLY" Cacheable="False">
         &PYTHIA-QCD;
@@ -138,9 +138,9 @@
 
             <!-- Choose your jet configuration -->
             <!-- &AK4CHS; -->
-            <!-- &AK4PUPPI; -->
+            &AK4PUPPI;
             <!-- &AK8CHS; -->
-            &AK8PUPPI;
+            <!-- &AK8PUPPI; -->
 
             <!-- If you want to reweight herwig pT spectrum to match Pythia -->
             <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_weights_ak4chs.root" /> -->
@@ -152,9 +152,22 @@
             <Item Name="herwig_reweight_file" Value="" />
             <Item Name="useGenPartonFlav" Value="false"/>
             <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
+
             <Item Name="neutralHadronShift" Value="nominal"/>
             <!-- <Item Name="neutralHadronShift" Value="down"/> -->
             <!-- <Item Name="neutralHadronShift" Value="up"/> -->
+
+            <Item Name="photonShift" Value="nominal"/>
+            <!-- <Item Name="photonShift" Value="down"/> -->
+            <!-- <Item Name="photonShift" Value="up"/> -->
+
+            <item Name="jecsmear_direction" Value="nominal"/>
+            <!-- <item Name="jecsmear_direction" Value="down"/> -->
+            <!-- <item Name="jecsmear_direction" Value="up"/> -->
+
+            <!-- <item Name="pileup_direction" Value="nominal"/> -->
+            <!-- <item Name="pileup_direction" Value="up"/> -->
+            <item Name="pileup_direction" Value="down"/>
 
         </UserConfig>
     </Cycle>
