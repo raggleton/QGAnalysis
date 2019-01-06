@@ -174,7 +174,7 @@ bool GeneralEventSetup::process(uhh2::Event & event) {
 MCReweighting::MCReweighting(uhh2::Context & ctx) {
   lumi_weighter.reset(new MCLumiWeight(ctx));
 
-  pileup_reweighter.reset(new MCPileupReweight(ctx, "central"));
+  pileup_reweighter.reset(new MCPileupReweight(ctx, ctx.get("pileup_direction", "central")));
 
   std::string sf_path_name = locate_file("common/data/MuonID_EfficienciesAndSF_average_RunBtoH.root");
   std::string sf_name = "MC_NUM_MediumID_DEN_genTracks_PAR_pt_eta";
