@@ -15,3 +15,6 @@
 <Item Name="use_sframe_weight" Value="false" />
 <Item Name="pileup_directory" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/common/data/MyMCPileupHistogram.root" />
 <Item Name="pileup_directory_data" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/common/data/MyDataPileupHistogram.root" />
+<!-- pileup is nominal 69.2mb with an uncert of 4.6%, so down = 66.017, up = 72.383 -->
+<Item Name="pileup_directory_data_up" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/common/data/MyDataPileupHistogram_72383.root" />
+<Item Name="pileup_directory_data_down" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/common/data/MyDataPileupHistogram_66017.root" />
