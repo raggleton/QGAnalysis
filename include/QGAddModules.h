@@ -46,10 +46,12 @@ public:
   explicit DataJetMetCorrector(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone);
   virtual bool process(uhh2::Event & event) override;
 private:
-  std::unique_ptr<JetCorrector> jet_corrector_BCD, jet_corrector_EFearly, jet_corrector_FlateG, jet_corrector_H;
+  std::unique_ptr<JetCorrector> jet_corrector_BCD, jet_corrector_EFearly, jet_corrector_GH;
   const int runnr_BCD = 276811;
-  const int runnr_EFearly = 278802;
+  const int runnr_EFearly = 278801;
   const int runnr_FlateG = 280385;
+  // G&H last set
+  // const int runnr_FlateG = 280385;
 };
 
 
@@ -71,7 +73,7 @@ private:
  */
 class GeneralEventSetup : public uhh2::AnalysisModule {
 public:
-  GeneralEventSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius);
+  GeneralEventSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min=30);
   virtual bool process(uhh2::Event & event) override;
 private:
   bool is_mc;

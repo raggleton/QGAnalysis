@@ -14,18 +14,16 @@ using namespace uhh2examples;
 
 
 DataJetMetCorrector::DataJetMetCorrector(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone){
-  std::vector<std::string> JEC_BCD, JEC_EFearly, JEC_FlateG, JEC_H;
+  std::vector<std::string> JEC_BCD, JEC_EFearly, JEC_GH;
   if (pu_removal == "CHS") {
     if (jet_cone == "AK4") {
       JEC_BCD = JERFiles::Summer16_07Aug2017_V11_BCD_L123_AK4PFchs_DATA;
       JEC_EFearly = JERFiles::Summer16_07Aug2017_V11_EF_L123_AK4PFchs_DATA;
-      JEC_FlateG = JERFiles::Summer16_07Aug2017_V11_G_L123_AK4PFchs_DATA;
-      JEC_H = JERFiles::Summer16_07Aug2017_V11_H_L123_AK4PFchs_DATA;
+      JEC_GH = JERFiles::Summer16_07Aug2017_V11_GH_L123_AK4PFchs_DATA;
     } else if (jet_cone == "AK8") {
       JEC_BCD = JERFiles::Summer16_07Aug2017_V11_BCD_L123_AK8PFchs_DATA;
       JEC_EFearly = JERFiles::Summer16_07Aug2017_V11_EF_L123_AK8PFchs_DATA;
-      JEC_FlateG = JERFiles::Summer16_07Aug2017_V11_G_L123_AK8PFchs_DATA;
-      JEC_H = JERFiles::Summer16_07Aug2017_V11_H_L123_AK8PFchs_DATA;
+      JEC_GH = JERFiles::Summer16_07Aug2017_V11_GH_L123_AK8PFchs_DATA;
     } else {
       throw runtime_error("CHS must have jet_cone of AK4 or AK8");
     }
@@ -33,13 +31,11 @@ DataJetMetCorrector::DataJetMetCorrector(uhh2::Context & ctx, const std::string 
     if (jet_cone == "AK4") {
       JEC_BCD = JERFiles::Summer16_07Aug2017_V11_BCD_L123_AK4PFPuppi_DATA;
       JEC_EFearly = JERFiles::Summer16_07Aug2017_V11_EF_L123_AK4PFPuppi_DATA;
-      JEC_FlateG = JERFiles::Summer16_07Aug2017_V11_G_L123_AK4PFPuppi_DATA;
-      JEC_H = JERFiles::Summer16_07Aug2017_V11_H_L123_AK4PFPuppi_DATA;
+      JEC_GH = JERFiles::Summer16_07Aug2017_V11_GH_L123_AK4PFPuppi_DATA;
     } else if (jet_cone == "AK8") {
       JEC_BCD = JERFiles::Summer16_07Aug2017_V11_BCD_L123_AK8PFPuppi_DATA;
       JEC_EFearly = JERFiles::Summer16_07Aug2017_V11_EF_L123_AK8PFPuppi_DATA;
-      JEC_FlateG = JERFiles::Summer16_07Aug2017_V11_G_L123_AK8PFPuppi_DATA;
-      JEC_H = JERFiles::Summer16_07Aug2017_V11_H_L123_AK8PFPuppi_DATA;
+      JEC_GH = JERFiles::Summer16_07Aug2017_V11_GH_L123_AK8PFPuppi_DATA;
     } else {
       throw runtime_error("PUPPI must have jet_cone of AK4 or AK8");
     }
@@ -47,23 +43,19 @@ DataJetMetCorrector::DataJetMetCorrector(uhh2::Context & ctx, const std::string 
 
   jet_corrector_BCD.reset(new JetCorrector(ctx, JEC_BCD));
   jet_corrector_EFearly.reset(new JetCorrector(ctx, JEC_EFearly));
-  jet_corrector_FlateG.reset(new JetCorrector(ctx, JEC_FlateG));
-  jet_corrector_H.reset(new JetCorrector(ctx, JEC_H));
+  jet_corrector_GH.reset(new JetCorrector(ctx, JEC_GH));
 }
 
 bool DataJetMetCorrector::process(uhh2::Event & event) {
   if (event.run <= runnr_BCD) {
     jet_corrector_BCD->process(event);
     jet_corrector_BCD->correct_met(event);
-  } else if (event.run < runnr_EFearly) { //< is correct, not <=
+  } else if (event.run <= runnr_EFearly) { //< is correct, not <=
     jet_corrector_EFearly->process(event);
     jet_corrector_EFearly->correct_met(event);
-  } else if (event.run <= runnr_FlateG) {
-    jet_corrector_FlateG->process(event);
-    jet_corrector_FlateG->correct_met(event);
-  } else if (event.run > runnr_FlateG) {
-    jet_corrector_H->process(event);
-    jet_corrector_H->correct_met(event);
+  } else if (event.run > runnr_EFearly) {
+    jet_corrector_GH->process(event);
+    jet_corrector_GH->correct_met(event);
   } else {
     throw runtime_error("Run number not covered by if-statements in DataJetMetCorrector.");
   }
@@ -107,7 +99,7 @@ bool MCJetMetCorrector::process(uhh2::Event & event) {
 }
 
 
-GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius) {
+GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min) {
   is_mc = ctx.get("dataset_type") == "MC";
 
   if (!is_mc) lumi_selection.reset(new LumiSelection(ctx));
@@ -136,7 +128,7 @@ GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx, const std::string & pu
     jet_met_corrector.reset(new DataJetMetCorrector(ctx, pu_removal, jet_cone));
   }
 
-  jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.4)));
+  jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(jet_pt_min, 2.4)));
 
   jet_ele_cleaner.reset(new JetElectronOverlapRemoval(jet_radius));
 
@@ -316,6 +308,7 @@ LambdaCalculator<GenParticle>::LambdaCalculator(std::vector<GenParticle*> daught
   }
 }
 
+// TODO: unify this into one calculation, otherwise kinda useless
 template<class T>
 float LambdaCalculator<T>::getLambda(float kappa, float beta)
 {

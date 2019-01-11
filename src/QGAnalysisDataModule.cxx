@@ -299,7 +299,6 @@ bool QGAnalysisDataModule::process(Event & event) {
             dijet_qg_hists->fill(event);
         }
     }
-
     return selected;
 }
 
