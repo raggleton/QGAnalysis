@@ -161,13 +161,17 @@
             <!-- <Item Name="photonShift" Value="down"/> -->
             <!-- <Item Name="photonShift" Value="up"/> -->
 
-            <item Name="jecsmear_direction" Value="nominal"/>
-            <!-- <item Name="jecsmear_direction" Value="down"/> -->
-            <!-- <item Name="jecsmear_direction" Value="up"/> -->
+            <Item Name="jecsmear_direction" Value="nominal"/>
+            <!-- <Item Name="jecsmear_direction" Value="down"/> -->
+            <!-- <Item Name="jecsmear_direction" Value="up"/> -->
 
-            <!-- <item Name="pileup_direction" Value="nominal"/> -->
-            <!-- <item Name="pileup_direction" Value="up"/> -->
-            <item Name="pileup_direction" Value="down"/>
+            <Item Name="jersmear_direction" Value="nominal"/>
+            <!-- <Item Name="jersmear_direction" Value="down"/> -->
+            <!-- <Item Name="jersmear_direction" Value="up"/> -->
+
+            <Item Name="pileup_direction" Value="nominal"/>
+            <!-- <Item Name="pileup_direction" Value="down"/> -->
+            <!-- <Item Name="pileup_direction" Value="up"/> -->
 
         </UserConfig>
     </Cycle>

@@ -180,9 +180,32 @@
             <!-- &AK8CHS; -->
             &AK8PUPPI;
 
+            <Item Name="herwig_reweight_file" Value="" />
             <!-- If false use new flavour -->
             <Item Name="useGenPartonFlav" Value="false"/>
             <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
+
+
+
+            <Item Name="neutralHadronShift" Value="nominal"/>
+            <!-- <Item Name="neutralHadronShift" Value="down"/> -->
+            <!-- <Item Name="neutralHadronShift" Value="up"/> -->
+
+            <Item Name="photonShift" Value="nominal"/>
+            <!-- <Item Name="photonShift" Value="down"/> -->
+            <!-- <Item Name="photonShift" Value="up"/> -->
+
+            <Item Name="jecsmear_direction" Value="nominal"/>
+            <!-- <Item Name="jecsmear_direction" Value="down"/> -->
+            <!-- <Item Name="jecsmear_direction" Value="up"/> -->
+
+            <Item Name="jersmear_direction" Value="nominal"/>
+            <!-- <Item Name="jersmear_direction" Value="down"/> -->
+            <!-- <Item Name="jersmear_direction" Value="up"/> -->
+
+            <!-- <Item Name="pileup_direction" Value="nominal"/> -->
+            <!-- <Item Name="pileup_direction" Value="down"/> -->
+            <Item Name="pileup_direction" Value="up"/>
         </UserConfig>
     </Cycle>
 </JobConfiguration>

@@ -65,6 +65,14 @@
             &AK8PUPPI;
 
             <Item Name="Dataset" Value="ZeroBias" />
+
+            <Item Name="jecsmear_direction" Value="nominal"/>
+            <!-- <Item Name="jecsmear_direction" Value="down"/> -->
+            <!-- <Item Name="jecsmear_direction" Value="up"/> -->
+
+            <Item Name="jersmear_direction" Value="nominal"/>
+            <!-- <Item Name="jersmear_direction" Value="down"/> -->
+            <!-- <Item Name="jersmear_direction" Value="up"/> -->
         </UserConfig>
     </Cycle>
 
