@@ -19,6 +19,7 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisZPlusJetsHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisDijetHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisTheoryHists.h"
+#include "UHH2/QGAnalysis/include/QGAddModules.h"
 
 using namespace std;
 using namespace uhh2;
@@ -40,13 +41,7 @@ public:
 
 private:
 
-    std::unique_ptr<CommonModules> common;
-
-    std::unique_ptr<JetCorrector> jet_corrector_MC, jet_corrector_BCD, jet_corrector_EFearly, jet_corrector_FlateG, jet_corrector_H;
-    std::unique_ptr<GenericJetResolutionSmearer> jet_resolution_smearer;
-    std::unique_ptr<JetCleaner> jet_cleaner;
-    std::unique_ptr<JetElectronOverlapRemoval> jet_ele_cleaner;
-    std::unique_ptr<JetMuonOverlapRemoval> jet_mu_cleaner;
+    std::unique_ptr<GeneralEventSetup> common_setup;
 
     // Reco selections/hists
     std::unique_ptr<Selection> njet_sel;
@@ -59,11 +54,6 @@ private:
     std::vector<TriggerSelection> jet_trig_sels;
 
     bool is_mc;
-    float jetRadius;
-
-    const int runnr_BCD = 276811;
-    const int runnr_EFearly = 278802;
-    const int runnr_FlateG = 280385;
 
     std::unique_ptr<EventNumberSelection> event_sel;
 
@@ -112,20 +102,6 @@ QGAnalysisJetTrigEffModule::QGAnalysisJetTrigEffModule(Context & ctx){
     cout << "Running analysis module" << endl;
 
     is_mc = ctx.get("dataset_type") == "MC";
-    // useGenPartonFlav = ctx.get("useGenPartonFlav") == "true";
-
-    common.reset(new CommonModules());
-    common->disable_mcpileupreweight();
-    common->disable_jersmear();
-    common->disable_jec(); // do it manually below
-    common->change_pf_id(JetPFID::wp::WP_LOOSE);
-    // common->change_pf_id(JetPFID::wp::WP_TIGHT_LEPVETO);
-    common->set_muon_id(AndId<Muon>(MuonIDMedium_ICHEP(), PtEtaCut(26.0, 2.4), MuonIso(0.25)));
-    common->set_electron_id(AndId<Electron>(ElectronID_Spring16_medium, PtEtaCut(20.0, 2.5)));
-    common->switch_jetPtSorter(false);
-    common->switch_jetlepcleaner(false);
-
-    common->init(ctx);
 
     // Cleaning/JEC modules
     // Do manually and not in CommonModules to select correct cone size etc
@@ -134,80 +110,11 @@ QGAnalysisJetTrigEffModule::QGAnalysisJetTrigEffModule(Context & ctx){
     if (pu_removal != "CHS" && pu_removal != "PUPPI") {
         throw runtime_error("Only PURemoval == CHS, PUPPI supported for now");
     }
-
-    if (jet_cone.find("AK4") != string::npos)
-        jetRadius = 0.4;
-    else if (jet_cone.find("AK8") != string::npos)
-        jetRadius = 0.8;
-    else if (jet_cone.find("ca15") != string::npos)
-        jetRadius = 1.5;
-    else
-        throw runtime_error("Cannot determine jetRadius in QGAnalysisTheoryHists");
+    float jet_radius = get_jet_radius(jet_cone);
+    common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jet_radius, 10.));
 
     cout << "Running with jet cone: " << jet_cone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
-
-    if (is_mc) {
-        std::vector<std::string> JEC_MC;
-        std::string resolutionFilename;
-        if (pu_removal == "CHS") {
-            if (jet_cone == "AK4") {
-                JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK4PFchs_MC;
-                resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK4PFchs.txt";
-            } else if (jet_cone == "AK8") {
-                JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK8PFchs_MC;
-                resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK8PFchs.txt";  // actually doesn't matter, they're all the same
-            }
-        } else if (pu_removal == "PUPPI") {
-            if (jet_cone == "AK4") {
-                JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK4PFPuppi_MC;
-                resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK4PFchs.txt";
-            } else if (jet_cone == "AK8") {
-                JEC_MC = JERFiles::Summer16_23Sep2016_V4_L123_AK8PFPuppi_MC;
-                resolutionFilename = "Spring16_25nsV10_MC_PtResolution_AK8PFchs.txt";
-            }
-        }
-
-        jet_corrector_MC.reset(new JetCorrector(ctx, JEC_MC));
-        // jet_resolution_smearer.reset(new JetResolutionSmearer(ctx));
-        jet_resolution_smearer.reset(new GenericJetResolutionSmearer(ctx, "jets", "genjets", true, JERSmearing::SF_13TeV_2016_03Feb2017, resolutionFilename));
-    } else {
-        std::vector<std::string> JEC_BCD, JEC_EFearly, JEC_FlateG, JEC_H;
-        if (pu_removal == "CHS") {
-            if (jet_cone == "AK4") {
-                JEC_BCD = JERFiles::Summer16_23Sep2016_V4_BCD_L123_AK4PFchs_DATA;
-                JEC_EFearly = JERFiles::Summer16_23Sep2016_V4_EF_L123_AK4PFchs_DATA;
-                JEC_FlateG = JERFiles::Summer16_23Sep2016_V4_G_L123_AK4PFchs_DATA;
-                JEC_H = JERFiles::Summer16_23Sep2016_V4_H_L123_AK4PFchs_DATA;
-            } else if (jet_cone == "AK8") {
-                JEC_BCD = JERFiles::Summer16_23Sep2016_V4_BCD_L123_AK8PFchs_DATA;
-                JEC_EFearly = JERFiles::Summer16_23Sep2016_V4_EF_L123_AK8PFchs_DATA;
-                JEC_FlateG = JERFiles::Summer16_23Sep2016_V4_G_L123_AK8PFchs_DATA;
-                JEC_H = JERFiles::Summer16_23Sep2016_V4_H_L123_AK8PFchs_DATA;
-            }
-        } else if (pu_removal == "PUPPI") {
-            if (jet_cone == "AK4") {
-                JEC_BCD = JERFiles::Summer16_23Sep2016_V4_BCD_L123_AK4PFPuppi_DATA;
-                JEC_EFearly = JERFiles::Summer16_23Sep2016_V4_EF_L123_AK4PFPuppi_DATA;
-                JEC_FlateG = JERFiles::Summer16_23Sep2016_V4_G_L123_AK4PFPuppi_DATA;
-                JEC_H = JERFiles::Summer16_23Sep2016_V4_H_L123_AK4PFPuppi_DATA;
-            } else if (jet_cone == "AK8") {
-                JEC_BCD = JERFiles::Summer16_23Sep2016_V4_BCD_L123_AK8PFPuppi_DATA;
-                JEC_EFearly = JERFiles::Summer16_23Sep2016_V4_EF_L123_AK8PFPuppi_DATA;
-                JEC_FlateG = JERFiles::Summer16_23Sep2016_V4_G_L123_AK8PFPuppi_DATA;
-                JEC_H = JERFiles::Summer16_23Sep2016_V4_H_L123_AK8PFPuppi_DATA;
-            }
-        }
-
-        jet_corrector_BCD.reset(new JetCorrector(ctx, JEC_BCD));
-        jet_corrector_EFearly.reset(new JetCorrector(ctx, JEC_EFearly));
-        jet_corrector_FlateG.reset(new JetCorrector(ctx, JEC_FlateG));
-        jet_corrector_H.reset(new JetCorrector(ctx, JEC_H));
-    }
-
-    jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(30.0, 2.4)));
-    jet_ele_cleaner.reset(new JetElectronOverlapRemoval(jetRadius));
-    jet_mu_cleaner.reset(new JetMuonOverlapRemoval(jetRadius));
 
     // Event Selections
     njet_sel.reset(new NJetSelection(1));
@@ -235,7 +142,7 @@ bool QGAnalysisJetTrigEffModule::process(Event & event) {
     // if (PRINTOUT) {cout << "-- Event: " << event.event << endl;}
 
     // This is the main procedure, called for each event.
-    if (!common->process(event)) {
+    if (!common_setup->process(event)) {
         if (PRINTOUT) cout << " failed commonmodules" << endl;
         return false;
     }
@@ -251,40 +158,6 @@ bool QGAnalysisJetTrigEffModule::process(Event & event) {
             }
         }
     }
-
-    // Do additional cleaning & JEC manually to allow custom JEC (common only does AK4)
-    // - Apply JEC
-    // - correct MET
-    // - Smear jets if MC
-   if (is_mc) {
-        jet_corrector_MC->process(event);
-        jet_corrector_MC->correct_met(event);
-        jet_resolution_smearer->process(event);
-    } else {
-        if (event.run <= runnr_BCD) {
-            jet_corrector_BCD->process(event);
-            jet_corrector_BCD->correct_met(event);
-        } else if (event.run < runnr_EFearly) { //< is correct, not <=
-            jet_corrector_EFearly->process(event);
-            jet_corrector_EFearly->correct_met(event);
-        } else if (event.run <= runnr_FlateG) {
-            jet_corrector_FlateG->process(event);
-            jet_corrector_FlateG->correct_met(event);
-        } else if (event.run > runnr_FlateG) {
-            jet_corrector_H->process(event);
-            jet_corrector_H->correct_met(event);
-        } else {
-            throw runtime_error("CommonModules.cxx: run number not covered by if-statements in process-routine.");
-        }
-    }
-
-    // Do jet cleaning
-    // jet_cleaner->process(event);
-    jet_ele_cleaner->process(event);
-    jet_mu_cleaner->process(event);
-
-    // Resort by pT
-    sort_by_pt(*event.jets);
 
     // RECO PART
     // if (!njet_sel->passes(event)) return false;
