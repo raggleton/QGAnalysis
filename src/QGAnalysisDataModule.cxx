@@ -245,6 +245,8 @@ bool QGAnalysisDataModule::process(Event & event) {
     if (PRINTOUT) printElectrons(*event.electrons, "Precleaning");
     if (PRINTOUT) printJets(*event.jets, "Precleaning");
 
+    if (!common_setup->process(event)) return false;
+
     if (!njet_sel->passes(event)) return false;
 
     // Check trigger
@@ -265,8 +267,6 @@ bool QGAnalysisDataModule::process(Event & event) {
         passTrigger = (zerobias_trigger_sel->passes(event)) && (event.jets->at(0).pt() < jetht_zb_pt_boundary);
     }
     if (!passTrigger) return false;
-
-    if (!common_setup->process(event)) return false;
 
     if (PRINTOUT) printMuons(*event.muons);
     if (PRINTOUT) printElectrons(*event.electrons);
