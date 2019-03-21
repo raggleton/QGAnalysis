@@ -3,6 +3,7 @@
 <!-- <Item Name="ElectronCollection" Value="slimmedElectrons" /> -->
 <Item Name="MuonCollection" Value="slimmedMuonsUSER" />
 
+<Item Name="GenInfoName" Value="genInfo" />
 <Item Name="GenParticleCollection" Value="GenParticles" />
 <Item Name="PFParticleCollection" Value="JetPFParticles" />
 
