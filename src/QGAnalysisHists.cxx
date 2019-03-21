@@ -154,15 +154,15 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_LHA_highPt_rel_response = book<TH2F>("jet_LHA_highPt_rel_response", ";LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
   h_jet_LHA_charged_highPt_rel_response = book<TH2F>("jet_LHA_charged_highPt_rel_response", ";LHA (#lambda_{0.5}^{1}) (GEN, charged only);LHA (#lambda_{0.5}^{1}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
 
-  // LHA_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
-  // for (int i=0; i < nbins_pt_response; i++) {
-  //   for (int j=0; j < nbins_pt_response; j++) {
-  //     LHA_response_binned[i][j] = book<TH2F>(TString::Format("jet_lha_response_bin_%d_%d", i, j),
-  //                                                     TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO)",
-  //                                                                     bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
-  //                                                     nBins, 0, 1, nBins, 0, 1);
-  //   }
-  // }
+  LHA_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
+  for (int i=0; i < nbins_pt_response; i++) {
+    for (int j=0; j < nbins_pt_response; j++) {
+      LHA_response_binned[i][j] = book<TH2F>(TString::Format("jet_lha_response_bin_%d_%d", i, j),
+                                                      TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO)",
+                                                                      bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+                                                      nBins, 0, 1, nBins, 0, 1);
+    }
+  }
 
 
   h_jet_pTD_response = book<TH2F>("jet_pTD_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO)", nBins, 0, 1, nBins, 0, 1);
@@ -442,11 +442,31 @@ void QGAnalysisHists::fill(const Event & event){
 
     genjets = &event.get(genJets_handle);
   }
+  // cout << "***" << event.event << endl;
+
+  // figure out ave pt across N jets
+  // float avePtReco = 0.;
+  // float avePtGen = 0.;
+  // int nGenJets = 0;
+  // for (int i = 0; i < useNJets_; i++) {
+  //   const Jet & thisjet = jets->at(i);
+  //   avePtReco += thisjet.pt();
+  //   if (is_mc_) {
+  //     if (thisjet.genjet_index() > -1) {
+  //       nGenJets++;
+  //       const GenJetWithParts & genjet = genjets->at(thisjet.genjet_index());
+  //       avePtGen += genjet.pt();
+  //     }
+  //   }
+  // }
+
+  // avePtReco /= useNJets_;
+  // avePtGen /= nGenJets;
 
   // Fill reco jet hists
   for (int i = 0; i < useNJets_; i++) {
     const Jet & thisjet = jets->at(i);
-
+    // cout << thisjet.pt() << " : " << thisjet.eta() << endl;
     std::vector<PFParticle*> orig_daughters = get_jet_pfparticles(thisjet, event.pfparticles);
 
     // Do uncertainty shifting of neutral hadron components
@@ -462,6 +482,7 @@ void QGAnalysisHists::fill(const Event & event){
       orig_daughters = daughters_copy;
     }
 
+    // save only those with pt > 1
     std::vector<PFParticle*> daughters;
     float puppiMult = 0;
     for (auto dau : orig_daughters) {
@@ -646,7 +667,7 @@ void QGAnalysisHists::fill(const Event & event){
         }
         // multiplicity_response_binned[genind][recoind]->Fill(gen_mult, mult, weight);
         // puppiMultiplicity_response_binned[genind][recoind]->Fill(gen_mult, puppiMult, weight);
-        // LHA_response_binned[genind][recoind]->Fill(gen_lha, lha, weight);
+        LHA_response_binned[genind][recoind]->Fill(gen_lha, lha, weight);
         // pTD_response_binned[genind][recoind]->Fill(gen_ptd, ptd, weight);
         // width_response_binned[genind][recoind]->Fill(gen_width, width, weight);
         // thrust_response_binned[genind][recoind]->Fill(gen_thrust, thrust, weight);

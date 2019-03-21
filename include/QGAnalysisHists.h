@@ -72,7 +72,7 @@ protected:
     TH2F * h_jet_multiplicity_highPt_rel_response, *h_jet_puppiMultiplicity_highPt_rel_response, *h_jet_LHA_highPt_rel_response, *h_jet_pTD_highPt_rel_response, *h_jet_width_highPt_rel_response, *h_jet_thrust_highPt_rel_response;
     TH2F * h_jet_multiplicity_charged_highPt_rel_response, *h_jet_puppiMultiplicity_charged_highPt_rel_response, *h_jet_LHA_charged_highPt_rel_response, *h_jet_pTD_charged_highPt_rel_response, *h_jet_width_charged_highPt_rel_response, *h_jet_thrust_charged_highPt_rel_response;
 
-    // std::vector<std::vector<TH2F *>> multiplicity_response_binned, puppiMultiplicity_response_binned, LHA_response_binned, pTD_response_binned, width_response_binned, thrust_response_binned;
+    std::vector<std::vector<TH2F *>> multiplicity_response_binned, puppiMultiplicity_response_binned, LHA_response_binned, pTD_response_binned, width_response_binned, thrust_response_binned;
 
     // lambda correlation hists
     // TH2F *h_jet_multiplicity_vs_LHA, *h_jet_multiplicity_vs_pTD, *h_jet_multiplicity_vs_width, *h_jet_multiplicity_vs_thrust;
