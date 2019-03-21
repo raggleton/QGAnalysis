@@ -626,20 +626,24 @@ void QGAnalysisHists::fill(const Event & event){
           h_jet_thrust_charged_lowPt_rel_response, h_jet_thrust_charged_highPt_rel_response);
 
         // Response hists per pt bin
-        // auto genit = std::lower_bound(bins_pt_response.begin(), bins_pt_response.end(), genjet_pt);
-        // int genind = genit - bins_pt_response.begin() - 1; // need the -1 to get the offset correct
-        // if (genind < 0) {
-        //   throw std::runtime_error("Invalid genind pos - bins start at too high a value");
-        // } else if (genind >= (int) multiplicity_response_binned.size()) {
-        //   throw std::runtime_error("Invalid genind pos - bins don't extend far enough");
-        // }
-        // auto recoit = std::lower_bound(bins_pt_response.begin(), bins_pt_response.end(), jet_pt);
-        // int recoind = recoit - bins_pt_response.begin() - 1;
-        // if (recoind < 0) {
-        //   throw std::runtime_error("Invalid recoind pos - bins start at too high a value");
-        // } else if (recoind >= (int) multiplicity_response_binned[genind].size()) {
-        //   throw std::runtime_error("Invalid recoind pos - bins don't extend far enough");
-        // }
+        auto genit = std::lower_bound(bins_pt_response.begin(), bins_pt_response.end(), genjet_pt);
+        int genind = genit - bins_pt_response.begin() - 1; // need the -1 to get the offset correct
+        if (genind < 0) {
+          cout << "genjet pt: " << genjet_pt << " limit: " << bins_pt_response[0] << endl;
+          throw std::runtime_error("Invalid genind pos - bins start at too high a value");
+        } else if (genind >= (int) bins_pt_response.size()) {
+          cout << "genjet pt: " << genjet_pt << " limit: " << bins_pt_response[bins_pt_response.size()-1] << endl;
+          throw std::runtime_error("Invalid genind pos - bins don't extend far enough");
+        }
+        auto recoit = std::lower_bound(bins_pt_response.begin(), bins_pt_response.end(), jet_pt);
+        int recoind = recoit - bins_pt_response.begin() - 1;
+        if (recoind < 0) {
+          cout << "recojet pt: " << jet_pt << " limit: " << bins_pt_response[0] << endl;
+          throw std::runtime_error("Invalid recoind pos - bins start at too high a value");
+        } else if (recoind >= (int) bins_pt_response.size()) {
+          cout << "recojet pt: " << jet_pt << " limit: " << bins_pt_response[bins_pt_response.size()-1] << endl;
+          throw std::runtime_error("Invalid recoind pos - bins don't extend far enough");
+        }
         // multiplicity_response_binned[genind][recoind]->Fill(gen_mult, mult, weight);
         // puppiMultiplicity_response_binned[genind][recoind]->Fill(gen_mult, puppiMult, weight);
         // LHA_response_binned[genind][recoind]->Fill(gen_lha, lha, weight);
