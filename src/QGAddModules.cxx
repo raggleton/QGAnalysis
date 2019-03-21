@@ -356,7 +356,7 @@ std::vector<float> get_pt_bin_edges(float end, float factor)
   std::vector<float> trig_bins = {
    50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 1000, 1300, 1700, 2200, 3000, 4000, 5000, 10000
   };
-  std::vector<float> values = {0, 22, 29, 38};
+  std::vector<float> values = {0, 29, 38};
   // Add in bins below lowest trig bin threshold
   // float f = trig_bins.at(0);
   // while (f > 5) {
