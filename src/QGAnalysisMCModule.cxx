@@ -48,6 +48,7 @@ private:
 
     std::unique_ptr<GeneralEventSetup> common_setup;
     std::unique_ptr<MCReweighting> mc_reweight;
+    std::unique_ptr<MCScaleVariation> mc_scalevar;
 
     // Reco selections/hists
     std::unique_ptr<ZFinder> zFinder;
@@ -129,6 +130,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jetRadius));
     mc_reweight.reset(new MCReweighting(ctx));
+    mc_scalevar.reset(new MCScaleVariation(ctx));
 
     genjets_handle = ctx.declare_event_output< std::vector<GenJetWithParts> > ("GoodGenJets");
     genmuons_handle = ctx.declare_event_output< std::vector<GenParticle> > ("GoodGenMuons");
@@ -260,6 +262,7 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     if (!common_setup->process(event)) {return false;}
     mc_reweight->process(event);
+    mc_scalevar->process(event);
 
     if (!njet_sel->passes(event)) return false;
 
