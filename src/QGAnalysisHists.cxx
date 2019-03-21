@@ -14,8 +14,6 @@ using namespace uhh2examples;
 QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useNJets, const string & selection):
   Hists(ctx, dirname),
   useNJets_(useNJets),
-  bins_pt_response(get_pt_bin_edges(3500, 1.3)),
-  nbins_pt_response(bins_pt_response.size() - 1),
   neutral_pf_hadron_shift_(0.),
   photon_shift_(0.),
   rsp_pt_cut_(250.)
@@ -103,12 +101,12 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_multiplicity_charged_highPt_rel_response = book<TH2F>("jet_multiplicity_charged_highPt_rel_response", ";# of constituents (#lambda_{0}^{0}) (GEN, charged only);# of constituents (#lambda_{0}^{0}) (RECO / GEN, charged only)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
 
   // 2D hist for each pT bin
-  // multiplicity_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
-  // for (int i=0; i < nbins_pt_response; i++) {
-  //   for (int j=0; j < nbins_pt_response; j++) {
+  // multiplicity_response_binned.resize(Binning::nbins_pt, std::vector<TH2F*>(Binning::nbins_pt));
+  // for (int i=0; i < Binning::nbins_pt; i++) {
+  //   for (int j=0; j < Binning::nbins_pt; j++) {
   //     multiplicity_response_binned[i][j] = book<TH2F>(TString::Format("jet_multiplicity_response_bin_%d_%d", i, j),
   //                                                     TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO)",
-  //                                                                     bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+  //                                                                     Binning::pt_bin_edges[i], Binning::pt_bin_edges[i+1], Binning::pt_bin_edges[j], Binning::pt_bin_edges[j+1]),
   //                                                     nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
   //   }
   // }
@@ -129,12 +127,12 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_puppiMultiplicity_charged_highPt_rel_response = book<TH2F>("jet_puppiMultiplicity_charged_highPt_rel_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN, charged only);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO / GEN, charged only)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
 
   // 2D hist for each pT bin
-  // puppiMultiplicity_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
-  // for (int i=0; i < nbins_pt_response; i++) {
-  //   for (int j=0; j < nbins_pt_response; j++) {
+  // puppiMultiplicity_response_binned.resize(Binning::nbins_pt, std::vector<TH2F*>(Binning::nbins_pt));
+  // for (int i=0; i < Binning::nbins_pt; i++) {
+  //   for (int j=0; j < Binning::nbins_pt; j++) {
   //     puppiMultiplicity_response_binned[i][j] = book<TH2F>(TString::Format("jet_puppiMultiplicity_response_bin_%d_%d", i, j),
   //                                                     TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO)",
-  //                                                                     bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+  //                                                                     Binning::pt_bin_edges[i], Binning::pt_bin_edges[i+1], Binning::pt_bin_edges[j], Binning::pt_bin_edges[j+1]),
   //                                                     nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
   //   }
   // }
@@ -154,12 +152,12 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_LHA_highPt_rel_response = book<TH2F>("jet_LHA_highPt_rel_response", ";LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
   h_jet_LHA_charged_highPt_rel_response = book<TH2F>("jet_LHA_charged_highPt_rel_response", ";LHA (#lambda_{0.5}^{1}) (GEN, charged only);LHA (#lambda_{0.5}^{1}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
 
-  LHA_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
-  for (int i=0; i < nbins_pt_response; i++) {
-    for (int j=0; j < nbins_pt_response; j++) {
+  LHA_response_binned.resize(Binning::nbins_pt, std::vector<TH2F*>(Binning::nbins_pt));
+  for (int i=0; i < Binning::nbins_pt; i++) {
+    for (int j=0; j < Binning::nbins_pt; j++) {
       LHA_response_binned[i][j] = book<TH2F>(TString::Format("jet_lha_response_bin_%d_%d", i, j),
                                                       TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO)",
-                                                                      bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+                                                                      Binning::pt_bin_edges[i], Binning::pt_bin_edges[i+1], Binning::pt_bin_edges[j], Binning::pt_bin_edges[j+1]),
                                                       nBins, 0, 1, nBins, 0, 1);
     }
   }
@@ -180,12 +178,12 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_pTD_highPt_rel_response = book<TH2F>("jet_pTD_highPt_rel_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
   h_jet_pTD_charged_highPt_rel_response = book<TH2F>("jet_pTD_charged_highPt_rel_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
 
-  // pTD_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
-  // for (int i=0; i < nbins_pt_response; i++) {
-  //   for (int j=0; j < nbins_pt_response; j++) {
+  // pTD_response_binned.resize(Binning::nbins_pt, std::vector<TH2F*>(Binning::nbins_pt));
+  // for (int i=0; i < Binning::nbins_pt; i++) {
+  //   for (int j=0; j < Binning::nbins_pt; j++) {
   //     pTD_response_binned[i][j] = book<TH2F>(TString::Format("jet_pTD_response_bin_%d_%d", i, j),
   //                                                     TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO)",
-  //                                                                     bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+  //                                                                     Binning::pt_bin_edges[i], Binning::pt_bin_edges[i+1], Binning::pt_bin_edges[j], Binning::pt_bin_edges[j+1]),
   //                                                     nBins, 0, 1, nBins, 0, 1);
   //   }
   // }
@@ -205,12 +203,12 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_width_highPt_rel_response = book<TH2F>("jet_width_highPt_rel_response", ";Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
   h_jet_width_charged_highPt_rel_response = book<TH2F>("jet_width_charged_highPt_rel_response", ";Width (#lambda_{1}^{1}) (GEN, charged);Width (#lambda_{1}^{1}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
 
-  // width_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
-  // for (int i=0; i < nbins_pt_response; i++) {
-  //   for (int j=0; j < nbins_pt_response; j++) {
+  // width_response_binned.resize(Binning::nbins_pt, std::vector<TH2F*>(Binning::nbins_pt));
+  // for (int i=0; i < Binning::nbins_pt; i++) {
+  //   for (int j=0; j < Binning::nbins_pt; j++) {
   //     width_response_binned[i][j] = book<TH2F>(TString::Format("jet_width_response_bin_%d_%d", i, j),
   //                                                     TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO)",
-  //                                                                     bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+  //                                                                     Binning::pt_bin_edges[i], Binning::pt_bin_edges[i+1], Binning::pt_bin_edges[j], Binning::pt_bin_edges[j+1]),
   //                                                     nBins, 0, 1, nBins, 0, 1);
   //   }
   // }
@@ -230,12 +228,12 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_thrust_highPt_rel_response = book<TH2F>("jet_thrust_highPt_rel_response", ";Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
   h_jet_thrust_charged_highPt_rel_response = book<TH2F>("jet_thrust_charged_highPt_rel_response", ";Thrust (#lambda_{2}^{1}) (GEN, charged);Thrust (#lambda_{2}^{1}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
 
-  // thrust_response_binned.resize(nbins_pt_response, std::vector<TH2F*>(nbins_pt_response));
-  // for (int i=0; i < nbins_pt_response; i++) {
-  //   for (int j=0; j < nbins_pt_response; j++) {
+  // thrust_response_binned.resize(Binning::nbins_pt, std::vector<TH2F*>(Binning::nbins_pt));
+  // for (int i=0; i < Binning::nbins_pt; i++) {
+  //   for (int j=0; j < Binning::nbins_pt; j++) {
   //     thrust_response_binned[i][j] = book<TH2F>(TString::Format("jet_thrust_response_bin_%d_%d", i, j),
   //                                                     TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO)",
-  //                                                                     bins_pt_response[i], bins_pt_response[i+1], bins_pt_response[j], bins_pt_response[j+1]),
+  //                                                                     Binning::pt_bin_edges[i], Binning::pt_bin_edges[i+1], Binning::pt_bin_edges[j], Binning::pt_bin_edges[j+1]),
   //                                                     nBins, 0, 1, nBins, 0, 1);
   //   }
   // }
@@ -647,22 +645,22 @@ void QGAnalysisHists::fill(const Event & event){
           h_jet_thrust_charged_lowPt_rel_response, h_jet_thrust_charged_highPt_rel_response);
 
         // Response hists per pt bin
-        auto genit = std::lower_bound(bins_pt_response.begin(), bins_pt_response.end(), genjet_pt);
-        int genind = genit - bins_pt_response.begin() - 1; // need the -1 to get the offset correct
+        auto genit = std::lower_bound(Binning::pt_bin_edges.begin(), Binning::pt_bin_edges.end(), genjet_pt);
+        int genind = genit - Binning::pt_bin_edges.begin() - 1; // need the -1 to get the offset correct
         if (genind < 0) {
-          cout << "genjet pt: " << genjet_pt << " limit: " << bins_pt_response[0] << endl;
+          cout << "genjet pt: " << genjet_pt << " limit: " << Binning::pt_bin_edges[0] << endl;
           throw std::runtime_error("Invalid genind pos - bins start at too high a value");
-        } else if (genind >= (int) bins_pt_response.size()) {
-          cout << "genjet pt: " << genjet_pt << " limit: " << bins_pt_response[bins_pt_response.size()-1] << endl;
+        } else if (genind >= (int) Binning::pt_bin_edges.size()) {
+          cout << "genjet pt: " << genjet_pt << " limit: " << Binning::pt_bin_edges[Binning::pt_bin_edges.size()-1] << endl;
           throw std::runtime_error("Invalid genind pos - bins don't extend far enough");
         }
-        auto recoit = std::lower_bound(bins_pt_response.begin(), bins_pt_response.end(), jet_pt);
-        int recoind = recoit - bins_pt_response.begin() - 1;
+        auto recoit = std::lower_bound(Binning::pt_bin_edges.begin(), Binning::pt_bin_edges.end(), jet_pt);
+        int recoind = recoit - Binning::pt_bin_edges.begin() - 1;
         if (recoind < 0) {
-          cout << "recojet pt: " << jet_pt << " limit: " << bins_pt_response[0] << endl;
+          cout << "recojet pt: " << jet_pt << " limit: " << Binning::pt_bin_edges[0] << endl;
           throw std::runtime_error("Invalid recoind pos - bins start at too high a value");
-        } else if (recoind >= (int) bins_pt_response.size()) {
-          cout << "recojet pt: " << jet_pt << " limit: " << bins_pt_response[bins_pt_response.size()-1] << endl;
+        } else if (recoind >= (int) Binning::pt_bin_edges.size()) {
+          cout << "recojet pt: " << jet_pt << " limit: " << Binning::pt_bin_edges[Binning::pt_bin_edges.size()-1] << endl;
           throw std::runtime_error("Invalid recoind pos - bins don't extend far enough");
         }
         // multiplicity_response_binned[genind][recoind]->Fill(gen_mult, mult, weight);

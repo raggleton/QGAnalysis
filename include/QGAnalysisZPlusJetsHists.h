@@ -43,9 +43,6 @@ protected:
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
     uhh2::Event::Handle<std::vector<Muon>> hndlZ;
 
-    std::vector<float> bins_pt_response;
-    int nbins_pt_response;
-
     float jetRadius;
 };
 

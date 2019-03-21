@@ -151,7 +151,9 @@ float get_jet_radius(const std::string & jet_cone);
 
 float calcGenHT(const std::vector<GenParticle> & gps);
 
-std::vector<float> calc_pt_bin_edges(float start=5, float end=3500, float factor=1.25);
-
-std::vector<float> get_pt_bin_edges(float end, float factor);
-
+namespace Binning {
+  const std::vector<float> pt_bin_edges = {
+    0, 29, 38, 50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 1000, 1300, 1700, 2200, 3000, 4000, 5000, 10000
+  };
+  const int nbins_pt(pt_bin_edges.size() - 1);
+}

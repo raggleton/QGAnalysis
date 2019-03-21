@@ -104,9 +104,6 @@ protected:
     bool doHerwigReweighting;
     TH1F * reweightHist;
 
-    std::vector<float> bins_pt_response;
-    int nbins_pt_response;
-
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
     bool is_mc_;
     int neutral_pf_hadron_shift_;
