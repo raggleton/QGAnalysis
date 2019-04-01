@@ -276,7 +276,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, 5., 2.4+(jetRadius/2.));
     event.set(genmuons_handle, std::move(goodGenMuons));
 
-    std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, &event.get(genmuons_handle), 5., 2.4+(jetRadius/2.), jetRadius);
+    std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, &event.get(genmuons_handle), 15., 2.4+(jetRadius/2.), jetRadius);
     if (goodGenJets.size() == 0) return false;
     sort_by_pt(goodGenJets);
 
