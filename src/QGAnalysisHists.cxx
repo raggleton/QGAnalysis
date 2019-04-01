@@ -152,17 +152,193 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_LHA_highPt_rel_response = book<TH2F>("jet_LHA_highPt_rel_response", ";LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
   h_jet_LHA_charged_highPt_rel_response = book<TH2F>("jet_LHA_charged_highPt_rel_response", ";LHA (#lambda_{0.5}^{1}) (GEN, charged only);LHA (#lambda_{0.5}^{1}) (RECO / GEN, charged only)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
 
-  LHA_response_binned.resize(Binning::nbins_pt, std::vector<TH2F*>(Binning::nbins_pt));
-  for (int i=0; i < Binning::nbins_pt; i++) {
-    for (int j=0; j < Binning::nbins_pt; j++) {
-      LHA_response_binned[i][j] = book<TH2F>(TString::Format("jet_lha_response_bin_%d_%d", i, j),
-                                                      TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO)",
-                                                                      Binning::pt_bin_edges[i], Binning::pt_bin_edges[i+1], Binning::pt_bin_edges[j], Binning::pt_bin_edges[j+1]),
-                                                      nBins, 0, 1, nBins, 0, 1);
-    }
-  }
+  // LHA_response_binned.resize(Binning::nbins_pt, std::vector<TH2F*>(Binning::nbins_pt));
+  // for (int i=0; i < Binning::nbins_pt; i++) {
+  //   for (int j=0; j < Binning::nbins_pt; j++) {
+  //     LHA_response_binned[i][j] = book<TH2F>(TString::Format("jet_lha_response_bin_%d_%d", i, j),
+  //                                                     TString::Format("%g < p_{T}^{Gen} < %g GeV, %g < p_{T}^{Reco} < %g GeV;LHA (#lambda_{0.5}^{1}) (GEN);LHA (#lambda_{0.5}^{1}) (RECO)",
+  //                                                                     Binning::pt_bin_edges[i], Binning::pt_bin_edges[i+1], Binning::pt_bin_edges[j], Binning::pt_bin_edges[j+1]),
+  //                                                     nBins, 0, 1, nBins, 0, 1);
+  //   }
+  // }
 
 
+  // setup TUnfold binning for reco & gen
+  // LHA
+  detector_tu_binning_LHA = new TUnfoldBinning("detector");
+  detector_distribution_LHA = detector_tu_binning_LHA->AddBinning("detectordistribution");
+  detector_distribution_LHA->AddAxis("LHA", Binning::nbins_lha, Binning::lha_bin_edges.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  detector_distribution_LHA->AddAxis("pt", Binning::nbins_pt, Binning::pt_bin_edges.data(), false, true);  // last 2 bins are underflow (not reco'd) and overflow
+
+  generator_tu_binning_LHA = new TUnfoldBinning("generator");
+  generator_distribution_LHA = generator_tu_binning_LHA->AddBinning("generatordistribution");
+  generator_distribution_LHA->AddAxis("LHA", Binning::nbins_lha_coarse, Binning::lha_bin_edges_coarse.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  generator_distribution_LHA->AddAxis("pt", Binning::nbins_pt_coarse, Binning::pt_bin_edges_coarse.data(), true, true);  // last 2 bins are underflow (not reco'd) and overflow
+
+  // make tmp copies which we can then copy and use with book<>
+  TH2 * h_tu_response_LHA_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_LHA, detector_tu_binning_LHA, "tu_LHA_GenReco");
+  h_tu_response_LHA = book<TH2F>((std::string(h_tu_response_LHA_tmp->GetName())+"new").c_str(),
+                                 h_tu_response_LHA_tmp->GetTitle(),
+                                 h_tu_response_LHA_tmp->GetNbinsX(), h_tu_response_LHA_tmp->GetXaxis()->GetXmin(), h_tu_response_LHA_tmp->GetXaxis()->GetXmax(),
+                                 h_tu_response_LHA_tmp->GetNbinsY(), h_tu_response_LHA_tmp->GetYaxis()->GetXmin(), h_tu_response_LHA_tmp->GetYaxis()->GetXmax());
+  delete h_tu_response_LHA_tmp;
+
+  TH1 * h_tu_reco_LHA_tmp = detector_tu_binning_LHA->CreateHistogram("hist_LHA_reco");
+  h_tu_reco_LHA = book<TH1F>((std::string(h_tu_reco_LHA_tmp->GetName())+"_new").c_str(),
+                             h_tu_reco_LHA_tmp->GetTitle(),
+                             h_tu_reco_LHA_tmp->GetNbinsX(),
+                             h_tu_reco_LHA_tmp->GetXaxis()->GetXmin(),
+                             h_tu_reco_LHA_tmp->GetXaxis()->GetXmax());
+  delete h_tu_reco_LHA_tmp;
+
+  TH1 * h_tu_gen_LHA_tmp = generator_tu_binning_LHA->CreateHistogram("hist_LHA_truth");
+  // DO NOT USE h_tu_gen_LHA_tmp->GetXaxis()->GetXbins()->GetArray() to clone bins, it just doesn't work
+  h_tu_gen_LHA = book<TH1F>((std::string(h_tu_gen_LHA_tmp->GetName())+"_new").c_str(),
+                            h_tu_gen_LHA_tmp->GetTitle(),
+                            h_tu_gen_LHA_tmp->GetNbinsX(),
+                            h_tu_gen_LHA_tmp->GetXaxis()->GetXmin(),
+                            h_tu_gen_LHA_tmp->GetXaxis()->GetXmax());
+  delete h_tu_gen_LHA_tmp;
+
+  // puppi multiplicity
+  detector_tu_binning_puppiMultiplicity = new TUnfoldBinning("detector");
+  detector_distribution_puppiMultiplicity = detector_tu_binning_puppiMultiplicity->AddBinning("detectordistribution");
+  detector_distribution_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_puppiMultiplicity, Binning::puppiMultiplicity_bin_edges.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  detector_distribution_puppiMultiplicity->AddAxis("pt", Binning::nbins_pt, Binning::pt_bin_edges.data(), false, true);  // last 2 bins are underflow (not reco'd) and overflow
+
+  generator_tu_binning_puppiMultiplicity = new TUnfoldBinning("generator");
+  generator_distribution_puppiMultiplicity = generator_tu_binning_puppiMultiplicity->AddBinning("generatordistribution");
+  generator_distribution_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_puppiMultiplicity_coarse, Binning::puppiMultiplicity_bin_edges_coarse.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  generator_distribution_puppiMultiplicity->AddAxis("pt", Binning::nbins_pt_coarse, Binning::pt_bin_edges_coarse.data(), true, true);  // last 2 bins are underflow (not reco'd) and overflow
+
+  // make tmp copies which we can then copy and use with book<>
+  TH2 * h_tu_response_puppiMultiplicity_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_puppiMultiplicity, detector_tu_binning_puppiMultiplicity, "tu_puppiMultiplicity_GenReco");
+  h_tu_response_puppiMultiplicity = book<TH2F>((std::string(h_tu_response_puppiMultiplicity_tmp->GetName())+"_new").c_str(),
+                                               h_tu_response_puppiMultiplicity_tmp->GetTitle(),
+                                               h_tu_response_puppiMultiplicity_tmp->GetNbinsX(), h_tu_response_puppiMultiplicity_tmp->GetXaxis()->GetXmin(), h_tu_response_puppiMultiplicity_tmp->GetXaxis()->GetXmax(),
+                                               h_tu_response_puppiMultiplicity_tmp->GetNbinsY(), h_tu_response_puppiMultiplicity_tmp->GetYaxis()->GetXmin(), h_tu_response_puppiMultiplicity_tmp->GetYaxis()->GetXmax());
+  delete h_tu_response_puppiMultiplicity_tmp;
+
+  TH1 * h_tu_reco_puppiMultiplicity_tmp = detector_tu_binning_puppiMultiplicity->CreateHistogram("hist_puppiMultiplicity_reco");
+  h_tu_reco_puppiMultiplicity = book<TH1F>((std::string(h_tu_reco_puppiMultiplicity_tmp->GetName())+"_new").c_str(),  // need to change name, cos ROOT
+                                           h_tu_reco_puppiMultiplicity_tmp->GetTitle(),
+                                           h_tu_reco_puppiMultiplicity_tmp->GetNbinsX(),
+                                           h_tu_reco_puppiMultiplicity_tmp->GetXaxis()->GetXmin(),
+                                           h_tu_reco_puppiMultiplicity_tmp->GetXaxis()->GetXmax());
+  delete h_tu_reco_puppiMultiplicity_tmp;
+
+  TH1 * h_tu_gen_puppiMultiplicity_tmp = generator_tu_binning_puppiMultiplicity->CreateHistogram("hist_puppiMultiplicity_truth");
+  h_tu_gen_puppiMultiplicity = book<TH1F>((std::string(h_tu_gen_puppiMultiplicity_tmp->GetName())+"_new").c_str(),
+                                          h_tu_gen_puppiMultiplicity_tmp->GetTitle(),
+                                          h_tu_gen_puppiMultiplicity_tmp->GetNbinsX(),
+                                          h_tu_gen_puppiMultiplicity_tmp->GetXaxis()->GetXmin(),
+                                          h_tu_gen_puppiMultiplicity_tmp->GetXaxis()->GetXmax());
+  delete h_tu_gen_puppiMultiplicity_tmp;
+
+
+  // pTD
+  detector_tu_binning_pTD = new TUnfoldBinning("detector");
+  detector_distribution_pTD = detector_tu_binning_pTD->AddBinning("detectordistribution");
+  detector_distribution_pTD->AddAxis("pTD", Binning::nbins_pTD, Binning::pTD_bin_edges.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  detector_distribution_pTD->AddAxis("pt", Binning::nbins_pt, Binning::pt_bin_edges.data(), false, true);  // last 2 bins are underflow (not reco'd) and overflow
+
+  generator_tu_binning_pTD = new TUnfoldBinning("generator");
+  generator_distribution_pTD = generator_tu_binning_pTD->AddBinning("generatordistribution");
+  generator_distribution_pTD->AddAxis("pTD", Binning::nbins_pTD_coarse, Binning::pTD_bin_edges_coarse.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  generator_distribution_pTD->AddAxis("pt", Binning::nbins_pt_coarse, Binning::pt_bin_edges_coarse.data(), true, true);  // last 2 bins are underflow (not reco'd) and overflow
+
+  TH2 * h_tu_response_pTD_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_pTD, detector_tu_binning_pTD, "tu_pTD_GenReco");
+  h_tu_response_pTD = book<TH2F>((std::string(h_tu_response_pTD_tmp->GetName())+"_new").c_str(),
+                                 h_tu_response_pTD_tmp->GetTitle(),
+                                 h_tu_response_pTD_tmp->GetNbinsX(), h_tu_response_pTD_tmp->GetXaxis()->GetXmin(), h_tu_response_pTD_tmp->GetXaxis()->GetXmax(),
+                                 h_tu_response_pTD_tmp->GetNbinsY(), h_tu_response_pTD_tmp->GetYaxis()->GetXmin(), h_tu_response_pTD_tmp->GetYaxis()->GetXmax());
+  delete h_tu_response_pTD_tmp;
+
+  TH1 * h_tu_reco_pTD_tmp = detector_tu_binning_pTD->CreateHistogram("hist_pTD_reco");
+  h_tu_reco_pTD = book<TH1F>((std::string(h_tu_reco_pTD_tmp->GetName())+"_new").c_str(),
+                             h_tu_reco_pTD_tmp->GetTitle(),
+                             h_tu_reco_pTD_tmp->GetNbinsX(),
+                             h_tu_reco_pTD_tmp->GetXaxis()->GetXmin(),
+                             h_tu_reco_pTD_tmp->GetXaxis()->GetXmax());
+  delete h_tu_reco_pTD_tmp;
+
+  TH1 * h_tu_gen_pTD_tmp = generator_tu_binning_pTD->CreateHistogram("hist_pTD_truth");
+  h_tu_gen_pTD = book<TH1F>((std::string(h_tu_gen_pTD_tmp->GetName())+"_new").c_str(),
+                            h_tu_gen_pTD_tmp->GetTitle(),
+                            h_tu_gen_pTD_tmp->GetNbinsX(),
+                            h_tu_gen_pTD_tmp->GetXaxis()->GetXmin(),
+                            h_tu_gen_pTD_tmp->GetXaxis()->GetXmax());
+  delete h_tu_gen_pTD_tmp;
+
+  // thrust
+  detector_tu_binning_thrust = new TUnfoldBinning("detector");
+  detector_distribution_thrust = detector_tu_binning_thrust->AddBinning("detectordistribution");
+  detector_distribution_thrust->AddAxis("thrust", Binning::nbins_thrust, Binning::thrust_bin_edges.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  detector_distribution_thrust->AddAxis("pt", Binning::nbins_pt, Binning::pt_bin_edges.data(), false, true);  // last 2 bins are underflow (not reco'd) and overflow
+
+  generator_tu_binning_thrust = new TUnfoldBinning("generator");
+  generator_distribution_thrust = generator_tu_binning_thrust->AddBinning("generatordistribution");
+  generator_distribution_thrust->AddAxis("thrust", Binning::nbins_thrust_coarse, Binning::thrust_bin_edges_coarse.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  generator_distribution_thrust->AddAxis("pt", Binning::nbins_pt_coarse, Binning::pt_bin_edges_coarse.data(), true, true);  // last 2 bins are underflow (not reco'd) and overflow
+
+  TH2 * h_tu_response_thrust_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_thrust, detector_tu_binning_thrust, "tu_thrust_GenReco");
+  h_tu_response_thrust = book<TH2F>((std::string(h_tu_response_thrust_tmp->GetName())+"_new").c_str(),
+                                    h_tu_response_thrust_tmp->GetTitle(),
+                                    h_tu_response_thrust_tmp->GetNbinsX(), h_tu_response_thrust_tmp->GetXaxis()->GetXmin(), h_tu_response_thrust_tmp->GetXaxis()->GetXmax(),
+                                    h_tu_response_thrust_tmp->GetNbinsY(), h_tu_response_thrust_tmp->GetYaxis()->GetXmin(), h_tu_response_thrust_tmp->GetYaxis()->GetXmax());
+  delete h_tu_response_thrust_tmp;
+
+  TH1 * h_tu_reco_thrust_tmp = detector_tu_binning_thrust->CreateHistogram("hist_thrust_reco");
+  h_tu_reco_thrust = book<TH1F>((std::string(h_tu_reco_thrust_tmp->GetName())+"_new").c_str(),
+                                h_tu_reco_thrust_tmp->GetTitle(),
+                                h_tu_reco_thrust_tmp->GetNbinsX(),
+                                h_tu_reco_thrust_tmp->GetXaxis()->GetXmin(),
+                                h_tu_reco_thrust_tmp->GetXaxis()->GetXmax());
+  delete h_tu_reco_thrust_tmp;
+
+  TH1 * h_tu_gen_thrust_tmp = generator_tu_binning_thrust->CreateHistogram("hist_thrust_truth");
+  h_tu_gen_thrust = book<TH1F>((std::string(h_tu_gen_thrust_tmp->GetName())+"_new").c_str(),
+                               h_tu_gen_thrust_tmp->GetTitle(),
+                               h_tu_gen_thrust_tmp->GetNbinsX(),
+                               h_tu_gen_thrust_tmp->GetXaxis()->GetXmin(),
+                               h_tu_gen_thrust_tmp->GetXaxis()->GetXmax());
+  delete h_tu_gen_thrust_tmp;
+
+  // width
+  detector_tu_binning_width = new TUnfoldBinning("detector");
+  detector_distribution_width = detector_tu_binning_width->AddBinning("detectordistribution");
+  detector_distribution_width->AddAxis("width", Binning::nbins_width, Binning::width_bin_edges.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  detector_distribution_width->AddAxis("pt", Binning::nbins_pt, Binning::pt_bin_edges.data(), false, true);  // last 2 bins are underflow (not reco'd) and overflow
+
+  generator_tu_binning_width = new TUnfoldBinning("generator");
+  generator_distribution_width = generator_tu_binning_width->AddBinning("generatordistribution");
+  generator_distribution_width->AddAxis("width", Binning::nbins_width_coarse, Binning::width_bin_edges_coarse.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  generator_distribution_width->AddAxis("pt", Binning::nbins_pt_coarse, Binning::pt_bin_edges_coarse.data(), true, true);  // last 2 bins are underflow (not reco'd) and overflow
+
+  TH2 * h_tu_response_width_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_width, detector_tu_binning_width, "tu_width_GenReco");
+  h_tu_response_width = book<TH2F>((std::string(h_tu_response_width_tmp->GetName())+"_new").c_str(),
+                                    h_tu_response_width_tmp->GetTitle(),
+                                    h_tu_response_width_tmp->GetNbinsX(), h_tu_response_width_tmp->GetXaxis()->GetXmin(), h_tu_response_width_tmp->GetXaxis()->GetXmax(),
+                                    h_tu_response_width_tmp->GetNbinsY(), h_tu_response_width_tmp->GetYaxis()->GetXmin(), h_tu_response_width_tmp->GetYaxis()->GetXmax());
+  delete h_tu_response_width_tmp;
+
+  TH1 * h_tu_reco_width_tmp = detector_tu_binning_width->CreateHistogram("hist_width_reco");
+  h_tu_reco_width = book<TH1F>((std::string(h_tu_reco_width_tmp->GetName())+"_new").c_str(),
+                               h_tu_reco_width_tmp->GetTitle(),
+                               h_tu_reco_width_tmp->GetNbinsX(),
+                               h_tu_reco_width_tmp->GetXaxis()->GetXmin(),
+                               h_tu_reco_width_tmp->GetXaxis()->GetXmax());
+  delete h_tu_reco_width_tmp;
+
+  TH1 * h_tu_gen_width_tmp = generator_tu_binning_width->CreateHistogram("hist_width_truth");
+  h_tu_gen_width = book<TH1F>((std::string(h_tu_gen_width_tmp->GetName())+"_new").c_str(),
+                              h_tu_gen_width_tmp->GetTitle(),
+                              h_tu_gen_width_tmp->GetNbinsX(),
+                              h_tu_gen_width_tmp->GetXaxis()->GetXmin(),
+                              h_tu_gen_width_tmp->GetXaxis()->GetXmax());
+  delete h_tu_gen_width_tmp;
+
+  // normal histograms
   h_jet_pTD_response = book<TH2F>("jet_pTD_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO)", nBins, 0, 1, nBins, 0, 1);
   h_jet_pTD_charged_response = book<TH2F>("jet_pTD_charged_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN, charged);p_{T}^{D} (#lambda_{0}^{2}) (RECO, charged only)", nBins, 0, 1, nBins, 0, 1);
   h_jet_pTD_rel_response = book<TH2F>("jet_pTD_rel_response", ";p_{T}^{D} (#lambda_{0}^{2}) (GEN);p_{T}^{D} (#lambda_{0}^{2}) (RECO / GEN)", nBins, 0, 1, nBinsNormRsp, 0, rsp_max);
@@ -527,6 +703,22 @@ void QGAnalysisHists::fill(const Event & event){
     h_jet_puppiMultiplicity->Fill(puppiMult, weight);
     h_jet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
 
+    // Fill TUnfold reco hists
+    int recBinLHA = detector_distribution_LHA->GetGlobalBinNumber(lha, jet_pt);
+    h_tu_reco_LHA->Fill(recBinLHA, weight);
+
+    int recBinPuppiMult = detector_distribution_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
+    h_tu_reco_puppiMultiplicity->Fill(recBinPuppiMult, weight);
+
+    int recBinpTD = detector_distribution_pTD->GetGlobalBinNumber(ptd, jet_pt);
+    h_tu_reco_pTD->Fill(recBinpTD, weight);
+
+    int recBinThrust = detector_distribution_thrust->GetGlobalBinNumber(thrust, jet_pt);
+    h_tu_reco_thrust->Fill(recBinThrust, weight);
+
+    int recBinWidth = detector_distribution_width->GetGlobalBinNumber(width, jet_pt);
+    h_tu_reco_width->Fill(recBinWidth, weight);
+
     if (is_mc_) {
       // Store variables for matched GenJet
       bool matchedJet = false;
@@ -560,6 +752,10 @@ void QGAnalysisHists::fill(const Event & event){
           jet_pt, h_jet_puppiMultiplicity_lowPt_response, h_jet_puppiMultiplicity_highPt_response,
           h_jet_puppiMultiplicity_lowPt_rel_response, h_jet_puppiMultiplicity_highPt_rel_response);
 
+        int genBinPuppiMult = generator_distribution_puppiMultiplicity->GetGlobalBinNumber(gen_mult, genjet_pt);
+        h_tu_gen_puppiMultiplicity->Fill(genBinPuppiMult, weight);
+        h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, recBinPuppiMult, weight);
+
         LambdaCalculator<GenParticle> matchedGenJetCalc(matchedDaughters, jetRadius, genjet.v4(), false);
 
         float gen_lha = matchedGenJetCalc.getLambda(1, 0.5);
@@ -568,11 +764,19 @@ void QGAnalysisHists::fill(const Event & event){
           jet_pt, h_jet_LHA_lowPt_response, h_jet_LHA_highPt_response,
           h_jet_LHA_lowPt_rel_response, h_jet_LHA_highPt_rel_response);
 
+        int genBinLHA = generator_distribution_LHA->GetGlobalBinNumber(gen_lha, genjet_pt);
+        h_tu_gen_LHA->Fill(genBinLHA, weight);
+        h_tu_response_LHA->Fill(genBinLHA, recBinLHA, weight);
+
         float gen_ptd = matchedGenJetCalc.getLambda(2, 0);
         fill_lambda_rsp_hists(ptd, gen_ptd, weight,
           h_jet_pTD_response, h_jet_pTD_rel_response,
           jet_pt, h_jet_pTD_lowPt_response, h_jet_pTD_highPt_response,
           h_jet_pTD_lowPt_rel_response, h_jet_pTD_highPt_rel_response);
+
+        int genBinpTD = generator_distribution_pTD->GetGlobalBinNumber(gen_ptd, genjet_pt);
+        h_tu_gen_pTD->Fill(genBinpTD, weight);
+        h_tu_response_pTD->Fill(genBinpTD, recBinpTD, weight);
 
         float gen_width = matchedGenJetCalc.getLambda(1, 1);
         fill_lambda_rsp_hists(width, gen_width, weight,
@@ -580,11 +784,19 @@ void QGAnalysisHists::fill(const Event & event){
           jet_pt, h_jet_width_lowPt_response, h_jet_width_highPt_response,
           h_jet_width_lowPt_rel_response, h_jet_width_highPt_rel_response);
 
+        int genBinWidth = generator_distribution_width->GetGlobalBinNumber(gen_width, genjet_pt);
+        h_tu_gen_width->Fill(genBinWidth, weight);
+        h_tu_response_width->Fill(genBinWidth, recBinWidth, weight);
+
         float gen_thrust = matchedGenJetCalc.getLambda(1, 2);
         fill_lambda_rsp_hists(thrust, gen_thrust, weight,
           h_jet_thrust_response, h_jet_thrust_rel_response,
           jet_pt, h_jet_thrust_lowPt_response, h_jet_thrust_highPt_response,
           h_jet_thrust_lowPt_rel_response, h_jet_thrust_highPt_rel_response);
+
+        int genBinThrust = generator_distribution_thrust->GetGlobalBinNumber(gen_thrust, genjet_pt);
+        h_tu_gen_thrust->Fill(genBinThrust, weight);
+        h_tu_response_thrust->Fill(genBinThrust, recBinThrust, weight);
 
         // Charged-only daughters version
         std::vector<PFParticle*> chargedDaughters;
@@ -645,27 +857,27 @@ void QGAnalysisHists::fill(const Event & event){
           h_jet_thrust_charged_lowPt_rel_response, h_jet_thrust_charged_highPt_rel_response);
 
         // Response hists per pt bin
-        auto genit = std::lower_bound(Binning::pt_bin_edges.begin(), Binning::pt_bin_edges.end(), genjet_pt);
-        int genind = genit - Binning::pt_bin_edges.begin() - 1; // need the -1 to get the offset correct
-        if (genind < 0) {
-          cout << "genjet pt: " << genjet_pt << " limit: " << Binning::pt_bin_edges[0] << endl;
-          throw std::runtime_error("Invalid genind pos - bins start at too high a value");
-        } else if (genind >= (int) Binning::pt_bin_edges.size()) {
-          cout << "genjet pt: " << genjet_pt << " limit: " << Binning::pt_bin_edges[Binning::pt_bin_edges.size()-1] << endl;
-          throw std::runtime_error("Invalid genind pos - bins don't extend far enough");
-        }
-        auto recoit = std::lower_bound(Binning::pt_bin_edges.begin(), Binning::pt_bin_edges.end(), jet_pt);
-        int recoind = recoit - Binning::pt_bin_edges.begin() - 1;
-        if (recoind < 0) {
-          cout << "recojet pt: " << jet_pt << " limit: " << Binning::pt_bin_edges[0] << endl;
-          throw std::runtime_error("Invalid recoind pos - bins start at too high a value");
-        } else if (recoind >= (int) Binning::pt_bin_edges.size()) {
-          cout << "recojet pt: " << jet_pt << " limit: " << Binning::pt_bin_edges[Binning::pt_bin_edges.size()-1] << endl;
-          throw std::runtime_error("Invalid recoind pos - bins don't extend far enough");
-        }
+        // auto genit = std::lower_bound(Binning::pt_bin_edges.begin(), Binning::pt_bin_edges.end(), genjet_pt);
+        // int genind = genit - Binning::pt_bin_edges.begin() - 1; // need the -1 to get the offset correct
+        // if (genind < 0) {
+        //   cout << "genjet pt: " << genjet_pt << " limit: " << Binning::pt_bin_edges[0] << endl;
+        //   throw std::runtime_error("Invalid genind pos - bins start at too high a value");
+        // } else if (genind >= (int) Binning::pt_bin_edges.size()) {
+        //   cout << "genjet pt: " << genjet_pt << " limit: " << Binning::pt_bin_edges[Binning::pt_bin_edges.size()-1] << endl;
+        //   throw std::runtime_error("Invalid genind pos - bins don't extend far enough");
+        // }
+        // auto recoit = std::lower_bound(Binning::pt_bin_edges.begin(), Binning::pt_bin_edges.end(), jet_pt);
+        // int recoind = recoit - Binning::pt_bin_edges.begin() - 1;
+        // if (recoind < 0) {
+        //   cout << "recojet pt: " << jet_pt << " limit: " << Binning::pt_bin_edges[0] << endl;
+        //   throw std::runtime_error("Invalid recoind pos - bins start at too high a value");
+        // } else if (recoind >= (int) Binning::pt_bin_edges.size()) {
+        //   cout << "recojet pt: " << jet_pt << " limit: " << Binning::pt_bin_edges[Binning::pt_bin_edges.size()-1] << endl;
+        //   throw std::runtime_error("Invalid recoind pos - bins don't extend far enough");
+        // }
         // multiplicity_response_binned[genind][recoind]->Fill(gen_mult, mult, weight);
         // puppiMultiplicity_response_binned[genind][recoind]->Fill(gen_mult, puppiMult, weight);
-        LHA_response_binned[genind][recoind]->Fill(gen_lha, lha, weight);
+        // LHA_response_binned[genind][recoind]->Fill(gen_lha, lha, weight);
         // pTD_response_binned[genind][recoind]->Fill(gen_ptd, ptd, weight);
         // width_response_binned[genind][recoind]->Fill(gen_width, width, weight);
         // thrust_response_binned[genind][recoind]->Fill(gen_thrust, thrust, weight);

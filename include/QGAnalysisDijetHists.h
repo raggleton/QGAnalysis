@@ -49,9 +49,6 @@ protected:
 
     std::string binning;
 
-    std::vector<float> bins_pt_response;
-    int nbins_pt_response;
-
     float jetRadius;
 };
 

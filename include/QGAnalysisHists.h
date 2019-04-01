@@ -8,6 +8,8 @@
 #include "UHH2/core/include/NtupleObjects.h"
 #include "UHH2/common/include/TriggerSelection.h"
 
+#include "TUnfoldBinning.h"
+
 
 namespace uhh2examples {
 
@@ -74,6 +76,32 @@ protected:
 
     std::vector<std::vector<TH2F *>> multiplicity_response_binned, puppiMultiplicity_response_binned, LHA_response_binned, pTD_response_binned, width_response_binned, thrust_response_binned;
 
+    // For unfolding with TUnfold
+    TUnfoldBinning * detector_tu_binning_LHA, * detector_distribution_LHA;
+    TUnfoldBinning * generator_tu_binning_LHA, * generator_distribution_LHA;
+    TH2F * h_tu_response_LHA;
+    TH1F * h_tu_reco_LHA, *h_tu_gen_LHA;
+
+    TUnfoldBinning * detector_tu_binning_puppiMultiplicity, * detector_distribution_puppiMultiplicity;
+    TUnfoldBinning * generator_tu_binning_puppiMultiplicity, * generator_distribution_puppiMultiplicity;
+    TH2F * h_tu_response_puppiMultiplicity;
+    TH1F * h_tu_reco_puppiMultiplicity, *h_tu_gen_puppiMultiplicity;
+
+    TUnfoldBinning * detector_tu_binning_pTD, * detector_distribution_pTD;
+    TUnfoldBinning * generator_tu_binning_pTD, * generator_distribution_pTD;
+    TH2F * h_tu_response_pTD;
+    TH1F * h_tu_reco_pTD, *h_tu_gen_pTD;
+
+    TUnfoldBinning * detector_tu_binning_thrust, * detector_distribution_thrust;
+    TUnfoldBinning * generator_tu_binning_thrust, * generator_distribution_thrust;
+    TH2F * h_tu_response_thrust;
+    TH1F * h_tu_reco_thrust, *h_tu_gen_thrust;
+
+    TUnfoldBinning * detector_tu_binning_width, * detector_distribution_width;
+    TUnfoldBinning * generator_tu_binning_width, * generator_distribution_width;
+    TH2F * h_tu_response_width;
+    TH1F * h_tu_reco_width, *h_tu_gen_width;
+
     // lambda correlation hists
     // TH2F *h_jet_multiplicity_vs_LHA, *h_jet_multiplicity_vs_pTD, *h_jet_multiplicity_vs_width, *h_jet_multiplicity_vs_thrust;
     // TH2F *h_jet_LHA_vs_pTD, *h_jet_LHA_vs_width, *h_jet_LHA_vs_thrust;
@@ -109,6 +137,7 @@ protected:
     int neutral_pf_hadron_shift_;
     int photon_shift_;
     float rsp_pt_cut_;
+
 };
 
 
