@@ -166,6 +166,15 @@ namespace Binning {
   std::vector<double> pt_bin_edges = calculate_fine_binning(pt_bin_edges_coarse);
   const int nbins_pt(pt_bin_edges.size() - 1);
 
+  // lower last big bin for Z+jets - dont want many empty bins for tunfold
+  const std::vector<double> pt_bin_edges_zpj_coarse = {
+    30, 38, 50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 10000
+  };
+  const int nbins_pt_coarse_zpj(pt_bin_edges_zpj_coarse.size() - 1);
+
+  std::vector<double> pt_bin_edges_zpj = calculate_fine_binning(pt_bin_edges_zpj_coarse);
+  const int nbins_pt_zpj(pt_bin_edges_zpj.size() - 1);
+
   // LHA binning
   const std::vector<double> lha_bin_edges_coarse = {
     0.0, 0.29, 0.37, 0.44, 0.5, 0.56, 0.62, 0.68, 0.75, 1.0
