@@ -85,12 +85,12 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   // LHA
   detector_tu_binning_LHA = new TUnfoldBinning("detector");
   detector_distribution_LHA = detector_tu_binning_LHA->AddBinning("detectordistribution");
-  detector_distribution_LHA->AddAxis("LHA", Binning::nbins_lha, Binning::lha_bin_edges.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  detector_distribution_LHA->AddAxis("LHA", Binning::nbins_lha, Binning::lha_bin_edges.data(), false, true);  // last 2 bins are underflow (not reco'd) and overflow
   detector_distribution_LHA->AddAxis("pt", Binning::nbins_pt, Binning::pt_bin_edges.data(), false, true);  // last 2 bins are underflow (not reco'd) and overflow
 
   generator_tu_binning_LHA = new TUnfoldBinning("generator");
   generator_distribution_LHA = generator_tu_binning_LHA->AddBinning("generatordistribution");
-  generator_distribution_LHA->AddAxis("LHA", Binning::nbins_lha_coarse, Binning::lha_bin_edges_coarse.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  generator_distribution_LHA->AddAxis("LHA", Binning::nbins_lha_coarse, Binning::lha_bin_edges_coarse.data(), true, true);  // last 2 bins are underflow (not reco'd) and overflow
   generator_distribution_LHA->AddAxis("pt", Binning::nbins_pt_coarse, Binning::pt_bin_edges_coarse.data(), true, true);  // last 2 bins are underflow (not reco'd) and overflow
 
   // make tmp copies which we can then copy and use with book<>
@@ -121,12 +121,12 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   // puppi multiplicity
   detector_tu_binning_puppiMultiplicity = new TUnfoldBinning("detector");
   detector_distribution_puppiMultiplicity = detector_tu_binning_puppiMultiplicity->AddBinning("detectordistribution");
-  detector_distribution_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_puppiMultiplicity, Binning::puppiMultiplicity_bin_edges.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  detector_distribution_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_puppiMultiplicity, Binning::puppiMultiplicity_bin_edges.data(), false, true);  // last 2 bins are underflow (not reco'd) and overflow
   detector_distribution_puppiMultiplicity->AddAxis("pt", Binning::nbins_pt, Binning::pt_bin_edges.data(), false, true);  // last 2 bins are underflow (not reco'd) and overflow
 
   generator_tu_binning_puppiMultiplicity = new TUnfoldBinning("generator");
   generator_distribution_puppiMultiplicity = generator_tu_binning_puppiMultiplicity->AddBinning("generatordistribution");
-  generator_distribution_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_puppiMultiplicity_coarse, Binning::puppiMultiplicity_bin_edges_coarse.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  generator_distribution_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_puppiMultiplicity_coarse, Binning::puppiMultiplicity_bin_edges_coarse.data(), true, true);  // last 2 bins are underflow (not reco'd) and overflow
   generator_distribution_puppiMultiplicity->AddAxis("pt", Binning::nbins_pt_coarse, Binning::pt_bin_edges_coarse.data(), true, true);  // last 2 bins are underflow (not reco'd) and overflow
 
   // make tmp copies which we can then copy and use with book<>
@@ -157,12 +157,12 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   // pTD
   detector_tu_binning_pTD = new TUnfoldBinning("detector");
   detector_distribution_pTD = detector_tu_binning_pTD->AddBinning("detectordistribution");
-  detector_distribution_pTD->AddAxis("pTD", Binning::nbins_pTD, Binning::pTD_bin_edges.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  detector_distribution_pTD->AddAxis("pTD", Binning::nbins_pTD, Binning::pTD_bin_edges.data(), false, true);  // last 2 bins are underflow (not reco'd) and overflow
   detector_distribution_pTD->AddAxis("pt", Binning::nbins_pt, Binning::pt_bin_edges.data(), false, true);  // last 2 bins are underflow (not reco'd) and overflow
 
   generator_tu_binning_pTD = new TUnfoldBinning("generator");
   generator_distribution_pTD = generator_tu_binning_pTD->AddBinning("generatordistribution");
-  generator_distribution_pTD->AddAxis("pTD", Binning::nbins_pTD_coarse, Binning::pTD_bin_edges_coarse.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  generator_distribution_pTD->AddAxis("pTD", Binning::nbins_pTD_coarse, Binning::pTD_bin_edges_coarse.data(), true, true);  // last 2 bins are underflow (not reco'd) and overflow
   generator_distribution_pTD->AddAxis("pt", Binning::nbins_pt_coarse, Binning::pt_bin_edges_coarse.data(), true, true);  // last 2 bins are underflow (not reco'd) and overflow
 
   TH2 * h_tu_response_pTD_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_pTD, detector_tu_binning_pTD, "tu_pTD_GenReco");
@@ -191,12 +191,12 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   // thrust
   detector_tu_binning_thrust = new TUnfoldBinning("detector");
   detector_distribution_thrust = detector_tu_binning_thrust->AddBinning("detectordistribution");
-  detector_distribution_thrust->AddAxis("thrust", Binning::nbins_thrust, Binning::thrust_bin_edges.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  detector_distribution_thrust->AddAxis("thrust", Binning::nbins_thrust, Binning::thrust_bin_edges.data(), false, true);  // last 2 bins are underflow (not reco'd) and overflow
   detector_distribution_thrust->AddAxis("pt", Binning::nbins_pt, Binning::pt_bin_edges.data(), false, true);  // last 2 bins are underflow (not reco'd) and overflow
 
   generator_tu_binning_thrust = new TUnfoldBinning("generator");
   generator_distribution_thrust = generator_tu_binning_thrust->AddBinning("generatordistribution");
-  generator_distribution_thrust->AddAxis("thrust", Binning::nbins_thrust_coarse, Binning::thrust_bin_edges_coarse.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  generator_distribution_thrust->AddAxis("thrust", Binning::nbins_thrust_coarse, Binning::thrust_bin_edges_coarse.data(), true, true);  // last 2 bins are underflow (not reco'd) and overflow
   generator_distribution_thrust->AddAxis("pt", Binning::nbins_pt_coarse, Binning::pt_bin_edges_coarse.data(), true, true);  // last 2 bins are underflow (not reco'd) and overflow
 
   TH2 * h_tu_response_thrust_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_thrust, detector_tu_binning_thrust, "tu_thrust_GenReco");
@@ -225,12 +225,12 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   // width
   detector_tu_binning_width = new TUnfoldBinning("detector");
   detector_distribution_width = detector_tu_binning_width->AddBinning("detectordistribution");
-  detector_distribution_width->AddAxis("width", Binning::nbins_width, Binning::width_bin_edges.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  detector_distribution_width->AddAxis("width", Binning::nbins_width, Binning::width_bin_edges.data(), false, true);  // last 2 bins are underflow (not reco'd) and overflow
   detector_distribution_width->AddAxis("pt", Binning::nbins_pt, Binning::pt_bin_edges.data(), false, true);  // last 2 bins are underflow (not reco'd) and overflow
 
   generator_tu_binning_width = new TUnfoldBinning("generator");
   generator_distribution_width = generator_tu_binning_width->AddBinning("generatordistribution");
-  generator_distribution_width->AddAxis("width", Binning::nbins_width_coarse, Binning::width_bin_edges_coarse.data(), false, false);  // last 2 bins are underflow (not reco'd) and overflow
+  generator_distribution_width->AddAxis("width", Binning::nbins_width_coarse, Binning::width_bin_edges_coarse.data(), true, true);  // last 2 bins are underflow (not reco'd) and overflow
   generator_distribution_width->AddAxis("pt", Binning::nbins_pt_coarse, Binning::pt_bin_edges_coarse.data(), true, true);  // last 2 bins are underflow (not reco'd) and overflow
 
   TH2 * h_tu_response_width_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_width, detector_tu_binning_width, "tu_width_GenReco");
