@@ -336,3 +336,14 @@ float LambdaCalculator<GenParticle>::getLambda(float kappa, float beta)
 }
 }
 
+
+std::vector<double> Binning::calculate_fine_binning(const std::vector<double> & coarse_bin_edges)
+{
+  std::vector<double> fine_bin_edges;
+  for (uint i=0; i<coarse_bin_edges.size()-1; i++) {
+    fine_bin_edges.push_back(coarse_bin_edges[i]);
+    fine_bin_edges.push_back(0.5*(coarse_bin_edges[i+1] + coarse_bin_edges[i]));
+  }
+  fine_bin_edges.push_back(coarse_bin_edges[coarse_bin_edges.size()-1]);
+  return fine_bin_edges;
+}

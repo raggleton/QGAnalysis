@@ -152,69 +152,62 @@ float get_jet_radius(const std::string & jet_cone);
 float calcGenHT(const std::vector<GenParticle> & gps);
 
 namespace Binning {
-  // pt bins
-  const std::vector<double> pt_bin_edges = {
-    0, 29, 38, 50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 1000, 1300, 1700, 2200, 3000, 4000, 5000, 10000
-  };
-  const int nbins_pt(pt_bin_edges.size() - 1);
+  // For unfolding, the "coarse" binning is the binning used for the final unfolded plots
+  // The "fine" binning is each of the coarse bins divided by 2, which is better for TUnfold
 
+  std::vector<double> calculate_fine_binning(const std::vector<double> & coarse_bin_edges);
+
+  // pt bins
   const std::vector<double> pt_bin_edges_coarse = {
-    0, 29, 50, 88, 150, 254, 408, 614, 1000, 1700, 3000, 5000, 10000
+    30, 38, 50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 1000, 1500, 2000, 10000
   };
   const int nbins_pt_coarse(pt_bin_edges_coarse.size() - 1);
 
-  // LHA binning
-  const std::vector<double> lha_bin_edges = {
-    0.0, 0.29, 0.37, 0.44, 0.5, 0.56, 0.62, 0.68, 0.75, 1.0
-  };
-  const int nbins_lha(lha_bin_edges.size() - 1);
+  std::vector<double> pt_bin_edges = calculate_fine_binning(pt_bin_edges_coarse);
+  const int nbins_pt(pt_bin_edges.size() - 1);
 
+  // LHA binning
   const std::vector<double> lha_bin_edges_coarse = {
-    0.0, 0.37, 0.5, 0.62, 0.75, 1.0
+    0.0, 0.29, 0.37, 0.44, 0.5, 0.56, 0.62, 0.68, 0.75, 1.0
   };
   const int nbins_lha_coarse(lha_bin_edges_coarse.size() - 1);
 
-  // Multiplicity binning
-  const std::vector<double> puppiMultiplicity_bin_edges = {
-    1, 7, 10, 13, 19, 25, 35, 50, 75, 100, 150
-  };
-  const int nbins_puppiMultiplicity(puppiMultiplicity_bin_edges.size() - 1);
+  const std::vector<double> lha_bin_edges = calculate_fine_binning(lha_bin_edges_coarse);
+  const int nbins_lha(lha_bin_edges.size() - 1);
 
+  // Multiplicity binning
   const std::vector<double> puppiMultiplicity_bin_edges_coarse = {
-    1, 10, 19, 35, 75, 150.0
+    1, 7, 10, 13, 19, 25, 35, 50, 75, 100, 150
   };
   const int nbins_puppiMultiplicity_coarse(puppiMultiplicity_bin_edges_coarse.size() - 1);
 
-  // pTD binning
-  const std::vector<double> pTD_bin_edges = {
-    0.0, 0.09, 0.12, 0.16, 0.21, 0.29, 0.43, 0.7, 1.0
-  };
-  const int nbins_pTD(pTD_bin_edges.size() - 1);
+  const std::vector<double> puppiMultiplicity_bin_edges = calculate_fine_binning(puppiMultiplicity_bin_edges_coarse);
+  const int nbins_puppiMultiplicity(puppiMultiplicity_bin_edges.size() - 1);
 
+  // pTD binning
   const std::vector<double> pTD_bin_edges_coarse = {
-    0.0, 0.12, 0.21, 0.43, 1.0
+    0.0, 0.09, 0.12, 0.16, 0.21, 0.29, 0.43, 0.7, 1.0
   };
   const int nbins_pTD_coarse(pTD_bin_edges_coarse.size() - 1);
 
-  // thrust binning
-  const std::vector<double> thrust_bin_edges = {
-    0.0, 0.04, 0.08, 0.12, 0.17, 0.24, 0.33, 0.66, 1.0
-  };
-  const int nbins_thrust(thrust_bin_edges.size() - 1);
+  const std::vector<double> pTD_bin_edges = calculate_fine_binning(pTD_bin_edges_coarse);
+  const int nbins_pTD(pTD_bin_edges.size() - 1);
 
+  // thrust binning
   const std::vector<double> thrust_bin_edges_coarse = {
-    0.0, 0.08, 0.17, 0.33, 1.0
+    0.0, 0.04, 0.08, 0.12, 0.17, 0.24, 0.33, 0.66, 1.0
   };
   const int nbins_thrust_coarse(thrust_bin_edges_coarse.size() - 1);
 
+  const std::vector<double> thrust_bin_edges = calculate_fine_binning(thrust_bin_edges_coarse);
+  const int nbins_thrust(thrust_bin_edges.size() - 1);
+
   // width binning
-  const std::vector<double> width_bin_edges = {
+  const std::vector<double> width_bin_edges_coarse = {
     0.0, 0.11, 0.17, 0.23, 0.29, 0.35, 0.42, 0.6, 1.0
   };
-  const int nbins_width(width_bin_edges.size() - 1);
-
-  const std::vector<double> width_bin_edges_coarse = {
-    0.0, 0.17, 0.29, 0.42, 1.0
-  };
   const int nbins_width_coarse(width_bin_edges_coarse.size() - 1);
+
+  const std::vector<double> width_bin_edges = calculate_fine_binning(width_bin_edges_coarse);
+  const int nbins_width(width_bin_edges.size() - 1);
 }
