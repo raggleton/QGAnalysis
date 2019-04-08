@@ -95,7 +95,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   // make tmp copies which we can then copy and use with book<>
   TH2 * h_tu_response_LHA_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_LHA, detector_tu_binning_LHA, "tu_LHA_GenReco");
-  h_tu_response_LHA = book<TH2F>((std::string(h_tu_response_LHA_tmp->GetName())+"new").c_str(),
+  h_tu_response_LHA = book<TH2F>((std::string(h_tu_response_LHA_tmp->GetName())+"_new").c_str(),
                                  h_tu_response_LHA_tmp->GetTitle(),
                                  h_tu_response_LHA_tmp->GetNbinsX(), h_tu_response_LHA_tmp->GetXaxis()->GetXmin(), h_tu_response_LHA_tmp->GetXaxis()->GetXmax(),
                                  h_tu_response_LHA_tmp->GetNbinsY(), h_tu_response_LHA_tmp->GetYaxis()->GetXmin(), h_tu_response_LHA_tmp->GetYaxis()->GetXmax());
