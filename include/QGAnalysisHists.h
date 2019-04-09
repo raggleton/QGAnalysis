@@ -37,8 +37,8 @@ protected:
     void fill_lambda_rsp_hists(float reco_val, float gen_val, float weight,
                                TH2F * response, TH2F * rel_response,
                                float jet_pt,
-                               TH2F * response_lowPt, TH2F * response_highPt,
-                               TH2F * rel_response_lowPt, TH2F * rel_response_highPt);
+                               TH2F * response_lowPt, TH2F * response_midPt, TH2F * response_highPt,
+                               TH2F * rel_response_lowPt, TH2F * rel_response_midPt, TH2F * rel_response_highPt);
 
     // reco jet hists
     float jetRadius, LHA_rescale, width_rescale, thrust_rescale;
@@ -63,11 +63,16 @@ protected:
     TH2F * h_jet_multiplicity_rel_response, *h_jet_puppiMultiplicity_rel_response, *h_jet_LHA_rel_response, *h_jet_pTD_rel_response, *h_jet_width_rel_response, *h_jet_thrust_rel_response;
     TH2F * h_jet_multiplicity_charged_rel_response, *h_jet_puppiMultiplicity_charged_rel_response, *h_jet_LHA_charged_rel_response, *h_jet_pTD_charged_rel_response, *h_jet_width_charged_rel_response, *h_jet_thrust_charged_rel_response;
 
-    // and split by low & high pt
+    // and split by low, mid & high pt
     TH2F * h_jet_multiplicity_lowPt_response, *h_jet_puppiMultiplicity_lowPt_response, *h_jet_LHA_lowPt_response, *h_jet_pTD_lowPt_response, *h_jet_width_lowPt_response, *h_jet_thrust_lowPt_response;
     TH2F * h_jet_multiplicity_charged_lowPt_response, *h_jet_puppiMultiplicity_charged_lowPt_response, *h_jet_LHA_charged_lowPt_response, *h_jet_pTD_charged_lowPt_response, *h_jet_width_charged_lowPt_response, *h_jet_thrust_charged_lowPt_response;
     TH2F * h_jet_multiplicity_lowPt_rel_response, *h_jet_puppiMultiplicity_lowPt_rel_response, *h_jet_LHA_lowPt_rel_response, *h_jet_pTD_lowPt_rel_response, *h_jet_width_lowPt_rel_response, *h_jet_thrust_lowPt_rel_response;
     TH2F * h_jet_multiplicity_charged_lowPt_rel_response, *h_jet_puppiMultiplicity_charged_lowPt_rel_response, *h_jet_LHA_charged_lowPt_rel_response, *h_jet_pTD_charged_lowPt_rel_response, *h_jet_width_charged_lowPt_rel_response, *h_jet_thrust_charged_lowPt_rel_response;
+
+    TH2F * h_jet_multiplicity_midPt_response, *h_jet_puppiMultiplicity_midPt_response, *h_jet_LHA_midPt_response, *h_jet_pTD_midPt_response, *h_jet_width_midPt_response, *h_jet_thrust_midPt_response;
+    TH2F * h_jet_multiplicity_charged_midPt_response, *h_jet_puppiMultiplicity_charged_midPt_response, *h_jet_LHA_charged_midPt_response, *h_jet_pTD_charged_midPt_response, *h_jet_width_charged_midPt_response, *h_jet_thrust_charged_midPt_response;
+    TH2F * h_jet_multiplicity_midPt_rel_response, *h_jet_puppiMultiplicity_midPt_rel_response, *h_jet_LHA_midPt_rel_response, *h_jet_pTD_midPt_rel_response, *h_jet_width_midPt_rel_response, *h_jet_thrust_midPt_rel_response;
+    TH2F * h_jet_multiplicity_charged_midPt_rel_response, *h_jet_puppiMultiplicity_charged_midPt_rel_response, *h_jet_LHA_charged_midPt_rel_response, *h_jet_pTD_charged_midPt_rel_response, *h_jet_width_charged_midPt_rel_response, *h_jet_thrust_charged_midPt_rel_response;
 
     TH2F * h_jet_multiplicity_highPt_response, *h_jet_puppiMultiplicity_highPt_response, *h_jet_LHA_highPt_response, *h_jet_pTD_highPt_response, *h_jet_width_highPt_response, *h_jet_thrust_highPt_response;
     TH2F * h_jet_multiplicity_charged_highPt_response, *h_jet_puppiMultiplicity_charged_highPt_response, *h_jet_LHA_charged_highPt_response, *h_jet_pTD_charged_highPt_response, *h_jet_width_charged_highPt_response, *h_jet_thrust_charged_highPt_response;
@@ -134,7 +139,7 @@ protected:
     bool is_mc_;
     int neutral_pf_hadron_shift_;
     int photon_shift_;
-    float rsp_pt_cut_;
+    float rsp_midPt_cut_, rsp_highPt_cut_;
 
 };
 
