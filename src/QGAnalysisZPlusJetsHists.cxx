@@ -52,14 +52,14 @@ hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
 
   n_jets_vs_pt = book<TH2F>(TString::Format("n_jets_vs_%s", binByVar.Data()), TString::Format(";N_{jets};%s", binByVarLabel.Data()), 10, 0, 10, nbins_pt, 0, pt_max);
   pt_jet1 = book<TH1F>("pt_jet1", ";p_{T}^{jet 1} [GeV];", nbins_pt, 0, pt_max);
-  pt_jet_response_binning = book<TH1F>("pt_jet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), Binning::nbins_pt, &Binning::pt_bin_edges[0]);
-  pt_genjet_response_binning = book<TH1F>("pt_genjet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), Binning::nbins_pt, &Binning::pt_bin_edges[0]);
+  pt_jet_response_binning = book<TH1F>("pt_jet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), Binning::nbins_pt_zpj, &Binning::pt_bin_edges_zpj[0]);
+  pt_genjet_response_binning = book<TH1F>("pt_genjet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), Binning::nbins_pt_zpj, &Binning::pt_bin_edges_zpj[0]);
 
   eta_jet1_vs_pt = book<TH2F>(TString::Format("eta_jet1_vs_%s", binByVar.Data()), TString::Format(";#eta^{jet 1};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
   pt_jet1_z_ratio_vs_pt = book<TH2F>(TString::Format("pt_jet1_z_ratio_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{jet 1}/ p_{T}^{%s};%s", zName.Data(), binByVarLabel.Data()), 50, 0, 5, nbins_pt, 0, pt_max);
   pt_jet_genHT_ratio = book<TH1F>("pt_jet_genHT_ratio", ";p_{T}^{jet 1}/GenHT", 250, 0, 25);
   pt_jet_response_fine = book<TH2F>("pt_jet_response_fine", ";p_{T}^{jet 1} (GEN);p_{T}^{jet 1} (RECO)", nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
-  pt_jet_response = book<TH2F>("pt_jet_response", ";p_{T}^{jet 1} (GEN);p_{T}^{jet 1} (RECO)", Binning::nbins_pt, &Binning::pt_bin_edges[0], Binning::nbins_pt, &Binning::pt_bin_edges[0]);
+  pt_jet_response = book<TH2F>("pt_jet_response", ";p_{T}^{jet 1} (GEN);p_{T}^{jet 1} (RECO)", Binning::nbins_pt_zpj, &Binning::pt_bin_edges_zpj[0], Binning::nbins_pt_zpj, &Binning::pt_bin_edges_zpj[0]);
   eta_jet_response = book<TH2F>("eta_jet_response", ";#eta^{jet} (GEN);#eta^{jet} (RECO)", nbins_eta, -eta_max, eta_max, nbins_eta, -eta_max, eta_max);
 
   gen_ht = book<TH1F>("gen_ht", ";H_{T}^{Gen} [GeV]", 500, 0, 5000);
@@ -71,9 +71,9 @@ hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
 
   int nbins_jet_ind = 5;
   genjet1_ind_vs_pt_jet1 = book<TH2F>("genjet1_ind_vs_pt_jet1", ";GenJet index;p_{T}^{jet 1} [GeV]", nbins_jet_ind, 0-0.5, nbins_jet_ind-0.5, nbins_pt, 0, pt_max);
-  for (int i=0; i < Binning::nbins_pt; i++) {
-    TH2F * tmp = book<TH2F>(TString::Format("genjet_ind_recojet_ind_pt_%g_%g", Binning::pt_bin_edges.at(i), Binning::pt_bin_edges.at(i+1)),
-                            TString::Format("%g < p_{T}^{Gen} < %g GeV;GenJet index; RecoJet index", Binning::pt_bin_edges.at(i), Binning::pt_bin_edges.at(i+1)),
+  for (int i=0; i < Binning::nbins_pt_zpj; i++) {
+    TH2F * tmp = book<TH2F>(TString::Format("genjet_ind_recojet_ind_pt_%g_%g", Binning::pt_bin_edges_zpj.at(i), Binning::pt_bin_edges_zpj.at(i+1)),
+                            TString::Format("%g < p_{T}^{Gen} < %g GeV;GenJet index; RecoJet index", Binning::pt_bin_edges_zpj.at(i), Binning::pt_bin_edges_zpj.at(i+1)),
                             nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5);
     genjet_recojet_ind_binned.push_back(tmp);
   }
@@ -216,11 +216,11 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
       }
       if (reco_ind >= 0) matches.push_back(reco_ind);
       //  find which bin is suitable
-      auto pos = std::lower_bound(Binning::pt_bin_edges.begin(), Binning::pt_bin_edges.end(), gjItr.pt()) - Binning::pt_bin_edges.begin();
+      auto pos = std::lower_bound(Binning::pt_bin_edges_zpj.begin(), Binning::pt_bin_edges_zpj.end(), gjItr.pt()) - Binning::pt_bin_edges_zpj.begin();
       if (pos > (int) genjet_recojet_ind_binned.size()+1) {
         cout << pos << endl;
         cout << gjItr.pt() << endl;
-        for (auto b : Binning::pt_bin_edges) {
+        for (auto b : Binning::pt_bin_edges_zpj) {
           cout << b << " ";
         }
         cout << endl;
@@ -243,11 +243,11 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
 
           //  find which bin is suitable
           //  not really correct as we're using reco pt, but there's no genjet anyway
-          auto pos = std::lower_bound(Binning::pt_bin_edges.begin(), Binning::pt_bin_edges.end(), rjItr.pt()) - Binning::pt_bin_edges.begin();
+          auto pos = std::lower_bound(Binning::pt_bin_edges_zpj.begin(), Binning::pt_bin_edges_zpj.end(), rjItr.pt()) - Binning::pt_bin_edges_zpj.begin();
           if (pos > (int) genjet_recojet_ind_binned.size()+1) {
             cout << pos << endl;
             cout << rjItr.pt() << endl;
-            for (auto b : Binning::pt_bin_edges) {
+            for (auto b : Binning::pt_bin_edges_zpj) {
               cout << b << " ";
             }
             cout << endl;

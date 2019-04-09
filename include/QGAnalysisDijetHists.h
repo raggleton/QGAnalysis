@@ -47,6 +47,9 @@ protected:
     TH1F * reweightHist;
     TH1F * n_pv;
 
+    std::vector<double> pt_bin_edges;
+    int nbins_pt;
+
     std::string binning;
 
     float jetRadius;

@@ -16,10 +16,6 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   Hists(ctx, dirname),
   binning(binning_)
 {
-  // for (auto v : Binning::pt_bin_edges) {
-  //   cout << v << ", ";
-  // }
-  // cout << endl;
   doHerwigReweighting = ctx.get("herwig_reweight_file", "") != "";
   if (doHerwigReweighting) {
     TFile f_weight(ctx.get("herwig_reweight_file", "").c_str());
@@ -59,11 +55,16 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
     binByVarLabel = "p_{T}^{jet} [GeV]";
   }
 
+  pt_bin_edges = Binning::pt_bin_edges;
+  // pt_bin_edges.insert(0, 15); // insert extra bins that we use here that aren't used in TUnfold
+  // pt_bin_edges.insert(0, 0);
+  nbins_pt = pt_bin_edges.size() - 1;
+
   n_jets_vs_pt_jet = book<TH2F>("n_jets_vs_pt_jet", TString::Format(";N_{jets};%s", binByVarLabel.Data()), 10, 0, 10, nbins_pt, 0, pt_max);
 
   pt_jet = book<TH1F>("pt_jet", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt, 0, pt_max);
-  pt_jet_response_binning = book<TH1F>("pt_jet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), Binning::nbins_pt, &Binning::pt_bin_edges[0]);
-  pt_genjet_response_binning = book<TH1F>("pt_genjet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), Binning::nbins_pt, &Binning::pt_bin_edges[0]);
+  pt_jet_response_binning = book<TH1F>("pt_jet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt, &Binning::pt_bin_edges[0]);
+  pt_genjet_response_binning = book<TH1F>("pt_genjet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt, &Binning::pt_bin_edges[0]);
 
   pt_jet_qScale_ratio = book<TH1F>("pt_jet_qScale_ratio", ";p_{T}^{jet 1}/qScale", 250, 0, 25);
   pt_jet_genHT_ratio = book<TH1F>("pt_jet_genHT_ratio", ";p_{T}^{jet 1}/GenHT", 250, 0, 25);
@@ -71,7 +72,7 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   pt_jet_vs_genHT = book<TH2F>("pt_jet_vs_genHT", ";p_{T}^{jet 1};GenHT", nbins_pt, 0, pt_max, nbins_pt, 0, 2*pt_max);
   // dont' reverse axis direction - it doens't like it
   pt_jet_response_fine = book<TH2F>("pt_jet_response_fine", TString::Format(";%s (GEN);%s (RECO)", binByVarLabel.Data(), binByVarLabel.Data()), nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
-  pt_jet_response = book<TH2F>("pt_jet_response", TString::Format(";%s (GEN);%s (RECO)", binByVarLabel.Data(), binByVarLabel.Data()), Binning::nbins_pt, &Binning::pt_bin_edges[0], Binning::nbins_pt, &Binning::pt_bin_edges[0]);
+  pt_jet_response = book<TH2F>("pt_jet_response", TString::Format(";%s (GEN);%s (RECO)", binByVarLabel.Data(), binByVarLabel.Data()), nbins_pt, &Binning::pt_bin_edges[0], nbins_pt, &Binning::pt_bin_edges[0]);
   eta_jet1_vs_pt_jet = book<TH2F>("eta_jet1_vs_pt_jet", TString::Format(";#eta^{jet 1};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
   eta_jet_response = book<TH2F>("eta_jet_response", ";#eta^{jet} (GEN);#eta^{jet} (RECO)", nbins_eta, -eta_max, eta_max, nbins_eta, -eta_max, eta_max);
   phi_jet1_vs_pt_jet = book<TH2F>("phi_jet1_vs_pt_jet", TString::Format(";#phi^{jet 1};%s", binByVarLabel.Data()), nbins_phi, -phi_max, phi_max, nbins_pt, 0, pt_max);
@@ -85,9 +86,9 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   genjet1_ind_vs_pt_jet1 = book<TH2F>("genjet1_ind_vs_pt_jet1", ";GenJet index;p_{T}^{jet 1} [GeV]", nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_pt, 0, pt_max);
   genjet2_ind_vs_pt_jet2 = book<TH2F>("genjet2_ind_vs_pt_jet2", ";GenJet index;p_{T}^{jet 2} [GeV]", nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_pt, 0, pt_max);
 
-  for (int i=0; i < Binning::nbins_pt; i++) {
-    TH2F * tmp = book<TH2F>(TString::Format("genjet_ind_recojet_ind_pt_%g_%g", Binning::pt_bin_edges.at(i), Binning::pt_bin_edges.at(i+1)),
-                            TString::Format("%g < p_{T}^{Gen} < %g GeV;GenJet index; RecoJet index", Binning::pt_bin_edges.at(i), Binning::pt_bin_edges.at(i+1)),
+  for (int i=0; i < nbins_pt; i++) {
+    TH2F * tmp = book<TH2F>(TString::Format("genjet_ind_recojet_ind_pt_%g_%g", pt_bin_edges.at(i), pt_bin_edges.at(i+1)),
+                            TString::Format("%g < p_{T}^{Gen} < %g GeV;GenJet index; RecoJet index", pt_bin_edges.at(i), pt_bin_edges.at(i+1)),
                             nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5);
     genjet_recojet_ind_binned.push_back(tmp);
   }
@@ -231,24 +232,24 @@ void QGAnalysisDijetHists::fill(const Event & event){
       }
 
       //  find which bin is suitable
-      auto pos = std::lower_bound(Binning::pt_bin_edges.begin(), Binning::pt_bin_edges.end(), gjItr.pt()) - Binning::pt_bin_edges.begin();
+      auto pos = std::lower_bound(pt_bin_edges.begin(), pt_bin_edges.end(), gjItr.pt()) - pt_bin_edges.begin();
       if (pos > (int) genjet_recojet_ind_binned.size()+1) {
         cout << pos << endl;
         cout << gjItr.pt() << endl;
-        for (auto b : Binning::pt_bin_edges) {
+        for (auto b : pt_bin_edges) {
           cout << b << " ";
         }
         cout << endl;
         throw std::runtime_error("Invalid pos");
       }
       if (pos == 0) {
-        for (auto & ptv : Binning::pt_bin_edges) { cout << ptv << ", " ;}
+        for (auto & ptv : pt_bin_edges) { cout << ptv << ", " ;}
         cout << endl;
         cout << "pos = 0, genJet pt: " << gjItr.pt() << endl;
         throw std::runtime_error("pos=0, this will fail to find a gen-reco bin; decrease the first bin edge");
       }
       if (pos == (int) genjet_recojet_ind_binned.size()+1) {
-        for (auto & ptv : Binning::pt_bin_edges) { cout << ptv << ", " ;}
+        for (auto & ptv : pt_bin_edges) { cout << ptv << ", " ;}
         cout << endl;
         cout << "pos = " << genjet_recojet_ind_binned.size() << ", genJet pt: " << gjItr.pt() << endl;
         throw std::runtime_error("pos=genjet_recojet_ind_binned.size(), this will fail to find a gen-reco bin; increase the last bin edge");
@@ -272,18 +273,18 @@ void QGAnalysisDijetHists::fill(const Event & event){
         } else {
           //  find which bin is suitable
           //  not really correct as we're using reco pt, but there's no genjet anyway
-          auto pos = std::lower_bound(Binning::pt_bin_edges.begin(), Binning::pt_bin_edges.end(), rjItr.pt()) - Binning::pt_bin_edges.begin();
+          auto pos = std::lower_bound(pt_bin_edges.begin(), pt_bin_edges.end(), rjItr.pt()) - pt_bin_edges.begin();
           if (pos > (int) genjet_recojet_ind_binned.size()+1) {
             cout << pos << endl;
             cout << rjItr.pt() << endl;
-            for (auto b : Binning::pt_bin_edges) {
+            for (auto b : pt_bin_edges) {
               cout << b << " ";
             }
             cout << endl;
             throw std::runtime_error("Invalid pos");
           }
           if (pos == 0) {
-            for (auto & ptv : Binning::pt_bin_edges) { cout << ptv << ", " ;}
+            for (auto & ptv : pt_bin_edges) { cout << ptv << ", " ;}
             cout << endl;
             cout << "pos = 0, recojet pt: " << rjItr.pt() << endl;
             throw std::runtime_error("pos=0, this will fail to find a gen-reco bin; decrease the first bin edge");
@@ -296,18 +297,18 @@ void QGAnalysisDijetHists::fill(const Event & event){
      if (match == matches.end()) {
       //  find which bin is suitable
       //  not really correct as we're using reco pt, but there's no genjet anyway
-      auto pos = std::lower_bound(Binning::pt_bin_edges.begin(), Binning::pt_bin_edges.end(), rjItr.pt()) - Binning::pt_bin_edges.begin();
+      auto pos = std::lower_bound(pt_bin_edges.begin(), pt_bin_edges.end(), rjItr.pt()) - pt_bin_edges.begin();
       if (pos > (int) genjet_recojet_ind_binned.size()+1) {
         cout << pos << endl;
         cout << rjItr.pt() << endl;
-        for (auto b : Binning::pt_bin_edges) {
+        for (auto b : pt_bin_edges) {
           cout << b << " ";
         }
         cout << endl;
         throw std::runtime_error("Invalid pos");
       }
       if (pos == 0) {
-        for (auto & ptv : Binning::pt_bin_edges) { cout << ptv << ", " ;}
+        for (auto & ptv : pt_bin_edges) { cout << ptv << ", " ;}
         cout << endl;
         cout << "pos = 0, recojet pt: " << rjItr.pt() << endl;
         throw std::runtime_error("pos=0, this will fail to find a gen-reco bin; decrease the first bin edge");
