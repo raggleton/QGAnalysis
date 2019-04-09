@@ -186,7 +186,7 @@ namespace Binning {
 
   // Multiplicity binning
   const std::vector<double> puppiMultiplicity_bin_edges_coarse = {
-    1, 7, 10, 13, 19, 25, 35, 50, 75, 100, 150
+    1, 5, 10, 13, 19, 25, 35, 50, 75, 100, 150
   };
   const int nbins_puppiMultiplicity_coarse(puppiMultiplicity_bin_edges_coarse.size() - 1);
 
