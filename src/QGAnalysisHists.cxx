@@ -707,6 +707,7 @@ void QGAnalysisHists::fill(const Event & event){
       bool matchedJet = false;
       float genjet_pt = -1.;
       float response = -1.;
+      std::unique_ptr<LambdaCalculator<GenParticle>> matchedGenJetCalc;
       if (thisjet.genjet_index() > -1) {
         matchedJet = true;
         const GenJetWithParts & genjet = genjets->at(thisjet.genjet_index());
