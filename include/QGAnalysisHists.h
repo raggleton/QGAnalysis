@@ -81,27 +81,27 @@ protected:
 
     // For unfolding with TUnfold
     TUnfoldBinning * detector_tu_binning_LHA, * detector_distribution_LHA;
-    TUnfoldBinning * generator_tu_binning_LHA, * generator_distribution_LHA;
+    TUnfoldBinning * generator_tu_binning_LHA, * generator_distribution_LHA, * generator_distribution_bg_LHA;
     TH2F * h_tu_response_LHA;
     TH1F * h_tu_reco_LHA, *h_tu_gen_LHA;
 
     TUnfoldBinning * detector_tu_binning_puppiMultiplicity, * detector_distribution_puppiMultiplicity;
-    TUnfoldBinning * generator_tu_binning_puppiMultiplicity, * generator_distribution_puppiMultiplicity;
+    TUnfoldBinning * generator_tu_binning_puppiMultiplicity, * generator_distribution_puppiMultiplicity, * generator_distribution_bg_puppiMultiplicity;
     TH2F * h_tu_response_puppiMultiplicity;
     TH1F * h_tu_reco_puppiMultiplicity, *h_tu_gen_puppiMultiplicity;
 
     TUnfoldBinning * detector_tu_binning_pTD, * detector_distribution_pTD;
-    TUnfoldBinning * generator_tu_binning_pTD, * generator_distribution_pTD;
+    TUnfoldBinning * generator_tu_binning_pTD, * generator_distribution_pTD, * generator_distribution_bg_pTD;
     TH2F * h_tu_response_pTD;
     TH1F * h_tu_reco_pTD, *h_tu_gen_pTD;
 
     TUnfoldBinning * detector_tu_binning_thrust, * detector_distribution_thrust;
-    TUnfoldBinning * generator_tu_binning_thrust, * generator_distribution_thrust;
+    TUnfoldBinning * generator_tu_binning_thrust, * generator_distribution_thrust, * generator_distribution_bg_thrust;
     TH2F * h_tu_response_thrust;
     TH1F * h_tu_reco_thrust, *h_tu_gen_thrust;
 
     TUnfoldBinning * detector_tu_binning_width, * detector_distribution_width;
-    TUnfoldBinning * generator_tu_binning_width, * generator_distribution_width;
+    TUnfoldBinning * generator_tu_binning_width, * generator_distribution_width, * generator_distribution_bg_width;
     TH2F * h_tu_response_width;
     TH1F * h_tu_reco_width, *h_tu_gen_width;
 
