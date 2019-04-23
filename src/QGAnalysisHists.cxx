@@ -106,7 +106,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   // background distribution is unfolded with fine binning
   // !!! in the reconstructed variable !!!
-  // 
+  //
   // This has the effect of "normalizing" the background in each
   // pt,eta bin to the low discriminator values
   // Only the shape of the discriminator in each (pt,eta) bin
@@ -648,6 +648,8 @@ void QGAnalysisHists::fill(const Event & event){
   // avePtGen /= nGenJets;
 
   // Fill reco jet hists
+  // At this point, all jet filtering etc should have already been performed
+  std::vector<int> matchedGenJetInds = {}; // hold indices of genjets matched to reco jets so we can check later
   for (int i = 0; i < useNJets_; i++) {
     const Jet & thisjet = jets->at(i);
     // cout << thisjet.pt() << " : " << thisjet.eta() << endl;
@@ -735,7 +737,9 @@ void QGAnalysisHists::fill(const Event & event){
       float genjet_pt = -1.;
       float response = -1.;
       std::unique_ptr<LambdaCalculator<GenParticle>> matchedGenJetCalc;
+
       if (thisjet.genjet_index() > -1) {
+        matchedGenJetInds.push_back(thisjet.genjet_index());
         matchedJet = true;
         const GenJetWithParts & genjet = genjets->at(thisjet.genjet_index());
         genjet_pt = genjet.pt();
@@ -933,7 +937,8 @@ void QGAnalysisHists::fill(const Event & event){
 
       h_jet_flavour_vs_eta->Fill(jet_flav, thisjet.eta(), weight);
       h_jet_genParton_flavour_vs_eta->Fill(abs(thisjet.genPartonFlavor()), thisjet.eta(), weight);
-    }
+    } // end is_mc_
+
     //  Do lambda correlation hists
     // if (jet_pt > 100 && jet_pt < 200) {
     //   h_jet_multiplicity_vs_LHA->Fill(mult, lha, weight);
@@ -971,7 +976,7 @@ void QGAnalysisHists::fill(const Event & event){
     //     h_qjet_width_vs_thrust->Fill(width, thrust, weight);
     //   }
     // }
-  }
+  } // end loop over reco jets
 
   if (is_mc_) {
     // Fill GenJet hists
@@ -981,8 +986,9 @@ void QGAnalysisHists::fill(const Event & event){
     // for (int i = 0; i < useNJets_; i++) {
     //   const GenJetWithParts & thisjet = genjets->at(i);
     int counter = 0;
+    int nocutCounter = 0;
     for (const auto & thisjet : *genjets) {
-      if (!(thisjet.pt() > 30 && fabs(thisjet.eta()) < 2.4))
+      if (!(thisjet.pt() > 15 && fabs(thisjet.eta()) < 2.4))
         continue;
 
       counter++;
@@ -1028,6 +1034,8 @@ void QGAnalysisHists::fill(const Event & event){
       //   h_qgenjet_width->Fill(width / width_rescale, weight);
       //   h_qgenjet_thrust->Fill(thrust / thrust_rescale, weight);
       // }
+
+      nocutCounter++;
     }
   }
 }
