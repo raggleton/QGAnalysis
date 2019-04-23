@@ -710,6 +710,7 @@ void QGAnalysisHists::fill(const Event & event){
     h_jet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
 
     // Fill TUnfold reco hists
+    // Do regardless of whether there is a matching genjet or not
     int recBinLHA = detector_distribution_LHA->GetGlobalBinNumber(lha, jet_pt);
     h_tu_reco_LHA->Fill(recBinLHA, weight);
 
@@ -727,29 +728,29 @@ void QGAnalysisHists::fill(const Event & event){
 
     if (is_mc_) {
       // Store variables for matched GenJet
-      bool matchedJet = false;
+      bool matchedGenJet = (thisjet.genjet_index() > -1);
       float genjet_pt = -1.;
       float response = -1.;
       std::unique_ptr<LambdaCalculator<GenParticle>> matchedGenJetCalc;
 
-      if (thisjet.genjet_index() > -1) {
+      if (matchedGenJet) {
         matchedGenJetInds.push_back(thisjet.genjet_index());
-        matchedJet = true;
         const GenJetWithParts & genjet = genjets->at(thisjet.genjet_index());
         genjet_pt = genjet.pt();
         response = jet_pt/genjet_pt;
         h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
 
-        std::vector<GenParticle*> orig_matchedDaughters = get_genjet_genparticles(genjet, event.genparticles);
+        std::vector<GenParticle*> orig_genJetDaughters = get_genjet_genparticles(genjet, event.genparticles);
 
-        std::vector<GenParticle*> matchedDaughters;
-        for (auto dau : orig_matchedDaughters) {
+        // apply cuts to genjet constituents
+        std::vector<GenParticle*> genJetDaughters;
+        for (auto dau : orig_genJetDaughters) {
           if (dau->pt() > 1) {
-            matchedDaughters.push_back(dau);
+            genJetDaughters.push_back(dau);
           }
         }
         // Response hists over all pt, and high/low pt split ones
-        float gen_mult = matchedDaughters.size();
+        float gen_mult = genJetDaughters.size();
 
         fill_lambda_rsp_hists(mult, gen_mult, weight,
           h_jet_multiplicity_response, h_jet_multiplicity_rel_response,
@@ -764,7 +765,7 @@ void QGAnalysisHists::fill(const Event & event){
           h_jet_puppiMultiplicity_lowPt_rel_response, h_jet_puppiMultiplicity_midPt_rel_response, h_jet_puppiMultiplicity_highPt_rel_response);
 
 
-        matchedGenJetCalc.reset(new LambdaCalculator<GenParticle>(matchedDaughters, jetRadius, genjet.v4(), false));
+        matchedGenJetCalc.reset(new LambdaCalculator<GenParticle>(genJetDaughters, jetRadius, genjet.v4(), false));
 
         float gen_lha = matchedGenJetCalc->getLambda(1, 0.5);
         fill_lambda_rsp_hists(lha, gen_lha, weight,
@@ -805,13 +806,13 @@ void QGAnalysisHists::fill(const Event & event){
         }
         LambdaCalculator<PFParticle> recoJetCalcCharged(chargedDaughters, jetRadius, thisjet.v4(), doPuppi_);
 
-        std::vector<GenParticle*> matchedChargedDaughters;
-        for (auto dau : matchedDaughters) {
+        std::vector<GenParticle*> genJetChargedDaughters;
+        for (auto dau : genJetDaughters) {
           if (dau->charge() != 0) {
-            matchedChargedDaughters.push_back(dau);
+            genJetChargedDaughters.push_back(dau);
           }
         }
-        float gen_mult_charged = matchedChargedDaughters.size();
+        float gen_mult_charged = genJetChargedDaughters.size();
         float mult_charged = chargedDaughters.size();
         fill_lambda_rsp_hists(mult_charged, gen_mult_charged, weight,
           h_jet_multiplicity_charged_response, h_jet_multiplicity_charged_rel_response,
@@ -825,7 +826,7 @@ void QGAnalysisHists::fill(const Event & event){
           h_jet_puppiMultiplicity_charged_lowPt_response, h_jet_puppiMultiplicity_charged_midPt_response, h_jet_puppiMultiplicity_charged_highPt_response,
           h_jet_puppiMultiplicity_charged_lowPt_rel_response, h_jet_puppiMultiplicity_charged_midPt_rel_response, h_jet_puppiMultiplicity_charged_highPt_rel_response);
 
-        LambdaCalculator<GenParticle> matchedGenJetCalcCharged(matchedChargedDaughters, jetRadius, genjet.v4(), false);
+        LambdaCalculator<GenParticle> matchedGenJetCalcCharged(genJetChargedDaughters, jetRadius, genjet.v4(), false);
         float lha_charged = recoJetCalcCharged.getLambda(1, 0.5);
         float gen_lha_charged = matchedGenJetCalcCharged.getLambda(1, 0.5);
         fill_lambda_rsp_hists(lha_charged, gen_lha_charged, weight,
@@ -858,7 +859,8 @@ void QGAnalysisHists::fill(const Event & event){
           h_jet_thrust_charged_lowPt_response, h_jet_thrust_charged_midPt_response, h_jet_thrust_charged_highPt_response,
           h_jet_thrust_charged_lowPt_rel_response, h_jet_thrust_charged_midPt_rel_response, h_jet_thrust_charged_highPt_rel_response);
 
-        // Fill TUnfold hists
+        // Fill TUnfold hists, both 1D generator (truth) hists with coarse gen binning,
+        // and 2D response maps
         int genBinPuppiMult = generator_distribution_puppiMultiplicity->GetGlobalBinNumber(gen_mult, genjet_pt);
         h_tu_gen_puppiMultiplicity->Fill(genBinPuppiMult, weight);
         h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, recBinPuppiMult, weight);
@@ -878,7 +880,24 @@ void QGAnalysisHists::fill(const Event & event){
         int genBinThrust = generator_distribution_thrust->GetGlobalBinNumber(gen_thrust, genjet_pt);
         h_tu_gen_thrust->Fill(genBinThrust, weight);
         h_tu_response_thrust->Fill(genBinThrust, recBinThrust, weight);
-      } // end of if matched genjet
+      } else {
+        // Fill TUnfold 2D response maps in the case where there is no matching genjet
+        // (i.e. fakes)
+        int genBinPuppiMult = generator_distribution_puppiMultiplicity->GetGlobalBinNumber(-1, -1);
+        h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, recBinPuppiMult, weight);
+
+        int genBinLHA = generator_distribution_LHA->GetGlobalBinNumber(-1, -1);
+        h_tu_response_LHA->Fill(genBinLHA, recBinLHA, weight);
+
+        int genBinpTD = generator_distribution_pTD->GetGlobalBinNumber(-1, -1);
+        h_tu_response_pTD->Fill(genBinpTD, recBinpTD, weight);
+
+        int genBinWidth = generator_distribution_width->GetGlobalBinNumber(-1, -1);
+        h_tu_response_width->Fill(genBinWidth, recBinWidth, weight);
+
+        int genBinThrust = generator_distribution_thrust->GetGlobalBinNumber(-1, -1);
+        h_tu_response_thrust->Fill(genBinThrust, recBinThrust, weight);
+      } // end of if matched genjet or not
 
 
       // int jet_flav = get_jet_flavour(thisjet, event.genparticles);
@@ -897,7 +916,7 @@ void QGAnalysisHists::fill(const Event & event){
         h_gjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
         h_gjet_width_vs_pt->Fill(width, jet_pt, weight);
         h_gjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
-        if (matchedJet) h_gjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+        if (matchedGenJet) h_gjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
         h_gjet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
       } else if ((jet_flav <= 3) && (jet_flav > 0)){ // uds jets
         h_qjet_multiplicity->Fill(mult, weight);
@@ -911,7 +930,7 @@ void QGAnalysisHists::fill(const Event & event){
         h_qjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
         h_qjet_width_vs_pt->Fill(width, jet_pt, weight);
         h_qjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
-        if (matchedJet) h_qjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+        if (matchedGenJet) h_qjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
         h_qjet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
       }
 
@@ -969,45 +988,55 @@ void QGAnalysisHists::fill(const Event & event){
   if (is_mc_) {
     // Fill GenJet hists
     // std::vector<GenJetWithParts>* genjets = event.genjets;
-    std::vector<GenParticle>* genparticles = event.genparticles;
 
     // for (int i = 0; i < useNJets_; i++) {
     //   const GenJetWithParts & thisjet = genjets->at(i);
     int counter = 0;
-    int nocutCounter = 0;
+    int nocutCounter = -1;
     for (const auto & thisjet : *genjets) {
-      if (!(thisjet.pt() > 15 && fabs(thisjet.eta()) < 2.4))
+      nocutCounter++;
+
+      float genjet_pt = thisjet.pt();
+      
+      if (!(genjet_pt > 15 && fabs(thisjet.eta()) < 2.4))
         continue;
 
       counter++;
       if (counter > useNJets_)
         break;
 
-      std::vector<GenParticle*> daughters = get_genjet_genparticles(thisjet, genparticles);
-
-      h_genjet_pt->Fill(thisjet.pt(), weight);
+      h_genjet_pt->Fill(genjet_pt, weight);
       h_genjet_eta->Fill(thisjet.eta(), weight);
 
+      std::vector<GenParticle*> orig_genJetDaughters = get_genjet_genparticles(thisjet, event.genparticles);
+
+      // apply cuts on genjet constituents
+      std::vector<GenParticle*> genJetDaughters;
+      for (auto dau : orig_genJetDaughters) {
+        if (dau->pt() > 1) {
+          genJetDaughters.push_back(dau);
+        }
+      }
+
       // do special vars according to 1704.03878
-      LambdaCalculator<GenParticle> genJetCalc(daughters, jetRadius, thisjet.v4(), false);
-      float lha = genJetCalc.getLambda(1, 0.5);
-      float ptd = genJetCalc.getLambda(2, 0);
-      float width = genJetCalc.getLambda(1, 1);
-      float thrust = genJetCalc.getLambda(1, 2);
-      uint mult = daughters.size();
+      LambdaCalculator<GenParticle> genJetCalc(genJetDaughters, jetRadius, thisjet.v4(), false);
+      float gen_lha = genJetCalc.getLambda(1, 0.5);
+      float gen_ptd = genJetCalc.getLambda(2, 0);
+      float gen_width = genJetCalc.getLambda(1, 1);
+      float gen_thrust = genJetCalc.getLambda(1, 2);
+      uint gen_mult = genJetDaughters.size();
 
-      h_genjet_multiplicity->Fill(mult, weight);
-      h_genjet_LHA->Fill(lha, weight);
-      h_genjet_pTD->Fill(ptd, weight);
-      h_genjet_width->Fill(width, weight);
-      h_genjet_thrust->Fill(thrust, weight);
+      h_genjet_multiplicity->Fill(gen_mult, weight);
+      h_genjet_LHA->Fill(gen_lha, weight);
+      h_genjet_pTD->Fill(gen_ptd, weight);
+      h_genjet_width->Fill(gen_width, weight);
+      h_genjet_thrust->Fill(gen_thrust, weight);
 
-      float jet_pt = thisjet.pt();
-      h_genjet_multiplicity_vs_pt->Fill(mult, jet_pt, weight);
-      h_genjet_LHA_vs_pt->Fill(lha, jet_pt, weight);
-      h_genjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
-      h_genjet_width_vs_pt->Fill(width, jet_pt, weight);
-      h_genjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
+      h_genjet_multiplicity_vs_pt->Fill(gen_mult, genjet_pt, weight);
+      h_genjet_LHA_vs_pt->Fill(gen_lha, genjet_pt, weight);
+      h_genjet_pTD_vs_pt->Fill(gen_ptd, genjet_pt, weight);
+      h_genjet_width_vs_pt->Fill(gen_width, genjet_pt, weight);
+      h_genjet_thrust_vs_pt->Fill(gen_thrust, genjet_pt, weight);
 
       // if (thisjet.flavor() == 21) { // gluon jets
       //   h_ggenjet_multiplicity->Fill(mult, weight);
@@ -1023,7 +1052,29 @@ void QGAnalysisHists::fill(const Event & event){
       //   h_qgenjet_thrust->Fill(thrust / thrust_rescale, weight);
       // }
 
-      nocutCounter++;
+      // More TUnfold hists - treat cases when you have a GenJet but no matching reco jet
+      bool alreadyMatched = (std::find(matchedGenJetInds.begin(), matchedGenJetInds.end(), nocutCounter) != matchedGenJetInds.end());
+      if (!alreadyMatched) {
+        int genBinPuppiMult = generator_distribution_puppiMultiplicity->GetGlobalBinNumber(gen_mult, genjet_pt);
+        h_tu_gen_puppiMultiplicity->Fill(genBinPuppiMult, weight);
+        h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, -1, weight);
+
+        int genBinLHA = generator_distribution_LHA->GetGlobalBinNumber(gen_lha, genjet_pt);
+        h_tu_gen_LHA->Fill(genBinLHA, weight);
+        h_tu_response_LHA->Fill(genBinLHA, -1, weight);
+
+        int genBinpTD = generator_distribution_pTD->GetGlobalBinNumber(gen_ptd, genjet_pt);
+        h_tu_gen_pTD->Fill(genBinpTD, weight);
+        h_tu_response_pTD->Fill(genBinpTD, -1, weight);
+
+        int genBinWidth = generator_distribution_width->GetGlobalBinNumber(gen_width, genjet_pt);
+        h_tu_gen_width->Fill(genBinWidth, weight);
+        h_tu_response_width->Fill(genBinWidth, -1, weight);
+
+        int genBinThrust = generator_distribution_thrust->GetGlobalBinNumber(gen_thrust, genjet_pt);
+        h_tu_gen_thrust->Fill(genBinThrust, weight);
+        h_tu_response_thrust->Fill(genBinThrust, -1, weight);
+      }
     }
   }
 }
