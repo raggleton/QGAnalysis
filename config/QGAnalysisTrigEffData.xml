@@ -139,7 +139,6 @@
             <!-- &AK4PUPPI; -->
             <!-- &AK8CHS; -->
             &AK8PUPPI;
-            <Item Name="useGenPartonFlav" Value="true"/>
         </UserConfig>
     </Cycle>
 

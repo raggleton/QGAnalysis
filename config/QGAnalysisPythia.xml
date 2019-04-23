@@ -150,7 +150,6 @@
             <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/pythiaOnlyFlat_weights_ak4chs.root" /> -->
             <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/pythiaOnlyFlat_newflav_weights_ak4chs.root" /> -->
             <Item Name="herwig_reweight_file" Value="" />
-            <Item Name="useGenPartonFlav" Value="false"/>
             <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
 
             <Item Name="neutralHadronShift" Value="nominal"/>

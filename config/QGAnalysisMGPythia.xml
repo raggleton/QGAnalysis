@@ -181,8 +181,6 @@
             &AK8PUPPI;
 
             <Item Name="herwig_reweight_file" Value="" />
-            <!-- If false use new flavour -->
-            <Item Name="useGenPartonFlav" Value="false"/>
             <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
 
 

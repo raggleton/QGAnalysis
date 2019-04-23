@@ -21,7 +21,6 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   {
 
   is_mc_ = ctx.get("dataset_type") == "MC";
-  useGenPartonFlav_ = (is_mc_ && ctx.get("useGenPartonFlav") == "true");
   doPuppi_ = (ctx.get("PURemoval") == "PUPPI");
 
   if (useNJets_ < 0) useNJets_ = 99999; // Do them all
@@ -70,7 +69,6 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_eta = book<TH1F>("jet_eta", ";#eta^{j};", nEtaBins, etaMin, etaMax);
 
   h_jet_flavour = book<TH1F>("jet_flavour", "jet flavour;PDGID;", 23, -0.5, 22.5);
-  h_jet_genParton_flavour = book<TH1F>("jet_genParton_flavour", "jet flavour (genParton);PDGID;", 23, -0.5, 22.5);
 
   int nMultBins = 150;
   h_jet_multiplicity = book<TH1F>("jet_multiplicity", ";# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
@@ -452,14 +450,10 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_jet_response_vs_genjet_pt = book<TH2F>("jet_response_vs_genjet_pt", ";response;GenJet p_{T} [GeV]", rspNbins, 0, rspMax, nPtBins, ptMin, ptMax);
 
   h_jet_flavour_vs_pt = book<TH2F>("jet_flavour_vs_pt", "jet flavour;PDGID;Jet p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
-  h_jet_genParton_flavour_vs_pt = book<TH2F>("jet_genParton_flavour_vs_pt", "jet flavour;PDGID;Jet p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
   h_jet1_flavour_vs_pt = book<TH2F>("jet1_flavour_vs_pt", "jet1 flavour;PDGID;Jet1 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
-  h_jet1_genParton_flavour_vs_pt = book<TH2F>("jet1_genParton_flavour_vs_pt", "jet1 flavour;PDGID;Jet1 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
   h_jet2_flavour_vs_pt = book<TH2F>("jet2_flavour_vs_pt", "jet2 flavour;PDGID;Jet2 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
-  h_jet2_genParton_flavour_vs_pt = book<TH2F>("jet2_genParton_flavour_vs_pt", "jet2 flavour;PDGID;Jet2 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
 
   h_jet_flavour_vs_eta = book<TH2F>("jet_flavour_vs_eta", "jet flavour;PDGID;Jet #eta", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
-  h_jet_genParton_flavour_vs_eta = book<TH2F>("jet_genParton_flavour_vs_eta", "jet flavour;PDGID;Jet #eta", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
 
   // q jet only
   h_qjet_multiplicity_vs_pt = book<TH2F>("qjet_multiplicity_vs_pt", "q-flavour;# of constituents (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
@@ -888,8 +882,7 @@ void QGAnalysisHists::fill(const Event & event){
 
 
       // int jet_flav = get_jet_flavour(thisjet, event.genparticles);
-      // int jet_flav = abs(thisjet.genPartonFlavor());
-      int jet_flav = useGenPartonFlav_ ? abs(thisjet.genPartonFlavor()) : abs(thisjet.flavor());
+      int jet_flav = abs(thisjet.flavor());
 
       // Split by actual jet flavour - these only make sense for MC
       if (jet_flav == 21) { // gluon jets
@@ -923,20 +916,15 @@ void QGAnalysisHists::fill(const Event & event){
       }
 
       h_jet_flavour->Fill(jet_flav, weight);
-      h_jet_genParton_flavour->Fill(abs(thisjet.genPartonFlavor()), weight);
       h_jet_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
-      h_jet_genParton_flavour_vs_pt->Fill(abs(thisjet.genPartonFlavor()), jet_pt, weight);
       if (i == 0) {
-        h_jet1_genParton_flavour_vs_pt->Fill(abs(thisjet.genPartonFlavor()), jet_pt, weight);
         h_jet1_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
       }
       else if (i == 1) {
-        h_jet2_genParton_flavour_vs_pt->Fill(abs(thisjet.genPartonFlavor()), jet_pt, weight);
         h_jet2_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
       }
 
       h_jet_flavour_vs_eta->Fill(jet_flav, thisjet.eta(), weight);
-      h_jet_genParton_flavour_vs_eta->Fill(abs(thisjet.genPartonFlavor()), thisjet.eta(), weight);
     } // end is_mc_
 
     //  Do lambda correlation hists

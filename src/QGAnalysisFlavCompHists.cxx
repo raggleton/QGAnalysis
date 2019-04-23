@@ -42,7 +42,6 @@ QGAnalysisFlavCompHists::QGAnalysisFlavCompHists(Context & ctx, const string & d
     }
   }
 
-  h_jet_flavour_vs_genparton_flavour = book<TH2F>("jet_flavour_vs_genparton_flavour", ";parton flavour;genParton flavour", 23, -0.5, 22.5, 23, -0.5, 22.5);
   h_jet_flavour_vs_hadron_flavour = book<TH2F>("jet_flavour_vs_hadron_flavour", ";parton flavour;hadron flavour", 23, -0.5, 22.5, 6, -0.5, 5.5);
   
 }
@@ -78,11 +77,9 @@ void QGAnalysisFlavCompHists::fill(const Event & event){
     float absEta = fabs(thisjet.eta());
     if ((pt < jetPtMin_) || (pt > jetPtMax_) || (absEta < jetEtaMin_) || (absEta > jetEtaMax_))
       continue;
-    int jet_genparton_flav = abs(thisjet.genPartonFlavor());
     int jet_flav = abs(thisjet.flavor());
     int jet_hadronflav = abs(thisjet.hadronFlavor());
 
-    h_jet_flavour_vs_genparton_flavour->Fill(jet_flav, jet_genparton_flav, weight);
     h_jet_flavour_vs_hadron_flavour->Fill(jet_flav, jet_hadronflav, weight);
   }
 }

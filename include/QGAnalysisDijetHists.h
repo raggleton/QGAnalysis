@@ -30,7 +30,7 @@ protected:
     TH2F *m_jj_vs_pt_jet, *pt_jet1_jet2_ratio_vs_pt_jet, *deta_jj_vs_pt_jet, *dphi_jj_vs_pt_jet, *sumeta_jj_vs_pt_jet, *jet1_jet2_asym_vs_pt_jet;
     TH2F *pt_jet3_vs_pt_jet, *eta_jet3_vs_pt_jet, *pt_jet3_frac_vs_pt_jet;
 
-    TH2F *deta_dphi_jj, *flav_jet1_jet2, *genparton_flav_jet1_jet2;
+    TH2F *deta_dphi_jj, *flav_jet1_jet2;
 
     TH2F *met_sig_vs_pt_jet;
 

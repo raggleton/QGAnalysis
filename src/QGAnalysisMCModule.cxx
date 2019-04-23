@@ -101,8 +101,6 @@ private:
 
     std::string zLabel;
 
-    bool useGenPartonFlav;
-
     uint nOverlap;
 };
 
@@ -115,7 +113,6 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     cout << "Running analysis module" << endl;
 
-    useGenPartonFlav = ctx.get("useGenPartonFlav") == "true";
     htMax =  boost::lexical_cast<float>(ctx.get("maxHT", "-1"));
 
     string jet_cone = ctx.get("JetCone", "AK4");
@@ -344,7 +341,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     bool zpj(false), dj(false), dj_highPt(false);
 
     // flav-specific preselection hists, useful for optimising selection
-    uint flav1 = useGenPartonFlav ? event.jets->at(0).genPartonFlavor() : event.jets->at(0).flavor();
+    uint flav1 = event.jets->at(0).flavor();
 
     if (zFinder->process(event)) {
         zplusjets_hists_presel->fill(event);
@@ -367,7 +364,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     uint flav2(99999999);
     if (event.jets->size() > 1) {
         dijet_hists_presel->fill(event);
-        flav2 = useGenPartonFlav ? event.jets->at(1).genPartonFlavor() : event.jets->at(1).flavor();
+        flav2 = event.jets->at(1).flavor();
         if (flav1 == PDGID::GLUON) {
             if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
                 dijet_hists_presel_gq->fill(event);
@@ -420,7 +417,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     if (event.jets->at(0).pt() < ptCut) return false;
     flav2 = 99999999;
     if ((event.jets->size() > 1) && (event.jets->at(1).pt() > ptCut)) {
-        flav2 = useGenPartonFlav ? event.jets->at(1).genPartonFlavor() : event.jets->at(1).flavor();
+        flav2 = event.jets->at(1).flavor();
         dijet_hists_presel_highPt->fill(event);
 
         // flav-specific preselection hists, useful for optimising selection
