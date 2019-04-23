@@ -506,6 +506,7 @@ std::vector<GenParticle> QGAnalysisMCModule::getGenMuons(std::vector<GenParticle
     for (auto itr = genparticles->rbegin(); itr != genparticles->rend(); ++itr){
         // We check to see if we already have a very similar, but not exact, muon
         // since the MC "evolves" the particle and slightly changes pt/eta/phi
+        // status check may not be reliable for e.g. herwig
         bool alreadyFound = std::any_of(muons.begin(), muons.end(), [&itr] (const GenParticle & mtr) { return deltaR(*itr, mtr) < 0.05 && itr->charge() == mtr.charge(); });
         if ((abs(itr->pdgId()) == PDGID::MUON) && (itr->status() == 1) && (itr->pt() > pt_min) && (fabs(itr->eta()) < eta_max) && !alreadyFound) {
             muons.push_back(*itr);

@@ -987,10 +987,9 @@ void QGAnalysisHists::fill(const Event & event){
 
   if (is_mc_) {
     // Fill GenJet hists
+    // GenJet cuts already done (pt & eta) in QGAnalysisMCModule
     // std::vector<GenJetWithParts>* genjets = event.genjets;
 
-    // for (int i = 0; i < useNJets_; i++) {
-    //   const GenJetWithParts & thisjet = genjets->at(i);
     int counter = 0;
     int nocutCounter = -1;
     for (const auto & thisjet : *genjets) {
@@ -998,9 +997,6 @@ void QGAnalysisHists::fill(const Event & event){
 
       float genjet_pt = thisjet.pt();
       
-      if (!(genjet_pt > 15 && fabs(thisjet.eta()) < 2.4))
-        continue;
-
       counter++;
       if (counter > useNJets_)
         break;
