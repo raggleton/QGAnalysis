@@ -478,21 +478,22 @@ bool QGAnalysisMCModule::process(Event & event) {
 /**
  * Get GenJets, ignoring those that are basically a lepton, and have some minimum pt and maximum eta.
  */
-std::vector<GenJetWithParts> QGAnalysisMCModule::getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min, float eta_max, float lepton_overlap_dr) {
-    std::vector<GenJetWithParts> genjets;
-    for (const auto jet : *jets) {
-        bool found = (std::find(genjets.begin(), genjets.end(), jet) != genjets.end());
-        // avoid jets that are just leptons + a few spurious gluons
+std::vector<GenJetWithParts> QGAnalysisMCModule::getGenJets(std::vector<GenJetWithParts> * genjets_in, std::vector<GenParticle> * genparticles, float pt_min, float eta_max, float lepton_overlap_dr) {
+    std::vector<GenJetWithParts> genjets_out;
+    for (const auto jet : *genjets_in) {
+        bool found = (std::find(genjets_out.begin(), genjets_out.end(), jet) != genjets_out.end()); // avoid duplicate genjets
+        // avoid jets that are just leptons + a few spurious gluons, i.e. check their pT fraction
         bool leptonOverlap = false;
         if (genparticles != nullptr) {
             for (const auto & ptr : *genparticles) {
-                leptonOverlap = leptonOverlap || (((abs(ptr.pdgId()) == PDGID::MUON) || (abs(ptr.pdgId()) == PDGID::ELECTRON) || (abs(ptr.pdgId()) == PDGID::TAU)) && (deltaR(ptr.v4(), jet.v4()) < lepton_overlap_dr));
+                bool thisLeptonOverlap = ((abs(ptr.pdgId()) == PDGID::MUON) || (abs(ptr.pdgId()) == PDGID::ELECTRON) || (abs(ptr.pdgId()) == PDGID::TAU)) && (deltaR(ptr.v4(), jet.v4()) < lepton_overlap_dr) && ((ptr.pt() / jet.pt()) > 0.5);
+                leptonOverlap = leptonOverlap || thisLeptonOverlap;
             }
         }
-        if ((jet.pt() > pt_min) && (fabs(jet.eta()) < eta_max) && !found && !leptonOverlap) genjets.push_back(jet);
+        if ((jet.pt() > pt_min) && (fabs(jet.eta()) < eta_max) && !found && !leptonOverlap) genjets_out.push_back(jet);
     }
-    sort_by_pt(genjets);
-    return genjets;
+    sort_by_pt(genjets_out);
+    return genjets_out;
 }
 
 
