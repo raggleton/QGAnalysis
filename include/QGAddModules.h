@@ -177,7 +177,7 @@ namespace Binning {
 
   // LHA binning
   const std::vector<double> lha_bin_edges_coarse = {
-    0.0, 0.29, 0.37, 0.44, 0.5, 0.56, 0.62, 0.68, 0.75, 1.0
+    0.0, 0.14, 0.29, 0.37, 0.44, 0.5, 0.56, 0.62, 0.68, 0.75, 1.0
   };
   const int nbins_lha_coarse(lha_bin_edges_coarse.size() - 1);
 
