@@ -17,7 +17,9 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   neutral_pf_hadron_shift_(0.),
   photon_shift_(0.),
   rsp_midPt_cut_(100.),
-  rsp_highPt_cut_(250.)
+  rsp_highPt_cut_(250.),
+  recoDauPtCut_(1.),
+  genDauPtCut_(0.)
   {
 
   is_mc_ = ctx.get("dataset_type") == "MC";
@@ -662,11 +664,11 @@ void QGAnalysisHists::fill(const Event & event){
       orig_daughters = daughters_copy;
     }
 
-    // save only those with pt > 1
+    // save only those with passing pt cut
     std::vector<PFParticle*> daughters;
     float puppiMult = 0;
     for (auto dau : orig_daughters) {
-      if (dau->pt() > 1.) {
+      if (dau->pt() > recoDauPtCut_) {
         daughters.push_back(dau);
         puppiMult += dau->puppiWeight();
       }
@@ -745,7 +747,7 @@ void QGAnalysisHists::fill(const Event & event){
         // apply cuts to genjet constituents
         std::vector<GenParticle*> genJetDaughters;
         for (auto dau : orig_genJetDaughters) {
-          if (dau->pt() > 1) {
+          if (dau->pt() > genDauPtCut_) {
             genJetDaughters.push_back(dau);
           }
         }
@@ -1009,7 +1011,7 @@ void QGAnalysisHists::fill(const Event & event){
       // apply cuts on genjet constituents
       std::vector<GenParticle*> genJetDaughters;
       for (auto dau : orig_genJetDaughters) {
-        if (dau->pt() > 1) {
+        if (dau->pt() > genDauPtCut_) {
           genJetDaughters.push_back(dau);
         }
       }

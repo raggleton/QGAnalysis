@@ -139,7 +139,7 @@ protected:
     int neutral_pf_hadron_shift_;
     int photon_shift_;
     float rsp_midPt_cut_, rsp_highPt_cut_;
-
+    float recoDauPtCut_, genDauPtCut_;
 };
 
 
