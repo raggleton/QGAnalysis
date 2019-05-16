@@ -39,7 +39,7 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
 
   // book all histograms here
   // jets
-  int nbins_pt = 400;
+  int nbins_pt_equal = 400;
   float pt_max = 2000;
 
   int nbins_eta = 200;
@@ -56,35 +56,35 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   }
 
   pt_bin_edges = Binning::pt_bin_edges;
-  // pt_bin_edges.insert(0, 15); // insert extra bins that we use here that aren't used in TUnfold
-  // pt_bin_edges.insert(0, 0);
+  pt_bin_edges.insert(pt_bin_edges.begin(), 15.); // insert extra bins that we use here that aren't used in TUnfold
+  pt_bin_edges.insert(pt_bin_edges.begin(), 0.);
   nbins_pt = pt_bin_edges.size() - 1;
 
-  n_jets_vs_pt_jet = book<TH2F>("n_jets_vs_pt_jet", TString::Format(";N_{jets};%s", binByVarLabel.Data()), 10, 0, 10, nbins_pt, 0, pt_max);
+  n_jets_vs_pt_jet = book<TH2F>("n_jets_vs_pt_jet", TString::Format(";N_{jets};%s", binByVarLabel.Data()), 10, 0, 10, nbins_pt_equal, 0, pt_max);
 
-  pt_jet = book<TH1F>("pt_jet", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt, 0, pt_max);
-  pt_jet_response_binning = book<TH1F>("pt_jet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt, &Binning::pt_bin_edges[0]);
-  pt_genjet_response_binning = book<TH1F>("pt_genjet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt, &Binning::pt_bin_edges[0]);
+  pt_jet = book<TH1F>("pt_jet", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt_equal, 0, pt_max);
+  pt_jet_response_binning = book<TH1F>("pt_jet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt, &pt_bin_edges[0]);
+  pt_genjet_response_binning = book<TH1F>("pt_genjet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt, &pt_bin_edges[0]);
 
   pt_jet_qScale_ratio = book<TH1F>("pt_jet_qScale_ratio", ";p_{T}^{jet 1}/qScale", 250, 0, 25);
   pt_jet_genHT_ratio = book<TH1F>("pt_jet_genHT_ratio", ";p_{T}^{jet 1}/GenHT", 250, 0, 25);
-  pt_jet_vs_pdf_scalePDF = book<TH2F>("pt_jet_vs_pdf_scalePDF", ";p_{T}^{jet 1};pdf_scalePDF", nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
-  pt_jet_vs_genHT = book<TH2F>("pt_jet_vs_genHT", ";p_{T}^{jet 1};GenHT", nbins_pt, 0, pt_max, nbins_pt, 0, 2*pt_max);
+  pt_jet_vs_pdf_scalePDF = book<TH2F>("pt_jet_vs_pdf_scalePDF", ";p_{T}^{jet 1};pdf_scalePDF", nbins_pt_equal, 0, pt_max, nbins_pt_equal, 0, pt_max);
+  pt_jet_vs_genHT = book<TH2F>("pt_jet_vs_genHT", ";p_{T}^{jet 1};GenHT", nbins_pt_equal, 0, pt_max, nbins_pt_equal, 0, 2*pt_max);
   // dont' reverse axis direction - it doens't like it
-  pt_jet_response_fine = book<TH2F>("pt_jet_response_fine", TString::Format(";%s (GEN);%s (RECO)", binByVarLabel.Data(), binByVarLabel.Data()), nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
-  pt_jet_response = book<TH2F>("pt_jet_response", TString::Format(";%s (GEN);%s (RECO)", binByVarLabel.Data(), binByVarLabel.Data()), nbins_pt, &Binning::pt_bin_edges[0], nbins_pt, &Binning::pt_bin_edges[0]);
-  eta_jet1_vs_pt_jet = book<TH2F>("eta_jet1_vs_pt_jet", TString::Format(";#eta^{jet 1};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
+  pt_jet_response_fine = book<TH2F>("pt_jet_response_fine", TString::Format(";%s (GEN);%s (RECO)", binByVarLabel.Data(), binByVarLabel.Data()), nbins_pt_equal, 0, pt_max, nbins_pt_equal, 0, pt_max);
+  pt_jet_response = book<TH2F>("pt_jet_response", TString::Format(";%s (GEN);%s (RECO)", binByVarLabel.Data(), binByVarLabel.Data()), nbins_pt, &pt_bin_edges[0], nbins_pt, &pt_bin_edges[0]);
+  eta_jet1_vs_pt_jet = book<TH2F>("eta_jet1_vs_pt_jet", TString::Format(";#eta^{jet 1};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt_equal, 0, pt_max);
   eta_jet_response = book<TH2F>("eta_jet_response", ";#eta^{jet} (GEN);#eta^{jet} (RECO)", nbins_eta, -eta_max, eta_max, nbins_eta, -eta_max, eta_max);
-  phi_jet1_vs_pt_jet = book<TH2F>("phi_jet1_vs_pt_jet", TString::Format(";#phi^{jet 1};%s", binByVarLabel.Data()), nbins_phi, -phi_max, phi_max, nbins_pt, 0, pt_max);
+  phi_jet1_vs_pt_jet = book<TH2F>("phi_jet1_vs_pt_jet", TString::Format(";#phi^{jet 1};%s", binByVarLabel.Data()), nbins_phi, -phi_max, phi_max, nbins_pt_equal, 0, pt_max);
 
   eta_jet1_vs_eta_jet2 = book<TH2F>("eta_jet1_vs_eta_jet2", ";#eta^{jet 1};#eta^{jet 2}", nbins_eta, -eta_max, eta_max, nbins_eta,-eta_max, eta_max);
-  pt_jet2_vs_pt_jet = book<TH2F>("pt_jet2_vs_pt_jet", TString::Format(";p_{T}^{jet 2};%s", binByVarLabel.Data()), nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
-  eta_jet2_vs_pt_jet = book<TH2F>("eta_jet2_vs_pt_jet", TString::Format(";#eta^{jet 2};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
-  phi_jet2_vs_pt_jet = book<TH2F>("phi_jet2_vs_pt_jet", TString::Format(";#phi^{jet 2};%s", binByVarLabel.Data()), nbins_phi, -phi_max, phi_max, nbins_pt, 0, pt_max);
+  pt_jet2_vs_pt_jet = book<TH2F>("pt_jet2_vs_pt_jet", TString::Format(";p_{T}^{jet 2};%s", binByVarLabel.Data()), nbins_pt_equal, 0, pt_max, nbins_pt_equal, 0, pt_max);
+  eta_jet2_vs_pt_jet = book<TH2F>("eta_jet2_vs_pt_jet", TString::Format(";#eta^{jet 2};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt_equal, 0, pt_max);
+  phi_jet2_vs_pt_jet = book<TH2F>("phi_jet2_vs_pt_jet", TString::Format(";#phi^{jet 2};%s", binByVarLabel.Data()), nbins_phi, -phi_max, phi_max, nbins_pt_equal, 0, pt_max);
 
   int nbins_jet_ind = 5;
-  genjet1_ind_vs_pt_jet1 = book<TH2F>("genjet1_ind_vs_pt_jet1", ";GenJet index;p_{T}^{jet 1} [GeV]", nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_pt, 0, pt_max);
-  genjet2_ind_vs_pt_jet2 = book<TH2F>("genjet2_ind_vs_pt_jet2", ";GenJet index;p_{T}^{jet 2} [GeV]", nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_pt, 0, pt_max);
+  genjet1_ind_vs_pt_jet1 = book<TH2F>("genjet1_ind_vs_pt_jet1", ";GenJet index;p_{T}^{jet 1} [GeV]", nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_pt_equal, 0, pt_max);
+  genjet2_ind_vs_pt_jet2 = book<TH2F>("genjet2_ind_vs_pt_jet2", ";GenJet index;p_{T}^{jet 2} [GeV]", nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_pt_equal, 0, pt_max);
 
   for (int i=0; i < nbins_pt; i++) {
     TH2F * tmp = book<TH2F>(TString::Format("genjet_ind_recojet_ind_pt_%g_%g", pt_bin_edges.at(i), pt_bin_edges.at(i+1)),
@@ -95,24 +95,24 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
 
   flav_jet1_jet2 = book<TH2F>("flav_jet1_jet2", ";jet 1 flav;jet 2 flav;", 23, -0.5, 22.5, 23, -0.5, 22.5);
 
-  pt_jet1_jet2_ratio_vs_pt_jet = book<TH2F>("pt_jet1_jet2_ratio_vs_pt_jet", TString::Format(";p_{T}^{jet 2} / p_{T}^{jet 1};%s", binByVarLabel.Data()), 50, 0, 1, nbins_pt, 0, pt_max);
-  jet1_jet2_asym_vs_pt_jet = book<TH2F>("jet1_jet2_asym_vs_pt_jet", TString::Format(";p_{T}^{jet 1} - p_{T}^{jet 2}/p_{T}^{jet 1} + p_{T}^{jet 2};%s", binByVarLabel.Data()), 50, 0, 1, nbins_pt, 0, pt_max);
+  pt_jet1_jet2_ratio_vs_pt_jet = book<TH2F>("pt_jet1_jet2_ratio_vs_pt_jet", TString::Format(";p_{T}^{jet 2} / p_{T}^{jet 1};%s", binByVarLabel.Data()), 50, 0, 1, nbins_pt_equal, 0, pt_max);
+  jet1_jet2_asym_vs_pt_jet = book<TH2F>("jet1_jet2_asym_vs_pt_jet", TString::Format(";p_{T}^{jet 1} - p_{T}^{jet 2}/p_{T}^{jet 1} + p_{T}^{jet 2};%s", binByVarLabel.Data()), 50, 0, 1, nbins_pt_equal, 0, pt_max);
 
-  m_jj_vs_pt_jet = book<TH2F>("m_jj_vs_pt_jet", TString::Format(";m_{jj} [GeV];%s", binByVarLabel.Data()), 200, 0, 4000, nbins_pt, 0, pt_max);
+  m_jj_vs_pt_jet = book<TH2F>("m_jj_vs_pt_jet", TString::Format(";m_{jj} [GeV];%s", binByVarLabel.Data()), 200, 0, 4000, nbins_pt_equal, 0, pt_max);
 
-  deta_jj_vs_pt_jet = book<TH2F>("deta_jj_vs_pt_jet", TString::Format(";|#Delta#eta_{jj}|;%s", binByVarLabel.Data()), nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
-  dphi_jj_vs_pt_jet = book<TH2F>("dphi_jj_vs_pt_jet", TString::Format(";|#Delta#phi_{jj}|;%s", binByVarLabel.Data()), nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
-  sumeta_jj_vs_pt_jet = book<TH2F>("sumeta_jj_vs_pt_jet", TString::Format(";#sum#eta_{jj};%s", binByVarLabel.Data()), 2*nbins_eta, -2*eta_max, 2*eta_max, nbins_pt, 0, pt_max);
+  deta_jj_vs_pt_jet = book<TH2F>("deta_jj_vs_pt_jet", TString::Format(";|#Delta#eta_{jj}|;%s", binByVarLabel.Data()), nbins_eta, 0, 2*eta_max, nbins_pt_equal, 0, pt_max);
+  dphi_jj_vs_pt_jet = book<TH2F>("dphi_jj_vs_pt_jet", TString::Format(";|#Delta#phi_{jj}|;%s", binByVarLabel.Data()), nbins_phi, 0, phi_max, nbins_pt_equal, 0, pt_max);
+  sumeta_jj_vs_pt_jet = book<TH2F>("sumeta_jj_vs_pt_jet", TString::Format(";#sum#eta_{jj};%s", binByVarLabel.Data()), 2*nbins_eta, -2*eta_max, 2*eta_max, nbins_pt_equal, 0, pt_max);
 
   // Possible 3rd jet in the event
-  pt_jet3_vs_pt_jet = book<TH2F>("pt_jet3_vs_pt_jet", TString::Format(";p_{T}^{jet 3};%s", binByVarLabel.Data()), nbins_pt, 0, 500, nbins_pt, 0, pt_max);
-  eta_jet3_vs_pt_jet = book<TH2F>("eta_jet3_vs_pt_jet", TString::Format(";#eta^{jet 3};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
-  pt_jet3_frac_vs_pt_jet = book<TH2F>("pt_jet3_frac_vs_pt_jet", TString::Format(";p_{T}^{jet 3} / #LT p_{T}^{jet 1}, p_{T}^{jet 2} #GT;%s", binByVarLabel.Data()), 50, 0, 1, nbins_pt, 0, pt_max);
+  pt_jet3_vs_pt_jet = book<TH2F>("pt_jet3_vs_pt_jet", TString::Format(";p_{T}^{jet 3};%s", binByVarLabel.Data()), nbins_pt_equal, 0, 500, nbins_pt_equal, 0, pt_max);
+  eta_jet3_vs_pt_jet = book<TH2F>("eta_jet3_vs_pt_jet", TString::Format(";#eta^{jet 3};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt_equal, 0, pt_max);
+  pt_jet3_frac_vs_pt_jet = book<TH2F>("pt_jet3_frac_vs_pt_jet", TString::Format(";p_{T}^{jet 3} / #LT p_{T}^{jet 1}, p_{T}^{jet 2} #GT;%s", binByVarLabel.Data()), 50, 0, 1, nbins_pt_equal, 0, pt_max);
 
   // MET
   int nbins_metSig(50);
   float metSig_max(10.);
-  met_sig_vs_pt_jet = book<TH2F>("met_sig_vs_pt_jet", TString::Format(";MET signif.;%s", binByVarLabel.Data()), nbins_metSig, 0, metSig_max, nbins_pt, 0, pt_max);
+  met_sig_vs_pt_jet = book<TH2F>("met_sig_vs_pt_jet", TString::Format(";MET signif.;%s", binByVarLabel.Data()), nbins_metSig, 0, metSig_max, nbins_pt_equal, 0, pt_max);
 
   // primary vertices
   n_pv = book<TH1F>("N_pv", ";N^{PV};", 50, 0, 50);
