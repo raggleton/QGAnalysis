@@ -26,6 +26,7 @@ protected:
     TH1F *gen_ht;
     TH2F *eta_jet1_vs_pt, *pt_jet1_z_ratio_vs_pt;
     TH2F *pt_jet2_vs_pt, *eta_jet2_vs_pt, *pt_jet2_z_ratio_vs_pt;
+    TH2F *met_vs_pt, *met_sig_vs_pt;
     TH2F *n_mu_vs_pt, *pt_mu1_vs_pt, *eta_mu1_vs_pt, *reliso_mu1_vs_pt;
     TH2F *pt_mu2_vs_pt, *eta_mu2_vs_pt, *reliso_mu2_vs_pt, *m_mumu_vs_pt, *pt_jet1_vs_pt, *eta_mumu_vs_pt;
     TH2F *dphi_j_z_vs_pt;

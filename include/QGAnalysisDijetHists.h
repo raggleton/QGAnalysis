@@ -32,7 +32,7 @@ protected:
 
     TH2F *deta_dphi_jj, *flav_jet1_jet2;
 
-    TH2F *met_sig_vs_pt_jet;
+    TH2F *met_vs_pt_jet, *met_sig_vs_pt_jet;
 
     TH2F *pt_jet_response_fine, *pt_jet_response, *eta_jet_response;
     TH1F *pt_jet_qScale_ratio;

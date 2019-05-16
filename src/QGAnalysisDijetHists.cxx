@@ -110,6 +110,7 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   pt_jet3_frac_vs_pt_jet = book<TH2F>("pt_jet3_frac_vs_pt_jet", TString::Format(";p_{T}^{jet 3} / #LT p_{T}^{jet 1}, p_{T}^{jet 2} #GT;%s", binByVarLabel.Data()), 50, 0, 1, nbins_pt_equal, 0, pt_max);
 
   // MET
+  met_vs_pt_jet = book<TH2F>("met_vs_pt_jet", TString::Format(";p_{T}^{miss} [GeV];%s", binByVarLabel.Data()), 200, 0, 400, nbins_pt_equal, 0, pt_max);
   int nbins_metSig(50);
   float metSig_max(10.);
   met_sig_vs_pt_jet = book<TH2F>("met_sig_vs_pt_jet", TString::Format(";MET signif.;%s", binByVarLabel.Data()), nbins_metSig, 0, metSig_max, nbins_pt_equal, 0, pt_max);
@@ -345,6 +346,7 @@ void QGAnalysisDijetHists::fill(const Event & event){
   dphi_jj_vs_pt_jet->Fill(dPhi, binByVal, weight);
   sumeta_jj_vs_pt_jet->Fill(jet1.eta() + jet2.eta(), binByVal, weight);
 
+  met_vs_pt_jet->Fill(event.met->pt(), binByVal, weight);
   met_sig_vs_pt_jet->Fill(event.met->mEtSig(), binByVal, weight);
 
   if (Njets >= 3) {

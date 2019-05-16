@@ -77,6 +77,13 @@ hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
                             nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5);
     genjet_recojet_ind_binned.push_back(tmp);
   }
+
+  // met
+  met_vs_pt = book<TH2F>("met_vs_pt", TString::Format(";p_{T}^{miss} [GeV];%s", binByVarLabel.Data()), 200, 0, 400, nbins_pt, 0, pt_max);
+  int nbins_metSig(50);
+  float metSig_max(10.);
+  met_sig_vs_pt = book<TH2F>("met_sig_vs_pt", TString::Format(";MET signif.;%s", binByVarLabel.Data()), nbins_metSig, 0, metSig_max, nbins_pt, 0, pt_max);
+
   // muons
   n_mu_vs_pt = book<TH2F>(TString::Format("n_mu_vs_%s", binByVar.Data()), TString::Format(";N_{#mu};%s", binByVarLabel.Data()), 10, 0, 10, nbins_pt, 0, pt_max);
 
@@ -260,6 +267,9 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
       }
     }
   }
+
+  met_vs_pt->Fill(event.met->pt(), binPt, weight);
+  met_sig_vs_pt->Fill(event.met->mEtSig(), binPt, weight);
 
   pt_jet1_z_ratio_vs_pt->Fill(jet1_pt / z_pt, binPt, weight);
   diff = z_cand - jet1.v4();
