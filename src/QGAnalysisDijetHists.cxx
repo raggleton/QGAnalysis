@@ -55,7 +55,7 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
     binByVarLabel = "p_{T}^{jet} [GeV]";
   }
 
-  pt_bin_edges = Binning::pt_bin_edges;
+  pt_bin_edges = Binning::pt_bin_edges_reco;
   pt_bin_edges.insert(pt_bin_edges.begin(), 15.); // insert extra bins that we use here that aren't used in TUnfold
   pt_bin_edges.insert(pt_bin_edges.begin(), 0.);
   nbins_pt = pt_bin_edges.size() - 1;
