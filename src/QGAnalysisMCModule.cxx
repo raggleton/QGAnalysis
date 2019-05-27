@@ -91,6 +91,7 @@ private:
 
     Event::Handle<std::vector<GenJetWithParts>> genjets_handle;
     Event::Handle<std::vector<GenParticle>> genmuons_handle;
+    Event::Handle<double> gen_weight_handle;
 
     float jetRadius;
     float htMax;
@@ -132,6 +133,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     genjets_handle = ctx.declare_event_output< std::vector<GenJetWithParts> > ("GoodGenJets");
     genmuons_handle = ctx.declare_event_output< std::vector<GenParticle> > ("GoodGenMuons");
+    gen_weight_handle = ctx.declare_event_output<double>("gen_weight");
 
     // Event Selections
     njet_sel.reset(new NJetSelection(1));
@@ -240,6 +242,9 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
 bool QGAnalysisMCModule::process(Event & event) {
     // if (!event_sel->passes(event)) return false;
+
+    double orig_weight = 1.;
+    event.set(gen_weight_handle, orig_weight); // need to set this at the start
 
     if (PRINTOUT) {cout << "-- Event: " << event.event << endl;}
     // cout << "-- Event: " << event.event << endl;
@@ -455,6 +460,7 @@ bool QGAnalysisMCModule::process(Event & event) {
         }
     }
 */
+
     if (zpj && dj) {
         nOverlap++;
         cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet criteria (" << nOverlap << " total)" << endl;

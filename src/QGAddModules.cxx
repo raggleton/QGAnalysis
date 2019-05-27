@@ -164,6 +164,8 @@ bool GeneralEventSetup::process(uhh2::Event & event) {
 
 
 MCReweighting::MCReweighting(uhh2::Context & ctx) {
+  gen_weight_handle = ctx.get_handle<double>("gen_weight");
+
   lumi_weighter.reset(new MCLumiWeight(ctx));
 
   pileup_reweighter.reset(new MCPileupReweight(ctx, ctx.get("pileup_direction", "central")));
@@ -186,20 +188,25 @@ MCReweighting::MCReweighting(uhh2::Context & ctx) {
 
 
 bool MCReweighting::process(uhh2::Event & event) {
-  if (event.isRealData) return true;
+  // store gen-only weights in separate variable
+  // event.weight is then the product of reco weights & gen weights
+  double old_gen_weight = event.get(gen_weight_handle);
+  double old_weight = event.weight;
+  if (!event.isRealData){
+    lumi_weighter->process(event);
+    old_gen_weight *= (event.weight / old_weight);
 
-  lumi_weighter->process(event);
+    pileup_reweighter->process(event);
 
-  pileup_reweighter->process(event);
+    muon_id_reweighter_pt_eta->process(event);
 
-  muon_id_reweighter_pt_eta->process(event);
+    // muon_id_reweighter_vtx->process(event);
 
-  // muon_id_reweighter_vtx->process(event);
+    muon_trg_reweighter->process(event);
 
-  muon_trg_reweighter->process(event);
-
-  muon_trk_reweighter->process(event);
-
+    muon_trk_reweighter->process(event);
+  }
+  event.set(gen_weight_handle, old_gen_weight);
   return true;
 }
 
@@ -219,7 +226,9 @@ float get_jet_radius(const std::string & jet_cone) {
 ZFinder::ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std::string & outputLabel_, const std::string & weightFilename_):
   // Would like more generic FlavourParticle handle, but may need to do additional declare_event_input?
   hndlInput(ctx.get_handle<vector<Muon>>(inputLabel_)),
-  hndlZ(ctx.get_handle<vector<Muon>>(outputLabel_))
+  hndlZ(ctx.get_handle<vector<Muon>>(outputLabel_)),
+  gen_weight_handle(ctx.get_handle<double>("gen_weight"))
+
 {
   if (weightFilename_ != "")
     zReweight.reset(new ZllKFactor(weightFilename_));
@@ -236,7 +245,11 @@ bool ZFinder::process(uhh2::Event & event) {
     event.set(hndlZ, cands);
 
     if (zReweight) {
-      event.weight *= zReweight->getKFactor(zCand.pt());
+      // Update the gen_weight stored in the event
+      double old_gen_weight = event.get(gen_weight_handle);
+      double zWeight = zReweight->getKFactor(zCand.pt());
+      event.weight *= zWeight;
+      event.set(gen_weight_handle, old_gen_weight*zWeight);
     }
 
     return true;
