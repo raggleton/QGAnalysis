@@ -752,21 +752,29 @@ void QGAnalysisHists::fill(const Event & event){
     h_jet_puppiMultiplicity->Fill(puppiMult, weight);
     h_jet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
 
-    // Fill TUnfold reco hists
+    // Fill TUnfold 1D reco hists
+    // --------------------------
     // Do regardless of whether there is a matching genjet or not
-    int recBinLHA = detector_distribution_LHA->GetGlobalBinNumber(lha, jet_pt);
+    int recBinLHA(0), recBinPuppiMult(0), recBinpTD(0), recBinThrust(0), recBinWidth(0);
+    bool isUnderflow = (jet_pt < Binning::pt_bin_edges_reco[0]);
+    // here we get bin number based on if underflow or not
+    if (isUnderflow) {
+      recBinLHA = detector_distribution_underflow_LHA->GetGlobalBinNumber(lha, jet_pt);
+      recBinPuppiMult = detector_distribution_underflow_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
+      recBinpTD = detector_distribution_underflow_pTD->GetGlobalBinNumber(ptd, jet_pt);
+      recBinThrust = detector_distribution_underflow_thrust->GetGlobalBinNumber(thrust, jet_pt);
+      recBinWidth = detector_distribution_underflow_width->GetGlobalBinNumber(width, jet_pt);
+    } else {
+      recBinLHA = detector_distribution_LHA->GetGlobalBinNumber(lha, jet_pt);
+      recBinPuppiMult = detector_distribution_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
+      recBinpTD = detector_distribution_pTD->GetGlobalBinNumber(ptd, jet_pt);
+      recBinThrust = detector_distribution_thrust->GetGlobalBinNumber(thrust, jet_pt);
+      recBinWidth = detector_distribution_width->GetGlobalBinNumber(width, jet_pt);
+    }
     h_tu_reco_LHA->Fill(recBinLHA, weight);
-
-    int recBinPuppiMult = detector_distribution_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
     h_tu_reco_puppiMultiplicity->Fill(recBinPuppiMult, weight);
-
-    int recBinpTD = detector_distribution_pTD->GetGlobalBinNumber(ptd, jet_pt);
     h_tu_reco_pTD->Fill(recBinpTD, weight);
-
-    int recBinThrust = detector_distribution_thrust->GetGlobalBinNumber(thrust, jet_pt);
     h_tu_reco_thrust->Fill(recBinThrust, weight);
-
-    int recBinWidth = detector_distribution_width->GetGlobalBinNumber(width, jet_pt);
     h_tu_reco_width->Fill(recBinWidth, weight);
 
     if (is_mc_) {
