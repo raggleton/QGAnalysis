@@ -132,6 +132,20 @@ private:
 };
 
 /**
+ * reweight event based on jet pt
+ * useful for e.g. reweighting herwig to match pythia
+ */
+class PtReweight : public uhh2::AnalysisModule {
+public:
+  PtReweight(uhh2::Context & ctx, const std::string & selection, const std::string & weightFilename);
+  bool process(uhh2::Event & event, float value);
+private:
+  std::unique_ptr<TFile> f_weight;
+  std::unique_ptr<TH1F> reweightHist;
+  uhh2::Event::Handle<double> gen_weight_handle;
+};
+
+/**
  * Calculate any LesHouches variable from jet constituents
  */
 template <class T> class LambdaCalculator {

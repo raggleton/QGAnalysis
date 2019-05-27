@@ -246,10 +246,10 @@ bool ZFinder::process(uhh2::Event & event) {
 
     if (zReweight) {
       // Update the gen_weight stored in the event
-      double old_gen_weight = event.get(gen_weight_handle);
+      double gen_weight = event.get(gen_weight_handle);
       double zWeight = zReweight->getKFactor(zCand.pt());
       event.weight *= zWeight;
-      event.set(gen_weight_handle, old_gen_weight*zWeight);
+      event.set(gen_weight_handle, gen_weight*zWeight);
     }
 
     return true;
@@ -286,6 +286,36 @@ float ZllKFactor::getKFactor(float zPt) {
     factor = grNNLO->Eval(grNNLO->GetXaxis()->GetXmax());
   }
   return factor;
+}
+
+
+
+PtReweight::PtReweight(uhh2::Context & ctx, const std::string & selection, const std::string & weightFilename):
+  gen_weight_handle(ctx.get_handle<double>("gen_weight"))
+{
+  f_weight.reset(TFile::Open(weightFilename.c_str()));
+  if (selection == "dijet")
+    reweightHist.reset((TH1F*) f_weight->Get("dijet_reco"));
+  else if (selection == "zplusjets")
+    reweightHist.reset((TH1F*) f_weight->Get("zpj_reco"));
+  if (reweightHist) reweightHist->SetDirectory(0);
+}
+
+
+bool PtReweight::process(uhh2::Event & event, float value) {
+  (void) event;
+  if (value >= reweightHist->GetXaxis()->GetXmax()) {
+    value = reweightHist->GetXaxis()->GetXmax() - 0.1;
+  }
+  int bin_num = reweightHist->GetXaxis()->FindBin(value);
+  double new_weight = reweightHist->GetBinContent(bin_num);
+
+  // Update the event weight & gen_weight stored in the event
+  double gen_weight = event.get(gen_weight_handle);
+  event.weight *= new_weight;
+  event.set(gen_weight_handle, gen_weight*new_weight);
+
+  return true;
 }
 
 namespace uhh2examples {
