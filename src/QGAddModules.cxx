@@ -347,3 +347,10 @@ std::vector<double> Binning::calculate_fine_binning(const std::vector<double> & 
   fine_bin_edges.push_back(coarse_bin_edges[coarse_bin_edges.size()-1]);
   return fine_bin_edges;
 }
+
+std::vector<double> Binning::sum_vectors(const std::vector<double> & vec1, const std::vector<double> & vec2)
+{
+  std::vector<double> result(vec1);
+  result.insert(result.end(), vec2.begin(), vec2.end());
+  return result;
+}

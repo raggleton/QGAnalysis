@@ -156,6 +156,7 @@ namespace Binning {
   // The "fine" binning is each of the coarse bins divided by 2, which is better for TUnfold
 
   std::vector<double> calculate_fine_binning(const std::vector<double> & coarse_bin_edges);
+  std::vector<double> sum_vectors(const std::vector<double> & vec1, const std::vector<double> & vec2);
 
   // pt bins
   // ---------
@@ -178,11 +179,26 @@ namespace Binning {
   const std::vector<double> pt_bin_edges_reco_underflow = calculate_fine_binning(pt_bin_edges_gen_underflow);
   const int nbins_pt_reco_underflow(pt_bin_edges_reco_underflow.size() - 1);
 
+  // for non-TUnfold things, need all bins together, plus extra underflow bins
+  // also need to remove duplicate bin at start of signal region,
+  // hence the inplace ctor with begin()+1
+  const std::vector<double> pt_bin_edges_gen_all = sum_vectors({0., 15.},
+                                                               sum_vectors(pt_bin_edges_gen_underflow,
+                                                                           std::vector<double>(pt_bin_edges_gen.begin()+1, pt_bin_edges_gen.end()) )
+                                                              );
+  const int nbins_pt_gen_all(pt_bin_edges_gen_all.size() - 1);
+
+  const std::vector<double> pt_bin_edges_reco_all = sum_vectors({0., 15.},
+                                                                sum_vectors(pt_bin_edges_reco_underflow,
+                                                                            std::vector<double>(pt_bin_edges_reco.begin()+1, pt_bin_edges_reco.end()) )
+                                                               );
+  const int nbins_pt_reco_all(pt_bin_edges_reco_all.size() - 1);
+
   // Separate pt binning for Z+jets
   // ------------------------------
   // lower last big bin for Z+jets - dont want many empty bins for tunfold
   const std::vector<double> pt_bin_edges_zpj_gen = {
-    30, 38, 50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 10000
+    50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 10000
   };
   const int nbins_pt_zpj_gen(pt_bin_edges_zpj_gen.size() - 1);
 
@@ -196,6 +212,19 @@ namespace Binning {
 
   const std::vector<double> pt_bin_edges_zpj_reco_underflow = calculate_fine_binning(pt_bin_edges_zpj_gen_underflow);
   const int nbins_pt_zpj_reco_underflow(pt_bin_edges_zpj_reco_underflow.size() - 1);
+
+  const std::vector<double> pt_bin_edges_zpj_gen_all = sum_vectors({0., 15.},
+                                                                   sum_vectors(pt_bin_edges_zpj_gen_underflow,
+                                                                               std::vector<double>(pt_bin_edges_zpj_gen.begin()+1, pt_bin_edges_zpj_gen.end()) )
+                                                                  );
+  const int nbins_pt_zpj_gen_all(pt_bin_edges_zpj_gen_all.size() - 1);
+
+  const std::vector<double> pt_bin_edges_zpj_reco_all = sum_vectors({0., 15.},
+                                                                    sum_vectors(pt_bin_edges_zpj_reco_underflow,
+                                                                                std::vector<double>(pt_bin_edges_zpj_reco.begin()+1, pt_bin_edges_zpj_reco.end()) )
+                                                                   );
+  const int nbins_pt_zpj_reco_all(pt_bin_edges_zpj_reco_all.size() - 1);
+
 
   // LHA binning
   // -----------

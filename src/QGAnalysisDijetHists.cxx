@@ -55,9 +55,7 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
     binByVarLabel = "p_{T}^{jet} [GeV]";
   }
 
-  pt_bin_edges = Binning::pt_bin_edges_reco;
-  pt_bin_edges.insert(pt_bin_edges.begin(), 15.); // insert extra bins that we use here that aren't used in TUnfold
-  pt_bin_edges.insert(pt_bin_edges.begin(), 0.);
+  pt_bin_edges = Binning::pt_bin_edges_reco_all;
   nbins_pt = pt_bin_edges.size() - 1;
 
   n_jets_vs_pt_jet = book<TH2F>("n_jets_vs_pt_jet", TString::Format(";N_{jets};%s", binByVarLabel.Data()), 10, 0, 10, nbins_pt_equal, 0, pt_max);

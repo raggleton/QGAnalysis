@@ -115,6 +115,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     htMax =  boost::lexical_cast<float>(ctx.get("maxHT", "-1"));
 
+
     string jet_cone = ctx.get("JetCone", "AK4");
     string pu_removal = ctx.get("PURemoval", "CHS");
     if (pu_removal != "CHS" && pu_removal != "PUPPI") {
