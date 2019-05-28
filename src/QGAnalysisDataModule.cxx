@@ -53,6 +53,7 @@ public:
 private:
 
     std::unique_ptr<GeneralEventSetup> common_setup;
+    Event::Handle<double> gen_weight_handle;
 
     // Reco selections/hists
     std::unique_ptr<ZFinder> zFinder;
@@ -94,6 +95,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     cout << "Running with PUS: " << pu_removal << endl;
 
     common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jet_radius));
+    gen_weight_handle = ctx.declare_event_output<double>("gen_weight");
 
     // Event Selections
     njet_sel.reset(new NJetSelection(1));
@@ -237,6 +239,9 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
 
 
 bool QGAnalysisDataModule::process(Event & event) {
+    double orig_weight = 1.;
+    event.set(gen_weight_handle, orig_weight); // need to set this at the start
+
     // if (!event_sel->passes(event)) return false;
 
     if (PRINTOUT) {cout << "-- Event: " << event.event << endl; }
