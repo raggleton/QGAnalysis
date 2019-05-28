@@ -135,6 +135,7 @@ protected:
     TH1F * reweightHist;
 
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+    uhh2::Event::Handle<double> gen_weight_handle;
     bool is_mc_;
     int neutral_pf_hadron_shift_;
     int photon_shift_;
