@@ -112,7 +112,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   // Common flags for TUnfold under/overflow
   bool pt_uf(false), pt_of(false); // handle under/overflow ourselves
-  bool var_uf(false), var_of(false);
+  bool var_uf(true), var_of(false); // underflow bin for when we misreconstruct something
 
   // LHA
   // -------------------------------------
