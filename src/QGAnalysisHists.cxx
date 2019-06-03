@@ -955,14 +955,18 @@ void QGAnalysisHists::fill(const Event & event){
         // we need to add in an extra part, such that the 1D projection on the gen axis
         // agrees with the 1D gen histogram
         // i.e. account for the difference between the reco_weight (goes into event.weight) and gen_weight
-        // we use the underflow bin for this (-1, since our variables start from 0)
+        // we use the underflow bin for this
+        // (0 as bin edges are tunfold bin numbers, not physical values, so the first bin is 0-1,
+        // not to be confused with ROOT binning, starting at 1 :s)
         double corr_weight = gen_weight * (1 - reco_weight);
-        h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, -1, corr_weight);
-        h_tu_response_LHA->Fill(genBinLHA, -1, corr_weight);
-        h_tu_response_pTD->Fill(genBinpTD, -1, corr_weight);
-        h_tu_response_width->Fill(genBinWidth, -1, corr_weight);
-        h_tu_response_thrust->Fill(genBinThrust, -1, corr_weight);
+        int underflow_bin = 0;
+        h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, underflow_bin, corr_weight);
+        h_tu_response_LHA->Fill(genBinLHA, underflow_bin, corr_weight);
+        h_tu_response_pTD->Fill(genBinpTD, underflow_bin, corr_weight);
+        h_tu_response_width->Fill(genBinWidth, underflow_bin, corr_weight);
+        h_tu_response_thrust->Fill(genBinThrust, underflow_bin, corr_weight);
       } else {
+        // cout << "No matching genjet" << endl;
         // Fill TUnfold 2D response maps in the case where there is no matching genjet
         // (i.e. fakes)
         int genBinPuppiMult = generator_distribution_puppiMultiplicity->GetGlobalBinNumber(-1, -1);
@@ -1158,11 +1162,12 @@ void QGAnalysisHists::fill(const Event & event){
         h_tu_gen_width->Fill(genBinWidth, gen_weight);
         h_tu_gen_thrust->Fill(genBinThrust, gen_weight);
 
-        h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, -1, gen_weight);
-        h_tu_response_LHA->Fill(genBinLHA, -1, gen_weight);
-        h_tu_response_pTD->Fill(genBinpTD, -1, gen_weight);
-        h_tu_response_width->Fill(genBinWidth, -1, gen_weight);
-        h_tu_response_thrust->Fill(genBinThrust, -1, gen_weight);
+        int underflow_bin = 0;  // since bin edge, not physical value
+        h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, underflow_bin, gen_weight);
+        h_tu_response_LHA->Fill(genBinLHA, underflow_bin, gen_weight);
+        h_tu_response_pTD->Fill(genBinpTD, underflow_bin, gen_weight);
+        h_tu_response_width->Fill(genBinWidth, underflow_bin, gen_weight);
+        h_tu_response_thrust->Fill(genBinThrust, underflow_bin, gen_weight);
       }
     }
   }
