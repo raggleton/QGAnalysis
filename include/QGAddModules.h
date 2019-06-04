@@ -252,6 +252,16 @@ namespace Binning {
   const std::vector<double> lha_bin_edges_reco= calculate_fine_binning(lha_bin_edges_gen);
   const int nbins_lha_reco(lha_bin_edges_reco.size() - 1);
 
+  // Charged LHA binning
+  // -----------
+  const std::vector<double> lha_charged_bin_edges_gen = {
+    0.0, 0.14, 0.29, 0.37, 0.44, 0.5, 0.56, 0.62, 0.68, 0.75, 1.0
+  };
+  const int nbins_lha_charged_gen(lha_charged_bin_edges_gen.size() - 1);
+
+  const std::vector<double> lha_charged_bin_edges_reco= calculate_fine_binning(lha_charged_bin_edges_gen);
+  const int nbins_lha_charged_reco(lha_charged_bin_edges_reco.size() - 1);
+
   // Multiplicity binning
   // --------------------
   const std::vector<double> puppiMultiplicity_bin_edges_gen = {
@@ -261,6 +271,16 @@ namespace Binning {
 
   const std::vector<double> puppiMultiplicity_bin_edges_reco = calculate_fine_binning(puppiMultiplicity_bin_edges_gen);
   const int nbins_puppiMultiplicity_reco(puppiMultiplicity_bin_edges_reco.size() - 1);
+
+  // Charged Multiplicity binning
+  // --------------------
+  const std::vector<double> puppiMultiplicity_charged_bin_edges_gen = {
+    1, 5, 10, 13, 19, 25, 35, 50, 75, 100, 150
+  };
+  const int nbins_puppiMultiplicity_charged_gen(puppiMultiplicity_charged_bin_edges_gen.size() - 1);
+
+  const std::vector<double> puppiMultiplicity_charged_bin_edges_reco = calculate_fine_binning(puppiMultiplicity_charged_bin_edges_gen);
+  const int nbins_puppiMultiplicity_charged_reco(puppiMultiplicity_charged_bin_edges_reco.size() - 1);
 
   // pTD binning
   // --------------------
@@ -272,6 +292,16 @@ namespace Binning {
   const std::vector<double> pTD_bin_edges_reco = calculate_fine_binning(pTD_bin_edges_gen);
   const int nbins_pTD_reco(pTD_bin_edges_reco.size() - 1);
 
+  // Charged pTD binning
+  // --------------------
+  const std::vector<double> pTD_charged_bin_edges_gen = {
+    0.0, 0.09, 0.12, 0.16, 0.21, 0.29, 0.43, 0.7, 1.0
+  };
+  const int nbins_pTD_charged_gen(pTD_charged_bin_edges_gen.size() - 1);
+
+  const std::vector<double> pTD_charged_bin_edges_reco = calculate_fine_binning(pTD_charged_bin_edges_gen);
+  const int nbins_pTD_charged_reco(pTD_charged_bin_edges_reco.size() - 1);
+
   // thrust binning
   // --------------------
   const std::vector<double> thrust_bin_edges_gen = {
@@ -282,6 +312,16 @@ namespace Binning {
   const std::vector<double> thrust_bin_edges_reco = calculate_fine_binning(thrust_bin_edges_gen);
   const int nbins_thrust_reco(thrust_bin_edges_reco.size() - 1);
 
+  // Charged thrust binning
+  // --------------------
+  const std::vector<double> thrust_charged_bin_edges_gen = {
+    0.0, 0.04, 0.08, 0.12, 0.17, 0.24, 0.33, 0.66, 1.0
+  };
+  const int nbins_thrust_charged_gen(thrust_charged_bin_edges_gen.size() - 1);
+
+  const std::vector<double> thrust_charged_bin_edges_reco = calculate_fine_binning(thrust_charged_bin_edges_gen);
+  const int nbins_thrust_charged_reco(thrust_charged_bin_edges_reco.size() - 1);
+
   // width binning
   // --------------------
   const std::vector<double> width_bin_edges_gen = {
@@ -291,4 +331,14 @@ namespace Binning {
 
   const std::vector<double> width_bin_edges_reco = calculate_fine_binning(width_bin_edges_gen);
   const int nbins_width_reco(width_bin_edges_reco.size() - 1);
+
+  // Charged width binning
+  // --------------------
+  const std::vector<double> width_charged_bin_edges_gen = {
+    0.0, 0.11, 0.17, 0.23, 0.29, 0.35, 0.42, 0.6, 1.0
+  };
+  const int nbins_width_charged_gen(width_charged_bin_edges_gen.size() - 1);
+
+  const std::vector<double> width_charged_bin_edges_reco = calculate_fine_binning(width_charged_bin_edges_gen);
+  const int nbins_width_charged_reco(width_charged_bin_edges_reco.size() - 1);
 }
