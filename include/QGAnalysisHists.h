@@ -39,6 +39,8 @@ protected:
                                float jet_pt,
                                TH2F * response_lowPt, TH2F * response_midPt, TH2F * response_highPt,
                                TH2F * rel_response_lowPt, TH2F * rel_response_midPt, TH2F * rel_response_highPt);
+    TH1F * copy_book_th1f(TH1 * h, const std::string & append="_new");
+    TH2F * copy_book_th2f(TH2 * h, const std::string & append="_new");
 
     // reco jet hists
     float jetRadius, LHA_rescale, width_rescale, thrust_rescale;

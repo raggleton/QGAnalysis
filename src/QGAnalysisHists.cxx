@@ -140,27 +140,16 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   // make tmp copies which we can then copy and use with book<>
   TH2 * h_tu_response_LHA_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_LHA, detector_tu_binning_LHA, "tu_LHA_GenReco");
-  h_tu_response_LHA = book<TH2F>((std::string(h_tu_response_LHA_tmp->GetName())+"_new").c_str(),
-                                 h_tu_response_LHA_tmp->GetTitle(),
-                                 h_tu_response_LHA_tmp->GetNbinsX(), h_tu_response_LHA_tmp->GetXaxis()->GetXmin(), h_tu_response_LHA_tmp->GetXaxis()->GetXmax(),
-                                 h_tu_response_LHA_tmp->GetNbinsY(), h_tu_response_LHA_tmp->GetYaxis()->GetXmin(), h_tu_response_LHA_tmp->GetYaxis()->GetXmax());
+  h_tu_response_LHA = copy_book_th2f(h_tu_response_LHA_tmp);
   delete h_tu_response_LHA_tmp;
 
   TH1 * h_tu_reco_LHA_tmp = detector_tu_binning_LHA->CreateHistogram("hist_LHA_reco");
-  h_tu_reco_LHA = book<TH1F>((std::string(h_tu_reco_LHA_tmp->GetName())+"_new").c_str(),
-                             h_tu_reco_LHA_tmp->GetTitle(),
-                             h_tu_reco_LHA_tmp->GetNbinsX(),
-                             h_tu_reco_LHA_tmp->GetXaxis()->GetXmin(),
-                             h_tu_reco_LHA_tmp->GetXaxis()->GetXmax());
+  h_tu_reco_LHA = copy_book_th1f(h_tu_reco_LHA_tmp);
   delete h_tu_reco_LHA_tmp;
 
   TH1 * h_tu_gen_LHA_tmp = generator_tu_binning_LHA->CreateHistogram("hist_LHA_truth");
   // DO NOT USE h_tu_gen_LHA_tmp->GetXaxis()->GetXbins()->GetArray() to clone bins, it just doesn't work
-  h_tu_gen_LHA = book<TH1F>((std::string(h_tu_gen_LHA_tmp->GetName())+"_new").c_str(),
-                            h_tu_gen_LHA_tmp->GetTitle(),
-                            h_tu_gen_LHA_tmp->GetNbinsX(),
-                            h_tu_gen_LHA_tmp->GetXaxis()->GetXmin(),
-                            h_tu_gen_LHA_tmp->GetXaxis()->GetXmax());
+  h_tu_gen_LHA = copy_book_th1f(h_tu_gen_LHA_tmp);
   delete h_tu_gen_LHA_tmp;
 
   // puppi multiplicity
@@ -185,26 +174,15 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   // make tmp copies which we can then copy and use with book<>
   TH2 * h_tu_response_puppiMultiplicity_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_puppiMultiplicity, detector_tu_binning_puppiMultiplicity, "tu_puppiMultiplicity_GenReco");
-  h_tu_response_puppiMultiplicity = book<TH2F>((std::string(h_tu_response_puppiMultiplicity_tmp->GetName())+"_new").c_str(),
-                                               h_tu_response_puppiMultiplicity_tmp->GetTitle(),
-                                               h_tu_response_puppiMultiplicity_tmp->GetNbinsX(), h_tu_response_puppiMultiplicity_tmp->GetXaxis()->GetXmin(), h_tu_response_puppiMultiplicity_tmp->GetXaxis()->GetXmax(),
-                                               h_tu_response_puppiMultiplicity_tmp->GetNbinsY(), h_tu_response_puppiMultiplicity_tmp->GetYaxis()->GetXmin(), h_tu_response_puppiMultiplicity_tmp->GetYaxis()->GetXmax());
+  h_tu_response_puppiMultiplicity = copy_book_th2f(h_tu_response_puppiMultiplicity_tmp);
   delete h_tu_response_puppiMultiplicity_tmp;
 
   TH1 * h_tu_reco_puppiMultiplicity_tmp = detector_tu_binning_puppiMultiplicity->CreateHistogram("hist_puppiMultiplicity_reco");
-  h_tu_reco_puppiMultiplicity = book<TH1F>((std::string(h_tu_reco_puppiMultiplicity_tmp->GetName())+"_new").c_str(),  // need to change name, cos ROOT
-                                           h_tu_reco_puppiMultiplicity_tmp->GetTitle(),
-                                           h_tu_reco_puppiMultiplicity_tmp->GetNbinsX(),
-                                           h_tu_reco_puppiMultiplicity_tmp->GetXaxis()->GetXmin(),
-                                           h_tu_reco_puppiMultiplicity_tmp->GetXaxis()->GetXmax());
+  h_tu_reco_puppiMultiplicity = copy_book_th1f(h_tu_reco_puppiMultiplicity_tmp);
   delete h_tu_reco_puppiMultiplicity_tmp;
 
   TH1 * h_tu_gen_puppiMultiplicity_tmp = generator_tu_binning_puppiMultiplicity->CreateHistogram("hist_puppiMultiplicity_truth");
-  h_tu_gen_puppiMultiplicity = book<TH1F>((std::string(h_tu_gen_puppiMultiplicity_tmp->GetName())+"_new").c_str(),
-                                          h_tu_gen_puppiMultiplicity_tmp->GetTitle(),
-                                          h_tu_gen_puppiMultiplicity_tmp->GetNbinsX(),
-                                          h_tu_gen_puppiMultiplicity_tmp->GetXaxis()->GetXmin(),
-                                          h_tu_gen_puppiMultiplicity_tmp->GetXaxis()->GetXmax());
+  h_tu_gen_puppiMultiplicity = copy_book_th1f(h_tu_gen_puppiMultiplicity_tmp);
   delete h_tu_gen_puppiMultiplicity_tmp;
 
 
@@ -229,26 +207,15 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   generator_distribution_underflow_pTD->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), pt_uf, pt_of);
 
   TH2 * h_tu_response_pTD_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_pTD, detector_tu_binning_pTD, "tu_pTD_GenReco");
-  h_tu_response_pTD = book<TH2F>((std::string(h_tu_response_pTD_tmp->GetName())+"_new").c_str(),
-                                 h_tu_response_pTD_tmp->GetTitle(),
-                                 h_tu_response_pTD_tmp->GetNbinsX(), h_tu_response_pTD_tmp->GetXaxis()->GetXmin(), h_tu_response_pTD_tmp->GetXaxis()->GetXmax(),
-                                 h_tu_response_pTD_tmp->GetNbinsY(), h_tu_response_pTD_tmp->GetYaxis()->GetXmin(), h_tu_response_pTD_tmp->GetYaxis()->GetXmax());
+  h_tu_response_pTD = copy_book_th2f(h_tu_response_pTD_tmp);
   delete h_tu_response_pTD_tmp;
 
   TH1 * h_tu_reco_pTD_tmp = detector_tu_binning_pTD->CreateHistogram("hist_pTD_reco");
-  h_tu_reco_pTD = book<TH1F>((std::string(h_tu_reco_pTD_tmp->GetName())+"_new").c_str(),
-                             h_tu_reco_pTD_tmp->GetTitle(),
-                             h_tu_reco_pTD_tmp->GetNbinsX(),
-                             h_tu_reco_pTD_tmp->GetXaxis()->GetXmin(),
-                             h_tu_reco_pTD_tmp->GetXaxis()->GetXmax());
+  h_tu_reco_pTD = copy_book_th1f(h_tu_reco_pTD_tmp);
   delete h_tu_reco_pTD_tmp;
 
   TH1 * h_tu_gen_pTD_tmp = generator_tu_binning_pTD->CreateHistogram("hist_pTD_truth");
-  h_tu_gen_pTD = book<TH1F>((std::string(h_tu_gen_pTD_tmp->GetName())+"_new").c_str(),
-                            h_tu_gen_pTD_tmp->GetTitle(),
-                            h_tu_gen_pTD_tmp->GetNbinsX(),
-                            h_tu_gen_pTD_tmp->GetXaxis()->GetXmin(),
-                            h_tu_gen_pTD_tmp->GetXaxis()->GetXmax());
+  h_tu_gen_pTD = copy_book_th1f(h_tu_gen_pTD_tmp);
   delete h_tu_gen_pTD_tmp;
 
   // thrust
@@ -272,26 +239,15 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   generator_distribution_underflow_thrust->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, pt_of);
 
   TH2 * h_tu_response_thrust_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_thrust, detector_tu_binning_thrust, "tu_thrust_GenReco");
-  h_tu_response_thrust = book<TH2F>((std::string(h_tu_response_thrust_tmp->GetName())+"_new").c_str(),
-                                    h_tu_response_thrust_tmp->GetTitle(),
-                                    h_tu_response_thrust_tmp->GetNbinsX(), h_tu_response_thrust_tmp->GetXaxis()->GetXmin(), h_tu_response_thrust_tmp->GetXaxis()->GetXmax(),
-                                    h_tu_response_thrust_tmp->GetNbinsY(), h_tu_response_thrust_tmp->GetYaxis()->GetXmin(), h_tu_response_thrust_tmp->GetYaxis()->GetXmax());
+  h_tu_response_thrust = copy_book_th2f(h_tu_response_thrust_tmp);
   delete h_tu_response_thrust_tmp;
 
   TH1 * h_tu_reco_thrust_tmp = detector_tu_binning_thrust->CreateHistogram("hist_thrust_reco");
-  h_tu_reco_thrust = book<TH1F>((std::string(h_tu_reco_thrust_tmp->GetName())+"_new").c_str(),
-                                h_tu_reco_thrust_tmp->GetTitle(),
-                                h_tu_reco_thrust_tmp->GetNbinsX(),
-                                h_tu_reco_thrust_tmp->GetXaxis()->GetXmin(),
-                                h_tu_reco_thrust_tmp->GetXaxis()->GetXmax());
+  h_tu_reco_thrust = copy_book_th1f(h_tu_reco_thrust_tmp);
   delete h_tu_reco_thrust_tmp;
 
   TH1 * h_tu_gen_thrust_tmp = generator_tu_binning_thrust->CreateHistogram("hist_thrust_truth");
-  h_tu_gen_thrust = book<TH1F>((std::string(h_tu_gen_thrust_tmp->GetName())+"_new").c_str(),
-                               h_tu_gen_thrust_tmp->GetTitle(),
-                               h_tu_gen_thrust_tmp->GetNbinsX(),
-                               h_tu_gen_thrust_tmp->GetXaxis()->GetXmin(),
-                               h_tu_gen_thrust_tmp->GetXaxis()->GetXmax());
+  h_tu_gen_thrust = copy_book_th1f(h_tu_gen_thrust_tmp);
   delete h_tu_gen_thrust_tmp;
 
   // width
@@ -315,26 +271,15 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   generator_distribution_underflow_width->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, pt_of);
 
   TH2 * h_tu_response_width_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_width, detector_tu_binning_width, "tu_width_GenReco");
-  h_tu_response_width = book<TH2F>((std::string(h_tu_response_width_tmp->GetName())+"_new").c_str(),
-                                    h_tu_response_width_tmp->GetTitle(),
-                                    h_tu_response_width_tmp->GetNbinsX(), h_tu_response_width_tmp->GetXaxis()->GetXmin(), h_tu_response_width_tmp->GetXaxis()->GetXmax(),
-                                    h_tu_response_width_tmp->GetNbinsY(), h_tu_response_width_tmp->GetYaxis()->GetXmin(), h_tu_response_width_tmp->GetYaxis()->GetXmax());
+  h_tu_response_width = copy_book_th2f(h_tu_response_width_tmp);
   delete h_tu_response_width_tmp;
 
   TH1 * h_tu_reco_width_tmp = detector_tu_binning_width->CreateHistogram("hist_width_reco");
-  h_tu_reco_width = book<TH1F>((std::string(h_tu_reco_width_tmp->GetName())+"_new").c_str(),
-                               h_tu_reco_width_tmp->GetTitle(),
-                               h_tu_reco_width_tmp->GetNbinsX(),
-                               h_tu_reco_width_tmp->GetXaxis()->GetXmin(),
-                               h_tu_reco_width_tmp->GetXaxis()->GetXmax());
+  h_tu_reco_width = copy_book_th1f(h_tu_reco_width_tmp);
   delete h_tu_reco_width_tmp;
 
   TH1 * h_tu_gen_width_tmp = generator_tu_binning_width->CreateHistogram("hist_width_truth");
-  h_tu_gen_width = book<TH1F>((std::string(h_tu_gen_width_tmp->GetName())+"_new").c_str(),
-                              h_tu_gen_width_tmp->GetTitle(),
-                              h_tu_gen_width_tmp->GetNbinsX(),
-                              h_tu_gen_width_tmp->GetXaxis()->GetXmin(),
-                              h_tu_gen_width_tmp->GetXaxis()->GetXmax());
+  h_tu_gen_width = copy_book_th1f(h_tu_gen_width_tmp);
   delete h_tu_gen_width_tmp;
 
 
@@ -1172,6 +1117,25 @@ void QGAnalysisHists::fill(const Event & event){
     }
   }
 }
+
+
+TH1F * QGAnalysisHists::copy_book_th1f(TH1 * h, const std::string & append) {
+  return book<TH1F>((std::string(h->GetName())+append).c_str(),
+                                 h->GetTitle(),
+                                 h->GetNbinsX(),
+                                 h->GetXaxis()->GetXmin(),
+                                 h->GetXaxis()->GetXmax());
+}
+
+
+TH2F * QGAnalysisHists::copy_book_th2f(TH2 * h, const std::string & append) {
+  return book<TH2F>((std::string(h->GetName())+append).c_str(),
+                                 h->GetTitle(),
+                                 h->GetNbinsX(), h->GetXaxis()->GetXmin(), h->GetXaxis()->GetXmax(),
+                                 h->GetNbinsY(), h->GetYaxis()->GetXmin(), h->GetYaxis()->GetXmax());
+
+}
+
 
 void QGAnalysisHists::fill_lambda_rsp_hists(float reco_val, float gen_val, float weight,
                                             TH2F * response, TH2F * rel_response,
