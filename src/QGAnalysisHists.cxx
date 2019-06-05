@@ -151,6 +151,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_tu_gen_LHA = copy_book_th1f(h_tu_gen_LHA_tmp);
   delete h_tu_gen_LHA_tmp;
 
+  h_tu_reco_LHA_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_LHA->Clone("hist_LHA_reco_gen_binning"));
+
   // Charged LHA
   // -------------------------------------
   detector_tu_binning_LHA_charged = new TUnfoldBinning("detector");
@@ -183,6 +185,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_tu_gen_LHA_charged = copy_book_th1f(h_tu_gen_LHA_charged_tmp);
   delete h_tu_gen_LHA_charged_tmp;
 
+  h_tu_reco_LHA_charged_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_LHA_charged->Clone("hist_LHA_charged_reco_gen_binning"));
 
   // puppi multiplicity
   // -------------------------------------
@@ -216,6 +219,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_tu_gen_puppiMultiplicity = copy_book_th1f(h_tu_gen_puppiMultiplicity_tmp);
   delete h_tu_gen_puppiMultiplicity_tmp;
 
+  h_tu_reco_puppiMultiplicity_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_puppiMultiplicity->Clone("hist_puppiMultiplicity_reco_gen_binning"));
+
   // Charged PUPPI multiplicity
   // -------------------------------------
   detector_tu_binning_puppiMultiplicity_charged = new TUnfoldBinning("detector");
@@ -248,6 +253,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_tu_gen_puppiMultiplicity_charged = copy_book_th1f(h_tu_gen_puppiMultiplicity_charged_tmp);
   delete h_tu_gen_puppiMultiplicity_charged_tmp;
 
+  h_tu_reco_puppiMultiplicity_charged_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_puppiMultiplicity_charged->Clone("hist_puppiMultiplicity_charged_reco_gen_binning"));
 
   // pTD
   // -------------------------------------
@@ -281,6 +287,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_tu_gen_pTD = copy_book_th1f(h_tu_gen_pTD_tmp);
   delete h_tu_gen_pTD_tmp;
 
+  h_tu_reco_pTD_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_pTD->Clone("hist_pTD_reco_gen_binning"));
+
   // Charged pTD
   // -------------------------------------
   detector_tu_binning_pTD_charged = new TUnfoldBinning("detector");
@@ -312,6 +320,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   TH1 * h_tu_gen_pTD_charged_tmp = generator_tu_binning_pTD_charged->CreateHistogram("hist_pTD_charged_truth");
   h_tu_gen_pTD_charged = copy_book_th1f(h_tu_gen_pTD_charged_tmp);
   delete h_tu_gen_pTD_charged_tmp;
+
+  h_tu_reco_pTD_charged_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_pTD_charged->Clone("hist_pTD_charged_reco_gen_binning"));
 
   // thrust
   // -------------------------------------
@@ -345,6 +355,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_tu_gen_thrust = copy_book_th1f(h_tu_gen_thrust_tmp);
   delete h_tu_gen_thrust_tmp;
 
+  h_tu_reco_thrust_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_thrust->Clone("hist_thrust_reco_gen_binning"));
+
   // Charged thrust
   // -------------------------------------
   detector_tu_binning_thrust_charged = new TUnfoldBinning("detector");
@@ -376,6 +388,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   TH1 * h_tu_gen_thrust_charged_tmp = generator_tu_binning_thrust_charged->CreateHistogram("hist_thrust_charged_truth");
   h_tu_gen_thrust_charged = copy_book_th1f(h_tu_gen_thrust_charged_tmp);
   delete h_tu_gen_thrust_charged_tmp;
+
+  h_tu_reco_thrust_charged_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_thrust_charged->Clone("hist_thrust_charged_reco_gen_binning"));
 
   // width
   // -------------------------------------
@@ -409,6 +423,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_tu_gen_width = copy_book_th1f(h_tu_gen_width_tmp);
   delete h_tu_gen_width_tmp;
 
+  h_tu_reco_width_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_width->Clone("hist_width_reco_gen_binning"));
+
   // Charged width
   // -------------------------------------
   detector_tu_binning_width_charged = new TUnfoldBinning("detector");
@@ -441,6 +457,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_tu_gen_width_charged = copy_book_th1f(h_tu_gen_width_charged_tmp);
   delete h_tu_gen_width_charged_tmp;
 
+  h_tu_reco_width_charged_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_width_charged->Clone("hist_width_charged_reco_gen_binning"));
 
   // gen-reco response hists
   float rsp_max = 5.;
@@ -883,6 +900,9 @@ void QGAnalysisHists::fill(const Event & event){
     // default to 0 for underflow
     int recBinLHA(0), recBinPuppiMult(0), recBinpTD(0), recBinThrust(0), recBinWidth(0);
     int recBinLHACharged(0), recBinPuppiMultCharged(0), recBinpTDCharged(0), recBinThrustCharged(0), recBinWidthCharged(0);
+    // generator-bin for reco-level quantities (for displaying later)
+    int genBinLHA(0), genBinPuppiMult(0), genBinpTD(0), genBinThrust(0), genBinWidth(0);
+    int genBinLHACharged(0), genBinPuppiMultCharged(0), genBinpTDCharged(0), genBinThrustCharged(0), genBinWidthCharged(0);
     bool isUnderflow = (jet_pt < Binning::pt_bin_edges_reco[0]);
     // here we get bin number based on if underflow or not
     if (isUnderflow) {
@@ -897,6 +917,18 @@ void QGAnalysisHists::fill(const Event & event){
       recBinpTDCharged = detector_distribution_underflow_pTD_charged->GetGlobalBinNumber(ptd_charged, jet_pt);
       recBinThrustCharged = detector_distribution_underflow_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
       recBinWidthCharged = detector_distribution_underflow_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
+
+      genBinLHA = generator_distribution_underflow_LHA->GetGlobalBinNumber(lha, jet_pt);
+      genBinPuppiMult = generator_distribution_underflow_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
+      genBinpTD = generator_distribution_underflow_pTD->GetGlobalBinNumber(ptd, jet_pt);
+      genBinThrust = generator_distribution_underflow_thrust->GetGlobalBinNumber(thrust, jet_pt);
+      genBinWidth = generator_distribution_underflow_width->GetGlobalBinNumber(width, jet_pt);
+
+      genBinLHACharged = generator_distribution_underflow_LHA_charged->GetGlobalBinNumber(lha_charged, jet_pt);
+      genBinPuppiMultCharged = generator_distribution_underflow_puppiMultiplicity_charged->GetGlobalBinNumber(puppiMult_charged, jet_pt);
+      genBinpTDCharged = generator_distribution_underflow_pTD_charged->GetGlobalBinNumber(ptd_charged, jet_pt);
+      genBinThrustCharged = generator_distribution_underflow_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
+      genBinWidthCharged = generator_distribution_underflow_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
     } else {
       recBinLHA = detector_distribution_LHA->GetGlobalBinNumber(lha, jet_pt);
       recBinPuppiMult = detector_distribution_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
@@ -909,6 +941,18 @@ void QGAnalysisHists::fill(const Event & event){
       recBinpTDCharged = detector_distribution_pTD_charged->GetGlobalBinNumber(ptd_charged, jet_pt);
       recBinThrustCharged = detector_distribution_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
       recBinWidthCharged = detector_distribution_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
+
+      genBinLHA = generator_distribution_LHA->GetGlobalBinNumber(lha, jet_pt);
+      genBinPuppiMult = generator_distribution_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
+      genBinpTD = generator_distribution_pTD->GetGlobalBinNumber(ptd, jet_pt);
+      genBinThrust = generator_distribution_thrust->GetGlobalBinNumber(thrust, jet_pt);
+      genBinWidth = generator_distribution_width->GetGlobalBinNumber(width, jet_pt);
+
+      genBinLHACharged = generator_distribution_LHA_charged->GetGlobalBinNumber(lha_charged, jet_pt);
+      genBinPuppiMultCharged = generator_distribution_puppiMultiplicity_charged->GetGlobalBinNumber(puppiMult_charged, jet_pt);
+      genBinpTDCharged = generator_distribution_pTD_charged->GetGlobalBinNumber(ptd_charged, jet_pt);
+      genBinThrustCharged = generator_distribution_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
+      genBinWidthCharged = generator_distribution_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
     }
     h_tu_reco_LHA->Fill(recBinLHA, weight);
     h_tu_reco_puppiMultiplicity->Fill(recBinPuppiMult, weight);
@@ -921,6 +965,18 @@ void QGAnalysisHists::fill(const Event & event){
     h_tu_reco_pTD_charged->Fill(recBinpTDCharged, weight);
     h_tu_reco_thrust_charged->Fill(recBinThrustCharged, weight);
     h_tu_reco_width_charged->Fill(recBinWidthCharged, weight);
+
+    h_tu_reco_LHA_gen_binning->Fill(genBinLHA, weight);
+    h_tu_reco_puppiMultiplicity_gen_binning->Fill(genBinPuppiMult, weight);
+    h_tu_reco_pTD_gen_binning->Fill(genBinpTD, weight);
+    h_tu_reco_thrust_gen_binning->Fill(genBinThrust, weight);
+    h_tu_reco_width_gen_binning->Fill(genBinWidth, weight);
+
+    h_tu_reco_LHA_charged_gen_binning->Fill(genBinLHACharged, weight);
+    h_tu_reco_puppiMultiplicity_charged_gen_binning->Fill(genBinPuppiMultCharged, weight);
+    h_tu_reco_pTD_charged_gen_binning->Fill(genBinpTDCharged, weight);
+    h_tu_reco_thrust_charged_gen_binning->Fill(genBinThrustCharged, weight);
+    h_tu_reco_width_charged_gen_binning->Fill(genBinWidthCharged, weight);
 
     if (is_mc_) {
       // Store variables for matched GenJet
