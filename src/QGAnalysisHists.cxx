@@ -19,7 +19,9 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   rsp_midPt_cut_(100.),
   rsp_highPt_cut_(250.),
   recoDauPtCut_(1.),
-  genDauPtCut_(0.)
+  genDauPtCut_(0.),
+  rand_(4357), // random number generator for splitting MC into 2 independent groups for unfold testing
+  doMCsplit_(true)
   {
 
   is_mc_ = ctx.get("dataset_type") == "MC";
@@ -141,17 +143,21 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   // make tmp copies which we can then copy and use with book<>
   TH2 * h_tu_response_LHA_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_LHA, detector_tu_binning_LHA, "tu_LHA_GenReco");
   h_tu_response_LHA = copy_book_th2f(h_tu_response_LHA_tmp);
+  h_tu_response_LHA_half = copy_book_th2f(h_tu_response_LHA_tmp, "_half");
   delete h_tu_response_LHA_tmp;
 
   TH1 * h_tu_reco_LHA_tmp = detector_tu_binning_LHA->CreateHistogram("hist_LHA_reco");
   h_tu_reco_LHA = copy_book_th1f(h_tu_reco_LHA_tmp);
+  h_tu_reco_LHA_half = copy_book_th1f(h_tu_reco_LHA_tmp, "_half");
   delete h_tu_reco_LHA_tmp;
 
   TH1 * h_tu_gen_LHA_tmp = generator_tu_binning_LHA->CreateHistogram("hist_LHA_truth");
   h_tu_gen_LHA = copy_book_th1f(h_tu_gen_LHA_tmp);
+  h_tu_gen_LHA_half = copy_book_th1f(h_tu_gen_LHA_tmp, "_half");
   delete h_tu_gen_LHA_tmp;
 
   h_tu_reco_LHA_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_LHA->Clone("hist_LHA_reco_gen_binning"));
+  h_tu_reco_LHA_gen_binning_half = copy_book_th1f((TH1F*) h_tu_gen_LHA->Clone("hist_LHA_reco_gen_binning_half"));
 
   // Charged LHA
   // -------------------------------------
@@ -177,17 +183,21 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   TH2 * h_tu_response_LHA_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_LHA_charged, detector_tu_binning_LHA_charged, "tu_LHA_charged_GenReco");
   h_tu_response_LHA_charged = copy_book_th2f(h_tu_response_LHA_charged_tmp);
+  h_tu_response_LHA_charged_half = copy_book_th2f(h_tu_response_LHA_charged_tmp, "_half");
   delete h_tu_response_LHA_charged_tmp;
 
   TH1 * h_tu_reco_LHA_charged_tmp = detector_tu_binning_LHA_charged->CreateHistogram("hist_LHA_charged_reco");
   h_tu_reco_LHA_charged = copy_book_th1f(h_tu_reco_LHA_charged_tmp);
+  h_tu_reco_LHA_charged_half = copy_book_th1f(h_tu_reco_LHA_charged_tmp, "_half");
   delete h_tu_reco_LHA_charged_tmp;
 
   TH1 * h_tu_gen_LHA_charged_tmp = generator_tu_binning_LHA_charged->CreateHistogram("hist_LHA_charged_truth");
   h_tu_gen_LHA_charged = copy_book_th1f(h_tu_gen_LHA_charged_tmp);
+  h_tu_gen_LHA_charged_half = copy_book_th1f(h_tu_gen_LHA_charged_tmp, "_half");
   delete h_tu_gen_LHA_charged_tmp;
 
   h_tu_reco_LHA_charged_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_LHA_charged->Clone("hist_LHA_charged_reco_gen_binning"));
+  h_tu_reco_LHA_charged_gen_binning_half = copy_book_th1f((TH1F*) h_tu_gen_LHA_charged->Clone("hist_LHA_charged_reco_gen_binning_half"));
 
   // puppi multiplicity
   // -------------------------------------
@@ -213,17 +223,21 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   TH2 * h_tu_response_puppiMultiplicity_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_puppiMultiplicity, detector_tu_binning_puppiMultiplicity, "tu_puppiMultiplicity_GenReco");
   h_tu_response_puppiMultiplicity = copy_book_th2f(h_tu_response_puppiMultiplicity_tmp);
+  h_tu_response_puppiMultiplicity_half = copy_book_th2f(h_tu_response_puppiMultiplicity_tmp, "_half");
   delete h_tu_response_puppiMultiplicity_tmp;
 
   TH1 * h_tu_reco_puppiMultiplicity_tmp = detector_tu_binning_puppiMultiplicity->CreateHistogram("hist_puppiMultiplicity_reco");
   h_tu_reco_puppiMultiplicity = copy_book_th1f(h_tu_reco_puppiMultiplicity_tmp);
+  h_tu_reco_puppiMultiplicity_half = copy_book_th1f(h_tu_reco_puppiMultiplicity_tmp, "_half");
   delete h_tu_reco_puppiMultiplicity_tmp;
 
   TH1 * h_tu_gen_puppiMultiplicity_tmp = generator_tu_binning_puppiMultiplicity->CreateHistogram("hist_puppiMultiplicity_truth");
   h_tu_gen_puppiMultiplicity = copy_book_th1f(h_tu_gen_puppiMultiplicity_tmp);
+  h_tu_gen_puppiMultiplicity_half = copy_book_th1f(h_tu_gen_puppiMultiplicity_tmp, "_half");
   delete h_tu_gen_puppiMultiplicity_tmp;
 
   h_tu_reco_puppiMultiplicity_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_puppiMultiplicity->Clone("hist_puppiMultiplicity_reco_gen_binning"));
+  h_tu_reco_puppiMultiplicity_gen_binning_half = copy_book_th1f((TH1F*) h_tu_gen_puppiMultiplicity->Clone("hist_puppiMultiplicity_reco_gen_binning_half"));
 
   // Charged PUPPI multiplicity
   // -------------------------------------
@@ -249,17 +263,21 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   TH2 * h_tu_response_puppiMultiplicity_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_puppiMultiplicity_charged, detector_tu_binning_puppiMultiplicity_charged, "tu_puppiMultiplicity_charged_GenReco");
   h_tu_response_puppiMultiplicity_charged = copy_book_th2f(h_tu_response_puppiMultiplicity_charged_tmp);
+  h_tu_response_puppiMultiplicity_charged_half = copy_book_th2f(h_tu_response_puppiMultiplicity_charged_tmp, "_half");
   delete h_tu_response_puppiMultiplicity_charged_tmp;
 
   TH1 * h_tu_reco_puppiMultiplicity_charged_tmp = detector_tu_binning_puppiMultiplicity_charged->CreateHistogram("hist_puppiMultiplicity_charged_reco");
   h_tu_reco_puppiMultiplicity_charged = copy_book_th1f(h_tu_reco_puppiMultiplicity_charged_tmp);
+  h_tu_reco_puppiMultiplicity_charged_half = copy_book_th1f(h_tu_reco_puppiMultiplicity_charged_tmp, "_half");
   delete h_tu_reco_puppiMultiplicity_charged_tmp;
 
   TH1 * h_tu_gen_puppiMultiplicity_charged_tmp = generator_tu_binning_puppiMultiplicity_charged->CreateHistogram("hist_puppiMultiplicity_charged_truth");
   h_tu_gen_puppiMultiplicity_charged = copy_book_th1f(h_tu_gen_puppiMultiplicity_charged_tmp);
+  h_tu_gen_puppiMultiplicity_charged_half = copy_book_th1f(h_tu_gen_puppiMultiplicity_charged_tmp, "_half");
   delete h_tu_gen_puppiMultiplicity_charged_tmp;
 
   h_tu_reco_puppiMultiplicity_charged_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_puppiMultiplicity_charged->Clone("hist_puppiMultiplicity_charged_reco_gen_binning"));
+  h_tu_reco_puppiMultiplicity_charged_gen_binning_half = copy_book_th1f((TH1F*) h_tu_gen_puppiMultiplicity_charged->Clone("hist_puppiMultiplicity_charged_reco_gen_binning_half"));
 
   // pTD
   // -------------------------------------
@@ -283,17 +301,21 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   TH2 * h_tu_response_pTD_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_pTD, detector_tu_binning_pTD, "tu_pTD_GenReco");
   h_tu_response_pTD = copy_book_th2f(h_tu_response_pTD_tmp);
+  h_tu_response_pTD_half = copy_book_th2f(h_tu_response_pTD_tmp, "_half");
   delete h_tu_response_pTD_tmp;
 
   TH1 * h_tu_reco_pTD_tmp = detector_tu_binning_pTD->CreateHistogram("hist_pTD_reco");
   h_tu_reco_pTD = copy_book_th1f(h_tu_reco_pTD_tmp);
+  h_tu_reco_pTD_half = copy_book_th1f(h_tu_reco_pTD_tmp, "_half");
   delete h_tu_reco_pTD_tmp;
 
   TH1 * h_tu_gen_pTD_tmp = generator_tu_binning_pTD->CreateHistogram("hist_pTD_truth");
   h_tu_gen_pTD = copy_book_th1f(h_tu_gen_pTD_tmp);
+  h_tu_gen_pTD_half = copy_book_th1f(h_tu_gen_pTD_tmp, "_half");
   delete h_tu_gen_pTD_tmp;
 
   h_tu_reco_pTD_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_pTD->Clone("hist_pTD_reco_gen_binning"));
+  h_tu_reco_pTD_gen_binning_half = copy_book_th1f((TH1F*) h_tu_gen_pTD->Clone("hist_pTD_reco_gen_binning_half"));
 
   // Charged pTD
   // -------------------------------------
@@ -317,17 +339,21 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   TH2 * h_tu_response_pTD_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_pTD_charged, detector_tu_binning_pTD_charged, "tu_pTD_charged_GenReco");
   h_tu_response_pTD_charged = copy_book_th2f(h_tu_response_pTD_charged_tmp);
+  h_tu_response_pTD_charged_half = copy_book_th2f(h_tu_response_pTD_charged_tmp, "_half");
   delete h_tu_response_pTD_charged_tmp;
 
   TH1 * h_tu_reco_pTD_charged_tmp = detector_tu_binning_pTD_charged->CreateHistogram("hist_pTD_charged_reco");
   h_tu_reco_pTD_charged = copy_book_th1f(h_tu_reco_pTD_charged_tmp);
+  h_tu_reco_pTD_charged_half = copy_book_th1f(h_tu_reco_pTD_charged_tmp, "_half");
   delete h_tu_reco_pTD_charged_tmp;
 
   TH1 * h_tu_gen_pTD_charged_tmp = generator_tu_binning_pTD_charged->CreateHistogram("hist_pTD_charged_truth");
   h_tu_gen_pTD_charged = copy_book_th1f(h_tu_gen_pTD_charged_tmp);
+  h_tu_gen_pTD_charged_half = copy_book_th1f(h_tu_gen_pTD_charged_tmp, "_half");
   delete h_tu_gen_pTD_charged_tmp;
 
   h_tu_reco_pTD_charged_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_pTD_charged->Clone("hist_pTD_charged_reco_gen_binning"));
+  h_tu_reco_pTD_charged_gen_binning_half = copy_book_th1f((TH1F*) h_tu_gen_pTD_charged->Clone("hist_pTD_charged_reco_gen_binning_half"));
 
   // thrust
   // -------------------------------------
@@ -351,17 +377,21 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   TH2 * h_tu_response_thrust_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_thrust, detector_tu_binning_thrust, "tu_thrust_GenReco");
   h_tu_response_thrust = copy_book_th2f(h_tu_response_thrust_tmp);
+  h_tu_response_thrust_half = copy_book_th2f(h_tu_response_thrust_tmp, "_half");
   delete h_tu_response_thrust_tmp;
 
   TH1 * h_tu_reco_thrust_tmp = detector_tu_binning_thrust->CreateHistogram("hist_thrust_reco");
   h_tu_reco_thrust = copy_book_th1f(h_tu_reco_thrust_tmp);
+  h_tu_reco_thrust_half = copy_book_th1f(h_tu_reco_thrust_tmp, "_half");
   delete h_tu_reco_thrust_tmp;
 
   TH1 * h_tu_gen_thrust_tmp = generator_tu_binning_thrust->CreateHistogram("hist_thrust_truth");
   h_tu_gen_thrust = copy_book_th1f(h_tu_gen_thrust_tmp);
+  h_tu_gen_thrust_half = copy_book_th1f(h_tu_gen_thrust_tmp, "_half");
   delete h_tu_gen_thrust_tmp;
 
   h_tu_reco_thrust_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_thrust->Clone("hist_thrust_reco_gen_binning"));
+  h_tu_reco_thrust_gen_binning_half = copy_book_th1f((TH1F*) h_tu_gen_thrust->Clone("hist_thrust_reco_gen_binning_half"));
 
   // Charged thrust
   // -------------------------------------
@@ -385,17 +415,21 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   TH2 * h_tu_response_thrust_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_thrust_charged, detector_tu_binning_thrust_charged, "tu_thrust_charged_GenReco");
   h_tu_response_thrust_charged = copy_book_th2f(h_tu_response_thrust_charged_tmp);
+  h_tu_response_thrust_charged_half = copy_book_th2f(h_tu_response_thrust_charged_tmp, "_half");
   delete h_tu_response_thrust_charged_tmp;
 
   TH1 * h_tu_reco_thrust_charged_tmp = detector_tu_binning_thrust_charged->CreateHistogram("hist_thrust_charged_reco");
   h_tu_reco_thrust_charged = copy_book_th1f(h_tu_reco_thrust_charged_tmp);
+  h_tu_reco_thrust_charged_half = copy_book_th1f(h_tu_reco_thrust_charged_tmp, "_half");
   delete h_tu_reco_thrust_charged_tmp;
 
   TH1 * h_tu_gen_thrust_charged_tmp = generator_tu_binning_thrust_charged->CreateHistogram("hist_thrust_charged_truth");
   h_tu_gen_thrust_charged = copy_book_th1f(h_tu_gen_thrust_charged_tmp);
+  h_tu_gen_thrust_charged_half = copy_book_th1f(h_tu_gen_thrust_charged_tmp, "_half");
   delete h_tu_gen_thrust_charged_tmp;
 
   h_tu_reco_thrust_charged_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_thrust_charged->Clone("hist_thrust_charged_reco_gen_binning"));
+  h_tu_reco_thrust_charged_gen_binning_half = copy_book_th1f((TH1F*) h_tu_gen_thrust_charged->Clone("hist_thrust_charged_reco_gen_binning_half"));
 
   // width
   // -------------------------------------
@@ -419,17 +453,21 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   TH2 * h_tu_response_width_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_width, detector_tu_binning_width, "tu_width_GenReco");
   h_tu_response_width = copy_book_th2f(h_tu_response_width_tmp);
+  h_tu_response_width_half = copy_book_th2f(h_tu_response_width_tmp, "_half");
   delete h_tu_response_width_tmp;
 
   TH1 * h_tu_reco_width_tmp = detector_tu_binning_width->CreateHistogram("hist_width_reco");
   h_tu_reco_width = copy_book_th1f(h_tu_reco_width_tmp);
+  h_tu_reco_width_half = copy_book_th1f(h_tu_reco_width_tmp, "_half");
   delete h_tu_reco_width_tmp;
 
   TH1 * h_tu_gen_width_tmp = generator_tu_binning_width->CreateHistogram("hist_width_truth");
   h_tu_gen_width = copy_book_th1f(h_tu_gen_width_tmp);
+  h_tu_gen_width_half = copy_book_th1f(h_tu_gen_width_tmp, "_half");
   delete h_tu_gen_width_tmp;
 
   h_tu_reco_width_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_width->Clone("hist_width_reco_gen_binning"));
+  h_tu_reco_width_gen_binning_half = copy_book_th1f((TH1F*) h_tu_gen_width->Clone("hist_width_reco_gen_binning_half"));
 
   // Charged width
   // -------------------------------------
@@ -453,17 +491,21 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   TH2 * h_tu_response_width_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_width_charged, detector_tu_binning_width_charged, "tu_width_charged_GenReco");
   h_tu_response_width_charged = copy_book_th2f(h_tu_response_width_charged_tmp);
+  h_tu_response_width_charged_half = copy_book_th2f(h_tu_response_width_charged_tmp, "_half");
   delete h_tu_response_width_charged_tmp;
 
   TH1 * h_tu_reco_width_charged_tmp = detector_tu_binning_width_charged->CreateHistogram("hist_width_charged_reco");
   h_tu_reco_width_charged = copy_book_th1f(h_tu_reco_width_charged_tmp);
+  h_tu_reco_width_charged_half = copy_book_th1f(h_tu_reco_width_charged_tmp, "_half");
   delete h_tu_reco_width_charged_tmp;
 
   TH1 * h_tu_gen_width_charged_tmp = generator_tu_binning_width_charged->CreateHistogram("hist_width_charged_truth");
   h_tu_gen_width_charged = copy_book_th1f(h_tu_gen_width_charged_tmp);
+  h_tu_gen_width_charged_half = copy_book_th1f(h_tu_gen_width_charged_tmp, "_half");
   delete h_tu_gen_width_charged_tmp;
 
   h_tu_reco_width_charged_gen_binning = copy_book_th1f((TH1F*) h_tu_gen_width_charged->Clone("hist_width_charged_reco_gen_binning"));
+  h_tu_reco_width_charged_gen_binning_half = copy_book_th1f((TH1F*) h_tu_gen_width_charged->Clone("hist_width_charged_reco_gen_binning_half"));
 
   // gen-reco response hists
   float rsp_max = 5.;
@@ -799,6 +841,10 @@ void QGAnalysisHists::fill(const Event & event){
   }
   // cout << "***" << event.event << endl;
 
+  // Random event flag for MC only filling response matrix
+  // This allows us to split the MC into 2 separate samples for testing
+  bool onlyResponseHalf = (rand_.Rndm() > 0.5);
+
   // figure out ave pt across N jets
   // float avePtReco = 0.;
   // float avePtGen = 0.;
@@ -960,6 +1006,7 @@ void QGAnalysisHists::fill(const Event & event){
       genBinThrustCharged = generator_distribution_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
       genBinWidthCharged = generator_distribution_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
     }
+
     h_tu_reco_LHA->Fill(recBinLHA, weight);
     h_tu_reco_puppiMultiplicity->Fill(recBinPuppiMult, weight);
     h_tu_reco_pTD->Fill(recBinpTD, weight);
@@ -983,6 +1030,32 @@ void QGAnalysisHists::fill(const Event & event){
     h_tu_reco_pTD_charged_gen_binning->Fill(genBinpTDCharged, weight);
     h_tu_reco_thrust_charged_gen_binning->Fill(genBinThrustCharged, weight);
     h_tu_reco_width_charged_gen_binning->Fill(genBinWidthCharged, weight);
+
+    if (!onlyResponseHalf && doMCsplit_) {
+      h_tu_reco_LHA_half->Fill(recBinLHA, weight);
+      h_tu_reco_puppiMultiplicity_half->Fill(recBinPuppiMult, weight);
+      h_tu_reco_pTD_half->Fill(recBinpTD, weight);
+      h_tu_reco_thrust_half->Fill(recBinThrust, weight);
+      h_tu_reco_width_half->Fill(recBinWidth, weight);
+
+      h_tu_reco_LHA_charged_half->Fill(recBinLHACharged, weight);
+      h_tu_reco_puppiMultiplicity_charged_half->Fill(recBinPuppiMultCharged, weight);
+      h_tu_reco_pTD_charged_half->Fill(recBinpTDCharged, weight);
+      h_tu_reco_thrust_charged_half->Fill(recBinThrustCharged, weight);
+      h_tu_reco_width_charged_half->Fill(recBinWidthCharged, weight);
+
+      h_tu_reco_LHA_gen_binning_half->Fill(genBinLHA, weight);
+      h_tu_reco_puppiMultiplicity_gen_binning_half->Fill(genBinPuppiMult, weight);
+      h_tu_reco_pTD_gen_binning_half->Fill(genBinpTD, weight);
+      h_tu_reco_thrust_gen_binning_half->Fill(genBinThrust, weight);
+      h_tu_reco_width_gen_binning_half->Fill(genBinWidth, weight);
+
+      h_tu_reco_LHA_charged_gen_binning_half->Fill(genBinLHACharged, weight);
+      h_tu_reco_puppiMultiplicity_charged_gen_binning_half->Fill(genBinPuppiMultCharged, weight);
+      h_tu_reco_pTD_charged_gen_binning_half->Fill(genBinpTDCharged, weight);
+      h_tu_reco_thrust_charged_gen_binning_half->Fill(genBinThrustCharged, weight);
+      h_tu_reco_width_charged_gen_binning_half->Fill(genBinWidthCharged, weight);
+    }
 
     if (is_mc_) {
       // Store variables for matched GenJet
@@ -1138,7 +1211,8 @@ void QGAnalysisHists::fill(const Event & event){
             genBinWidthCharged = generator_distribution_width_charged->GetGlobalBinNumber(gen_width_charged, genjet_pt);
           }
 
-          // Fill TUnfold 1D generator (truth) hists with coarse gen binning,
+          // Fill TUnfold 1D generator (truth) hists with coarse gen binning
+          // ---------------------------------------------------------------
           h_tu_gen_puppiMultiplicity->Fill(genBinPuppiMult, gen_weight);
           h_tu_gen_LHA->Fill(genBinLHA, gen_weight);
           h_tu_gen_pTD->Fill(genBinpTD, gen_weight);
@@ -1152,6 +1226,7 @@ void QGAnalysisHists::fill(const Event & event){
           h_tu_gen_thrust_charged->Fill(genBinThrustCharged, gen_weight);
 
           // Fill TUnfold 2D response maps
+          // ---------------------------------------------------------------
           h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, recBinPuppiMult, weight);
           h_tu_response_LHA->Fill(genBinLHA, recBinLHA, weight);
           h_tu_response_pTD->Fill(genBinpTD, recBinpTD, weight);
@@ -1183,6 +1258,48 @@ void QGAnalysisHists::fill(const Event & event){
           h_tu_response_pTD_charged->Fill(genBinpTDCharged, underflow_bin, corr_weight);
           h_tu_response_width_charged->Fill(genBinWidthCharged, underflow_bin, corr_weight);
           h_tu_response_thrust_charged->Fill(genBinThrustCharged, underflow_bin, corr_weight);
+
+          if (!onlyResponseHalf && doMCsplit_) {
+            // Fill TUnfold 1D generator (truth) hists with coarse gen binning
+            h_tu_gen_puppiMultiplicity_half->Fill(genBinPuppiMult, gen_weight);
+            h_tu_gen_LHA_half->Fill(genBinLHA, gen_weight);
+            h_tu_gen_pTD_half->Fill(genBinpTD, gen_weight);
+            h_tu_gen_width_half->Fill(genBinWidth, gen_weight);
+            h_tu_gen_thrust_half->Fill(genBinThrust, gen_weight);
+
+            h_tu_gen_puppiMultiplicity_charged_half->Fill(genBinPuppiMultCharged, gen_weight);
+            h_tu_gen_LHA_charged_half->Fill(genBinLHACharged, gen_weight);
+            h_tu_gen_pTD_charged_half->Fill(genBinpTDCharged, gen_weight);
+            h_tu_gen_width_charged_half->Fill(genBinWidthCharged, gen_weight);
+            h_tu_gen_thrust_charged_half->Fill(genBinThrustCharged, gen_weight);
+          }
+
+          if (onlyResponseHalf && doMCsplit_) {
+            // Fill TUnfold 2D response maps
+            h_tu_response_puppiMultiplicity_half->Fill(genBinPuppiMult, recBinPuppiMult, weight);
+            h_tu_response_LHA_half->Fill(genBinLHA, recBinLHA, weight);
+            h_tu_response_pTD_half->Fill(genBinpTD, recBinpTD, weight);
+            h_tu_response_width_half->Fill(genBinWidth, recBinWidth, weight);
+            h_tu_response_thrust_half->Fill(genBinThrust, recBinThrust, weight);
+
+            h_tu_response_puppiMultiplicity_charged_half->Fill(genBinPuppiMultCharged, recBinPuppiMultCharged, weight);
+            h_tu_response_LHA_charged_half->Fill(genBinLHACharged, recBinLHACharged, weight);
+            h_tu_response_pTD_charged_half->Fill(genBinpTDCharged, recBinpTDCharged, weight);
+            h_tu_response_width_charged_half->Fill(genBinWidthCharged, recBinWidthCharged, weight);
+            h_tu_response_thrust_charged_half->Fill(genBinThrustCharged, recBinThrustCharged, weight);
+
+            h_tu_response_puppiMultiplicity_half->Fill(genBinPuppiMult, underflow_bin, corr_weight);
+            h_tu_response_LHA_half->Fill(genBinLHA, underflow_bin, corr_weight);
+            h_tu_response_pTD_half->Fill(genBinpTD, underflow_bin, corr_weight);
+            h_tu_response_width_half->Fill(genBinWidth, underflow_bin, corr_weight);
+            h_tu_response_thrust_half->Fill(genBinThrust, underflow_bin, corr_weight);
+
+            h_tu_response_puppiMultiplicity_charged_half->Fill(genBinPuppiMultCharged, underflow_bin, corr_weight);
+            h_tu_response_LHA_charged_half->Fill(genBinLHACharged, underflow_bin, corr_weight);
+            h_tu_response_pTD_charged_half->Fill(genBinpTDCharged, underflow_bin, corr_weight);
+            h_tu_response_width_charged_half->Fill(genBinWidthCharged, underflow_bin, corr_weight);
+            h_tu_response_thrust_charged_half->Fill(genBinThrustCharged, underflow_bin, corr_weight);
+          }
         } else {
           // cout << "No matching genjet, fake reco jet" << endl;
           // Fill TUnfold 2D response maps in the case where there is no matching genjet
@@ -1199,6 +1316,20 @@ void QGAnalysisHists::fill(const Event & event){
           h_tu_response_pTD_charged->Fill(underflow_bin, recBinpTDCharged, weight);
           h_tu_response_width_charged->Fill(underflow_bin, recBinWidthCharged, weight);
           h_tu_response_thrust_charged->Fill(underflow_bin, recBinThrustCharged, weight);
+
+          if (onlyResponseHalf && doMCsplit_) {
+            h_tu_response_puppiMultiplicity_half->Fill(underflow_bin, recBinPuppiMult, weight);
+            h_tu_response_LHA_half->Fill(underflow_bin, recBinLHA, weight);
+            h_tu_response_pTD_half->Fill(underflow_bin, recBinpTD, weight);
+            h_tu_response_width_half->Fill(underflow_bin, recBinWidth, weight);
+            h_tu_response_thrust_half->Fill(underflow_bin, recBinThrust, weight);
+
+            h_tu_response_puppiMultiplicity_charged_half->Fill(underflow_bin, recBinPuppiMultCharged, weight);
+            h_tu_response_LHA_charged_half->Fill(underflow_bin, recBinLHACharged, weight);
+            h_tu_response_pTD_charged_half->Fill(underflow_bin, recBinpTDCharged, weight);
+            h_tu_response_width_charged_half->Fill(underflow_bin, recBinWidthCharged, weight);
+            h_tu_response_thrust_charged_half->Fill(underflow_bin, recBinThrustCharged, weight);
+          }
         } // end of if matched genjet with selection
       }
 
@@ -1424,6 +1555,37 @@ void QGAnalysisHists::fill(const Event & event){
         h_tu_response_pTD_charged->Fill(genBinpTDCharged, underflow_bin, gen_weight);
         h_tu_response_width_charged->Fill(genBinWidthCharged, underflow_bin, gen_weight);
         h_tu_response_thrust_charged->Fill(genBinThrustCharged, underflow_bin, gen_weight);
+
+        if (!onlyResponseHalf && doMCsplit_) {
+          // Fill 1D gen hist
+          h_tu_gen_puppiMultiplicity_half->Fill(genBinPuppiMult, gen_weight);
+          h_tu_gen_LHA_half->Fill(genBinLHA, gen_weight);
+          h_tu_gen_pTD_half->Fill(genBinpTD, gen_weight);
+          h_tu_gen_width_half->Fill(genBinWidth, gen_weight);
+          h_tu_gen_thrust_half->Fill(genBinThrust, gen_weight);
+
+          h_tu_gen_puppiMultiplicity_charged_half->Fill(genBinPuppiMultCharged, gen_weight);
+          h_tu_gen_LHA_charged_half->Fill(genBinLHACharged, gen_weight);
+          h_tu_gen_pTD_charged_half->Fill(genBinpTDCharged, gen_weight);
+          h_tu_gen_width_charged_half->Fill(genBinWidthCharged, gen_weight);
+          h_tu_gen_thrust_charged_half->Fill(genBinThrustCharged, gen_weight);
+        }
+
+        if (onlyResponseHalf && doMCsplit_) {
+          // fill response matrix
+          int underflow_bin = 0;  // since bin edge, not physical value
+          h_tu_response_puppiMultiplicity_half->Fill(genBinPuppiMult, underflow_bin, gen_weight);
+          h_tu_response_LHA_half->Fill(genBinLHA, underflow_bin, gen_weight);
+          h_tu_response_pTD_half->Fill(genBinpTD, underflow_bin, gen_weight);
+          h_tu_response_width_half->Fill(genBinWidth, underflow_bin, gen_weight);
+          h_tu_response_thrust_half->Fill(genBinThrust, underflow_bin, gen_weight);
+
+          h_tu_response_puppiMultiplicity_charged_half->Fill(genBinPuppiMultCharged, underflow_bin, gen_weight);
+          h_tu_response_LHA_charged_half->Fill(genBinLHACharged, underflow_bin, gen_weight);
+          h_tu_response_pTD_charged_half->Fill(genBinpTDCharged, underflow_bin, gen_weight);
+          h_tu_response_width_charged_half->Fill(genBinWidthCharged, underflow_bin, gen_weight);
+          h_tu_response_thrust_charged_half->Fill(genBinThrustCharged, underflow_bin, gen_weight);
+        }
       }
     }
   }
