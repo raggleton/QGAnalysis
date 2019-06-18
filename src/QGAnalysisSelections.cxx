@@ -21,20 +21,14 @@ bool ZplusJetsSelection::passes(const Event & event){
     auto & zMuons = event.get(hndlZ);
     if (zMuons.size() < 2) return false;
 
-    // std::vector<Muon> muons;
-    // for (const auto & itr : *zMuons) {
-    //     if (itr.pt() > mu2_pt_) muons.push_back(itr);
-    // }
-    // if (muons.size() < 2) return false;
-
     const auto & muon1 = zMuons.at(0);
     const auto & muon2 = zMuons.at(1);
 
-    // if (muon1.pt() < mu1_pt_ || muon2.pt() < mu2_pt_) return false;
+    if (muon1.pt() < mu1_pt_ || muon2.pt() < mu2_pt_) return false;
 
     // TODO: what if > 2 muons? how to pick the Z candidate?
 
-    // if (muon1.charge() == muon2.charge()) return false;
+    if (muon1.charge() == muon2.charge()) return false;
 
     const auto z_cand = muon1.v4() + muon2.v4();
 
@@ -47,20 +41,49 @@ bool ZplusJetsSelection::passes(const Event & event){
     if (event.jets->size() > 1) {
         const auto & jet2 = event.jets->at(1);
         auto jet_frac = jet2.pt() / z_cand.pt();
-        // if (jet_frac > 0.5) {
-        //     std::cout << "JET1: " << jet1.pt() << " : " << jet1.eta() << " : " << jet1.phi() << std::endl;
-        //     std::cout << "JET2: " << jet2.pt() << " : " << jet2.eta() << " : " << jet2.phi() << std::endl;
-        //     std::cout << "MU1: " << muon1.pt() << " : " << muon1.eta() << " : " << muon1.phi() << std::endl;
-        //     std::cout << "MU2: " << muon2.pt() << " : " << muon2.eta() << " : " << muon2.phi() << std::endl;
-        //     std::cout << "Z: " << z_cand.pt() << " : " << z_cand.eta() << " : " << z_cand.phi() << " : " << z_cand.M() << std::endl;
+        if (jet_frac > second_jet_frac_max_) return false;
+    }
 
-        //     for (const auto & itr: *event.genparticles) {
-        //         if (abs(itr.pdgId()) == 13)
-        //             std::cout << "GP MUON: " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << " : " << itr.pdgId() << " : " << itr.status() << std::endl;
-        //         if (abs(itr.pdgId()) == 23)
-        //             std::cout << "GP Z: " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << " : " << itr.pdgId() << " : " << itr.status() << std::endl;
-        //     }
-        // }
+    return true;
+}
+
+
+ZplusJetsGenSelection::ZplusJetsGenSelection(uhh2::Context & ctx, float mu1_pt, float mu2_pt, float mZ_window, float dphi_jet_z_min, float second_jet_frac_max, const std::string & genjet_name, const std::string & genmuon_name):
+    genJets_handle(ctx.get_handle<std::vector<GenJetWithParts>>(genjet_name)),
+    zMuons_handle(ctx.get_handle<std::vector<GenParticle>>(genmuon_name)),
+    mu1_pt_(mu1_pt),
+    mu2_pt_(mu2_pt),
+    mZ_window_(mZ_window),
+    dphi_jet_z_min_(dphi_jet_z_min),
+    second_jet_frac_max_(second_jet_frac_max)
+    {}
+
+bool ZplusJetsGenSelection::passes(const Event & event){
+    const auto & jets = event.get(genJets_handle);
+    const auto & zMuons = event.get(zMuons_handle);
+
+    if (zMuons.size() < 2) return false;
+
+    const auto & muon1 = zMuons.at(0);
+    const auto & muon2 = zMuons.at(1);
+
+    if (muon1.pt() < mu1_pt_ || muon2.pt() < mu2_pt_) return false;
+
+    // TODO: what if > 2 muons? how to pick the Z candidate?
+
+    if (muon1.charge() == muon2.charge()) return false;
+
+    const auto z_cand = muon1.v4() + muon2.v4();
+
+    float m_mumu = z_cand.M();
+    if (fabs(m_mumu - 90) > mZ_window_) return false;
+
+    const auto & jet1 = jets.at(0);
+    if (fabs(deltaPhi(jet1, z_cand)) < dphi_jet_z_min_) return false;
+
+    if (jets.size() > 1) {
+        const auto & jet2 = jets.at(1);
+        auto jet_frac = jet2.pt() / z_cand.pt();
         if (jet_frac > second_jet_frac_max_) return false;
     }
 
@@ -97,10 +120,40 @@ bool DijetSelection::passes(const Event & event){
     if (((jet1.pt() - jet2.pt())/(jet1.pt() + jet2.pt())) > jet_asym_max_) return false;
 
     return true;
+}
 
-    // const auto & jet3 = event.jets->at(2);
-    // auto third_jet_frac = jet3.pt() / (0.5 * (jet1.pt() + jet2.pt()));
-    // return third_jet_frac < third_jet_frac_max_;
+DijetGenSelection::DijetGenSelection(uhh2::Context & ctx, float dphi_min, float second_jet_frac_max, float jet_asym_max, bool ss_eta, float deta_max, float sum_eta, const std::string & genjet_name):
+    genJets_handle(ctx.get_handle<std::vector<GenJetWithParts>>(genjet_name)),
+    dphi_min_(dphi_min),
+    second_jet_frac_max_(second_jet_frac_max),
+    jet_asym_max_(jet_asym_max),
+    ss_eta_(ss_eta),
+    deta_max_(deta_max),
+    sum_eta_(sum_eta)
+    {}
+
+bool DijetGenSelection::passes(const Event & event){
+    const auto & jets = event.get(genJets_handle);
+
+    if (jets.size() < 2) return false;
+    const auto & jet1 = jets.at(0);
+    const auto & jet2 = jets.at(1);
+
+    if ((jet2.pt() / jet1.pt()) > second_jet_frac_max_) return false;
+
+    auto dphi = fabs(deltaPhi(jet1, jet2));
+    if (dphi < dphi_min_) return false;
+
+    auto eta1 = jet1.eta();
+    auto eta2 = jet2.eta();
+
+    if (ss_eta_ && ((eta1 * eta2) < 0)) return false;
+
+    if (fabs(eta1 - eta2) > deta_max_) return false;
+
+    if (((jet1.pt() - jet2.pt())/(jet1.pt() + jet2.pt())) > jet_asym_max_) return false;
+
+    return true;
 }
 
 

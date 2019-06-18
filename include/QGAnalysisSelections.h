@@ -19,10 +19,36 @@ namespace uhh2examples {
  */
 class ZplusJetsSelection: public uhh2::Selection {
 public:
-    ZplusJetsSelection(uhh2::Context & ctx, const std::string & zLabel_, float mu1_pt=20., float mu2_pt=20., float mZ_window=20., float dphi_jet_z_min=2.0, float second_jet_frac_max=0.3);
+    ZplusJetsSelection(uhh2::Context & ctx, const std::string & zLabel_,
+                       float mu1_pt=20.,
+                       float mu2_pt=20.,
+                       float mZ_window=20.,
+                       float dphi_jet_z_min=2.0,
+                       float second_jet_frac_max=0.3);
     virtual bool passes(const uhh2::Event & event) override;
 private:
     uhh2::Event::Handle<std::vector<Muon>> hndlZ;
+    float mu1_pt_, mu2_pt_, mZ_window_, dphi_jet_z_min_, second_jet_frac_max_;
+};
+
+
+/*
+ * Select Z->mumu + jet candidate events using Gen particles
+ */
+class ZplusJetsGenSelection: public uhh2::Selection {
+public:
+    ZplusJetsGenSelection(uhh2::Context & ctx,
+                          float mu1_pt=20.,
+                          float mu2_pt=20.,
+                          float mZ_window=20.,
+                          float dphi_jet_z_min=2.0,
+                          float second_jet_frac_max=0.3,
+                          const std::string & genjet_name="GoodGenJets",
+                          const std::string & genmuon_name="GoodGenMuons");
+    virtual bool passes(const uhh2::Event & event) override;
+private:
+    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+    uhh2::Event::Handle<std::vector<GenParticle>> zMuons_handle;
     float mu1_pt_, mu2_pt_, mZ_window_, dphi_jet_z_min_, second_jet_frac_max_;
 };
 
@@ -32,9 +58,34 @@ private:
  */
 class DijetSelection: public uhh2::Selection {
 public:
-    DijetSelection(float dphi_min=2.0, float second_jet_frac_max=0.94, float jet_asym_max=0.3, bool ss_eta=false, float deta_max=10, float sum_eta=10);
+    DijetSelection(float dphi_min=2.0,
+                   float second_jet_frac_max=0.94,
+                   float jet_asym_max=0.3,
+                   bool ss_eta=false,
+                   float deta_max=10,
+                   float sum_eta=10);
     virtual bool passes(const uhh2::Event & event) override;
 private:
+    float dphi_min_, second_jet_frac_max_, jet_asym_max_, ss_eta_, deta_max_, sum_eta_;
+};
+
+
+/*
+ * Select dijet candidate events using Gen jets
+ */
+class DijetGenSelection: public uhh2::Selection {
+public:
+    DijetGenSelection(uhh2::Context & ctx,
+                      float dphi_min=2.0,
+                      float second_jet_frac_max=0.94,
+                      float jet_asym_max=0.3,
+                      bool ss_eta=false,
+                      float deta_max=10,
+                      float sum_eta=10,
+                      const std::string & genjet_name="GoodGenJets");
+    virtual bool passes(const uhh2::Event & event) override;
+private:
+    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
     float dphi_min_, second_jet_frac_max_, jet_asym_max_, ss_eta_, deta_max_, sum_eta_;
 };
 
