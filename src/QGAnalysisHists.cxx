@@ -142,17 +142,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   // make tmp copies which we can then copy and use with book<>
   TH2 * h_tu_response_LHA_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_LHA, detector_tu_binning_LHA, "tu_LHA_GenReco");
-  h_tu_response_LHA = copy_book_th2f(h_tu_response_LHA_tmp);
+  h_tu_response_LHA = copy_book_th2f(h_tu_response_LHA_tmp, "_all");
   h_tu_response_LHA_half = copy_book_th2f(h_tu_response_LHA_tmp, "_half");
   delete h_tu_response_LHA_tmp;
 
   TH1 * h_tu_reco_LHA_tmp = detector_tu_binning_LHA->CreateHistogram("hist_LHA_reco");
-  h_tu_reco_LHA = copy_book_th1f(h_tu_reco_LHA_tmp);
+  h_tu_reco_LHA = copy_book_th1f(h_tu_reco_LHA_tmp, "_all");
   h_tu_reco_LHA_half = copy_book_th1f(h_tu_reco_LHA_tmp, "_half");
   delete h_tu_reco_LHA_tmp;
 
   TH1 * h_tu_gen_LHA_tmp = generator_tu_binning_LHA->CreateHistogram("hist_LHA_truth");
-  h_tu_gen_LHA = copy_book_th1f(h_tu_gen_LHA_tmp);
+  h_tu_gen_LHA = copy_book_th1f(h_tu_gen_LHA_tmp, "_all");
   h_tu_gen_LHA_half = copy_book_th1f(h_tu_gen_LHA_tmp, "_half");
   delete h_tu_gen_LHA_tmp;
 
@@ -182,17 +182,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
 
   TH2 * h_tu_response_LHA_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_LHA_charged, detector_tu_binning_LHA_charged, "tu_LHA_charged_GenReco");
-  h_tu_response_LHA_charged = copy_book_th2f(h_tu_response_LHA_charged_tmp);
+  h_tu_response_LHA_charged = copy_book_th2f(h_tu_response_LHA_charged_tmp, "_all");
   h_tu_response_LHA_charged_half = copy_book_th2f(h_tu_response_LHA_charged_tmp, "_half");
   delete h_tu_response_LHA_charged_tmp;
 
   TH1 * h_tu_reco_LHA_charged_tmp = detector_tu_binning_LHA_charged->CreateHistogram("hist_LHA_charged_reco");
-  h_tu_reco_LHA_charged = copy_book_th1f(h_tu_reco_LHA_charged_tmp);
+  h_tu_reco_LHA_charged = copy_book_th1f(h_tu_reco_LHA_charged_tmp, "_all");
   h_tu_reco_LHA_charged_half = copy_book_th1f(h_tu_reco_LHA_charged_tmp, "_half");
   delete h_tu_reco_LHA_charged_tmp;
 
   TH1 * h_tu_gen_LHA_charged_tmp = generator_tu_binning_LHA_charged->CreateHistogram("hist_LHA_charged_truth");
-  h_tu_gen_LHA_charged = copy_book_th1f(h_tu_gen_LHA_charged_tmp);
+  h_tu_gen_LHA_charged = copy_book_th1f(h_tu_gen_LHA_charged_tmp, "_all");
   h_tu_gen_LHA_charged_half = copy_book_th1f(h_tu_gen_LHA_charged_tmp, "_half");
   delete h_tu_gen_LHA_charged_tmp;
 
@@ -222,17 +222,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   generator_distribution_puppiMultiplicity->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), pt_uf, pt_of);
 
   TH2 * h_tu_response_puppiMultiplicity_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_puppiMultiplicity, detector_tu_binning_puppiMultiplicity, "tu_puppiMultiplicity_GenReco");
-  h_tu_response_puppiMultiplicity = copy_book_th2f(h_tu_response_puppiMultiplicity_tmp);
+  h_tu_response_puppiMultiplicity = copy_book_th2f(h_tu_response_puppiMultiplicity_tmp, "_all");
   h_tu_response_puppiMultiplicity_half = copy_book_th2f(h_tu_response_puppiMultiplicity_tmp, "_half");
   delete h_tu_response_puppiMultiplicity_tmp;
 
   TH1 * h_tu_reco_puppiMultiplicity_tmp = detector_tu_binning_puppiMultiplicity->CreateHistogram("hist_puppiMultiplicity_reco");
-  h_tu_reco_puppiMultiplicity = copy_book_th1f(h_tu_reco_puppiMultiplicity_tmp);
+  h_tu_reco_puppiMultiplicity = copy_book_th1f(h_tu_reco_puppiMultiplicity_tmp, "_all");
   h_tu_reco_puppiMultiplicity_half = copy_book_th1f(h_tu_reco_puppiMultiplicity_tmp, "_half");
   delete h_tu_reco_puppiMultiplicity_tmp;
 
   TH1 * h_tu_gen_puppiMultiplicity_tmp = generator_tu_binning_puppiMultiplicity->CreateHistogram("hist_puppiMultiplicity_truth");
-  h_tu_gen_puppiMultiplicity = copy_book_th1f(h_tu_gen_puppiMultiplicity_tmp);
+  h_tu_gen_puppiMultiplicity = copy_book_th1f(h_tu_gen_puppiMultiplicity_tmp, "_all");
   h_tu_gen_puppiMultiplicity_half = copy_book_th1f(h_tu_gen_puppiMultiplicity_tmp, "_half");
   delete h_tu_gen_puppiMultiplicity_tmp;
 
@@ -262,17 +262,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   generator_distribution_puppiMultiplicity_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), pt_uf, pt_of);
 
   TH2 * h_tu_response_puppiMultiplicity_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_puppiMultiplicity_charged, detector_tu_binning_puppiMultiplicity_charged, "tu_puppiMultiplicity_charged_GenReco");
-  h_tu_response_puppiMultiplicity_charged = copy_book_th2f(h_tu_response_puppiMultiplicity_charged_tmp);
+  h_tu_response_puppiMultiplicity_charged = copy_book_th2f(h_tu_response_puppiMultiplicity_charged_tmp, "_all");
   h_tu_response_puppiMultiplicity_charged_half = copy_book_th2f(h_tu_response_puppiMultiplicity_charged_tmp, "_half");
   delete h_tu_response_puppiMultiplicity_charged_tmp;
 
   TH1 * h_tu_reco_puppiMultiplicity_charged_tmp = detector_tu_binning_puppiMultiplicity_charged->CreateHistogram("hist_puppiMultiplicity_charged_reco");
-  h_tu_reco_puppiMultiplicity_charged = copy_book_th1f(h_tu_reco_puppiMultiplicity_charged_tmp);
+  h_tu_reco_puppiMultiplicity_charged = copy_book_th1f(h_tu_reco_puppiMultiplicity_charged_tmp, "_all");
   h_tu_reco_puppiMultiplicity_charged_half = copy_book_th1f(h_tu_reco_puppiMultiplicity_charged_tmp, "_half");
   delete h_tu_reco_puppiMultiplicity_charged_tmp;
 
   TH1 * h_tu_gen_puppiMultiplicity_charged_tmp = generator_tu_binning_puppiMultiplicity_charged->CreateHistogram("hist_puppiMultiplicity_charged_truth");
-  h_tu_gen_puppiMultiplicity_charged = copy_book_th1f(h_tu_gen_puppiMultiplicity_charged_tmp);
+  h_tu_gen_puppiMultiplicity_charged = copy_book_th1f(h_tu_gen_puppiMultiplicity_charged_tmp, "_all");
   h_tu_gen_puppiMultiplicity_charged_half = copy_book_th1f(h_tu_gen_puppiMultiplicity_charged_tmp, "_half");
   delete h_tu_gen_puppiMultiplicity_charged_tmp;
 
@@ -300,17 +300,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   generator_distribution_pTD->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), pt_uf, pt_of);
 
   TH2 * h_tu_response_pTD_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_pTD, detector_tu_binning_pTD, "tu_pTD_GenReco");
-  h_tu_response_pTD = copy_book_th2f(h_tu_response_pTD_tmp);
+  h_tu_response_pTD = copy_book_th2f(h_tu_response_pTD_tmp, "_all");
   h_tu_response_pTD_half = copy_book_th2f(h_tu_response_pTD_tmp, "_half");
   delete h_tu_response_pTD_tmp;
 
   TH1 * h_tu_reco_pTD_tmp = detector_tu_binning_pTD->CreateHistogram("hist_pTD_reco");
-  h_tu_reco_pTD = copy_book_th1f(h_tu_reco_pTD_tmp);
+  h_tu_reco_pTD = copy_book_th1f(h_tu_reco_pTD_tmp, "_all");
   h_tu_reco_pTD_half = copy_book_th1f(h_tu_reco_pTD_tmp, "_half");
   delete h_tu_reco_pTD_tmp;
 
   TH1 * h_tu_gen_pTD_tmp = generator_tu_binning_pTD->CreateHistogram("hist_pTD_truth");
-  h_tu_gen_pTD = copy_book_th1f(h_tu_gen_pTD_tmp);
+  h_tu_gen_pTD = copy_book_th1f(h_tu_gen_pTD_tmp, "_all");
   h_tu_gen_pTD_half = copy_book_th1f(h_tu_gen_pTD_tmp, "_half");
   delete h_tu_gen_pTD_tmp;
 
@@ -338,17 +338,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   generator_distribution_pTD_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), pt_uf, pt_of);
 
   TH2 * h_tu_response_pTD_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_pTD_charged, detector_tu_binning_pTD_charged, "tu_pTD_charged_GenReco");
-  h_tu_response_pTD_charged = copy_book_th2f(h_tu_response_pTD_charged_tmp);
+  h_tu_response_pTD_charged = copy_book_th2f(h_tu_response_pTD_charged_tmp, "_all");
   h_tu_response_pTD_charged_half = copy_book_th2f(h_tu_response_pTD_charged_tmp, "_half");
   delete h_tu_response_pTD_charged_tmp;
 
   TH1 * h_tu_reco_pTD_charged_tmp = detector_tu_binning_pTD_charged->CreateHistogram("hist_pTD_charged_reco");
-  h_tu_reco_pTD_charged = copy_book_th1f(h_tu_reco_pTD_charged_tmp);
+  h_tu_reco_pTD_charged = copy_book_th1f(h_tu_reco_pTD_charged_tmp, "_all");
   h_tu_reco_pTD_charged_half = copy_book_th1f(h_tu_reco_pTD_charged_tmp, "_half");
   delete h_tu_reco_pTD_charged_tmp;
 
   TH1 * h_tu_gen_pTD_charged_tmp = generator_tu_binning_pTD_charged->CreateHistogram("hist_pTD_charged_truth");
-  h_tu_gen_pTD_charged = copy_book_th1f(h_tu_gen_pTD_charged_tmp);
+  h_tu_gen_pTD_charged = copy_book_th1f(h_tu_gen_pTD_charged_tmp, "_all");
   h_tu_gen_pTD_charged_half = copy_book_th1f(h_tu_gen_pTD_charged_tmp, "_half");
   delete h_tu_gen_pTD_charged_tmp;
 
@@ -376,17 +376,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   generator_distribution_thrust->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), pt_uf, pt_of);
 
   TH2 * h_tu_response_thrust_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_thrust, detector_tu_binning_thrust, "tu_thrust_GenReco");
-  h_tu_response_thrust = copy_book_th2f(h_tu_response_thrust_tmp);
+  h_tu_response_thrust = copy_book_th2f(h_tu_response_thrust_tmp, "_all");
   h_tu_response_thrust_half = copy_book_th2f(h_tu_response_thrust_tmp, "_half");
   delete h_tu_response_thrust_tmp;
 
   TH1 * h_tu_reco_thrust_tmp = detector_tu_binning_thrust->CreateHistogram("hist_thrust_reco");
-  h_tu_reco_thrust = copy_book_th1f(h_tu_reco_thrust_tmp);
+  h_tu_reco_thrust = copy_book_th1f(h_tu_reco_thrust_tmp, "_all");
   h_tu_reco_thrust_half = copy_book_th1f(h_tu_reco_thrust_tmp, "_half");
   delete h_tu_reco_thrust_tmp;
 
   TH1 * h_tu_gen_thrust_tmp = generator_tu_binning_thrust->CreateHistogram("hist_thrust_truth");
-  h_tu_gen_thrust = copy_book_th1f(h_tu_gen_thrust_tmp);
+  h_tu_gen_thrust = copy_book_th1f(h_tu_gen_thrust_tmp, "_all");
   h_tu_gen_thrust_half = copy_book_th1f(h_tu_gen_thrust_tmp, "_half");
   delete h_tu_gen_thrust_tmp;
 
@@ -414,17 +414,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   generator_distribution_thrust_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), pt_uf, pt_of);
 
   TH2 * h_tu_response_thrust_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_thrust_charged, detector_tu_binning_thrust_charged, "tu_thrust_charged_GenReco");
-  h_tu_response_thrust_charged = copy_book_th2f(h_tu_response_thrust_charged_tmp);
+  h_tu_response_thrust_charged = copy_book_th2f(h_tu_response_thrust_charged_tmp, "_all");
   h_tu_response_thrust_charged_half = copy_book_th2f(h_tu_response_thrust_charged_tmp, "_half");
   delete h_tu_response_thrust_charged_tmp;
 
   TH1 * h_tu_reco_thrust_charged_tmp = detector_tu_binning_thrust_charged->CreateHistogram("hist_thrust_charged_reco");
-  h_tu_reco_thrust_charged = copy_book_th1f(h_tu_reco_thrust_charged_tmp);
+  h_tu_reco_thrust_charged = copy_book_th1f(h_tu_reco_thrust_charged_tmp, "_all");
   h_tu_reco_thrust_charged_half = copy_book_th1f(h_tu_reco_thrust_charged_tmp, "_half");
   delete h_tu_reco_thrust_charged_tmp;
 
   TH1 * h_tu_gen_thrust_charged_tmp = generator_tu_binning_thrust_charged->CreateHistogram("hist_thrust_charged_truth");
-  h_tu_gen_thrust_charged = copy_book_th1f(h_tu_gen_thrust_charged_tmp);
+  h_tu_gen_thrust_charged = copy_book_th1f(h_tu_gen_thrust_charged_tmp, "_all");
   h_tu_gen_thrust_charged_half = copy_book_th1f(h_tu_gen_thrust_charged_tmp, "_half");
   delete h_tu_gen_thrust_charged_tmp;
 
@@ -452,17 +452,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   generator_distribution_width->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), pt_uf, pt_of);
 
   TH2 * h_tu_response_width_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_width, detector_tu_binning_width, "tu_width_GenReco");
-  h_tu_response_width = copy_book_th2f(h_tu_response_width_tmp);
+  h_tu_response_width = copy_book_th2f(h_tu_response_width_tmp, "_all");
   h_tu_response_width_half = copy_book_th2f(h_tu_response_width_tmp, "_half");
   delete h_tu_response_width_tmp;
 
   TH1 * h_tu_reco_width_tmp = detector_tu_binning_width->CreateHistogram("hist_width_reco");
-  h_tu_reco_width = copy_book_th1f(h_tu_reco_width_tmp);
+  h_tu_reco_width = copy_book_th1f(h_tu_reco_width_tmp, "_all");
   h_tu_reco_width_half = copy_book_th1f(h_tu_reco_width_tmp, "_half");
   delete h_tu_reco_width_tmp;
 
   TH1 * h_tu_gen_width_tmp = generator_tu_binning_width->CreateHistogram("hist_width_truth");
-  h_tu_gen_width = copy_book_th1f(h_tu_gen_width_tmp);
+  h_tu_gen_width = copy_book_th1f(h_tu_gen_width_tmp, "_all");
   h_tu_gen_width_half = copy_book_th1f(h_tu_gen_width_tmp, "_half");
   delete h_tu_gen_width_tmp;
 
@@ -490,17 +490,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   generator_distribution_width_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), pt_uf, pt_of);
 
   TH2 * h_tu_response_width_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_width_charged, detector_tu_binning_width_charged, "tu_width_charged_GenReco");
-  h_tu_response_width_charged = copy_book_th2f(h_tu_response_width_charged_tmp);
+  h_tu_response_width_charged = copy_book_th2f(h_tu_response_width_charged_tmp, "_all");
   h_tu_response_width_charged_half = copy_book_th2f(h_tu_response_width_charged_tmp, "_half");
   delete h_tu_response_width_charged_tmp;
 
   TH1 * h_tu_reco_width_charged_tmp = detector_tu_binning_width_charged->CreateHistogram("hist_width_charged_reco");
-  h_tu_reco_width_charged = copy_book_th1f(h_tu_reco_width_charged_tmp);
+  h_tu_reco_width_charged = copy_book_th1f(h_tu_reco_width_charged_tmp, "_all");
   h_tu_reco_width_charged_half = copy_book_th1f(h_tu_reco_width_charged_tmp, "_half");
   delete h_tu_reco_width_charged_tmp;
 
   TH1 * h_tu_gen_width_charged_tmp = generator_tu_binning_width_charged->CreateHistogram("hist_width_charged_truth");
-  h_tu_gen_width_charged = copy_book_th1f(h_tu_gen_width_charged_tmp);
+  h_tu_gen_width_charged = copy_book_th1f(h_tu_gen_width_charged_tmp, "_all");
   h_tu_gen_width_charged_half = copy_book_th1f(h_tu_gen_width_charged_tmp, "_half");
   delete h_tu_gen_width_charged_tmp;
 
