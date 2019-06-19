@@ -235,6 +235,29 @@ ZFinder::ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std
 }
 
 bool ZFinder::process(uhh2::Event & event) {
+  // Reweight to higher order cross-section using gen level Z pT
+  if (zReweight) {
+    // Update the gen_weight stored in the event
+    double gen_weight = event.get(gen_weight_handle);
+    // double realZPt = zCand.pt();
+    double realZPt = 0;
+    for (const auto & itr : *event.genparticles) {
+      if (itr.pdgId() == 23) {
+        realZPt = itr.pt();
+        // cout << "Found Gen Z with pT " << realZPt << " with status " << itr.status() << endl;
+        break;
+        // use 1st Z occurence in GenParticles (should be status 22)
+        // later Z is evolved (status 44) and then finalised (status 62),
+        // but I guess we want to use the 1st occurence?
+      }
+    }
+    double zWeight = 1;
+    if (realZPt > 0) zWeight = zReweight->getKFactor(realZPt);
+    event.weight *= zWeight;
+    event.set(gen_weight_handle, gen_weight*zWeight);
+  }
+
+  // Now look for a reconstructed Z using inputs
   auto inputs = event.get(hndlInput);
   if (inputs.size() < 2) return false;
   // Do we also want to consider more than leading & subleading?
@@ -243,15 +266,6 @@ bool ZFinder::process(uhh2::Event & event) {
   if ((fabs(zCand.M() - 90) < 20) && (inputs[0].charge() * inputs[1].charge() < 0)) {
     std::vector<Muon> cands = {inputs[0], inputs[1]};
     event.set(hndlZ, cands);
-
-    if (zReweight) {
-      // Update the gen_weight stored in the event
-      double gen_weight = event.get(gen_weight_handle);
-      double zWeight = zReweight->getKFactor(zCand.pt());
-      event.weight *= zWeight;
-      event.set(gen_weight_handle, gen_weight*zWeight);
-    }
-
     return true;
   }
   return false;
