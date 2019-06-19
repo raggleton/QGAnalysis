@@ -152,11 +152,13 @@ template <class T> class LambdaCalculator {
 public:
   LambdaCalculator(std::vector<T*> daughters, float jet_radius, const LorentzVector & jet_vector, bool usePuppiWeight);
   float getLambda(float kappa, float beta);
+  void clearCache();
 private:
   std::vector<T*> daughters_;
   float jetRadius_, ptSum_;
   LorentzVector jetVector_;
   bool usePuppiWeight_;
+  std::map<std::pair<float, float>, float> resultsCache_;
 };
 
 template class LambdaCalculator<PFParticle>;

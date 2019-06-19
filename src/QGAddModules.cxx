@@ -369,6 +369,14 @@ LambdaCalculator<GenParticle>::LambdaCalculator(std::vector<GenParticle*> daught
 template<class T>
 float LambdaCalculator<T>::getLambda(float kappa, float beta)
 {
+  // Check if result already exists in cache
+  auto thisArgs = std::make_pair(kappa, beta);
+  auto findRes = resultsCache_.find(thisArgs);
+  if (findRes != resultsCache_.end()) {
+    return findRes->second;
+  }
+
+  // If not, calculate it and store in cache
   float result = 0.;
   for (auto dtr : daughters_) {
     float weight = usePuppiWeight_ ? dtr->puppiWeight() : 1.;
@@ -377,20 +385,37 @@ float LambdaCalculator<T>::getLambda(float kappa, float beta)
     float theta = (beta != 0) ? deltaR(dtr->v4(), jetVector_) / jetRadius_ : 1.; // 1 as puppi doesn't change direction
     result += (pow(z, kappa) * pow(theta, beta));
   }
+  resultsCache_[thisArgs] = result;
   return result;
 }
 
 template<>
 float LambdaCalculator<GenParticle>::getLambda(float kappa, float beta)
 {
+  // Check if result already exists in cache
+  auto thisArgs = std::make_pair(kappa, beta);
+  auto findRes = resultsCache_.find(thisArgs);
+  if (findRes != resultsCache_.end()) {
+    return findRes->second;
+  }
+
+  // If not, calculate it and store in cache
   float result = 0.;
   for (auto dtr : daughters_) {
     float z = (kappa != 0) ? dtr->pt() / ptSum_ : 1.;
     float theta = (beta != 0) ? deltaR(dtr->v4(), jetVector_) / jetRadius_ : 1.;
     result += (pow(z, kappa) * pow(theta, beta));
   }
+  resultsCache_[thisArgs] = result;
   return result;
 }
+
+template<class T>
+void LambdaCalculator<T>::clearCache()
+{
+  resultsCache_.clear();
+}
+
 }
 
 
