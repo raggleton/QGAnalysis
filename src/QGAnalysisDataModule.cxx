@@ -18,6 +18,7 @@
 
 #include "UHH2/QGAnalysis/include/QGAnalysisSelections.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisHists.h"
+#include "UHH2/QGAnalysis/include/QGAnalysisUnfoldHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisZPlusJetsHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisDijetHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisTheoryHists.h"
@@ -65,9 +66,13 @@ private:
     std::vector<float> dj_trig_prescales, ak4dj_trig_prescales, ak8dj_trig_prescales, dj_trig_thresholds;
     float jetht_zb_pt_boundary;
 
+    Event::Handle<bool> pass_zpj_sel_handle, pass_dj_sel_handle;
+
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists, zplusjets_qg_hists;
+    std::unique_ptr<Hists> zplusjets_qg_unfold_hists;
 
     std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_qg_hists;
+    std::unique_ptr<Hists> dijet_qg_unfold_hists;
 
     std::unique_ptr<EventNumberSelection> event_sel;
     DATASET::Name dataset;
@@ -96,6 +101,9 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
 
     common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jet_radius));
     gen_weight_handle = ctx.declare_event_output<double>("gen_weight");
+
+    pass_zpj_sel_handle = ctx.declare_event_output<bool> ("ZPlusJetsSelection");
+    pass_dj_sel_handle = ctx.declare_event_output<bool> ("DijetSelection");
 
     // Event Selections
     njet_sel.reset(new NJetSelection(1));
@@ -228,11 +236,13 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLabel));
     zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
     zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1, "zplusjets"));
+    zplusjets_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG", 1, "zplusjets"));
 
     std::string binning_method = "ave";
     dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
     dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
     dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter", 2, "dijet"));
+    dijet_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_tighter", 2, "dijet"));
 
     // event_sel.reset(new EventNumberSelection({111}));
 }
@@ -290,18 +300,22 @@ bool QGAnalysisDataModule::process(Event & event) {
         if (zplusjets_presel->passes(event)) {
             zplusjets_hists_presel->fill(event);
             selected = zplusjets_sel->passes(event);
+            event.set(pass_zpj_sel_handle, selected);
             if (selected) {
                 zplusjets_hists->fill(event);
                 zplusjets_qg_hists->fill(event);
+                zplusjets_qg_unfold_hists->fill(event);
             }
         }
     } else if (dataset == DATASET::JetHT || dataset == DATASET::ZeroBias) {
         dijet_hists_presel->fill(event);
         selected = dijet_sel->passes(event);
+        event.set(pass_dj_sel_handle, selected);
         if (selected) {
             if (dataset == DATASET::JetHT) event.weight *= dj_trig_prescales.at(dj_trig_ind);
             dijet_hists->fill(event);
             dijet_qg_hists->fill(event);
+            dijet_qg_unfold_hists->fill(event);
         }
     }
     return selected;
