@@ -507,7 +507,9 @@ std::vector<GenJetWithParts> QGAnalysisMCModule::getGenJets(std::vector<GenJetWi
         bool leptonOverlap = false;
         if (genparticles != nullptr) {
             for (const auto & ptr : *genparticles) {
-                bool thisLeptonOverlap = ((abs(ptr.pdgId()) == PDGID::MUON) || (abs(ptr.pdgId()) == PDGID::ELECTRON) || (abs(ptr.pdgId()) == PDGID::TAU)) && (deltaR(ptr.v4(), jet.v4()) < lepton_overlap_dr) && ((ptr.pt() / jet.pt()) > 0.5);
+                bool isLepton = ((abs(ptr.pdgId()) == PDGID::MUON) || (abs(ptr.pdgId()) == PDGID::ELECTRON) || (abs(ptr.pdgId()) == PDGID::TAU));
+                if (!isLepton) continue;
+                bool thisLeptonOverlap = isLepton && (deltaR(ptr.v4(), jet.v4()) < lepton_overlap_dr) && ((ptr.pt() / jet.pt()) > 0.5);
                 leptonOverlap = leptonOverlap || thisLeptonOverlap;
             }
         }
