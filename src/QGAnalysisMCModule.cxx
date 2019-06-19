@@ -95,6 +95,7 @@ private:
     Event::Handle<std::vector<GenJetWithParts>> genjets_handle;
     Event::Handle<std::vector<GenParticle>> genmuons_handle;
     Event::Handle<double> gen_weight_handle;
+    Event::Handle<bool> pass_zpj_sel_handle, pass_zpj_gen_sel_handle, pass_dj_sel_handle, pass_dj_gen_sel_handle;
 
     float jetRadius;
     float htMax;
@@ -137,6 +138,11 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     genjets_handle = ctx.declare_event_output< std::vector<GenJetWithParts> > ("GoodGenJets");
     genmuons_handle = ctx.declare_event_output< std::vector<GenParticle> > ("GoodGenMuons");
     gen_weight_handle = ctx.declare_event_output<double>("gen_weight");
+
+    pass_zpj_sel_handle = ctx.declare_event_output<bool> ("DijetSelection");
+    pass_zpj_gen_sel_handle = ctx.declare_event_output<bool> ("DijetGenSelection");
+    pass_dj_sel_handle = ctx.declare_event_output<bool> ("DijetSelection");
+    pass_dj_gen_sel_handle = ctx.declare_event_output<bool> ("DijetGenSelection");
 
     // Event Selections
     njet_sel.reset(new NJetSelection(1));
@@ -353,14 +359,17 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     if (PRINTOUT) printJets(*event.jets, "Matched Jets");
     if (PRINTOUT) printGenJetsWithParts(event.get(genjets_handle), event.genparticles, "GoodGenJets");
-    bool zpj(false), dj(false);
-    // bool dj_highPt(false);
-    bool zpj_gen(false), dj_gen(false);
+
+    // Save selection flags
+    bool pass_zpj(false), pass_dj(false);
+    // bool pass_dj_highPt(false);
+    bool pass_zpj_gen(false), pass_dj_gen(false);
 
     // flav-specific preselection hists, useful for optimising selection
     uint flav1 = event.jets->at(0).flavor();
 
-    zpj_gen = zplusjets_gen_sel->passes(event);
+    pass_zpj_gen = zplusjets_gen_sel->passes(event);
+    event.set(pass_zpj_gen_sel_handle, pass_zpj_gen);
 
     if (zFinder->process(event)) {
         zplusjets_hists_presel->fill(event);
@@ -372,15 +381,18 @@ bool QGAnalysisMCModule::process(Event & event) {
             } else if (flav1 == PDGID::UNKNOWN) {
                 zplusjets_hists_presel_unknown->fill(event);
             }
-            zpj = zplusjets_sel->passes(event);
-            if (zpj) {
+            pass_zpj = zplusjets_sel->passes(event);
+            event.set(pass_zpj_sel_handle, pass_zpj);
+            if (pass_zpj) {
                 zplusjets_hists->fill(event);
                 zplusjets_qg_hists->fill(event);
             }
         }
     }
 
-    dj_gen = dijet_gen_sel->passes(event);
+    pass_dj_gen = dijet_gen_sel->passes(event);
+    event.set(pass_dj_gen_sel_handle, pass_dj_gen);
+
     uint flav2(99999999);
     if (event.jets->size() > 1) {
         dijet_hists_presel->fill(event);
@@ -410,8 +422,9 @@ bool QGAnalysisMCModule::process(Event & event) {
                 dijet_hists_presel_unknown_unknown->fill(event);
             }
         }
-        dj = dijet_sel->passes(event);
-        if (dj) {
+        pass_dj = dijet_sel->passes(event);
+        event.set(pass_dj_sel_handle, pass_dj);
+        if (pass_dj) {
             dijet_hists->fill(event);
             dijet_qg_hists->fill(event);
         }
@@ -425,8 +438,8 @@ bool QGAnalysisMCModule::process(Event & event) {
     if (DO_PU_BINNED_HISTS) {
         for (uint i=0; i<sel_pu_binned.size(); i++) {
             if (sel_pu_binned.at(i)->passes(event)) {
-                if (zpj) zplusjets_qg_hists_pu_binned.at(i)->fill(event);
-                if (dj) dijet_qg_hists_pu_binned.at(i)->fill(event);
+                if (pass_zpj) zplusjets_qg_hists_pu_binned.at(i)->fill(event);
+                if (pass_dj) dijet_qg_hists_pu_binned.at(i)->fill(event);
             }
         }
     }
@@ -475,7 +488,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     }
 */
 
-    if (zpj && dj) {
+    if (pass_zpj && pass_dj) {
         nOverlap++;
         cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet criteria (" << nOverlap << " total)" << endl;
     }
@@ -491,8 +504,8 @@ bool QGAnalysisMCModule::process(Event & event) {
     //     std::cout << itr.pdgId() << " : " << itr.status() << " : " << itr.eta() << " : " << itr.phi() << std::endl;
     // }
 
-    return zpj || dj || zpj_gen || dj_gen;
-    // return zpj || dj || dj_highPt;
+    return pass_zpj || pass_dj || pass_zpj_gen || pass_dj_gen;
+    // return pass_zpj || pass_dj || pass_dj_highPt;
 }
 
 
