@@ -78,6 +78,9 @@ private:
     std::vector< std::unique_ptr<Hists> > zplusjets_qg_hists_pu_binned;
     std::vector< std::unique_ptr<Hists> > dijet_qg_hists_pu_binned;
 
+    // Gen selection
+    std::unique_ptr<Selection> zplusjets_gen_sel, dijet_gen_sel;
+
     // Theory selections/hists
     std::unique_ptr<Selection> zplusjets_theory_sel, dijet_theory_sel;
     std::unique_ptr<Hists> zplusjets_hists_theory, dijet_hists_theory;
@@ -149,6 +152,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     float second_jet_frac_max_zpj = 0.3;
     zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
 
+    zplusjets_gen_sel.reset(new ZplusJetsGenSelection(ctx, 20., 20., 20., 2.0, 0.3, "GoodGenJets", "GoodGenMuons"));
+
     // Preselection for Z+J - only 2 muons to reco Z
     // dphi_jet_z_min = 0.;
     // second_jet_frac_max_zpj = 999.;
@@ -163,6 +168,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     float sumEta = 10.;
     dijet_sel.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, 1000, ss_eta, deta, sumEta));
     dijet_sel_tighter.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta));
+
+    dijet_gen_sel.reset(new DijetGenSelection(ctx, 2.0, 0.94, 0.3, false, 10, 10, "GoodGenJets"));
 
     // zplusjets_theory_sel.reset(new ZplusJetsTheorySelection(ctx));
     // dijet_theory_sel.reset(new DijetTheorySelection(ctx));
@@ -346,10 +353,14 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     if (PRINTOUT) printJets(*event.jets, "Matched Jets");
     if (PRINTOUT) printGenJetsWithParts(event.get(genjets_handle), event.genparticles, "GoodGenJets");
-    bool zpj(false), dj(false), dj_highPt(false);
+    bool zpj(false), dj(false);
+    // bool dj_highPt(false);
+    bool zpj_gen(false), dj_gen(false);
 
     // flav-specific preselection hists, useful for optimising selection
     uint flav1 = event.jets->at(0).flavor();
+
+    zpj_gen = zplusjets_gen_sel->passes(event);
 
     if (zFinder->process(event)) {
         zplusjets_hists_presel->fill(event);
@@ -369,6 +380,7 @@ bool QGAnalysisMCModule::process(Event & event) {
         }
     }
 
+    dj_gen = dijet_gen_sel->passes(event);
     uint flav2(99999999);
     if (event.jets->size() > 1) {
         dijet_hists_presel->fill(event);
@@ -479,7 +491,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     //     std::cout << itr.pdgId() << " : " << itr.status() << " : " << itr.eta() << " : " << itr.phi() << std::endl;
     // }
 
-    return zpj || dj;
+    return zpj || dj || zpj_gen || dj_gen;
     // return zpj || dj || dj_highPt;
 }
 

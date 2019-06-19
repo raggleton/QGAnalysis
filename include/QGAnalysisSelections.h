@@ -22,7 +22,7 @@ public:
     ZplusJetsSelection(uhh2::Context & ctx, const std::string & zLabel_,
                        float mu1_pt=20.,
                        float mu2_pt=20.,
-                       float mZ_window=20.,
+                       float mZ_window=20., // NB also in conjunction with ZFinder cuts
                        float dphi_jet_z_min=2.0,
                        float second_jet_frac_max=0.3);
     virtual bool passes(const uhh2::Event & event) override;
