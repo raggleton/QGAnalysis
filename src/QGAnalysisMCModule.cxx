@@ -53,7 +53,7 @@ private:
 
     // Reco selections/hists
     std::unique_ptr<ZFinder> zFinder;
-    std::unique_ptr<Selection> njet_sel, zplusjets_sel, zplusjets_presel, dijet_sel, dijet_sel_tighter;
+    std::unique_ptr<Selection> njet_sel, ngenjet_sel, ngenjet_good_sel, zplusjets_sel, zplusjets_presel, dijet_sel, dijet_sel_tighter;
 
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists;
     std::unique_ptr<Hists> zplusjets_hists_presel_q, zplusjets_hists_presel_g, zplusjets_hists_presel_unknown;
@@ -115,15 +115,9 @@ private:
 
 
 QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
-    // In the constructor, the typical tasks are to initialize the
-    // member variables, in particular the AnalysisModules such as
-    // CommonModules or some cleaner module, Selections and Hists.
-    // But you can do more and e.g. access the configuration, as shown below.
-
     cout << "Running analysis module" << endl;
 
     htMax =  boost::lexical_cast<float>(ctx.get("maxHT", "-1"));
-
 
     string jet_cone = ctx.get("JetCone", "AK4");
     string pu_removal = ctx.get("PURemoval", "CHS");
@@ -150,6 +144,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     // Event Selections
     njet_sel.reset(new NJetSelection(1));
+    ngenjet_sel.reset(new NGenJetWithPartsSelection(1));
+    ngenjet_good_sel.reset(new NGenJetWithPartsSelection(1, 10000, boost::none, genjets_handle));
 
     zLabel = "zMuonCand";
     zFinder.reset(new ZFinder(ctx, "muons", zLabel, ctx.get("z_reweight_file", "")));
@@ -265,73 +261,94 @@ bool QGAnalysisMCModule::process(Event & event) {
     double orig_weight = 1.;
     event.set(gen_weight_handle, orig_weight); // need to set this at the start
 
-    if (PRINTOUT) {cout << "-- Event: " << event.event << endl;}
-    // cout << "-- Event: " << event.event << endl;
+    if (PRINTOUT) { cout << "-- Event: " << event.event << endl; }
+    cout << "-- Event: " << event.event << endl;
 
-    if (!njet_sel->passes(event)) return false;
+    if (!(njet_sel->passes(event) || ngenjet_sel->passes(event))) return false;
 
     if (PRINTOUT) printMuons(*event.muons, "Precleaning");
     if (PRINTOUT) printElectrons(*event.electrons, "Precleaning");
     if (PRINTOUT) printJets(*event.jets, "Precleaning");
 
     // Gen-level HT cut if necessary
+    // -------------------------------------------------------------------------
     float genHT = 0;
     if (!event.isRealData) {
         genHT = calcGenHT(*(event.genparticles));
     }
     if ((htMax > 0) && (genHT > htMax)) { return false; }
 
+    // Common things
+    // -------------------------------------------------------------------------
+    // Note that we only care about this for reco-specific bits,
+    // not gen-specific (only false if fails MET filters)
+    bool passCommonRecoSetup = common_setup->process(event);
+    if (!(njet_sel->passes(event) || ngenjet_sel->passes(event))) return false;
 
-    if (!common_setup->process(event)) {return false;}
+    // MC-specific parts like reweighting for SF, for muR/F scale, etc
     mc_reweight->process(event);
     mc_scalevar->process(event);
-
-    if (!njet_sel->passes(event)) return false;
 
     if (PRINTOUT) printMuons(*event.muons);
     if (PRINTOUT) printElectrons(*event.electrons);
     // if (PRINTOUT) printGenParticles(*event.genparticles);
 
-    // THEORY PART
-    // if (PRINTOUT) printGenParticles(*event.genparticles);
-
+    // Get Gen muons
+    // -------------------------------------------------------------------------
     std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, 5., 2.4+(jetRadius/2.));
     event.set(genmuons_handle, std::move(goodGenMuons));
 
+    // Get good GenJets, store in event
+    // -------------------------------------------------------------------------
     double genjet_pt_cut = 15.;
     double genjet_eta_cut = 2.4+(jetRadius/2.);
     std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, &event.get(genmuons_handle), genjet_pt_cut, genjet_eta_cut, jetRadius);
-    if (goodGenJets.size() == 0) return false;
     sort_by_pt(goodGenJets);
-
-    // Cut on pt/genHt to avoid weird events
-    // Requirement on genHT since eg Herwig might have 0
-    if (genHT > 0 && ((event.jets->at(0).pt() / genHT) > 2.5)) { return false; }
-
-    // Check event weight is sensible based on pthat
-    if (event.genInfo->binningValues().size() > 0) {
-        double ptHat = event.genInfo->binningValues().at(0); // yes this is correct. no idea why
-        if (goodGenJets[0].pt() / ptHat > 2) return false;
-        if (event.jets->at(0).pt() / ptHat > 2) return false;
-    }
-
     event.set(genjets_handle, std::move(goodGenJets));
 
-    // Determine if good event if leading jet is a true jet or not (ie PU)
-    bool goodEvent = false;
-    for (const auto genjtr: event.get(genjets_handle)) {
-        if (deltaR(event.jets->at(0), genjtr) < jetRadius){
-            goodEvent = true;
-            break;
-        }
-    }
-    if (!goodEvent) return false;
+    // Need these as loosest possible requirement to run reco- or gen-specific bits
+    bool hasRecoJets = njet_sel->passes(event) && passCommonRecoSetup; // commonReco bit here as common for all reco parts
+    bool hasGenJets = ngenjet_good_sel->passes(event);
 
+    // We need recojets and/or genjets (want both fakes and miss-recos)
+    if (!(hasRecoJets || hasGenJets)) return false;
+
+    // Cuts to throw away high-weight events from lower pT bins
+    // (e.g. where leading jet actually PU jet)
+    // -------------------------------------------------------------------------
+
+    // 1. Cut on pt/genHt to avoid weird events
+    // Requirement on genHT since eg Herwig might have 0
+    if (genHT > 0 && (hasRecoJets && ((event.jets->at(0).pt() / genHT) > 2.5))) { return false; }
+    if (genHT > 0 && (hasGenJets && ((event.get(genjets_handle)[0].pt() / genHT) > 2.5))) { return false; }
+
+    // 2. Check event weight is sensible based on pthat - but isn't always available
+    if (event.genInfo->binningValues().size() > 0) {
+        double ptHat = event.genInfo->binningValues().at(0); // yes this is correct. no idea why
+        if (hasRecoJets && (event.jets->at(0).pt() / ptHat > 2)) return false;
+        if (hasGenJets && (event.get(genjets_handle)[0].pt() / ptHat > 2)) return false;
+    }
+
+    // Determine if good event if leading jet is a true jet or not (ie PU)
+    // But really shouldn't need this?
+    // bool goodEvent = false;
+    // for (const auto genjtr: event.get(genjets_handle)) {
+    //     if (deltaR(event.jets->at(0), genjtr) < jetRadius){
+    //         goodEvent = true;
+    //         break;
+    //     }
+    // }
+    // if (!goodEvent) return false;
+
+    // Theory-specific selection & hists
+    // (Following selection etc in paper)
+    // -------------------------------------------------------------------------
     // bool zpj_th = zplusjets_theory_sel->passes(event);
     // bool dj_th = dijet_theory_sel->passes(event);
 
     // if (zpj_th && dj_th) {
-    //     cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet theory criteria" << endl;
+    //     cout << "Warning: event (runid, eventid) = ("  << event.run << ", "
+    //          << event.event << ") passes both Z+jets and Dijet theory criteria" << endl;
     // }
 
     // if (zpj_th) {
@@ -356,103 +373,125 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     if (PRINTOUT) printJets(*event.jets, "Original jets");
 
-    // Ask reco jets to find matching GenJet
+    // Get matching GenJets for reco jets
+    // -------------------------------------------------------------------------
     // But we still use the event.jets as all interesting
     std::vector<Jet> goodJets = getMatchedJets(event.jets, &event.get(genjets_handle), jetRadius/2.);
     // std::swap(goodJets, *event.jets);
-
-    if (!njet_sel->passes(event)) return false;
 
     if (PRINTOUT) printJets(*event.jets, "Matched Jets");
     if (PRINTOUT) printGenJetsWithParts(event.get(genjets_handle), event.genparticles, "GoodGenJets");
 
     // Save selection flags
-    bool pass_zpj(false), pass_dj(false);
+    // -------------------------------------------------------------------------
+    bool pass_zpj_reco(false), pass_dj_reco(false);
+    // incase they doesn't get set later
+    event.set(pass_zpj_sel_handle, pass_zpj_reco);
+    event.set(pass_dj_sel_handle, pass_dj_reco);
+
     // bool pass_dj_highPt(false);
-    bool pass_zpj_gen(false), pass_dj_gen(false);
 
-    // flav-specific preselection hists, useful for optimising selection
-    uint flav1 = event.jets->at(0).flavor();
-
-    pass_zpj_gen = zplusjets_gen_sel->passes(event);
+    bool pass_zpj_gen = zplusjets_gen_sel->passes(event);
     event.set(pass_zpj_gen_sel_handle, pass_zpj_gen);
 
-    if (zFinder->process(event)) {
-        zplusjets_hists_presel->fill(event);
-        if (zplusjets_presel->passes(event)) {
-            if (flav1 == PDGID::GLUON) {
-                zplusjets_hists_presel_g->fill(event);
-            } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
-                zplusjets_hists_presel_q->fill(event);
-            } else if (flav1 == PDGID::UNKNOWN) {
-                zplusjets_hists_presel_unknown->fill(event);
-            }
-            pass_zpj = zplusjets_sel->passes(event);
-            event.set(pass_zpj_sel_handle, pass_zpj);
-            if (pass_zpj) {
-                zplusjets_hists->fill(event);
-                zplusjets_qg_hists->fill(event);
-                zplusjets_qg_unfold_hists->fill(event);
-            }
-        }
-    }
-
-    pass_dj_gen = dijet_gen_sel->passes(event);
+    bool pass_dj_gen = dijet_gen_sel->passes(event);
     event.set(pass_dj_gen_sel_handle, pass_dj_gen);
 
-    uint flav2(99999999);
-    if (event.jets->size() > 1) {
-        dijet_hists_presel->fill(event);
-        flav2 = event.jets->at(1).flavor();
-        if (flav1 == PDGID::GLUON) {
-            if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-                dijet_hists_presel_gq->fill(event);
-            } else if (flav2 == PDGID::GLUON) {
-                dijet_hists_presel_gg->fill(event);
-            } else if (flav2 == PDGID::UNKNOWN) {
-                dijet_hists_presel_g_unknown->fill(event);
+    // Do reco-specific Z+Jet hists & selection
+    // -------------------------------------------------------------------------
+    if (hasRecoJets) {
+        // flav-specific preselection hists, useful for optimising selection
+        uint flav1 = event.jets->at(0).flavor();
+        if (zFinder->process(event)) {
+            zplusjets_hists_presel->fill(event);
+            if (zplusjets_presel->passes(event)) {
+                if (flav1 == PDGID::GLUON) {
+                    zplusjets_hists_presel_g->fill(event);
+                } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
+                    zplusjets_hists_presel_q->fill(event);
+                } else if (flav1 == PDGID::UNKNOWN) {
+                    zplusjets_hists_presel_unknown->fill(event);
+                }
+
+                pass_zpj_reco = zplusjets_sel->passes(event);
+                event.set(pass_zpj_sel_handle, pass_zpj_reco);
+                if (pass_zpj_reco) {
+                    zplusjets_hists->fill(event);
+                    zplusjets_qg_hists->fill(event);
+                }
             }
-        } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
-            if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-                dijet_hists_presel_qq->fill(event);
-            } else if (flav2 == PDGID::GLUON) {
-                dijet_hists_presel_qg->fill(event);
-            } else if (flav2 == PDGID::UNKNOWN) {
-                dijet_hists_presel_q_unknown->fill(event);
-            }
-        } else if (flav1 == PDGID::UNKNOWN) {
-            if (flav2 == PDGID::GLUON) {
-                dijet_hists_presel_unknown_g->fill(event);
-            } else if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-                dijet_hists_presel_unknown_q->fill(event);
-            } else if (flav2 == PDGID::UNKNOWN) {
-                dijet_hists_presel_unknown_unknown->fill(event);
-            }
-        }
-        pass_dj = dijet_sel->passes(event);
-        event.set(pass_dj_sel_handle, pass_dj);
-        if (pass_dj) {
-            dijet_hists->fill(event);
-            dijet_qg_hists->fill(event);
-        }
-        if (dijet_sel_tighter->passes(event)) {
-            dijet_hists_tighter->fill(event);
-            dijet_qg_hists_tighter->fill(event);
-            dijet_qg_unfold_hists_tighter->fill(event);
         }
     }
 
-    // do pu-binned hists
+    // if (pass_zpj_reco || pass_zpj_gen) zplusjets_qg_unfold_hists->fill(event);
+
+    // Do reco-specific DiJet hists & selection
+    // -------------------------------------------------------------------------
+    if (hasRecoJets) {
+        // flav-specific preselection hists, useful for optimising selection
+        uint flav1 = event.jets->at(0).flavor();
+        uint flav2(99999999);
+        if (event.jets->size() > 1) {
+            dijet_hists_presel->fill(event);
+            flav2 = event.jets->at(1).flavor();
+            if (flav1 == PDGID::GLUON) {
+                if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                    dijet_hists_presel_gq->fill(event);
+                } else if (flav2 == PDGID::GLUON) {
+                    dijet_hists_presel_gg->fill(event);
+                } else if (flav2 == PDGID::UNKNOWN) {
+                    dijet_hists_presel_g_unknown->fill(event);
+                }
+            } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
+                if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                    dijet_hists_presel_qq->fill(event);
+                } else if (flav2 == PDGID::GLUON) {
+                    dijet_hists_presel_qg->fill(event);
+                } else if (flav2 == PDGID::UNKNOWN) {
+                    dijet_hists_presel_q_unknown->fill(event);
+                }
+            } else if (flav1 == PDGID::UNKNOWN) {
+                if (flav2 == PDGID::GLUON) {
+                    dijet_hists_presel_unknown_g->fill(event);
+                } else if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                    dijet_hists_presel_unknown_q->fill(event);
+                } else if (flav2 == PDGID::UNKNOWN) {
+                    dijet_hists_presel_unknown_unknown->fill(event);
+                }
+            }
+
+            // pass_dj_reco = dijet_sel->passes(event);
+            pass_dj_reco = dijet_sel_tighter->passes(event);
+            event.set(pass_dj_sel_handle, pass_dj_reco);
+
+            if (dijet_sel->passes(event)) {
+                dijet_hists->fill(event);
+                dijet_qg_hists->fill(event);
+            }
+            if (dijet_sel_tighter->passes(event)) {
+                dijet_hists_tighter->fill(event);
+                dijet_qg_hists_tighter->fill(event);
+            }
+        }
+    }
+
+    // if (pass_dj_reco || pass_dj_gen) dijet_qg_unfold_hists_tighter->fill(event);
+
+    // Do pu-binned hists
+    // -------------------------------------------------------------------------
     if (DO_PU_BINNED_HISTS) {
         for (uint i=0; i<sel_pu_binned.size(); i++) {
             if (sel_pu_binned.at(i)->passes(event)) {
-                if (pass_zpj) zplusjets_qg_hists_pu_binned.at(i)->fill(event);
-                if (pass_dj) dijet_qg_hists_pu_binned.at(i)->fill(event);
+                if (pass_zpj_reco) zplusjets_qg_hists_pu_binned.at(i)->fill(event);
+                if (pass_dj_reco) dijet_qg_hists_pu_binned.at(i)->fill(event);
             }
         }
     }
+
 /*
-    // do high pt jet version - both jets must pass much higher pt threshold
+    // Do high pt jet version
+    // -------------------------------------------------------------------------
+    // Both jets must pass much higher pt threshold
     // don't need to do a Z+jets version as only care about leading jet.
     float ptCut = 500;
     if (event.jets->at(0).pt() < ptCut) return false;
@@ -496,9 +535,11 @@ bool QGAnalysisMCModule::process(Event & event) {
     }
 */
 
-    if (pass_zpj && pass_dj) {
+    if (pass_zpj_reco && pass_dj_reco) {
         nOverlap++;
-        cout << "Warning: event (runid, eventid) = ("  << event.run << ", " << event.event << ") passes both Z+jets and Dijet criteria (" << nOverlap << " total)" << endl;
+        cout << "Warning: event (runid, eventid) = ("  << event.run << ", "
+             << event.event << ") passes both Z+jets and Dijet criteria ("
+             << nOverlap << " total)" << endl;
     }
 
     // For checking genparticle/jet assignments:
@@ -512,8 +553,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     //     std::cout << itr.pdgId() << " : " << itr.status() << " : " << itr.eta() << " : " << itr.phi() << std::endl;
     // }
 
-    return pass_zpj || pass_dj || pass_zpj_gen || pass_dj_gen;
-    // return pass_zpj || pass_dj || pass_dj_highPt;
+    return pass_zpj_reco || pass_dj_reco || pass_zpj_gen || pass_dj_gen;
 }
 
 

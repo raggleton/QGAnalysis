@@ -18,6 +18,8 @@ ZplusJetsSelection::ZplusJetsSelection(uhh2::Context & ctx, const std::string & 
     {}
 
 bool ZplusJetsSelection::passes(const Event & event){
+    if (event.jets->size() < 1) return false;
+
     auto & zMuons = event.get(hndlZ);
     if (zMuons.size() < 2) return false;
 
@@ -60,8 +62,9 @@ ZplusJetsGenSelection::ZplusJetsGenSelection(uhh2::Context & ctx, float mu1_pt, 
 
 bool ZplusJetsGenSelection::passes(const Event & event){
     const auto & jets = event.get(genJets_handle);
-    const auto & zMuons = event.get(zMuons_handle);
+    if (jets.size() < 1) return false;
 
+    const auto & zMuons = event.get(zMuons_handle);
     if (zMuons.size() < 2) return false;
 
     const auto & muon1 = zMuons.at(0);
@@ -134,8 +137,8 @@ DijetGenSelection::DijetGenSelection(uhh2::Context & ctx, float dphi_min, float 
 
 bool DijetGenSelection::passes(const Event & event){
     const auto & jets = event.get(genJets_handle);
-
     if (jets.size() < 2) return false;
+
     const auto & jet1 = jets.at(0);
     const auto & jet2 = jets.at(1);
 
