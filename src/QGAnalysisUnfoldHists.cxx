@@ -11,19 +11,15 @@ using namespace std;
 using namespace uhh2;
 using namespace uhh2examples;
 
-QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirname, int useNJets, const string & selection):
+QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirname, int useNJets, const string & selection, const string & reco_sel_handle_name, const string & gen_sel_handle_name):
   Hists(ctx, dirname),
   useNJets_(useNJets),
-  neutral_pf_hadron_shift_(0.),
-  photon_shift_(0.),
-  recoDauPtCut_(1.),
-  genDauPtCut_(0.),
   rand_(4357), // random number generator for splitting MC into 2 independent groups for unfold testing
   doMCsplit_(true)
   {
 
   is_mc_ = ctx.get("dataset_type") == "MC";
-  doPuppi_ = (ctx.get("PURemoval") == "PUPPI");
+  doMCsplit_ = is_mc_;
 
   if (useNJets_ < 0) useNJets_ = 99999; // Do them all
 
@@ -473,39 +469,16 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_reco_width_charged_gen_binning_half = copy_book_th1f((TH1F*) h_tu_gen_width_charged->Clone("hist_width_charged_reco_gen_binning_half"));
 
 
-  string jet_cone = ctx.get("JetCone", "AK4");
-  if (jet_cone.find("AK4") != string::npos)
-    jetRadius = 0.4;
-  else if (jet_cone.find("AK8") != string::npos)
-    jetRadius = 0.8;
-  else if (jet_cone.find("ca15") != string::npos)
-    jetRadius = 1.5;
-  else
-    throw runtime_error("Cannot determine jetRadius in QGAnalysisUnfoldHists");
-
-  if (is_mc_) genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > ("GoodGenJets");
-
-  std::string neutralPfShift = ctx.get("neutralHadronShift", "nominal");
-  if (neutralPfShift == "nominal") {
-    neutral_pf_hadron_shift_ = 0.;
-  } else if (neutralPfShift == "up") {
-    neutral_pf_hadron_shift_ = 1.;
-  } else if (neutralPfShift == "down") {
-    neutral_pf_hadron_shift_ = -1;
-  } else {
-    throw runtime_error("neutralPfShift must be nominal, up, or down");
+  if (is_mc_) {
+    genJetsLambda_handle = ctx.get_handle< std::vector<GenJetLambdaBundle> > ("GoodGenJetLambdas");
+    genJetsChargedLambda_handle = ctx.get_handle< std::vector<GenJetLambdaBundle> > ("GoodGenJetChargedLambdas");
+    pass_gen_handle = ctx.get_handle<bool> (gen_sel_handle_name);
   }
 
-  std::string photonShift = ctx.get("photonShift", "nominal");
-  if (photonShift == "nominal") {
-    photon_shift_ = 0.;
-  } else if (photonShift == "up") {
-    photon_shift_ = 1.;
-  } else if (photonShift == "down") {
-    photon_shift_ = -1;
-  } else {
-    throw runtime_error("photonShift must be nominal, up, or down");
-  }
+  jetsLambda_handle = ctx.get_handle< std::vector<JetLambdaBundle> > ("JetLambdas");
+  jetsChargedLambda_handle = ctx.get_handle< std::vector<JetLambdaBundle> > ("JetChargedLambdas");
+
+  pass_reco_handle = ctx.get_handle<bool> (reco_sel_handle_name);
 }
 
 
@@ -524,11 +497,6 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
     herwig_weight = reweightHist->GetBinContent(bin_num);
   }
 
-  // fill the histograms. Please note the comments in the header file:
-  // 'hist' is used here a lot for simplicity, but it will be rather
-  // slow when you have many histograms; therefore, better
-  // use histogram pointers as members as in 'UHH2/common/include/ElectronHists.h'
-  // Don't forget to always use the weight when filling.
   double weight = event.weight * herwig_weight;
 
   // extract the separate gen & reco weight components, needed for TUnfold
@@ -536,10 +504,23 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
   gen_weight *= herwig_weight;
   double reco_weight = weight / gen_weight;
 
-  const std::vector<GenJetWithParts> * genjets = nullptr;
+  // Get selection flags
+  bool passReco = event.get(pass_reco_handle);
+  bool passGen(false);
+
+  // Get (Gen)Jet-Lambda Bundles
+  // ptr since then it can be null
+  const std::vector<GenJetLambdaBundle> * genjetLambdas = nullptr;
+  const std::vector<GenJetLambdaBundle> * genjetChargedLambdas = nullptr;
   if (is_mc_) {
-    genjets = &event.get(genJets_handle);
+    genjetLambdas = &event.get(genJetsLambda_handle);
+    genjetChargedLambdas = &event.get(genJetsChargedLambda_handle);
+    passGen = event.get(pass_gen_handle);
   }
+
+  const std::vector<JetLambdaBundle> jetLambdas = event.get(jetsLambda_handle);
+  const std::vector<JetLambdaBundle> jetChargedLambdas = event.get(jetsChargedLambda_handle);
+
   // cout << "***" << event.event << endl;
 
   // Random event flag for MC only filling response matrix
@@ -565,523 +546,354 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
   // avePtReco /= useNJets_;
   // avePtGen /= nGenJets;
   std::cout << " Filling unfold reco jet hists" << std::endl;
-  // Fill reco jet hists
+
+  // Fill reco jet 1D hists
   // ---------------------------------------------------------------------------
   // At this point, all jet filtering etc should have already been performed
-  std::vector<int> matchedGenJetInds = {}; // hold indices of genjets matched to reco jets so we can check later
-  for (int i = 0; i < useNJets_; i++) {
-    const Jet & thisjet = jets->at(i);
-    // cout << thisjet.pt() << " : " << thisjet.eta() << endl;
-    std::vector<PFParticle*> orig_daughters = get_jet_pfparticles(thisjet, event.pfparticles);
+  // Fill ignoring if there is a genjet match or not
+  if (passReco) {
+    for (int i = 0; i < useNJets_; i++) {
+      const Jet & thisjet = jetLambdas.at(i).jet;
+      LambdaCalculator<PFParticle> recoJetCalc = jetLambdas.at(i).lambda; // can't be const as getLambda() modifies it
+      // FIXME check this corresponds to same jet as normal lambdas?
+      LambdaCalculator<PFParticle> recoJetCalcCharged = jetChargedLambdas.at(i).lambda;
 
-    // Do uncertainty shifting of neutral hadron components
-    if (neutral_pf_hadron_shift_ != 0) {
-      std::vector<PFParticle*> daughters_copy = create_copy(orig_daughters);
-      shift_neutral_hadron_pfparticles(daughters_copy, neutral_pf_hadron_shift_, 0.1);
-      orig_daughters = daughters_copy;
-    }
-    // Do uncertainty shifting of photon components
-    if (photon_shift_ != 0) {
-      std::vector<PFParticle*> daughters_copy = create_copy(orig_daughters);
-      shift_photon_pfparticles(daughters_copy, photon_shift_, 0.01);
-      orig_daughters = daughters_copy;
-    }
+      float lha = recoJetCalc.getLambda(1, 0.5);
+      float puppiMult = recoJetCalc.getLambda(0, 0);
+      float ptd = recoJetCalc.getLambda(2, 0);
+      float width = recoJetCalc.getLambda(1, 1);
+      float thrust = recoJetCalc.getLambda(1, 2);
 
-    // save only those with passing pt cut
-    std::vector<PFParticle*> daughters;
-    // Charged-only daughters version
-    std::vector<PFParticle*> chargedDaughters;
-    float puppiMult = 0;
-    float puppiMult_charged = 0;
-    for (auto dau : orig_daughters) {
-      if (dau->pt() > recoDauPtCut_) {
-        daughters.push_back(dau);
-        puppiMult += dau->puppiWeight();
-        if (dau->charge() != 0) {
-          chargedDaughters.push_back(dau);
-          puppiMult_charged += dau->puppiWeight();
-        }
-      }
-    }
+      float lha_charged = recoJetCalcCharged.getLambda(1, 0.5);
+      float puppiMult_charged = recoJetCalcCharged.getLambda(0, 0);
+      float ptd_charged = recoJetCalcCharged.getLambda(2, 0);
+      float width_charged = recoJetCalcCharged.getLambda(1, 1);
+      float thrust_charged = recoJetCalcCharged.getLambda(1, 2);
 
-    float mult = daughters.size();
-    float mult_charged = chargedDaughters.size();
+      float jet_pt = thisjet.pt();
 
-    LambdaCalculator<PFParticle> recoJetCalc(daughters, jetRadius, thisjet.v4(), doPuppi_);
-    float lha = recoJetCalc.getLambda(1, 0.5);
-    float ptd = recoJetCalc.getLambda(2, 0);
-    float width = recoJetCalc.getLambda(1, 1);
-    float thrust = recoJetCalc.getLambda(1, 2);
+      // default to 0 for underflow
+      int recBinLHA(0), recBinPuppiMult(0), recBinpTD(0), recBinThrust(0), recBinWidth(0);
+      int recBinLHACharged(0), recBinPuppiMultCharged(0), recBinpTDCharged(0), recBinThrustCharged(0), recBinWidthCharged(0);
+      // generator-bin for reco-level quantities (for displaying later)
+      int genBinLHA(0), genBinPuppiMult(0), genBinpTD(0), genBinThrust(0), genBinWidth(0);
+      int genBinLHACharged(0), genBinPuppiMultCharged(0), genBinpTDCharged(0), genBinThrustCharged(0), genBinWidthCharged(0);
+      bool isUnderflow = (jet_pt < Binning::pt_bin_edges_reco[0]);
+      // here we get bin number based on if underflow or not
+      if (isUnderflow) {
+        recBinLHA = detector_distribution_underflow_LHA->GetGlobalBinNumber(lha, jet_pt);
+        recBinPuppiMult = detector_distribution_underflow_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
+        recBinpTD = detector_distribution_underflow_pTD->GetGlobalBinNumber(ptd, jet_pt);
+        recBinThrust = detector_distribution_underflow_thrust->GetGlobalBinNumber(thrust, jet_pt);
+        recBinWidth = detector_distribution_underflow_width->GetGlobalBinNumber(width, jet_pt);
 
-    LambdaCalculator<PFParticle> recoJetCalcCharged(chargedDaughters, jetRadius, thisjet.v4(), doPuppi_);
-    float lha_charged = recoJetCalcCharged.getLambda(1, 0.5);
-    float ptd_charged = recoJetCalcCharged.getLambda(2, 0);
-    float width_charged = recoJetCalcCharged.getLambda(1, 1);
-    float thrust_charged = recoJetCalcCharged.getLambda(1, 2);
+        recBinLHACharged = detector_distribution_underflow_LHA_charged->GetGlobalBinNumber(lha_charged, jet_pt);
+        recBinPuppiMultCharged = detector_distribution_underflow_puppiMultiplicity_charged->GetGlobalBinNumber(puppiMult_charged, jet_pt);
+        recBinpTDCharged = detector_distribution_underflow_pTD_charged->GetGlobalBinNumber(ptd_charged, jet_pt);
+        recBinThrustCharged = detector_distribution_underflow_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
+        recBinWidthCharged = detector_distribution_underflow_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
 
-    float jet_pt = thisjet.pt();
+        genBinLHA = generator_distribution_underflow_LHA->GetGlobalBinNumber(lha, jet_pt);
+        genBinPuppiMult = generator_distribution_underflow_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
+        genBinpTD = generator_distribution_underflow_pTD->GetGlobalBinNumber(ptd, jet_pt);
+        genBinThrust = generator_distribution_underflow_thrust->GetGlobalBinNumber(thrust, jet_pt);
+        genBinWidth = generator_distribution_underflow_width->GetGlobalBinNumber(width, jet_pt);
 
-    // Fill TUnfold 1D reco hists
-    // --------------------------
-    // Do regardless of whether there is a matching genjet or not
-    // default to 0 for underflow
-    int recBinLHA(0), recBinPuppiMult(0), recBinpTD(0), recBinThrust(0), recBinWidth(0);
-    int recBinLHACharged(0), recBinPuppiMultCharged(0), recBinpTDCharged(0), recBinThrustCharged(0), recBinWidthCharged(0);
-    // generator-bin for reco-level quantities (for displaying later)
-    int genBinLHA(0), genBinPuppiMult(0), genBinpTD(0), genBinThrust(0), genBinWidth(0);
-    int genBinLHACharged(0), genBinPuppiMultCharged(0), genBinpTDCharged(0), genBinThrustCharged(0), genBinWidthCharged(0);
-    bool isUnderflow = (jet_pt < Binning::pt_bin_edges_reco[0]);
-    // here we get bin number based on if underflow or not
-    if (isUnderflow) {
-      recBinLHA = detector_distribution_underflow_LHA->GetGlobalBinNumber(lha, jet_pt);
-      recBinPuppiMult = detector_distribution_underflow_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
-      recBinpTD = detector_distribution_underflow_pTD->GetGlobalBinNumber(ptd, jet_pt);
-      recBinThrust = detector_distribution_underflow_thrust->GetGlobalBinNumber(thrust, jet_pt);
-      recBinWidth = detector_distribution_underflow_width->GetGlobalBinNumber(width, jet_pt);
+        genBinLHACharged = generator_distribution_underflow_LHA_charged->GetGlobalBinNumber(lha_charged, jet_pt);
+        genBinPuppiMultCharged = generator_distribution_underflow_puppiMultiplicity_charged->GetGlobalBinNumber(puppiMult_charged, jet_pt);
+        genBinpTDCharged = generator_distribution_underflow_pTD_charged->GetGlobalBinNumber(ptd_charged, jet_pt);
+        genBinThrustCharged = generator_distribution_underflow_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
+        genBinWidthCharged = generator_distribution_underflow_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
+      } else {
+        recBinLHA = detector_distribution_LHA->GetGlobalBinNumber(lha, jet_pt);
+        recBinPuppiMult = detector_distribution_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
+        recBinpTD = detector_distribution_pTD->GetGlobalBinNumber(ptd, jet_pt);
+        recBinThrust = detector_distribution_thrust->GetGlobalBinNumber(thrust, jet_pt);
+        recBinWidth = detector_distribution_width->GetGlobalBinNumber(width, jet_pt);
 
-      recBinLHACharged = detector_distribution_underflow_LHA_charged->GetGlobalBinNumber(lha_charged, jet_pt);
-      recBinPuppiMultCharged = detector_distribution_underflow_puppiMultiplicity_charged->GetGlobalBinNumber(puppiMult_charged, jet_pt);
-      recBinpTDCharged = detector_distribution_underflow_pTD_charged->GetGlobalBinNumber(ptd_charged, jet_pt);
-      recBinThrustCharged = detector_distribution_underflow_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
-      recBinWidthCharged = detector_distribution_underflow_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
+        recBinLHACharged = detector_distribution_LHA_charged->GetGlobalBinNumber(lha_charged, jet_pt);
+        recBinPuppiMultCharged = detector_distribution_puppiMultiplicity_charged->GetGlobalBinNumber(puppiMult_charged, jet_pt);
+        recBinpTDCharged = detector_distribution_pTD_charged->GetGlobalBinNumber(ptd_charged, jet_pt);
+        recBinThrustCharged = detector_distribution_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
+        recBinWidthCharged = detector_distribution_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
 
-      genBinLHA = generator_distribution_underflow_LHA->GetGlobalBinNumber(lha, jet_pt);
-      genBinPuppiMult = generator_distribution_underflow_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
-      genBinpTD = generator_distribution_underflow_pTD->GetGlobalBinNumber(ptd, jet_pt);
-      genBinThrust = generator_distribution_underflow_thrust->GetGlobalBinNumber(thrust, jet_pt);
-      genBinWidth = generator_distribution_underflow_width->GetGlobalBinNumber(width, jet_pt);
+        genBinLHA = generator_distribution_LHA->GetGlobalBinNumber(lha, jet_pt);
+        genBinPuppiMult = generator_distribution_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
+        genBinpTD = generator_distribution_pTD->GetGlobalBinNumber(ptd, jet_pt);
+        genBinThrust = generator_distribution_thrust->GetGlobalBinNumber(thrust, jet_pt);
+        genBinWidth = generator_distribution_width->GetGlobalBinNumber(width, jet_pt);
 
-      genBinLHACharged = generator_distribution_underflow_LHA_charged->GetGlobalBinNumber(lha_charged, jet_pt);
-      genBinPuppiMultCharged = generator_distribution_underflow_puppiMultiplicity_charged->GetGlobalBinNumber(puppiMult_charged, jet_pt);
-      genBinpTDCharged = generator_distribution_underflow_pTD_charged->GetGlobalBinNumber(ptd_charged, jet_pt);
-      genBinThrustCharged = generator_distribution_underflow_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
-      genBinWidthCharged = generator_distribution_underflow_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
-    } else {
-      recBinLHA = detector_distribution_LHA->GetGlobalBinNumber(lha, jet_pt);
-      recBinPuppiMult = detector_distribution_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
-      recBinpTD = detector_distribution_pTD->GetGlobalBinNumber(ptd, jet_pt);
-      recBinThrust = detector_distribution_thrust->GetGlobalBinNumber(thrust, jet_pt);
-      recBinWidth = detector_distribution_width->GetGlobalBinNumber(width, jet_pt);
-
-      recBinLHACharged = detector_distribution_LHA_charged->GetGlobalBinNumber(lha_charged, jet_pt);
-      recBinPuppiMultCharged = detector_distribution_puppiMultiplicity_charged->GetGlobalBinNumber(puppiMult_charged, jet_pt);
-      recBinpTDCharged = detector_distribution_pTD_charged->GetGlobalBinNumber(ptd_charged, jet_pt);
-      recBinThrustCharged = detector_distribution_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
-      recBinWidthCharged = detector_distribution_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
-
-      genBinLHA = generator_distribution_LHA->GetGlobalBinNumber(lha, jet_pt);
-      genBinPuppiMult = generator_distribution_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
-      genBinpTD = generator_distribution_pTD->GetGlobalBinNumber(ptd, jet_pt);
-      genBinThrust = generator_distribution_thrust->GetGlobalBinNumber(thrust, jet_pt);
-      genBinWidth = generator_distribution_width->GetGlobalBinNumber(width, jet_pt);
-
-      genBinLHACharged = generator_distribution_LHA_charged->GetGlobalBinNumber(lha_charged, jet_pt);
-      genBinPuppiMultCharged = generator_distribution_puppiMultiplicity_charged->GetGlobalBinNumber(puppiMult_charged, jet_pt);
-      genBinpTDCharged = generator_distribution_pTD_charged->GetGlobalBinNumber(ptd_charged, jet_pt);
-      genBinThrustCharged = generator_distribution_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
-      genBinWidthCharged = generator_distribution_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
-    }
-
-    h_tu_reco_LHA->Fill(recBinLHA, weight);
-    h_tu_reco_puppiMultiplicity->Fill(recBinPuppiMult, weight);
-    h_tu_reco_pTD->Fill(recBinpTD, weight);
-    h_tu_reco_thrust->Fill(recBinThrust, weight);
-    h_tu_reco_width->Fill(recBinWidth, weight);
-
-    h_tu_reco_LHA_charged->Fill(recBinLHACharged, weight);
-    h_tu_reco_puppiMultiplicity_charged->Fill(recBinPuppiMultCharged, weight);
-    h_tu_reco_pTD_charged->Fill(recBinpTDCharged, weight);
-    h_tu_reco_thrust_charged->Fill(recBinThrustCharged, weight);
-    h_tu_reco_width_charged->Fill(recBinWidthCharged, weight);
-
-    h_tu_reco_LHA_gen_binning->Fill(genBinLHA, weight);
-    h_tu_reco_puppiMultiplicity_gen_binning->Fill(genBinPuppiMult, weight);
-    h_tu_reco_pTD_gen_binning->Fill(genBinpTD, weight);
-    h_tu_reco_thrust_gen_binning->Fill(genBinThrust, weight);
-    h_tu_reco_width_gen_binning->Fill(genBinWidth, weight);
-
-    h_tu_reco_LHA_charged_gen_binning->Fill(genBinLHACharged, weight);
-    h_tu_reco_puppiMultiplicity_charged_gen_binning->Fill(genBinPuppiMultCharged, weight);
-    h_tu_reco_pTD_charged_gen_binning->Fill(genBinpTDCharged, weight);
-    h_tu_reco_thrust_charged_gen_binning->Fill(genBinThrustCharged, weight);
-    h_tu_reco_width_charged_gen_binning->Fill(genBinWidthCharged, weight);
-
-    if (!onlyResponseHalf && doMCsplit_) {
-      h_tu_reco_LHA_half->Fill(recBinLHA, weight);
-      h_tu_reco_puppiMultiplicity_half->Fill(recBinPuppiMult, weight);
-      h_tu_reco_pTD_half->Fill(recBinpTD, weight);
-      h_tu_reco_thrust_half->Fill(recBinThrust, weight);
-      h_tu_reco_width_half->Fill(recBinWidth, weight);
-
-      h_tu_reco_LHA_charged_half->Fill(recBinLHACharged, weight);
-      h_tu_reco_puppiMultiplicity_charged_half->Fill(recBinPuppiMultCharged, weight);
-      h_tu_reco_pTD_charged_half->Fill(recBinpTDCharged, weight);
-      h_tu_reco_thrust_charged_half->Fill(recBinThrustCharged, weight);
-      h_tu_reco_width_charged_half->Fill(recBinWidthCharged, weight);
-
-      h_tu_reco_LHA_gen_binning_half->Fill(genBinLHA, weight);
-      h_tu_reco_puppiMultiplicity_gen_binning_half->Fill(genBinPuppiMult, weight);
-      h_tu_reco_pTD_gen_binning_half->Fill(genBinpTD, weight);
-      h_tu_reco_thrust_gen_binning_half->Fill(genBinThrust, weight);
-      h_tu_reco_width_gen_binning_half->Fill(genBinWidth, weight);
-
-      h_tu_reco_LHA_charged_gen_binning_half->Fill(genBinLHACharged, weight);
-      h_tu_reco_puppiMultiplicity_charged_gen_binning_half->Fill(genBinPuppiMultCharged, weight);
-      h_tu_reco_pTD_charged_gen_binning_half->Fill(genBinpTDCharged, weight);
-      h_tu_reco_thrust_charged_gen_binning_half->Fill(genBinThrustCharged, weight);
-      h_tu_reco_width_charged_gen_binning_half->Fill(genBinWidthCharged, weight);
-    }
-
-    if (is_mc_) {
-      // Store variables for matched GenJet
-      bool matchedGenJet = (thisjet.genjet_index() > -1);
-      bool matchedGenJetWithSelection = (matchedGenJet && (thisjet.genjet_index() < useNJets_)); // apply extra selection for TUnfold, but we don't want it normally for other plots
-      float genjet_pt = -1.;
-      std::unique_ptr<LambdaCalculator<GenParticle>> matchedGenJetCalc;
-
-      if (matchedGenJet) {
-        matchedGenJetInds.push_back(thisjet.genjet_index());
-
-        const GenJetWithParts & genjet = genjets->at(thisjet.genjet_index());
-
-        std::vector<GenParticle*> orig_genJetDaughters = get_genjet_genparticles(genjet, event.genparticles);
-
-        // apply cuts to genjet constituents
-        std::vector<GenParticle*> genJetDaughters;
-        for (auto dau : orig_genJetDaughters) {
-          if (dau->pt() > genDauPtCut_) {
-            genJetDaughters.push_back(dau);
-          }
-        }
-        // Response hists over all pt, and high/low pt split ones
-        matchedGenJetCalc.reset(new LambdaCalculator<GenParticle>(genJetDaughters, jetRadius, genjet.v4(), false));
-
-        float gen_mult = genJetDaughters.size();
-        float gen_lha = matchedGenJetCalc->getLambda(1, 0.5);
-        float gen_ptd = matchedGenJetCalc->getLambda(2, 0);
-        float gen_width = matchedGenJetCalc->getLambda(1, 1);
-        float gen_thrust = matchedGenJetCalc->getLambda(1, 2);
-
-        // Do charged-only daughters version
-        std::vector<GenParticle*> genJetChargedDaughters;
-        for (auto dau : genJetDaughters) {
-          if (dau->charge() != 0) {
-            genJetChargedDaughters.push_back(dau);
-          }
-        }
-        float gen_mult_charged = genJetChargedDaughters.size();
-
-        LambdaCalculator<GenParticle> matchedGenJetCalcCharged(genJetChargedDaughters, jetRadius, genjet.v4(), false);
-        float gen_lha_charged = matchedGenJetCalcCharged.getLambda(1, 0.5);
-        float gen_ptd_charged = matchedGenJetCalcCharged.getLambda(2, 0);
-        float gen_width_charged = matchedGenJetCalcCharged.getLambda(1, 1);
-        float gen_thrust_charged = matchedGenJetCalcCharged.getLambda(1, 2);
-
-        // Get TUnfold gen bins
-        // default to 0 for underflow
-        int genBinLHA(0), genBinPuppiMult(0), genBinpTD(0), genBinThrust(0), genBinWidth(0);
-        int genBinLHACharged(0), genBinPuppiMultCharged(0), genBinpTDCharged(0), genBinThrustCharged(0), genBinWidthCharged(0);
-
-        if (matchedGenJetWithSelection) { // only valid if passing Gen jet criteria
-          bool isUnderflowGen = (genjet_pt < Binning::pt_bin_edges_gen[0]);
-          // here we get bin number based on if underflow or not
-          if (isUnderflowGen) {
-            genBinLHA = generator_distribution_underflow_LHA->GetGlobalBinNumber(gen_lha, genjet_pt);
-            genBinPuppiMult = generator_distribution_underflow_puppiMultiplicity->GetGlobalBinNumber(gen_mult, genjet_pt);
-            genBinpTD = generator_distribution_underflow_pTD->GetGlobalBinNumber(gen_ptd, genjet_pt);
-            genBinThrust = generator_distribution_underflow_thrust->GetGlobalBinNumber(gen_thrust, genjet_pt);
-            genBinWidth = generator_distribution_underflow_width->GetGlobalBinNumber(gen_width, genjet_pt);
-
-            genBinLHACharged = generator_distribution_underflow_LHA_charged->GetGlobalBinNumber(gen_lha_charged, genjet_pt);
-            genBinPuppiMultCharged = generator_distribution_underflow_puppiMultiplicity_charged->GetGlobalBinNumber(gen_mult_charged, genjet_pt);
-            genBinpTDCharged = generator_distribution_underflow_pTD_charged->GetGlobalBinNumber(gen_ptd_charged, genjet_pt);
-            genBinThrustCharged = generator_distribution_underflow_thrust_charged->GetGlobalBinNumber(gen_thrust_charged, genjet_pt);
-            genBinWidthCharged = generator_distribution_underflow_width_charged->GetGlobalBinNumber(gen_width_charged, genjet_pt);
-          } else {
-            genBinLHA = generator_distribution_LHA->GetGlobalBinNumber(gen_lha, genjet_pt);
-            genBinPuppiMult = generator_distribution_puppiMultiplicity->GetGlobalBinNumber(gen_mult, genjet_pt);
-            genBinpTD = generator_distribution_pTD->GetGlobalBinNumber(gen_ptd, genjet_pt);
-            genBinThrust = generator_distribution_thrust->GetGlobalBinNumber(gen_thrust, genjet_pt);
-            genBinWidth = generator_distribution_width->GetGlobalBinNumber(gen_width, genjet_pt);
-
-            genBinLHACharged = generator_distribution_LHA_charged->GetGlobalBinNumber(gen_lha_charged, genjet_pt);
-            genBinPuppiMultCharged = generator_distribution_puppiMultiplicity_charged->GetGlobalBinNumber(gen_mult_charged, genjet_pt);
-            genBinpTDCharged = generator_distribution_pTD_charged->GetGlobalBinNumber(gen_ptd_charged, genjet_pt);
-            genBinThrustCharged = generator_distribution_thrust_charged->GetGlobalBinNumber(gen_thrust_charged, genjet_pt);
-            genBinWidthCharged = generator_distribution_width_charged->GetGlobalBinNumber(gen_width_charged, genjet_pt);
-          }
-
-          // Fill TUnfold 1D generator (truth) hists with coarse gen binning
-          // ---------------------------------------------------------------
-          h_tu_gen_puppiMultiplicity->Fill(genBinPuppiMult, gen_weight);
-          h_tu_gen_LHA->Fill(genBinLHA, gen_weight);
-          h_tu_gen_pTD->Fill(genBinpTD, gen_weight);
-          h_tu_gen_width->Fill(genBinWidth, gen_weight);
-          h_tu_gen_thrust->Fill(genBinThrust, gen_weight);
-
-          h_tu_gen_puppiMultiplicity_charged->Fill(genBinPuppiMultCharged, gen_weight);
-          h_tu_gen_LHA_charged->Fill(genBinLHACharged, gen_weight);
-          h_tu_gen_pTD_charged->Fill(genBinpTDCharged, gen_weight);
-          h_tu_gen_width_charged->Fill(genBinWidthCharged, gen_weight);
-          h_tu_gen_thrust_charged->Fill(genBinThrustCharged, gen_weight);
-
-          // Fill TUnfold 2D response maps
-          // ---------------------------------------------------------------
-          h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, recBinPuppiMult, weight);
-          h_tu_response_LHA->Fill(genBinLHA, recBinLHA, weight);
-          h_tu_response_pTD->Fill(genBinpTD, recBinpTD, weight);
-          h_tu_response_width->Fill(genBinWidth, recBinWidth, weight);
-          h_tu_response_thrust->Fill(genBinThrust, recBinThrust, weight);
-
-          h_tu_response_puppiMultiplicity_charged->Fill(genBinPuppiMultCharged, recBinPuppiMultCharged, weight);
-          h_tu_response_LHA_charged->Fill(genBinLHACharged, recBinLHACharged, weight);
-          h_tu_response_pTD_charged->Fill(genBinpTDCharged, recBinpTDCharged, weight);
-          h_tu_response_width_charged->Fill(genBinWidthCharged, recBinWidthCharged, weight);
-          h_tu_response_thrust_charged->Fill(genBinThrustCharged, recBinThrustCharged, weight);
-
-          // we need to add in an extra part, such that the 1D projection on the gen axis
-          // agrees with the 1D gen histogram
-          // i.e. account for the difference between the reco_weight (goes into event.weight) and gen_weight
-          // we use the underflow bin for this
-          // (0 as bin edges are tunfold bin numbers, not physical values, so the first bin is 0-1,
-          // not to be confused with ROOT binning, starting at 1 :s)
-          double corr_weight = gen_weight * (1 - reco_weight);
-          int underflow_bin = 0;
-          h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, underflow_bin, corr_weight);
-          h_tu_response_LHA->Fill(genBinLHA, underflow_bin, corr_weight);
-          h_tu_response_pTD->Fill(genBinpTD, underflow_bin, corr_weight);
-          h_tu_response_width->Fill(genBinWidth, underflow_bin, corr_weight);
-          h_tu_response_thrust->Fill(genBinThrust, underflow_bin, corr_weight);
-
-          h_tu_response_puppiMultiplicity_charged->Fill(genBinPuppiMultCharged, underflow_bin, corr_weight);
-          h_tu_response_LHA_charged->Fill(genBinLHACharged, underflow_bin, corr_weight);
-          h_tu_response_pTD_charged->Fill(genBinpTDCharged, underflow_bin, corr_weight);
-          h_tu_response_width_charged->Fill(genBinWidthCharged, underflow_bin, corr_weight);
-          h_tu_response_thrust_charged->Fill(genBinThrustCharged, underflow_bin, corr_weight);
-
-          if (!onlyResponseHalf && doMCsplit_) {
-            // Fill TUnfold 1D generator (truth) hists with coarse gen binning
-            h_tu_gen_puppiMultiplicity_half->Fill(genBinPuppiMult, gen_weight);
-            h_tu_gen_LHA_half->Fill(genBinLHA, gen_weight);
-            h_tu_gen_pTD_half->Fill(genBinpTD, gen_weight);
-            h_tu_gen_width_half->Fill(genBinWidth, gen_weight);
-            h_tu_gen_thrust_half->Fill(genBinThrust, gen_weight);
-
-            h_tu_gen_puppiMultiplicity_charged_half->Fill(genBinPuppiMultCharged, gen_weight);
-            h_tu_gen_LHA_charged_half->Fill(genBinLHACharged, gen_weight);
-            h_tu_gen_pTD_charged_half->Fill(genBinpTDCharged, gen_weight);
-            h_tu_gen_width_charged_half->Fill(genBinWidthCharged, gen_weight);
-            h_tu_gen_thrust_charged_half->Fill(genBinThrustCharged, gen_weight);
-          }
-
-          if (onlyResponseHalf && doMCsplit_) {
-            // Fill TUnfold 2D response maps
-            h_tu_response_puppiMultiplicity_half->Fill(genBinPuppiMult, recBinPuppiMult, weight);
-            h_tu_response_LHA_half->Fill(genBinLHA, recBinLHA, weight);
-            h_tu_response_pTD_half->Fill(genBinpTD, recBinpTD, weight);
-            h_tu_response_width_half->Fill(genBinWidth, recBinWidth, weight);
-            h_tu_response_thrust_half->Fill(genBinThrust, recBinThrust, weight);
-
-            h_tu_response_puppiMultiplicity_charged_half->Fill(genBinPuppiMultCharged, recBinPuppiMultCharged, weight);
-            h_tu_response_LHA_charged_half->Fill(genBinLHACharged, recBinLHACharged, weight);
-            h_tu_response_pTD_charged_half->Fill(genBinpTDCharged, recBinpTDCharged, weight);
-            h_tu_response_width_charged_half->Fill(genBinWidthCharged, recBinWidthCharged, weight);
-            h_tu_response_thrust_charged_half->Fill(genBinThrustCharged, recBinThrustCharged, weight);
-
-            h_tu_response_puppiMultiplicity_half->Fill(genBinPuppiMult, underflow_bin, corr_weight);
-            h_tu_response_LHA_half->Fill(genBinLHA, underflow_bin, corr_weight);
-            h_tu_response_pTD_half->Fill(genBinpTD, underflow_bin, corr_weight);
-            h_tu_response_width_half->Fill(genBinWidth, underflow_bin, corr_weight);
-            h_tu_response_thrust_half->Fill(genBinThrust, underflow_bin, corr_weight);
-
-            h_tu_response_puppiMultiplicity_charged_half->Fill(genBinPuppiMultCharged, underflow_bin, corr_weight);
-            h_tu_response_LHA_charged_half->Fill(genBinLHACharged, underflow_bin, corr_weight);
-            h_tu_response_pTD_charged_half->Fill(genBinpTDCharged, underflow_bin, corr_weight);
-            h_tu_response_width_charged_half->Fill(genBinWidthCharged, underflow_bin, corr_weight);
-            h_tu_response_thrust_charged_half->Fill(genBinThrustCharged, underflow_bin, corr_weight);
-          }
-        } else {
-          // cout << "No matching genjet, fake reco jet" << endl;
-          // Fill TUnfold 2D response maps in the case where there is no matching genjet
-          // (i.e. fakes)
-          int underflow_bin = 0;
-          h_tu_response_puppiMultiplicity->Fill(underflow_bin, recBinPuppiMult, weight);
-          h_tu_response_LHA->Fill(underflow_bin, recBinLHA, weight);
-          h_tu_response_pTD->Fill(underflow_bin, recBinpTD, weight);
-          h_tu_response_width->Fill(underflow_bin, recBinWidth, weight);
-          h_tu_response_thrust->Fill(underflow_bin, recBinThrust, weight);
-
-          h_tu_response_puppiMultiplicity_charged->Fill(underflow_bin, recBinPuppiMultCharged, weight);
-          h_tu_response_LHA_charged->Fill(underflow_bin, recBinLHACharged, weight);
-          h_tu_response_pTD_charged->Fill(underflow_bin, recBinpTDCharged, weight);
-          h_tu_response_width_charged->Fill(underflow_bin, recBinWidthCharged, weight);
-          h_tu_response_thrust_charged->Fill(underflow_bin, recBinThrustCharged, weight);
-
-          if (onlyResponseHalf && doMCsplit_) {
-            h_tu_response_puppiMultiplicity_half->Fill(underflow_bin, recBinPuppiMult, weight);
-            h_tu_response_LHA_half->Fill(underflow_bin, recBinLHA, weight);
-            h_tu_response_pTD_half->Fill(underflow_bin, recBinpTD, weight);
-            h_tu_response_width_half->Fill(underflow_bin, recBinWidth, weight);
-            h_tu_response_thrust_half->Fill(underflow_bin, recBinThrust, weight);
-
-            h_tu_response_puppiMultiplicity_charged_half->Fill(underflow_bin, recBinPuppiMultCharged, weight);
-            h_tu_response_LHA_charged_half->Fill(underflow_bin, recBinLHACharged, weight);
-            h_tu_response_pTD_charged_half->Fill(underflow_bin, recBinpTDCharged, weight);
-            h_tu_response_width_charged_half->Fill(underflow_bin, recBinWidthCharged, weight);
-            h_tu_response_thrust_charged_half->Fill(underflow_bin, recBinThrustCharged, weight);
-          }
-        } // end of if matched genjet with selection
+        genBinLHACharged = generator_distribution_LHA_charged->GetGlobalBinNumber(lha_charged, jet_pt);
+        genBinPuppiMultCharged = generator_distribution_puppiMultiplicity_charged->GetGlobalBinNumber(puppiMult_charged, jet_pt);
+        genBinpTDCharged = generator_distribution_pTD_charged->GetGlobalBinNumber(ptd_charged, jet_pt);
+        genBinThrustCharged = generator_distribution_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
+        genBinWidthCharged = generator_distribution_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
       }
 
-      // int jet_flav = get_jet_flavour(thisjet, event.genparticles);
-      int jet_flav = abs(thisjet.flavor());
+      h_tu_reco_LHA->Fill(recBinLHA, weight);
+      h_tu_reco_puppiMultiplicity->Fill(recBinPuppiMult, weight);
+      h_tu_reco_pTD->Fill(recBinpTD, weight);
+      h_tu_reco_thrust->Fill(recBinThrust, weight);
+      h_tu_reco_width->Fill(recBinWidth, weight);
 
-    } // end is_mc_
+      h_tu_reco_LHA_charged->Fill(recBinLHACharged, weight);
+      h_tu_reco_puppiMultiplicity_charged->Fill(recBinPuppiMultCharged, weight);
+      h_tu_reco_pTD_charged->Fill(recBinpTDCharged, weight);
+      h_tu_reco_thrust_charged->Fill(recBinThrustCharged, weight);
+      h_tu_reco_width_charged->Fill(recBinWidthCharged, weight);
 
-  } // end loop over reco jets
-std::cout << " Filling unfold gen jet hists" << std::endl;
-  if (is_mc_) {
-    // Fill GenJet hists
-    // GenJet cuts already done (pt & eta) in QGAnalysisMCModule
-    // std::vector<GenJetWithParts>* genjets = event.genjets;
+      h_tu_reco_LHA_gen_binning->Fill(genBinLHA, weight);
+      h_tu_reco_puppiMultiplicity_gen_binning->Fill(genBinPuppiMult, weight);
+      h_tu_reco_pTD_gen_binning->Fill(genBinpTD, weight);
+      h_tu_reco_thrust_gen_binning->Fill(genBinThrust, weight);
+      h_tu_reco_width_gen_binning->Fill(genBinWidth, weight);
 
-    int counter = 0;
-    int nocutCounter = -1;
-    for (const auto & thisjet : *genjets) {
-      nocutCounter++;
+      h_tu_reco_LHA_charged_gen_binning->Fill(genBinLHACharged, weight);
+      h_tu_reco_puppiMultiplicity_charged_gen_binning->Fill(genBinPuppiMultCharged, weight);
+      h_tu_reco_pTD_charged_gen_binning->Fill(genBinpTDCharged, weight);
+      h_tu_reco_thrust_charged_gen_binning->Fill(genBinThrustCharged, weight);
+      h_tu_reco_width_charged_gen_binning->Fill(genBinWidthCharged, weight);
 
-      float genjet_pt = thisjet.pt();
+      // FIXME: fill fakes
 
-      counter++;
-      if (counter > useNJets_)
-        break;
+      if (!onlyResponseHalf && doMCsplit_) {
+        h_tu_reco_LHA_half->Fill(recBinLHA, weight);
+        h_tu_reco_puppiMultiplicity_half->Fill(recBinPuppiMult, weight);
+        h_tu_reco_pTD_half->Fill(recBinpTD, weight);
+        h_tu_reco_thrust_half->Fill(recBinThrust, weight);
+        h_tu_reco_width_half->Fill(recBinWidth, weight);
 
-      std::vector<GenParticle*> orig_genJetDaughters = get_genjet_genparticles(thisjet, event.genparticles);
+        h_tu_reco_LHA_charged_half->Fill(recBinLHACharged, weight);
+        h_tu_reco_puppiMultiplicity_charged_half->Fill(recBinPuppiMultCharged, weight);
+        h_tu_reco_pTD_charged_half->Fill(recBinpTDCharged, weight);
+        h_tu_reco_thrust_charged_half->Fill(recBinThrustCharged, weight);
+        h_tu_reco_width_charged_half->Fill(recBinWidthCharged, weight);
 
-      // apply cuts on genjet constituents
-      std::vector<GenParticle*> genJetDaughters;
-      // Do charged-only daughters version
-      std::vector<GenParticle*> genJetChargedDaughters;
-      for (auto dau : orig_genJetDaughters) {
-        if (dau->pt() > genDauPtCut_) {
-          genJetDaughters.push_back(dau);
-          if (dau->charge() != 0) {
-            genJetChargedDaughters.push_back(dau);
-          }
-        }
-      }
+        h_tu_reco_LHA_gen_binning_half->Fill(genBinLHA, weight);
+        h_tu_reco_puppiMultiplicity_gen_binning_half->Fill(genBinPuppiMult, weight);
+        h_tu_reco_pTD_gen_binning_half->Fill(genBinpTD, weight);
+        h_tu_reco_thrust_gen_binning_half->Fill(genBinThrust, weight);
+        h_tu_reco_width_gen_binning_half->Fill(genBinWidth, weight);
 
-      // do special vars according to 1704.03878
-      LambdaCalculator<GenParticle> genJetCalc(genJetDaughters, jetRadius, thisjet.v4(), false);
-      float gen_lha = genJetCalc.getLambda(1, 0.5);
-      float gen_ptd = genJetCalc.getLambda(2, 0);
-      float gen_width = genJetCalc.getLambda(1, 1);
-      float gen_thrust = genJetCalc.getLambda(1, 2);
-      uint gen_mult = genJetDaughters.size();
-
-      LambdaCalculator<GenParticle> genJetCalcCharged(genJetChargedDaughters, jetRadius, thisjet.v4(), false);
-      float gen_lha_charged = genJetCalcCharged.getLambda(1, 0.5);
-      float gen_ptd_charged = genJetCalcCharged.getLambda(2, 0);
-      float gen_width_charged = genJetCalcCharged.getLambda(1, 1);
-      float gen_thrust_charged = genJetCalcCharged.getLambda(1, 2);
-      uint gen_mult_charged = genJetDaughters.size();
-
-
-      // More TUnfold hists - treat cases when you have a GenJet but no matching reco jet (miss)
-      bool alreadyMatched = (std::find(matchedGenJetInds.begin(), matchedGenJetInds.end(), nocutCounter) != matchedGenJetInds.end());
-      if (!alreadyMatched) {
-        // Get TUnfold gen bins
-        // default to 0 for underflow
-        int genBinLHA(0), genBinPuppiMult(0), genBinpTD(0), genBinThrust(0), genBinWidth(0);
-        int genBinLHACharged(0), genBinPuppiMultCharged(0), genBinpTDCharged(0), genBinThrustCharged(0), genBinWidthCharged(0);
-        bool isUnderflowGen = (genjet_pt < Binning::pt_bin_edges_gen[0]);
-        // here we get bin number based on if underflow or not
-        if (isUnderflowGen) {
-          genBinLHA = generator_distribution_underflow_LHA->GetGlobalBinNumber(gen_lha, genjet_pt);
-          genBinPuppiMult = generator_distribution_underflow_puppiMultiplicity->GetGlobalBinNumber(gen_mult, genjet_pt);
-          genBinpTD = generator_distribution_underflow_pTD->GetGlobalBinNumber(gen_ptd, genjet_pt);
-          genBinThrust = generator_distribution_underflow_thrust->GetGlobalBinNumber(gen_thrust, genjet_pt);
-          genBinWidth = generator_distribution_underflow_width->GetGlobalBinNumber(gen_width, genjet_pt);
-
-          genBinLHACharged = generator_distribution_underflow_LHA_charged->GetGlobalBinNumber(gen_lha_charged, genjet_pt);
-          genBinPuppiMultCharged = generator_distribution_underflow_puppiMultiplicity_charged->GetGlobalBinNumber(gen_mult_charged, genjet_pt);
-          genBinpTDCharged = generator_distribution_underflow_pTD_charged->GetGlobalBinNumber(gen_ptd_charged, genjet_pt);
-          genBinThrustCharged = generator_distribution_underflow_thrust_charged->GetGlobalBinNumber(gen_thrust_charged, genjet_pt);
-          genBinWidthCharged = generator_distribution_underflow_width_charged->GetGlobalBinNumber(gen_width_charged, genjet_pt);
-        } else {
-          genBinLHA = generator_distribution_LHA->GetGlobalBinNumber(gen_lha, genjet_pt);
-          genBinPuppiMult = generator_distribution_puppiMultiplicity->GetGlobalBinNumber(gen_mult, genjet_pt);
-          genBinpTD = generator_distribution_pTD->GetGlobalBinNumber(gen_ptd, genjet_pt);
-          genBinThrust = generator_distribution_thrust->GetGlobalBinNumber(gen_thrust, genjet_pt);
-          genBinWidth = generator_distribution_width->GetGlobalBinNumber(gen_width, genjet_pt);
-
-          genBinLHACharged = generator_distribution_LHA_charged->GetGlobalBinNumber(gen_lha_charged, genjet_pt);
-          genBinPuppiMultCharged = generator_distribution_puppiMultiplicity_charged->GetGlobalBinNumber(gen_mult_charged, genjet_pt);
-          genBinpTDCharged = generator_distribution_pTD_charged->GetGlobalBinNumber(gen_ptd_charged, genjet_pt);
-          genBinThrustCharged = generator_distribution_thrust_charged->GetGlobalBinNumber(gen_thrust_charged, genjet_pt);
-          genBinWidthCharged = generator_distribution_width_charged->GetGlobalBinNumber(gen_width_charged, genjet_pt);
-        }
-
-        // Fill 1D gen hist
-        h_tu_gen_puppiMultiplicity->Fill(genBinPuppiMult, gen_weight);
-        h_tu_gen_LHA->Fill(genBinLHA, gen_weight);
-        h_tu_gen_pTD->Fill(genBinpTD, gen_weight);
-        h_tu_gen_width->Fill(genBinWidth, gen_weight);
-        h_tu_gen_thrust->Fill(genBinThrust, gen_weight);
-
-        h_tu_gen_puppiMultiplicity_charged->Fill(genBinPuppiMultCharged, gen_weight);
-        h_tu_gen_LHA_charged->Fill(genBinLHACharged, gen_weight);
-        h_tu_gen_pTD_charged->Fill(genBinpTDCharged, gen_weight);
-        h_tu_gen_width_charged->Fill(genBinWidthCharged, gen_weight);
-        h_tu_gen_thrust_charged->Fill(genBinThrustCharged, gen_weight);
-
-        // fill response matrix
-        int underflow_bin = 0;  // since bin edge, not physical value
-        h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, underflow_bin, gen_weight);
-        h_tu_response_LHA->Fill(genBinLHA, underflow_bin, gen_weight);
-        h_tu_response_pTD->Fill(genBinpTD, underflow_bin, gen_weight);
-        h_tu_response_width->Fill(genBinWidth, underflow_bin, gen_weight);
-        h_tu_response_thrust->Fill(genBinThrust, underflow_bin, gen_weight);
-
-        h_tu_response_puppiMultiplicity_charged->Fill(genBinPuppiMultCharged, underflow_bin, gen_weight);
-        h_tu_response_LHA_charged->Fill(genBinLHACharged, underflow_bin, gen_weight);
-        h_tu_response_pTD_charged->Fill(genBinpTDCharged, underflow_bin, gen_weight);
-        h_tu_response_width_charged->Fill(genBinWidthCharged, underflow_bin, gen_weight);
-        h_tu_response_thrust_charged->Fill(genBinThrustCharged, underflow_bin, gen_weight);
-
-        if (!onlyResponseHalf && doMCsplit_) {
-          // Fill 1D gen hist
-          h_tu_gen_puppiMultiplicity_half->Fill(genBinPuppiMult, gen_weight);
-          h_tu_gen_LHA_half->Fill(genBinLHA, gen_weight);
-          h_tu_gen_pTD_half->Fill(genBinpTD, gen_weight);
-          h_tu_gen_width_half->Fill(genBinWidth, gen_weight);
-          h_tu_gen_thrust_half->Fill(genBinThrust, gen_weight);
-
-          h_tu_gen_puppiMultiplicity_charged_half->Fill(genBinPuppiMultCharged, gen_weight);
-          h_tu_gen_LHA_charged_half->Fill(genBinLHACharged, gen_weight);
-          h_tu_gen_pTD_charged_half->Fill(genBinpTDCharged, gen_weight);
-          h_tu_gen_width_charged_half->Fill(genBinWidthCharged, gen_weight);
-          h_tu_gen_thrust_charged_half->Fill(genBinThrustCharged, gen_weight);
-        }
-
-        if (onlyResponseHalf && doMCsplit_) {
-          // fill response matrix
-          int underflow_bin = 0;  // since bin edge, not physical value
-          h_tu_response_puppiMultiplicity_half->Fill(genBinPuppiMult, underflow_bin, gen_weight);
-          h_tu_response_LHA_half->Fill(genBinLHA, underflow_bin, gen_weight);
-          h_tu_response_pTD_half->Fill(genBinpTD, underflow_bin, gen_weight);
-          h_tu_response_width_half->Fill(genBinWidth, underflow_bin, gen_weight);
-          h_tu_response_thrust_half->Fill(genBinThrust, underflow_bin, gen_weight);
-
-          h_tu_response_puppiMultiplicity_charged_half->Fill(genBinPuppiMultCharged, underflow_bin, gen_weight);
-          h_tu_response_LHA_charged_half->Fill(genBinLHACharged, underflow_bin, gen_weight);
-          h_tu_response_pTD_charged_half->Fill(genBinpTDCharged, underflow_bin, gen_weight);
-          h_tu_response_width_charged_half->Fill(genBinWidthCharged, underflow_bin, gen_weight);
-          h_tu_response_thrust_charged_half->Fill(genBinThrustCharged, underflow_bin, gen_weight);
-        }
+        h_tu_reco_LHA_charged_gen_binning_half->Fill(genBinLHACharged, weight);
+        h_tu_reco_puppiMultiplicity_charged_gen_binning_half->Fill(genBinPuppiMultCharged, weight);
+        h_tu_reco_pTD_charged_gen_binning_half->Fill(genBinpTDCharged, weight);
+        h_tu_reco_thrust_charged_gen_binning_half->Fill(genBinThrustCharged, weight);
+        h_tu_reco_width_charged_gen_binning_half->Fill(genBinWidthCharged, weight);
       }
     }
   }
+
+  // Fill gen jet 1D hists
+  // ---------------------------------------------------------------------------
+  if (is_mc_ && passGen) {
+    for (int i = 0; i < useNJets_; i++) {
+      const GenJetWithParts & thisjet = genjetLambdas->at(i).jet;
+      LambdaCalculator<GenParticle> genJetCalc = genjetLambdas->at(i).lambda; // can't be const as getLambda() modifies it
+      // FIXME check this corresponds to same jet as normal lambdas?
+      LambdaCalculator<GenParticle> genJetCalcCharged = genjetChargedLambdas->at(i).lambda;
+
+      float gen_lha = genJetCalc.getLambda(1, 0.5);
+      float gen_mult = genJetCalc.getLambda(0, 0);
+      float gen_ptd = genJetCalc.getLambda(2, 0);
+      float gen_width = genJetCalc.getLambda(1, 1);
+      float gen_thrust = genJetCalc.getLambda(1, 2);
+
+      float gen_lha_charged = genJetCalcCharged.getLambda(1, 0.5);
+      float gen_mult_charged = genJetCalcCharged.getLambda(0, 0);
+      float gen_ptd_charged = genJetCalcCharged.getLambda(2, 0);
+      float gen_width_charged = genJetCalcCharged.getLambda(1, 1);
+      float gen_thrust_charged = genJetCalcCharged.getLambda(1, 2);
+
+      float genjet_pt = thisjet.pt();
+
+      // Get TUnfold gen bins
+      // default to 0 for underflow
+      int genBinLHA(0), genBinPuppiMult(0), genBinpTD(0), genBinThrust(0), genBinWidth(0);
+      int genBinLHACharged(0), genBinPuppiMultCharged(0), genBinpTDCharged(0), genBinThrustCharged(0), genBinWidthCharged(0);
+      bool isUnderflowGen = (genjet_pt < Binning::pt_bin_edges_gen[0]);
+      // here we get bin number based on if underflow or not
+      if (isUnderflowGen) {
+        genBinLHA = generator_distribution_underflow_LHA->GetGlobalBinNumber(gen_lha, genjet_pt);
+        genBinPuppiMult = generator_distribution_underflow_puppiMultiplicity->GetGlobalBinNumber(gen_mult, genjet_pt);
+        genBinpTD = generator_distribution_underflow_pTD->GetGlobalBinNumber(gen_ptd, genjet_pt);
+        genBinThrust = generator_distribution_underflow_thrust->GetGlobalBinNumber(gen_thrust, genjet_pt);
+        genBinWidth = generator_distribution_underflow_width->GetGlobalBinNumber(gen_width, genjet_pt);
+
+        genBinLHACharged = generator_distribution_underflow_LHA_charged->GetGlobalBinNumber(gen_lha_charged, genjet_pt);
+        genBinPuppiMultCharged = generator_distribution_underflow_puppiMultiplicity_charged->GetGlobalBinNumber(gen_mult_charged, genjet_pt);
+        genBinpTDCharged = generator_distribution_underflow_pTD_charged->GetGlobalBinNumber(gen_ptd_charged, genjet_pt);
+        genBinThrustCharged = generator_distribution_underflow_thrust_charged->GetGlobalBinNumber(gen_thrust_charged, genjet_pt);
+        genBinWidthCharged = generator_distribution_underflow_width_charged->GetGlobalBinNumber(gen_width_charged, genjet_pt);
+      } else {
+        genBinLHA = generator_distribution_LHA->GetGlobalBinNumber(gen_lha, genjet_pt);
+        genBinPuppiMult = generator_distribution_puppiMultiplicity->GetGlobalBinNumber(gen_mult, genjet_pt);
+        genBinpTD = generator_distribution_pTD->GetGlobalBinNumber(gen_ptd, genjet_pt);
+        genBinThrust = generator_distribution_thrust->GetGlobalBinNumber(gen_thrust, genjet_pt);
+        genBinWidth = generator_distribution_width->GetGlobalBinNumber(gen_width, genjet_pt);
+
+        genBinLHACharged = generator_distribution_LHA_charged->GetGlobalBinNumber(gen_lha_charged, genjet_pt);
+        genBinPuppiMultCharged = generator_distribution_puppiMultiplicity_charged->GetGlobalBinNumber(gen_mult_charged, genjet_pt);
+        genBinpTDCharged = generator_distribution_pTD_charged->GetGlobalBinNumber(gen_ptd_charged, genjet_pt);
+        genBinThrustCharged = generator_distribution_thrust_charged->GetGlobalBinNumber(gen_thrust_charged, genjet_pt);
+        genBinWidthCharged = generator_distribution_width_charged->GetGlobalBinNumber(gen_width_charged, genjet_pt);
+      }
+
+      // Fill 1D gen hist
+      // -----------------------------------------------------------------------
+      h_tu_gen_puppiMultiplicity->Fill(genBinPuppiMult, gen_weight);
+      h_tu_gen_LHA->Fill(genBinLHA, gen_weight);
+      h_tu_gen_pTD->Fill(genBinpTD, gen_weight);
+      h_tu_gen_width->Fill(genBinWidth, gen_weight);
+      h_tu_gen_thrust->Fill(genBinThrust, gen_weight);
+
+      h_tu_gen_puppiMultiplicity_charged->Fill(genBinPuppiMultCharged, gen_weight);
+      h_tu_gen_LHA_charged->Fill(genBinLHACharged, gen_weight);
+      h_tu_gen_pTD_charged->Fill(genBinpTDCharged, gen_weight);
+      h_tu_gen_width_charged->Fill(genBinWidthCharged, gen_weight);
+      h_tu_gen_thrust_charged->Fill(genBinThrustCharged, gen_weight);
+
+      if (!onlyResponseHalf && doMCsplit_) {
+        // Fill 1D gen hist
+        h_tu_gen_puppiMultiplicity_half->Fill(genBinPuppiMult, gen_weight);
+        h_tu_gen_LHA_half->Fill(genBinLHA, gen_weight);
+        h_tu_gen_pTD_half->Fill(genBinpTD, gen_weight);
+        h_tu_gen_width_half->Fill(genBinWidth, gen_weight);
+        h_tu_gen_thrust_half->Fill(genBinThrust, gen_weight);
+
+        h_tu_gen_puppiMultiplicity_charged_half->Fill(genBinPuppiMultCharged, gen_weight);
+        h_tu_gen_LHA_charged_half->Fill(genBinLHACharged, gen_weight);
+        h_tu_gen_pTD_charged_half->Fill(genBinpTDCharged, gen_weight);
+        h_tu_gen_width_charged_half->Fill(genBinWidthCharged, gen_weight);
+        h_tu_gen_thrust_charged_half->Fill(genBinThrustCharged, gen_weight);
+      }
+
+      // Now fill response matrices
+      // -----------------------------------------------------------------------
+      // Loop through genjets, since if there isn't a reco jet then it's a miss-reco,
+      // whereas a recojet & no genjet is a fake, which we don't want in our migration matrix
+      int recBinLHA(0), recBinPuppiMult(0), recBinpTD(0), recBinThrust(0), recBinWidth(0);
+      int recBinLHACharged(0), recBinPuppiMultCharged(0), recBinpTDCharged(0), recBinThrustCharged(0), recBinWidthCharged(0);
+      int recoInd = -1;
+      if (passReco) { // only valid match if reco selection also passed
+        // First find matching recojet - annoyingly matches are held in the Jet class, not GenJet
+        // default to 0 for underflow
+        for (int j=0; j<useNJets_; j++) {
+          if (jetLambdas.at(j).jet.genjet_index() == i) { recoInd = j; break; }
+        }
+        if (recoInd >= 0) {
+          const Jet & thisjet = jetLambdas.at(recoInd).jet;
+          LambdaCalculator<PFParticle> recoJetCalc = jetLambdas.at(recoInd).lambda; // can't be const as getLambda() modifies it
+          // FIXME check this corresponds to same jet as normal lambdas?
+          LambdaCalculator<PFParticle> recoJetCalcCharged = jetChargedLambdas.at(recoInd).lambda;
+
+          float lha = recoJetCalc.getLambda(1, 0.5);
+          float puppiMult = recoJetCalc.getLambda(0, 0);
+          float ptd = recoJetCalc.getLambda(2, 0);
+          float width = recoJetCalc.getLambda(1, 1);
+          float thrust = recoJetCalc.getLambda(1, 2);
+
+          float lha_charged = recoJetCalcCharged.getLambda(1, 0.5);
+          float puppiMult_charged = recoJetCalcCharged.getLambda(0, 0);
+          float ptd_charged = recoJetCalcCharged.getLambda(2, 0);
+          float width_charged = recoJetCalcCharged.getLambda(1, 1);
+          float thrust_charged = recoJetCalcCharged.getLambda(1, 2);
+
+          float jet_pt = thisjet.pt();
+
+          bool isUnderflow = (jet_pt < Binning::pt_bin_edges_reco[0]);
+          // here we get bin number based on if underflow or not
+          if (isUnderflow) {
+            recBinLHA = detector_distribution_underflow_LHA->GetGlobalBinNumber(lha, jet_pt);
+            recBinPuppiMult = detector_distribution_underflow_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
+            recBinpTD = detector_distribution_underflow_pTD->GetGlobalBinNumber(ptd, jet_pt);
+            recBinThrust = detector_distribution_underflow_thrust->GetGlobalBinNumber(thrust, jet_pt);
+            recBinWidth = detector_distribution_underflow_width->GetGlobalBinNumber(width, jet_pt);
+
+            recBinLHACharged = detector_distribution_underflow_LHA_charged->GetGlobalBinNumber(lha_charged, jet_pt);
+            recBinPuppiMultCharged = detector_distribution_underflow_puppiMultiplicity_charged->GetGlobalBinNumber(puppiMult_charged, jet_pt);
+            recBinpTDCharged = detector_distribution_underflow_pTD_charged->GetGlobalBinNumber(ptd_charged, jet_pt);
+            recBinThrustCharged = detector_distribution_underflow_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
+            recBinWidthCharged = detector_distribution_underflow_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
+          } else {
+            recBinLHA = detector_distribution_LHA->GetGlobalBinNumber(lha, jet_pt);
+            recBinPuppiMult = detector_distribution_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
+            recBinpTD = detector_distribution_pTD->GetGlobalBinNumber(ptd, jet_pt);
+            recBinThrust = detector_distribution_thrust->GetGlobalBinNumber(thrust, jet_pt);
+            recBinWidth = detector_distribution_width->GetGlobalBinNumber(width, jet_pt);
+
+            recBinLHACharged = detector_distribution_LHA_charged->GetGlobalBinNumber(lha_charged, jet_pt);
+            recBinPuppiMultCharged = detector_distribution_puppiMultiplicity_charged->GetGlobalBinNumber(puppiMult_charged, jet_pt);
+            recBinpTDCharged = detector_distribution_pTD_charged->GetGlobalBinNumber(ptd_charged, jet_pt);
+            recBinThrustCharged = detector_distribution_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
+            recBinWidthCharged = detector_distribution_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
+          }
+        }
+      } // end if passReco
+
+      // Fill TUnfold 2D response maps
+      // ---------------------------------------------------------------
+      h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, recBinPuppiMult, weight);
+      h_tu_response_LHA->Fill(genBinLHA, recBinLHA, weight);
+      h_tu_response_pTD->Fill(genBinpTD, recBinpTD, weight);
+      h_tu_response_width->Fill(genBinWidth, recBinWidth, weight);
+      h_tu_response_thrust->Fill(genBinThrust, recBinThrust, weight);
+
+      h_tu_response_puppiMultiplicity_charged->Fill(genBinPuppiMultCharged, recBinPuppiMultCharged, weight);
+      h_tu_response_LHA_charged->Fill(genBinLHACharged, recBinLHACharged, weight);
+      h_tu_response_pTD_charged->Fill(genBinpTDCharged, recBinpTDCharged, weight);
+      h_tu_response_width_charged->Fill(genBinWidthCharged, recBinWidthCharged, weight);
+      h_tu_response_thrust_charged->Fill(genBinThrustCharged, recBinThrustCharged, weight);
+
+      // we need to add in an extra part, such that the 1D projection on the gen axis
+      // agrees with the 1D gen histogram
+      // i.e. account for the difference between the reco_weight (goes into event.weight) and gen_weight
+      // we use the underflow bin for this
+      // (0 as bin edges are tunfold bin numbers, not physical values, so the first bin is 0-1,
+      // not to be confused with ROOT binning, starting at 1 :s)
+      double corr_weight = gen_weight * (1 - reco_weight);
+      int underflow_bin = 0;
+      h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, underflow_bin, corr_weight);
+      h_tu_response_LHA->Fill(genBinLHA, underflow_bin, corr_weight);
+      h_tu_response_pTD->Fill(genBinpTD, underflow_bin, corr_weight);
+      h_tu_response_width->Fill(genBinWidth, underflow_bin, corr_weight);
+      h_tu_response_thrust->Fill(genBinThrust, underflow_bin, corr_weight);
+
+      h_tu_response_puppiMultiplicity_charged->Fill(genBinPuppiMultCharged, underflow_bin, corr_weight);
+      h_tu_response_LHA_charged->Fill(genBinLHACharged, underflow_bin, corr_weight);
+      h_tu_response_pTD_charged->Fill(genBinpTDCharged, underflow_bin, corr_weight);
+      h_tu_response_width_charged->Fill(genBinWidthCharged, underflow_bin, corr_weight);
+      h_tu_response_thrust_charged->Fill(genBinThrustCharged, underflow_bin, corr_weight);
+
+      if (onlyResponseHalf && doMCsplit_) {
+        h_tu_response_puppiMultiplicity_half->Fill(genBinPuppiMult, recBinPuppiMult, weight);
+        h_tu_response_LHA_half->Fill(genBinLHA, recBinLHA, weight);
+        h_tu_response_pTD_half->Fill(genBinpTD, recBinpTD, weight);
+        h_tu_response_width_half->Fill(genBinWidth, recBinWidth, weight);
+        h_tu_response_thrust_half->Fill(genBinThrust, recBinThrust, weight);
+
+        h_tu_response_puppiMultiplicity_charged_half->Fill(genBinPuppiMultCharged, recBinPuppiMultCharged, weight);
+        h_tu_response_LHA_charged_half->Fill(genBinLHACharged, recBinLHACharged, weight);
+        h_tu_response_pTD_charged_half->Fill(genBinpTDCharged, recBinpTDCharged, weight);
+        h_tu_response_width_charged_half->Fill(genBinWidthCharged, recBinWidthCharged, weight);
+        h_tu_response_thrust_charged_half->Fill(genBinThrustCharged, recBinThrustCharged, weight);
+
+        // extra part for correct weighting
+        h_tu_response_puppiMultiplicity_half->Fill(genBinPuppiMult, underflow_bin, corr_weight);
+        h_tu_response_LHA_half->Fill(genBinLHA, underflow_bin, corr_weight);
+        h_tu_response_pTD_half->Fill(genBinpTD, underflow_bin, corr_weight);
+        h_tu_response_width_half->Fill(genBinWidth, underflow_bin, corr_weight);
+        h_tu_response_thrust_half->Fill(genBinThrust, underflow_bin, corr_weight);
+
+        h_tu_response_puppiMultiplicity_charged_half->Fill(genBinPuppiMultCharged, underflow_bin, corr_weight);
+        h_tu_response_LHA_charged_half->Fill(genBinLHACharged, underflow_bin, corr_weight);
+        h_tu_response_pTD_charged_half->Fill(genBinpTDCharged, underflow_bin, corr_weight);
+        h_tu_response_width_charged_half->Fill(genBinWidthCharged, underflow_bin, corr_weight);
+        h_tu_response_thrust_charged_half->Fill(genBinThrustCharged, underflow_bin, corr_weight);
+      }
+    } // end of for loop over genjets
+  }
+
 }
 
 
@@ -1103,77 +915,5 @@ TH2F * QGAnalysisUnfoldHists::copy_book_th2f(TH2 * h, const std::string & append
 
 }
 
-
-
-/**
- * Get the collection of GenParticle*s for a given GenJet
- */
-std::vector<GenParticle*> QGAnalysisUnfoldHists::get_genjet_genparticles(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles) {
-  std::vector<GenParticle*> gp;
-  for (const uint i : jet.genparticles_indices()) {
-    gp.push_back(&(genparticles->at(i)));
-  }
-  return gp;
-}
-
-
-/**
- * Get the collection of PFParticle*s for a given Jet
- */
-std::vector<PFParticle*> QGAnalysisUnfoldHists::get_jet_pfparticles(const Jet & jet, std::vector<PFParticle>* pfparticles) {
-  std::vector<PFParticle*> pf;
-  for (const uint i : jet.daughterIndices()) {
-    pf.push_back(&(pfparticles->at(i)));
-  }
-  return pf;
-}
-
-
-void QGAnalysisUnfoldHists::shift_neutral_hadron_pfparticles(std::vector<PFParticle*> pfparticles, float direction, float rel_shift) {
-  for (auto & itr : pfparticles) {
-    if (itr->particleID() == PFParticle::eH0) {
-      itr->set_pt(itr->pt() * (1 + (direction * rel_shift)));
-    }
-  }
-}
-
-void QGAnalysisUnfoldHists::shift_photon_pfparticles(std::vector<PFParticle*> pfparticles, float direction, float rel_shift) {
-  for (auto & itr : pfparticles) {
-    if (itr->particleID() == PFParticle::eGamma) {
-      itr->set_pt(itr->pt() * (1 + (direction * rel_shift)));
-    }
-  }
-}
-
-std::vector<PFParticle*> QGAnalysisUnfoldHists::create_copy(std::vector<PFParticle*> pfparticles) {
-  std::vector<PFParticle*> pfCopy;
-  for (const auto & itr: pfparticles) {
-    PFParticle * newPf = new PFParticle();
-    newPf->set_particleID(itr->particleID());
-    newPf->set_puppiWeight(itr->puppiWeight());
-    newPf->set_v4(itr->v4());
-    newPf->set_charge(itr->charge());
-    pfCopy.push_back(newPf);
-  }
-  return pfCopy;
-}
-
-/**
- *
- */
-// int QGAnalysisUnfoldHists::get_jet_flavour(const Jet & jet, std::vector<GenParticle>* genparticles) {
-//   cout << "jet:" << endl;
-//   cout << jet.eta() << " : " << jet.phi() << endl;
-//   if (jet.genParton() != nullptr) {
-//     cout << "gp: " << jet.genParton()->eta() << " : " << jet.genParton()->phi() << endl;
-//   }
-//   for (const auto& gp : *genparticles) {
-
-//     if (deltaR(jet.v4(), gp.v4()) < 0.1) cout << "*** ";
-//     cout << gp.eta() << " : " << gp.phi() << " : " << gp.pdgId() << " : " << gp.status() << " : " << deltaR(jet.v4(), gp.v4()) << endl;
-//     // if (gp.status)
-//   }
-//   return 1;
-// }
 
 QGAnalysisUnfoldHists::~QGAnalysisUnfoldHists(){}

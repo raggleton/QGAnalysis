@@ -236,13 +236,13 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLabel));
     zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
     zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1, "zplusjets"));
-    zplusjets_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG", 1, "zplusjets"));
+    zplusjets_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG", 1, "zplusjets", "", ""));
 
     std::string binning_method = "ave";
     dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
     dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
     dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter", 2, "dijet"));
-    dijet_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_tighter", 2, "dijet"));
+    dijet_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_tighter", 2, "dijet", "", ""));
 
     // event_sel.reset(new EventNumberSelection({111}));
 }

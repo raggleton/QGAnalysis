@@ -238,7 +238,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     zplusjets_hists_presel_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown", zLabel));
     zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
     zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", NJETS_ZPJ, "zplusjets"));
-    zplusjets_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG_Unfold", NJETS_ZPJ, "zplusjets"));
+    zplusjets_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG_Unfold", NJETS_ZPJ, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection"));
 
     std::string binning_method = "ave";
     dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
@@ -256,7 +256,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     dijet_hists_tighter.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
     dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", NJETS_DIJET, "dijet"));
     dijet_qg_hists_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter", NJETS_DIJET, "dijet"));
-    dijet_qg_unfold_hists_tighter.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_Unfold_tighter", NJETS_DIJET, "dijet"));
+    dijet_qg_unfold_hists_tighter.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_Unfold_tighter", NJETS_DIJET, "dijet", "DijetSelection", "DijetGenSelection"));
 
     // dijet_hists_presel_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_highPt", binning_method));
     // preselection hiss, if both gluon jets, one gluon, or both quark, or one or both unknown

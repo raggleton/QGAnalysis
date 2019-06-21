@@ -7,6 +7,7 @@
 #include "UHH2/core/include/Hists.h"
 #include "UHH2/core/include/NtupleObjects.h"
 #include "UHH2/common/include/TriggerSelection.h"
+#include "UHH2/QGAnalysis/include/QGAddModules.h"
 
 #include "TUnfoldBinning.h"
 #include "TRandom3.h"
@@ -24,17 +25,11 @@ namespace uhh2examples {
 class QGAnalysisUnfoldHists: public uhh2::Hists {
 public:
     // use the same constructor arguments as Hists for forwarding:
-    QGAnalysisUnfoldHists(uhh2::Context & ctx, const std::string & dirname, int useNJets, const std::string & selection);
+    QGAnalysisUnfoldHists(uhh2::Context & ctx, const std::string & dirname, int useNJets, const std::string & selection, const std::string & reco_sel_handle_name, const std::string & gen_sel_handle_name);
 
     virtual void fill(const uhh2::Event & ev) override;
     virtual ~QGAnalysisUnfoldHists();
 protected:
-    std::vector<GenParticle*> get_genjet_genparticles(const GenJetWithParts &, std::vector<GenParticle>*);
-    std::vector<PFParticle*> get_jet_pfparticles(const Jet &, std::vector<PFParticle>*);
-    void shift_neutral_hadron_pfparticles(std::vector<PFParticle*> pfparticles, float direction, float rel_shift);
-    void shift_photon_pfparticles(std::vector<PFParticle*> pfparticles, float direction, float rel_shift);
-    int get_jet_flavour(const Jet & jet, std::vector<GenParticle> * genparticles);
-    std::vector<PFParticle*> create_copy(std::vector<PFParticle*> pfparticles);
     TH1F * copy_book_th1f(TH1 * h, const std::string & append="_new");
     TH2F * copy_book_th2f(TH2 * h, const std::string & append="_new");
 
@@ -91,18 +86,16 @@ protected:
     TH2F * h_tu_response_width_charged, * h_tu_response_width_charged_half;
     TH1F * h_tu_reco_width_charged, * h_tu_reco_width_charged_half, *h_tu_reco_width_charged_gen_binning, *h_tu_reco_width_charged_gen_binning_half, *h_tu_gen_width_charged, *h_tu_gen_width_charged_half;
 
-    float jetRadius;
     int useNJets_;
-    bool doPuppi_;
     bool doHerwigReweighting;
     TH1F * reweightHist;
 
-    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+    uhh2::Event::Handle<std::vector<GenJetLambdaBundle> > genJetsLambda_handle, genJetsChargedLambda_handle;
+    uhh2::Event::Handle<std::vector<JetLambdaBundle> > jetsLambda_handle, jetsChargedLambda_handle;
     uhh2::Event::Handle<double> gen_weight_handle;
+    uhh2::Event::Handle<bool> pass_reco_handle;
+    uhh2::Event::Handle<bool> pass_gen_handle;
     bool is_mc_;
-    int neutral_pf_hadron_shift_;
-    int photon_shift_;
-    float recoDauPtCut_, genDauPtCut_;
 
     TRandom3 rand_;
     bool doMCsplit_;
