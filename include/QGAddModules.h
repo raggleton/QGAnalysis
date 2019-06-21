@@ -17,8 +17,6 @@
 #include "TGraph.h"
 
 
-namespace uhh2examples{
-
 // Easy way to refer to PDGIDs
 enum PDGID {
   UNKNOWN = 0,
@@ -128,7 +126,7 @@ public:
 private:
   uhh2::Event::Handle<std::vector<Muon>> hndlInput, hndlZ;
   uhh2::Event::Handle<double> gen_weight_handle;
-  std::unique_ptr<uhh2examples::ZllKFactor> zReweight;
+  std::unique_ptr<ZllKFactor> zReweight;
 };
 
 /**
@@ -163,11 +161,104 @@ private:
 
 template class LambdaCalculator<PFParticle>;
 template class LambdaCalculator<GenParticle>;
+
+/**
+ *
+ * Structure to hold Jet + lambda variable
+ */
+struct JetLambdaBundle {
+  Jet jet;
+  LambdaCalculator<PFParticle> lambda;
 };
+
+/**
+ * Structure to hold Jet + lambda variable
+ */
+struct GenJetLambdaBundle {
+  GenJetWithParts jet;
+  LambdaCalculator<GenParticle> lambda;
+};
+
 
 float get_jet_radius(const std::string & jet_cone);
 
 float calcGenHT(const std::vector<GenParticle> & gps);
+
+
+/**
+* Class to create et, LambdaCalcualtor structs
+*/
+class QGAnalysisJetLambda : public uhh2::AnalysisModule {
+public:
+  QGAnalysisJetLambda(uhh2::Context & ctx,
+                      float jetRadius,
+                      int nJetsMax,
+                      bool doPuppi,
+                      const PFParticleId & pfId,
+                      const std::string & jet_coll_name="jets",
+                      const std::string & output_coll_name="jetlambdas");
+  bool process(uhh2::Event & event);
+  std::vector<PFParticle*> get_jet_pfparticles(const Jet & jet, uhh2::Event & event);
+
+  void set_neutral_hadron_shift(int direction, float rel_shift);
+  void shift_neutral_hadron_pfparticles(std::vector<PFParticle*> pfparticles, float shift);
+
+  void set_photon_shift(int direction, float rel_shift);
+  void shift_photon_pfparticles(std::vector<PFParticle*> pfparticles, float shift);
+
+private:
+  float jetRadius_;
+  int nJetsMax_;
+  bool doPuppi_;
+  PFParticleId pfId_;
+  float neutralHadronShift_, photonShift_;
+  uhh2::Event::Handle<std::vector<Jet>> jet_handle;
+  uhh2::Event::Handle<std::vector<JetLambdaBundle>> output_handle;
+};
+
+/**
+ * Class to create GenJet, LambdaCalcualtor structs
+ */
+class QGAnalysisGenJetLambda : public uhh2::AnalysisModule {
+public:
+  QGAnalysisGenJetLambda(uhh2::Context & ctx,
+                         float jetRadius,
+                         int nJetsMax,
+                         const GenParticleId & genId,
+                         const std::string & jet_coll_name="genjets",
+                         const std::string & output_coll_name="genjetlambdas");
+  bool process(uhh2::Event & event);
+  std::vector<GenParticle*> get_jet_genparticles(const GenJetWithParts & genjet, uhh2::Event & event);
+
+  // Is shifting genjet constit energies sensible?
+  // void set_neutral_hadron_shift(float direction, float rel_shift);
+  // void shift_neutral_hadron_genparticles(std::vector<GenParticle*> genparticles, float shift);
+
+  // void set_photon_shift(float direction, float rel_shift);
+  // void shift_photon_genparticles(std::vector<GenParticle*> genparticles, float shift);
+
+private:
+  float jetRadius_;
+  int nJetsMax_;
+  GenParticleId genId_;
+  float neutralHadronShift_, photonShift_;
+  uhh2::Event::Handle<std::vector<GenJetWithParts>> genjet_handle;
+  uhh2::Event::Handle<std::vector<GenJetLambdaBundle>> output_handle;
+};
+
+
+/**
+ * Check if object is charged
+ */
+class ChargedCut {
+public:
+  ChargedCut() {}
+  bool operator()(const Particle & p, const uhh2::Event & ) const {
+    return p.charge() != 0;
+  }
+
+};
+
 
 namespace Binning {
   // For unfolding, the "coarse" binning is the binning used for the final unfolded plots

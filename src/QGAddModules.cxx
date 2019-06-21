@@ -10,7 +10,6 @@
 
 using namespace std;
 using namespace uhh2;
-using namespace uhh2examples;
 
 
 DataJetMetCorrector::DataJetMetCorrector(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone){
@@ -332,7 +331,7 @@ bool PtReweight::process(uhh2::Event & event, float value) {
   return true;
 }
 
-namespace uhh2examples {
+// namespace uhh2examples {
 
 
 template<class T>
@@ -416,7 +415,135 @@ void LambdaCalculator<T>::clearCache()
   resultsCache_.clear();
 }
 
+
+
+QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx, float jetRadius, int nJetsMax, bool doPuppi, const PFParticleId & pfId, const std::string & jet_coll_name, const std::string & output_coll_name):
+  jetRadius_(jetRadius),
+  nJetsMax_(nJetsMax),
+  doPuppi_(doPuppi),
+  pfId_(pfId),
+  jet_handle(ctx.get_handle<std::vector<Jet>>(jet_coll_name)),
+  output_handle(ctx.get_handle<std::vector<JetLambdaBundle>>(output_coll_name))
+{}
+
+bool QGAnalysisJetLambda::process(uhh2::Event & event) {
+  std::vector<Jet> jets = event.get(jet_handle);
+  std::vector<JetLambdaBundle> outputs;
+  int nJetCounter = 0;
+  for (auto & jet : jets) {
+    if (nJetsMax_ > 0 && nJetCounter == nJetsMax_) break;
+    // Get constituents
+    std::vector<PFParticle*> daughters = get_jet_pfparticles(jet, event);
+    // Shift energies if appropriate
+    if (fabs(neutralHadronShift_) > 1E-6) { shift_neutral_hadron_pfparticles(daughters, neutralHadronShift_); }
+    if (fabs(photonShift_) > 1E-6) { shift_photon_pfparticles(daughters, photonShift_); }
+    LambdaCalculator<PFParticle> recoJetCalc(daughters, jetRadius_, jet.v4(), doPuppi_);
+    JetLambdaBundle thisBundle{jet, recoJetCalc};
+    outputs.push_back(thisBundle);
+    nJetCounter++;
+  }
+  event.set(output_handle, std::move(outputs));
+  return true;
 }
+
+std::vector<PFParticle*> QGAnalysisJetLambda::get_jet_pfparticles(const Jet & jet, uhh2::Event & event) {
+  std::vector<PFParticle> * pfparticles = event.pfparticles;
+  std::vector<PFParticle*> pf;
+  for (const uint i : jet.daughterIndices()) {
+    if ((pfId_ && pfId_(pfparticles->at(i), event)) || !(pfId_)) {
+      pf.push_back(&(pfparticles->at(i)));
+    }
+  }
+  return pf;
+}
+
+void QGAnalysisJetLambda::set_neutral_hadron_shift(int direction, float rel_shift) {
+  neutralHadronShift_ = (direction * rel_shift);
+}
+
+void QGAnalysisJetLambda::shift_neutral_hadron_pfparticles(std::vector<PFParticle*> pfparticles, float shift) {
+  for (auto & itr : pfparticles) {
+    if (itr->particleID() == PFParticle::eH0) {
+      itr->set_pt(itr->pt() * (1 + shift));
+    }
+  }
+}
+
+void QGAnalysisJetLambda::set_photon_shift(int direction, float rel_shift) {
+  photonShift_ = (direction * rel_shift);
+}
+
+void QGAnalysisJetLambda::shift_photon_pfparticles(std::vector<PFParticle*> pfparticles, float shift) {
+  for (auto & itr : pfparticles) {
+    if (itr->particleID() == PFParticle::eGamma) {
+      itr->set_pt(itr->pt() * (1 + shift));
+    }
+  }
+}
+
+
+QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx, float jetRadius, int nJetsMax, const GenParticleId & genId, const std::string & jet_coll_name, const std::string & output_coll_name):
+  jetRadius_(jetRadius),
+  nJetsMax_(nJetsMax),
+  genId_(genId),
+  genjet_handle(ctx.get_handle<std::vector<GenJetWithParts>>(jet_coll_name)),
+  output_handle(ctx.get_handle<std::vector<GenJetLambdaBundle>>(output_coll_name))
+{}
+
+bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
+  std::vector<GenJetWithParts> jets = event.get(genjet_handle);
+  std::vector<GenJetLambdaBundle> outputs;
+  int nJetCounter = 0;
+  for (auto & jet : jets) {
+    if (nJetsMax_ > 0 && nJetCounter == nJetsMax_) break;
+    // Get constituents
+    std::vector<GenParticle*> daughters = get_jet_genparticles(jet, event);
+    // Shift energies if appropriate
+    // if (fabs(neutralHadronShift_) > 1E-6) { shift_neutral_hadron_genparticles(daughters, neutralHadronShift_); }
+    // if (fabs(photonShift_) > 1E-6) { shift_photon_genparticles(daughters, photonShift_); }
+    LambdaCalculator<GenParticle> genJetCalc(daughters, jetRadius_, jet.v4(), false);
+    GenJetLambdaBundle thisBundle{jet, genJetCalc};
+    outputs.push_back(thisBundle);
+    nJetCounter++;
+  }
+  event.set(output_handle, std::move(outputs));
+  return true;
+}
+
+std::vector<GenParticle*> QGAnalysisGenJetLambda::get_jet_genparticles(const GenJetWithParts & genjet, uhh2::Event & event) {
+  std::vector<GenParticle> * genparticles = event.genparticles;
+  std::vector<GenParticle*> gp;
+  for (const uint i : genjet.genparticles_indices()) {
+    if ((genId_ && genId_(genparticles->at(i), event)) || !(genId_)) {
+      gp.push_back(&(genparticles->at(i)));
+    }
+  }
+  return gp;
+}
+
+// void QGAnalysisGenJetLambda::set_neutral_hadron_shift(float direction, float rel_shift) {
+//   neutralHadronShift_ = (direction * rel_shift);
+// }
+
+// void QGAnalysisGenJetLambda::shift_neutral_hadron_genparticles(std::vector<GenParticle*> genparticles, float shift) {
+//   for (auto & itr : genparticles) {
+//     if (itr->pdgId() == PFParticle::eH0) {
+//       itr->set_pt(itr->pt() * (1 + shift));
+//     }
+//   }
+// }
+
+// void QGAnalysisGenJetLambda::set_photon_shift(float direction, float rel_shift) {
+//   photonShift_ = (direction * rel_shift);
+// }
+
+// void QGAnalysisGenJetLambda::shift_photon_genparticles(std::vector<GenParticle*> genparticles, float shift) {
+//   for (auto & itr : genparticles) {
+//     if (itr->pdgId() == PFParticle::eGamma) {
+//       itr->set_pt(itr->pt() * (1 + shift));
+//     }
+//   }
+// }
 
 
 std::vector<double> Binning::calculate_fine_binning(const std::vector<double> & coarse_bin_edges)
