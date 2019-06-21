@@ -376,7 +376,22 @@ float LambdaCalculator<T>::getLambda(float kappa, float beta)
   }
 
   // If not, calculate it and store in cache
+  // Special case if both 0 ie multiplicity
+  // Do it this way to ensure puppi weights correctly accounted for
   float result = 0.;
+  if (kappa == 0 && beta == 0) {
+    if (usePuppiWeight_) {
+      float result = 0.;
+      for (auto dtr : daughters_) {
+        result += dtr->puppiWeight();
+      }
+    } else {
+      result = daughters_.size();
+    }
+    resultsCache_[thisArgs] = result;
+    return result;
+  }
+
   for (auto dtr : daughters_) {
     float weight = usePuppiWeight_ ? dtr->puppiWeight() : 1.;
     float z = (kappa != 0) ? dtr->pt() / ptSum_ : 1.;
