@@ -138,8 +138,6 @@ bool GeneralEventSetup::process(uhh2::Event & event) {
 
   if(event.isRealData && !lumi_selection->passes(event)) return false;
 
-  if(!metfilters_selection->passes(event)) return false;
-
   pv_cleaner->process(event);
 
   electron_cleaner->process(event);
@@ -157,6 +155,9 @@ bool GeneralEventSetup::process(uhh2::Event & event) {
   jet_mu_cleaner->process(event);
 
   sort_by_pt(*event.jets);
+
+  // put this last, so objects are correctly cleaned, etc, for MCWeight afterwards
+  if(!metfilters_selection->passes(event)) return false;
 
   return true;
 }
