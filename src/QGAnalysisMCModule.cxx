@@ -203,8 +203,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     float mcSelFactor = 1.25;
 
     // Z+JETS selection
-    float mu1_pt = 20.;
-    float mu2_pt = 20.;
+    float mu1_pt = 26.; // muon pt cut comes from the cleaner in GeneralEventSetup
+    float mu2_pt = 26.;
     float mZ_window = 20.;
     float dphi_jet_z_min = 2.0;
     float second_jet_frac_max_zpj = 0.3;
