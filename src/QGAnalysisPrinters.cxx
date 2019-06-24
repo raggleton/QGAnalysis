@@ -70,7 +70,7 @@ void uhh2examples::printMuons(const std::vector<Muon> & muons, const std::string
     if (label != "") {
         std::cout << " [" << label << "]";
     }
-    std::cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << std::endl;
+    std::cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << " : " << itr.relIso() << Color::FG_DEFAULT << std::endl;
   }
 }
 
