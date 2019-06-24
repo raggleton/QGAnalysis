@@ -88,8 +88,8 @@ hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
   // muons
   n_mu_vs_pt = book<TH2F>(TString::Format("n_mu_vs_%s", binByVar.Data()), TString::Format(";N_{#mu};%s", binByVarLabel.Data()), 10, 0, 10, nbins_pt, 0, pt_max);
 
-  int nbins_reliso = 100;
-  float reliso_max = 1;
+  int nbins_reliso = 500;
+  float reliso_max = 10;
 
   float mu_pt_max = 1000;
 
