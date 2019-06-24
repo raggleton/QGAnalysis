@@ -381,7 +381,6 @@ float LambdaCalculator<T>::getLambda(float kappa, float beta)
   float result = 0.;
   if (kappa == 0 && beta == 0) {
     if (usePuppiWeight_) {
-      float result = 0.;
       for (auto dtr : daughters_) {
         result += dtr->puppiWeight();
       }
