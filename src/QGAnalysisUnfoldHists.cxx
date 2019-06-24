@@ -22,8 +22,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   doMCsplit_ = is_mc_;
 
   if (useNJets_ < 0) useNJets_ = 99999; // Do them all
-
-  if (useNJets_ == 0) throw runtime_error("useNJets should be > 0, or < 0 to use all jets in the event");
+  else if (useNJets_ == 0) throw runtime_error("useNJets should be > 0, or < 0 to use all jets in the event");
 
   if (selection != "dijet" && selection != "zplusjets") {
     throw runtime_error("selection must be dijet or zplusjets");

@@ -482,7 +482,7 @@ bool QGAnalysisMCModule::process(Event & event) {
         }
     }
 
-    // if (pass_zpj_reco || pass_zpj_gen) zplusjets_qg_unfold_hists->fill(event);
+    if (pass_zpj_reco || pass_zpj_gen) zplusjets_qg_unfold_hists->fill(event);
 
     // Do reco-specific DiJet hists & selection
     // -------------------------------------------------------------------------
@@ -534,7 +534,7 @@ bool QGAnalysisMCModule::process(Event & event) {
         }
     }
 
-    // if (pass_dj_reco || pass_dj_gen) dijet_qg_unfold_hists_tighter->fill(event);
+    if (pass_dj_reco || pass_dj_gen) dijet_qg_unfold_hists_tighter->fill(event);
 
     // Do pu-binned hists
     // -------------------------------------------------------------------------
