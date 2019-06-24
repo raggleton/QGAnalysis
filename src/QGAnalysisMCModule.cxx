@@ -199,6 +199,9 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     zLabel = "zMuonCand";
     zFinder.reset(new ZFinder(ctx, "muons", zLabel, ctx.get("z_reweight_file", "")));
 
+    // For gen selection, do as per reco selection but looser by this factor
+    float mcSelFactor = 1.25;
+
     // Z+JETS selection
     float mu1_pt = 20.;
     float mu2_pt = 20.;
@@ -207,7 +210,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     float second_jet_frac_max_zpj = 0.3;
     zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
 
-    zplusjets_gen_sel.reset(new ZplusJetsGenSelection(ctx, 20., 20., 20., 2.0, 0.3, "GoodGenJets", "GoodGenMuons"));
+    zplusjets_gen_sel.reset(new ZplusJetsGenSelection(ctx, mu1_pt/mcSelFactor, mu2_pt/mcSelFactor, mZ_window*mcSelFactor, dphi_jet_z_min/mcSelFactor, second_jet_frac_max_zpj*mcSelFactor, "GoodGenJets", "GoodGenMuons"));
 
     // Preselection for Z+J - only 2 muons to reco Z
     dphi_jet_z_min = 0.;
@@ -224,7 +227,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     dijet_sel.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, 1000, ss_eta, deta, sumEta));
     dijet_sel_tighter.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta));
 
-    dijet_gen_sel.reset(new DijetGenSelection(ctx, 2.0, 0.94, 0.3, false, 10, 10, "GoodGenJets"));
+    dijet_gen_sel.reset(new DijetGenSelection(ctx, dphi_min*mcSelFactor, second_jet_frac_max_dj*mcSelFactor, jet_asym_max*mcSelFactor, ss_eta, deta*mcSelFactor, sumEta*mcSelFactor, "GoodGenJets"));
 
     // zplusjets_theory_sel.reset(new ZplusJetsTheorySelection(ctx));
     // dijet_theory_sel.reset(new DijetTheorySelection(ctx));
@@ -333,7 +336,6 @@ bool QGAnalysisMCModule::process(Event & event) {
     // not gen-specific (only false if fails MET filters)
     bool passCommonRecoSetup = common_setup->process(event);
     if (!(njet_sel->passes(event) || ngenjet_sel->passes(event))) return false;
-
     // MC-specific parts like reweighting for SF, for muR/F scale, etc
     mc_reweight->process(event);
     mc_scalevar->process(event);
