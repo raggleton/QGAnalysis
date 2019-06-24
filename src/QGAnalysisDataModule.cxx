@@ -68,6 +68,8 @@ private:
 
     Event::Handle<bool> pass_zpj_sel_handle, pass_dj_sel_handle;
 
+    std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreator, jetChargedLambdaCreator;
+
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists, zplusjets_qg_hists;
     std::unique_ptr<Hists> zplusjets_qg_unfold_hists;
 
@@ -94,19 +96,21 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     if (pu_removal != "CHS" && pu_removal != "PUPPI") {
         throw runtime_error("Only PURemoval == CHS, PUPPI supported for now");
     }
-    float jet_radius = get_jet_radius(jet_cone);
+    float jetRadius = get_jet_radius(jet_cone);
 
     cout << "Running with jet cone: " << jet_cone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
 
-    common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jet_radius));
+    common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jetRadius));
     gen_weight_handle = ctx.declare_event_output<double>("gen_weight");
 
     pass_zpj_sel_handle = ctx.declare_event_output<bool> ("ZPlusJetsSelection");
     pass_dj_sel_handle = ctx.declare_event_output<bool> ("DijetSelection");
 
     // Event Selections
-    njet_sel.reset(new NJetSelection(1));
+    int NJETS_ZPJ = 1;
+    int NJETS_DIJET = 2;
+    njet_sel.reset(new NJetSelection(min(NJETS_ZPJ, NJETS_DIJET)));
 
     zLabel = "zMuonCand";
     zFinder.reset(new ZFinder(ctx, "muons", zLabel));
@@ -132,6 +136,44 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     float deta = 12;
     float sumEta = 10.;
     dijet_sel.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta));
+
+    // Lambda calculators
+    bool doPuppi = (pu_removal == "PUPPI");
+    int maxNJets = max(NJETS_ZPJ, NJETS_DIJET);
+    float recoConstitPtMin = 1.;
+
+    jetLambdaCreator.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, PtEtaCut(recoConstitPtMin, 5.), "jets", "JetLambdas"));
+    jetChargedLambdaCreator.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, AndId<PFParticle>(PtEtaCut(recoConstitPtMin, 5.), ChargedCut()), "jets", "JetChargedLambdas"));
+
+    // Setup for systematics
+    // FIXME put all this inside the ctor as it has ctx!
+    std::string neutralHadronShift = ctx.get("neutralHadronShift", "nominal");
+    float neutralHadronShiftAmount = 0.1;
+    if (neutralHadronShift == "nominal") {
+        // pass
+    } else if (neutralHadronShift == "up") {
+        jetLambdaCreator->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
+        jetChargedLambdaCreator->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
+    } else if (neutralHadronShift == "down") {
+        jetLambdaCreator->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
+        jetChargedLambdaCreator->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
+    } else {
+        throw runtime_error("neutralHadronShift must be nominal, up, or down");
+    }
+
+    std::string photonShift = ctx.get("photonShift", "nominal");
+    float photonShiftAmount = 0.01;
+    if (photonShift == "nominal") {
+        // pass
+    } else if (photonShift == "up") {
+        jetLambdaCreator->set_photon_shift(1, photonShiftAmount);
+        jetChargedLambdaCreator->set_photon_shift(1, photonShiftAmount);
+    } else if (photonShift == "down") {
+        jetLambdaCreator->set_photon_shift(-1, photonShiftAmount);
+        jetChargedLambdaCreator->set_photon_shift(-1, photonShiftAmount);
+    } else {
+        throw runtime_error("photonShift must be nominal, up, or down");
+    }
 
     // Triggers for data
     zerobias_trigger_sel.reset(new TriggerSelection("HLT_ZeroBias_v*"));
@@ -236,13 +278,13 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLabel));
     zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
     zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection"));
-    zplusjets_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG", 1, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection"));
+    zplusjets_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG_unfold", 1, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection"));
 
     std::string binning_method = "ave";
     dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
     dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
     dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter", 2, "dijet", "DijetSelection", "DijetGenSelection"));
-    dijet_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_tighter", 2, "dijet", "DijetSelection", "DijetGenSelection"));
+    dijet_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_tighter_unfold", 2, "dijet", "DijetSelection", "DijetGenSelection"));
 
     // event_sel.reset(new EventNumberSelection({111}));
 }
@@ -291,8 +333,15 @@ bool QGAnalysisDataModule::process(Event & event) {
     if (PRINTOUT) printJets(*event.jets);
 
     // Selection & hists
+    // will be overwritten below
     bool selected(false);
+    event.set(pass_zpj_sel_handle, false);
+    event.set(pass_dj_sel_handle, false);
 
+    // Calculate lambda vars for jets
+    // -------------------------------------------------------------------------
+    jetLambdaCreator->process(event);
+    jetChargedLambdaCreator->process(event);
 
     if (dataset == DATASET::SingleMu) {
         if (!zFinder->process(event))
