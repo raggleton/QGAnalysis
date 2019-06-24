@@ -1,5 +1,4 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisUnfoldHists.h"
-#include "UHH2/QGAnalysis/include/QGAddModules.h"
 #include "UHH2/core/include/Event.h"
 
 #include "TFile.h"
@@ -599,7 +598,6 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
 
   // avePtReco /= useNJets_;
   // avePtGen /= nGenJets;
-  std::cout << " Filling unfold reco jet hists" << std::endl;
 
   // Fill reco jet 1D hists
   // ---------------------------------------------------------------------------

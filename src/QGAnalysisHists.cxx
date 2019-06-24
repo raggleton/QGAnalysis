@@ -1,5 +1,4 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisHists.h"
-#include "UHH2/QGAnalysis/include/QGAddModules.h"
 #include "UHH2/core/include/Event.h"
 
 #include "TFile.h"
@@ -11,25 +10,19 @@ using namespace std;
 using namespace uhh2;
 using namespace uhh2examples;
 
-QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useNJets, const string & selection):
+QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useNJets, const string & selection, const string & reco_sel_handle_name, const string & gen_sel_handle_name):
   Hists(ctx, dirname),
   useNJets_(useNJets),
-  neutral_pf_hadron_shift_(0.),
-  photon_shift_(0.),
   rsp_midPt_cut_(100.),
   rsp_highPt_cut_(250.),
-  recoDauPtCut_(1.),
-  genDauPtCut_(0.),
-  rand_(4357), // random number generator for splitting MC into 2 independent groups for unfold testing
-  doMCsplit_(true)
+  recoDauPtCut_(1.)
   {
 
   is_mc_ = ctx.get("dataset_type") == "MC";
   doPuppi_ = (ctx.get("PURemoval") == "PUPPI");
 
   if (useNJets_ < 0) useNJets_ = 99999; // Do them all
-
-  if (useNJets_ == 0) throw runtime_error("useNJets should be > 0, or < 0 to use all jets in the event");
+  else if (useNJets_ == 0) throw runtime_error("useNJets should be > 0, or < 0 to use all jets in the event");
 
   if (selection != "dijet" && selection != "zplusjets") {
     throw runtime_error("selection must be dijet or zplusjets");
@@ -340,44 +333,17 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
   h_genjet_width_vs_pt = book<TH2F>("genjet_width_vs_pt", ";Width (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_genjet_thrust_vs_pt = book<TH2F>("genjet_thrust_vs_pt", ";Thrust (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
 
-  string jet_cone = ctx.get("JetCone", "AK4");
-  if (jet_cone.find("AK4") != string::npos)
-    jetRadius = 0.4;
-  else if (jet_cone.find("AK8") != string::npos)
-    jetRadius = 0.8;
-  else if (jet_cone.find("ca15") != string::npos)
-    jetRadius = 1.5;
-  else
-    throw runtime_error("Cannot determine jetRadius in QGAnalysisHists");
-
-  // Some normalisations that weren't done in the initial calculation
-  LHA_rescale = pow(jetRadius, 0.5);
-  width_rescale = jetRadius;
-  thrust_rescale = pow(jetRadius, 2.0);
-
-  if (is_mc_) genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > ("GoodGenJets");
-
-  std::string neutralPfShift = ctx.get("neutralHadronShift", "nominal");
-  if (neutralPfShift == "nominal") {
-    neutral_pf_hadron_shift_ = 0.;
-  } else if (neutralPfShift == "up") {
-    neutral_pf_hadron_shift_ = 1.;
-  } else if (neutralPfShift == "down") {
-    neutral_pf_hadron_shift_ = -1;
-  } else {
-    throw runtime_error("neutralPfShift must be nominal, up, or down");
+  if (is_mc_) {
+    genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > ("GoodGenJets");
+    genJetsLambda_handle = ctx.get_handle< std::vector<GenJetLambdaBundle> > ("GoodGenJetLambdas");
+    genJetsChargedLambda_handle = ctx.get_handle< std::vector<GenJetLambdaBundle> > ("GoodGenJetChargedLambdas");
+    pass_gen_handle = ctx.get_handle<bool> (gen_sel_handle_name);
   }
 
-  std::string photonShift = ctx.get("photonShift", "nominal");
-  if (photonShift == "nominal") {
-    photon_shift_ = 0.;
-  } else if (photonShift == "up") {
-    photon_shift_ = 1.;
-  } else if (photonShift == "down") {
-    photon_shift_ = -1;
-  } else {
-    throw runtime_error("photonShift must be nominal, up, or down");
-  }
+  jetsLambda_handle = ctx.get_handle< std::vector<JetLambdaBundle> > ("JetLambdas");
+  jetsChargedLambda_handle = ctx.get_handle< std::vector<JetLambdaBundle> > ("JetChargedLambdas");
+
+  pass_reco_handle = ctx.get_handle<bool> (reco_sel_handle_name);
 }
 
 
@@ -396,11 +362,6 @@ void QGAnalysisHists::fill(const Event & event){
     herwig_weight = reweightHist->GetBinContent(bin_num);
   }
 
-  // fill the histograms. Please note the comments in the header file:
-  // 'hist' is used here a lot for simplicity, but it will be rather
-  // slow when you have many histograms; therefore, better
-  // use histogram pointers as members as in 'UHH2/common/include/ElectronHists.h'
-  // Don't forget to always use the weight when filling.
   double weight = event.weight * herwig_weight;
 
   // extract the separate gen & reco weight components, needed for TUnfold
@@ -410,19 +371,30 @@ void QGAnalysisHists::fill(const Event & event){
 
   h_weights->Fill(weight);
 
-  const std::vector<GenJetWithParts> * genjets = nullptr;
+  // const std::vector<GenJetWithParts> * genjets = nullptr;
   if (is_mc_) {
-
     if (event.genInfo->binningValues().size() > 0)
       h_pthat_vs_weight->Fill(weight, event.genInfo->binningValues()[0]);
-
-    genjets = &event.get(genJets_handle);
+    // genjets = &event.get(genJets_handle);
   }
-  // cout << "***" << event.event << endl;
+  // Get selection flags
+  bool passReco = event.get(pass_reco_handle);
+  bool passGen(false);
 
-  // Random event flag for MC only filling response matrix
-  // This allows us to split the MC into 2 separate samples for testing
-  bool onlyResponseHalf = (rand_.Rndm() > 0.5);
+  // Get (Gen)Jet-Lambda Bundles
+  // ptr since then it can be null
+  const std::vector<GenJetLambdaBundle> * genjetLambdas = nullptr;
+  const std::vector<GenJetLambdaBundle> * genjetChargedLambdas = nullptr;
+  if (is_mc_) {
+    genjetLambdas = &event.get(genJetsLambda_handle);
+    genjetChargedLambdas = &event.get(genJetsChargedLambda_handle);
+    passGen = event.get(pass_gen_handle);
+  }
+
+  const std::vector<JetLambdaBundle> jetLambdas = event.get(jetsLambda_handle);
+  const std::vector<JetLambdaBundle> jetChargedLambdas = event.get(jetsChargedLambda_handle);
+
+  // cout << "***" << event.event << endl;
 
   // figure out ave pt across N jets
   // float avePtReco = 0.;
@@ -444,335 +416,280 @@ void QGAnalysisHists::fill(const Event & event){
   // avePtGen /= nGenJets;
 
   // Fill reco jet hists
+  // ---------------------------------------------------------------------------
   // At this point, all jet filtering etc should have already been performed
-  std::vector<int> matchedGenJetInds = {}; // hold indices of genjets matched to reco jets so we can check later
-  for (int i = 0; i < useNJets_; i++) {
-    const Jet & thisjet = jets->at(i);
-    // cout << thisjet.pt() << " : " << thisjet.eta() << endl;
-    std::vector<PFParticle*> orig_daughters = get_jet_pfparticles(thisjet, event.pfparticles);
+  if (passReco){
 
-    // Do uncertainty shifting of neutral hadron components
-    if (neutral_pf_hadron_shift_ != 0) {
-      std::vector<PFParticle*> daughters_copy = create_copy(orig_daughters);
-      shift_neutral_hadron_pfparticles(daughters_copy, neutral_pf_hadron_shift_, 0.1);
-      orig_daughters = daughters_copy;
-    }
-    // Do uncertainty shifting of photon components
-    if (photon_shift_ != 0) {
-      std::vector<PFParticle*> daughters_copy = create_copy(orig_daughters);
-      shift_photon_pfparticles(daughters_copy, photon_shift_, 0.01);
-      orig_daughters = daughters_copy;
-    }
+    for (int i = 0; i < useNJets_; i++) {
+      const Jet & thisjet = jetLambdas.at(i).jet;
+      LambdaCalculator<PFParticle> recoJetCalc = jetLambdas.at(i).lambda;
+      LambdaCalculator<PFParticle> recoJetCalcCharged = jetChargedLambdas.at(i).lambda;
 
-    // save only those with passing pt cut
-    std::vector<PFParticle*> daughters;
-    // Charged-only daughters version
-    std::vector<PFParticle*> chargedDaughters;
-    float puppiMult = 0;
-    float puppiMult_charged = 0;
-    for (auto dau : orig_daughters) {
-      if (dau->pt() > recoDauPtCut_) {
-        daughters.push_back(dau);
-        puppiMult += dau->puppiWeight();
-        if (dau->charge() != 0) {
-          chargedDaughters.push_back(dau);
-          puppiMult_charged += dau->puppiWeight();
-        }
-      }
-    }
-
-    float mult = daughters.size();
-    float mult_charged = chargedDaughters.size();
-
-    LambdaCalculator<PFParticle> recoJetCalc(daughters, jetRadius, thisjet.v4(), doPuppi_);
-    float lha = recoJetCalc.getLambda(1, 0.5);
-    float ptd = recoJetCalc.getLambda(2, 0);
-    float width = recoJetCalc.getLambda(1, 1);
-    float thrust = recoJetCalc.getLambda(1, 2);
-
-    LambdaCalculator<PFParticle> recoJetCalcCharged(chargedDaughters, jetRadius, thisjet.v4(), doPuppi_);
-    float lha_charged = recoJetCalcCharged.getLambda(1, 0.5);
-    float ptd_charged = recoJetCalcCharged.getLambda(2, 0);
-    float width_charged = recoJetCalcCharged.getLambda(1, 1);
-    float thrust_charged = recoJetCalcCharged.getLambda(1, 2);
-
-    float jet_pt = thisjet.pt();
-    h_weights_vs_pt->Fill(weight, jet_pt);
-    // if (i == 0) {
-    h_weights_vs_pt->Fill(weight, thisjet.pt());
-    if (is_mc_) {
-      if (event.genInfo->binningValues().size() > 0)
-        h_pthat_vs_jet_pt->Fill(thisjet.pt(), event.genInfo->binningValues()[0]);
-    }
-    // }
-    h_jet_pt_unweighted->Fill(jet_pt);
-    h_jet_pt->Fill(jet_pt, weight);
-    h_jet_eta->Fill(thisjet.eta(), weight);
-
-    h_jet_multiplicity->Fill(mult, weight);
-    h_jet_LHA->Fill(lha, weight);
-    h_jet_pTD->Fill(ptd, weight);
-    h_jet_width->Fill(width, weight);
-    h_jet_thrust->Fill(thrust, weight);
-
-    h_jet_multiplicity_vs_pt->Fill(mult, jet_pt, weight);
-    h_jet_LHA_vs_pt->Fill(lha, jet_pt, weight);
-    h_jet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
-    h_jet_width_vs_pt->Fill(width, jet_pt, weight);
-    h_jet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
-
-    // float puppiMult = thisjet.get_tag(Jet::puppiMultiplicity);
-    h_jet_puppiMultiplicity->Fill(puppiMult, weight);
-    h_jet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
-
-    if (is_mc_) {
-      // Store variables for matched GenJet
-      bool matchedGenJet = (thisjet.genjet_index() > -1);
-      bool matchedGenJetWithSelection = (matchedGenJet && (thisjet.genjet_index() < useNJets_)); // apply extra selection for TUnfold, but we don't want it normally for other plots
-      float genjet_pt = -1.;
-      float response = -1.;
-      std::unique_ptr<LambdaCalculator<GenParticle>> matchedGenJetCalc;
-
-      if (matchedGenJet) {
-        matchedGenJetInds.push_back(thisjet.genjet_index());
-
-        const GenJetWithParts & genjet = genjets->at(thisjet.genjet_index());
-        genjet_pt = genjet.pt();
-        response = jet_pt/genjet_pt;
-        h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
-
-        std::vector<GenParticle*> orig_genJetDaughters = get_genjet_genparticles(genjet, event.genparticles);
-
-        // apply cuts to genjet constituents
-        std::vector<GenParticle*> genJetDaughters;
-        for (auto dau : orig_genJetDaughters) {
-          if (dau->pt() > genDauPtCut_) {
-            genJetDaughters.push_back(dau);
-          }
-        }
-        // Response hists over all pt, and high/low pt split ones
-        float gen_mult = genJetDaughters.size();
-
-        fill_lambda_rsp_hists(mult, gen_mult, weight,
-          h_jet_multiplicity_response, h_jet_multiplicity_rel_response,
-          jet_pt,
-          h_jet_multiplicity_lowPt_response, h_jet_multiplicity_midPt_response, h_jet_multiplicity_highPt_response,
-          h_jet_multiplicity_lowPt_rel_response, h_jet_multiplicity_midPt_rel_response, h_jet_multiplicity_highPt_rel_response);
-
-        fill_lambda_rsp_hists(puppiMult, gen_mult, weight,
-          h_jet_puppiMultiplicity_response, h_jet_puppiMultiplicity_rel_response,
-          jet_pt,
-          h_jet_puppiMultiplicity_lowPt_response, h_jet_puppiMultiplicity_midPt_response, h_jet_puppiMultiplicity_highPt_response,
-          h_jet_puppiMultiplicity_lowPt_rel_response, h_jet_puppiMultiplicity_midPt_rel_response, h_jet_puppiMultiplicity_highPt_rel_response);
-
-
-        matchedGenJetCalc.reset(new LambdaCalculator<GenParticle>(genJetDaughters, jetRadius, genjet.v4(), false));
-
-        float gen_lha = matchedGenJetCalc->getLambda(1, 0.5);
-        fill_lambda_rsp_hists(lha, gen_lha, weight,
-          h_jet_LHA_response, h_jet_LHA_rel_response,
-          jet_pt,
-          h_jet_LHA_lowPt_response, h_jet_LHA_midPt_response, h_jet_LHA_highPt_response,
-          h_jet_LHA_lowPt_rel_response, h_jet_LHA_midPt_rel_response, h_jet_LHA_highPt_rel_response);
-
-        float gen_ptd = matchedGenJetCalc->getLambda(2, 0);
-        fill_lambda_rsp_hists(ptd, gen_ptd, weight,
-          h_jet_pTD_response, h_jet_pTD_rel_response,
-          jet_pt,
-          h_jet_pTD_lowPt_response, h_jet_pTD_midPt_response, h_jet_pTD_highPt_response,
-          h_jet_pTD_lowPt_rel_response, h_jet_pTD_midPt_rel_response, h_jet_pTD_highPt_rel_response);
-
-        float gen_width = matchedGenJetCalc->getLambda(1, 1);
-        fill_lambda_rsp_hists(width, gen_width, weight,
-          h_jet_width_response, h_jet_width_rel_response,
-          jet_pt,
-          h_jet_width_lowPt_response, h_jet_width_midPt_response, h_jet_width_highPt_response,
-          h_jet_width_lowPt_rel_response, h_jet_width_midPt_rel_response, h_jet_width_highPt_rel_response);
-
-        float gen_thrust = matchedGenJetCalc->getLambda(1, 2);
-        fill_lambda_rsp_hists(thrust, gen_thrust, weight,
-          h_jet_thrust_response, h_jet_thrust_rel_response,
-          jet_pt,
-          h_jet_thrust_lowPt_response, h_jet_thrust_midPt_response, h_jet_thrust_highPt_response,
-          h_jet_thrust_lowPt_rel_response, h_jet_thrust_midPt_rel_response, h_jet_thrust_highPt_rel_response);
-
-        // Do charged-only daughters version
-        std::vector<GenParticle*> genJetChargedDaughters;
-        for (auto dau : genJetDaughters) {
+      // Need to manually count # daughters since our calculator applies puppi weight
+      // save only those with passing pt cut
+      std::vector<PFParticle*> orig_daughters = get_jet_pfparticles(thisjet, event.pfparticles);
+      std::vector<PFParticle*> daughters;
+      // Charged-only daughters version
+      std::vector<PFParticle*> chargedDaughters;
+      for (auto dau : orig_daughters) {
+        if (dau->pt() > recoDauPtCut_) {
+          daughters.push_back(dau);
           if (dau->charge() != 0) {
-            genJetChargedDaughters.push_back(dau);
+            chargedDaughters.push_back(dau);
           }
         }
-        float gen_mult_charged = genJetChargedDaughters.size();
-        fill_lambda_rsp_hists(mult_charged, gen_mult_charged, weight,
-          h_jet_multiplicity_charged_response, h_jet_multiplicity_charged_rel_response,
-          jet_pt,
-          h_jet_multiplicity_charged_lowPt_response, h_jet_multiplicity_charged_midPt_response, h_jet_multiplicity_charged_highPt_response,
-          h_jet_multiplicity_charged_lowPt_rel_response, h_jet_multiplicity_charged_midPt_rel_response, h_jet_multiplicity_charged_highPt_rel_response);
-
-        fill_lambda_rsp_hists(puppiMult_charged, gen_mult_charged, weight,
-          h_jet_puppiMultiplicity_charged_response, h_jet_puppiMultiplicity_charged_rel_response,
-          jet_pt,
-          h_jet_puppiMultiplicity_charged_lowPt_response, h_jet_puppiMultiplicity_charged_midPt_response, h_jet_puppiMultiplicity_charged_highPt_response,
-          h_jet_puppiMultiplicity_charged_lowPt_rel_response, h_jet_puppiMultiplicity_charged_midPt_rel_response, h_jet_puppiMultiplicity_charged_highPt_rel_response);
-
-        LambdaCalculator<GenParticle> matchedGenJetCalcCharged(genJetChargedDaughters, jetRadius, genjet.v4(), false);
-        float gen_lha_charged = matchedGenJetCalcCharged.getLambda(1, 0.5);
-        fill_lambda_rsp_hists(lha_charged, gen_lha_charged, weight,
-          h_jet_LHA_charged_response, h_jet_LHA_charged_rel_response,
-          jet_pt,
-          h_jet_LHA_charged_lowPt_response, h_jet_LHA_charged_midPt_response, h_jet_LHA_charged_highPt_response,
-          h_jet_LHA_charged_lowPt_rel_response, h_jet_LHA_charged_midPt_rel_response, h_jet_LHA_charged_highPt_rel_response);
-
-        float gen_ptd_charged = matchedGenJetCalcCharged.getLambda(2, 0);
-        fill_lambda_rsp_hists(ptd_charged, gen_ptd_charged, weight,
-          h_jet_pTD_charged_response, h_jet_pTD_charged_rel_response,
-          jet_pt,
-          h_jet_pTD_charged_lowPt_response, h_jet_pTD_charged_midPt_response, h_jet_pTD_charged_highPt_response,
-          h_jet_pTD_charged_lowPt_rel_response, h_jet_pTD_charged_midPt_rel_response, h_jet_pTD_charged_highPt_rel_response);
-
-        float gen_width_charged = matchedGenJetCalcCharged.getLambda(1, 1);
-        fill_lambda_rsp_hists(width_charged, gen_width_charged, weight,
-          h_jet_width_charged_response, h_jet_width_charged_rel_response,
-          jet_pt,
-          h_jet_width_charged_lowPt_response, h_jet_width_charged_midPt_response, h_jet_width_charged_highPt_response,
-          h_jet_width_charged_lowPt_rel_response, h_jet_width_charged_midPt_rel_response, h_jet_width_charged_highPt_rel_response);
-
-        float gen_thrust_charged = matchedGenJetCalcCharged.getLambda(1, 2);
-        fill_lambda_rsp_hists(thrust_charged, gen_thrust_charged, weight,
-          h_jet_thrust_charged_response, h_jet_thrust_charged_rel_response,
-          jet_pt,
-          h_jet_thrust_charged_lowPt_response, h_jet_thrust_charged_midPt_response, h_jet_thrust_charged_highPt_response,
-          h_jet_thrust_charged_lowPt_rel_response, h_jet_thrust_charged_midPt_rel_response, h_jet_thrust_charged_highPt_rel_response);
-
       }
 
-      // int jet_flav = get_jet_flavour(thisjet, event.genparticles);
-      int jet_flav = abs(thisjet.flavor());
+      float mult = daughters.size();
+      float lha = recoJetCalc.getLambda(1, 0.5);
+      float puppiMult = recoJetCalc.getLambda(0, 0);
+      float ptd = recoJetCalc.getLambda(2, 0);
+      float width = recoJetCalc.getLambda(1, 1);
+      float thrust = recoJetCalc.getLambda(1, 2);
 
-      // Split by actual jet flavour - these only make sense for MC
-      if (jet_flav == 21) { // gluon jets
-        h_gjet_multiplicity->Fill(mult, weight);
-        h_gjet_LHA->Fill(lha, weight);
-        h_gjet_pTD->Fill(ptd, weight);
-        h_gjet_width->Fill(width, weight);
-        h_gjet_thrust->Fill(thrust, weight);
+      float mult_charged = chargedDaughters.size();
+      float lha_charged = recoJetCalcCharged.getLambda(1, 0.5);
+      float puppiMult_charged = recoJetCalcCharged.getLambda(0, 0);
+      float ptd_charged = recoJetCalcCharged.getLambda(2, 0);
+      float width_charged = recoJetCalcCharged.getLambda(1, 1);
+      float thrust_charged = recoJetCalcCharged.getLambda(1, 2);
 
-        h_gjet_multiplicity_vs_pt->Fill(mult, jet_pt, weight);
-        h_gjet_LHA_vs_pt->Fill(lha, jet_pt, weight);
-        h_gjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
-        h_gjet_width_vs_pt->Fill(width, jet_pt, weight);
-        h_gjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
-        if (matchedGenJet) h_gjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
-        h_gjet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
-      } else if ((jet_flav <= 3) && (jet_flav > 0)){ // uds jets
-        h_qjet_multiplicity->Fill(mult, weight);
-        h_qjet_LHA->Fill(lha, weight);
-        h_qjet_pTD->Fill(ptd, weight);
-        h_qjet_width->Fill(width, weight);
-        h_qjet_thrust->Fill(thrust, weight);
-
-        h_qjet_multiplicity_vs_pt->Fill(mult, jet_pt, weight);
-        h_qjet_LHA_vs_pt->Fill(lha, jet_pt, weight);
-        h_qjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
-        h_qjet_width_vs_pt->Fill(width, jet_pt, weight);
-        h_qjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
-        if (matchedGenJet) h_qjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
-        h_qjet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
+      float jet_pt = thisjet.pt();
+      h_weights_vs_pt->Fill(weight, jet_pt);
+      // if (i == 0) {
+      h_weights_vs_pt->Fill(weight, thisjet.pt());
+      if (is_mc_) {
+        if (event.genInfo->binningValues().size() > 0)
+          h_pthat_vs_jet_pt->Fill(thisjet.pt(), event.genInfo->binningValues()[0]);
       }
+      // }
+      h_jet_pt_unweighted->Fill(jet_pt);
+      h_jet_pt->Fill(jet_pt, weight);
+      h_jet_eta->Fill(thisjet.eta(), weight);
 
-      h_jet_flavour->Fill(jet_flav, weight);
-      h_jet_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
-      if (i == 0) {
-        h_jet1_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
-      }
-      else if (i == 1) {
-        h_jet2_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
-      }
+      h_jet_multiplicity->Fill(mult, weight);
+      h_jet_LHA->Fill(lha, weight);
+      h_jet_pTD->Fill(ptd, weight);
+      h_jet_width->Fill(width, weight);
+      h_jet_thrust->Fill(thrust, weight);
 
-      h_jet_flavour_vs_eta->Fill(jet_flav, thisjet.eta(), weight);
-    } // end is_mc_
+      h_jet_multiplicity_vs_pt->Fill(mult, jet_pt, weight);
+      h_jet_LHA_vs_pt->Fill(lha, jet_pt, weight);
+      h_jet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
+      h_jet_width_vs_pt->Fill(width, jet_pt, weight);
+      h_jet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
 
-    //  Do lambda correlation hists
-    // if (jet_pt > 100 && jet_pt < 200) {
-    //   h_jet_multiplicity_vs_LHA->Fill(mult, lha, weight);
-    //   h_jet_multiplicity_vs_pTD->Fill(mult, ptd, weight);
-    //   h_jet_multiplicity_vs_width->Fill(mult, width, weight);
-    //   h_jet_multiplicity_vs_thrust->Fill(mult, thrust, weight);
-    //   h_jet_LHA_vs_pTD->Fill(lha, ptd, weight);
-    //   h_jet_LHA_vs_width->Fill(lha, width, weight);
-    //   h_jet_LHA_vs_thrust->Fill(lha, thrust, weight);
-    //   h_jet_pTD_vs_width->Fill(ptd, width, weight);
-    //   h_jet_pTD_vs_thrust->Fill(ptd, thrust, weight);
-    //   h_jet_width_vs_thrust->Fill(width, thrust, weight);
+      // float puppiMult = thisjet.get_tag(Jet::puppiMultiplicity);
+      h_jet_puppiMultiplicity->Fill(puppiMult, weight);
+      h_jet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
 
-    //   if (abs(jet_flav) == 21) { // gluon jets
-    //     h_gjet_multiplicity_vs_LHA->Fill(mult, lha, weight);
-    //     h_gjet_multiplicity_vs_pTD->Fill(mult, ptd, weight);
-    //     h_gjet_multiplicity_vs_width->Fill(mult, width, weight);
-    //     h_gjet_multiplicity_vs_thrust->Fill(mult, thrust, weight);
-    //     h_gjet_LHA_vs_pTD->Fill(lha, ptd, weight);
-    //     h_gjet_LHA_vs_width->Fill(lha, width, weight);
-    //     h_gjet_LHA_vs_thrust->Fill(lha, thrust, weight);
-    //     h_gjet_pTD_vs_width->Fill(ptd, width, weight);
-    //     h_gjet_pTD_vs_thrust->Fill(ptd, thrust, weight);
-    //     h_gjet_width_vs_thrust->Fill(width, thrust, weight);
-    //   } else if ((abs(jet_flav) <= 3) && (abs(jet_flav) > 0)){ // uds jets
-    //     h_qjet_multiplicity_vs_LHA->Fill(mult, lha, weight);
-    //     h_qjet_multiplicity_vs_pTD->Fill(mult, ptd, weight);
-    //     h_qjet_multiplicity_vs_width->Fill(mult, width, weight);
-    //     h_qjet_multiplicity_vs_thrust->Fill(mult, thrust, weight);
-    //     h_qjet_LHA_vs_pTD->Fill(lha, ptd, weight);
-    //     h_qjet_LHA_vs_width->Fill(lha, width, weight);
-    //     h_qjet_LHA_vs_thrust->Fill(lha, thrust, weight);
-    //     h_qjet_pTD_vs_width->Fill(ptd, width, weight);
-    //     h_qjet_pTD_vs_thrust->Fill(ptd, thrust, weight);
-    //     h_qjet_width_vs_thrust->Fill(width, thrust, weight);
-    //   }
-    // }
-  } // end loop over reco jets
+      if (is_mc_) {
+        // Store variables for matched GenJet
+        bool matchedGenJet = (thisjet.genjet_index() > -1 && thisjet.genjet_index() < 5); // put upper limit to avoid weird matches
+        float genjet_pt = -1.;
+        float response = -1.;
 
-  if (is_mc_) {
-    // Fill GenJet hists
-    // GenJet cuts already done (pt & eta) in QGAnalysisMCModule
-    // std::vector<GenJetWithParts>* genjets = event.genjets;
+        if (matchedGenJet) { // we don't care about passing the GEN selection, just looking for a match
+          int thisInd = thisjet.genjet_index();
+          const GenJetWithParts & genjet = genjetLambdas->at(thisInd).jet;
+          LambdaCalculator<GenParticle> matchedGenJetCalc = genjetLambdas->at(thisInd).lambda;
+          LambdaCalculator<GenParticle> matchedGenJetCalcCharged = genjetChargedLambdas->at(thisInd).lambda;
 
-    int counter = 0;
-    int nocutCounter = -1;
-    for (const auto & thisjet : *genjets) {
-      nocutCounter++;
+          genjet_pt = genjet.pt();
+          response = jet_pt/genjet_pt;
+          h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+
+          // Response hists over all pt, and high/low pt split ones
+          float gen_mult = matchedGenJetCalc.getLambda(0, 0);
+          fill_lambda_rsp_hists(mult, gen_mult, weight,
+            h_jet_multiplicity_response, h_jet_multiplicity_rel_response,
+            jet_pt,
+            h_jet_multiplicity_lowPt_response, h_jet_multiplicity_midPt_response, h_jet_multiplicity_highPt_response,
+            h_jet_multiplicity_lowPt_rel_response, h_jet_multiplicity_midPt_rel_response, h_jet_multiplicity_highPt_rel_response);
+
+          fill_lambda_rsp_hists(puppiMult, gen_mult, weight,
+            h_jet_puppiMultiplicity_response, h_jet_puppiMultiplicity_rel_response,
+            jet_pt,
+            h_jet_puppiMultiplicity_lowPt_response, h_jet_puppiMultiplicity_midPt_response, h_jet_puppiMultiplicity_highPt_response,
+            h_jet_puppiMultiplicity_lowPt_rel_response, h_jet_puppiMultiplicity_midPt_rel_response, h_jet_puppiMultiplicity_highPt_rel_response);
+
+          float gen_lha = matchedGenJetCalc.getLambda(1, 0.5);
+          fill_lambda_rsp_hists(lha, gen_lha, weight,
+            h_jet_LHA_response, h_jet_LHA_rel_response,
+            jet_pt,
+            h_jet_LHA_lowPt_response, h_jet_LHA_midPt_response, h_jet_LHA_highPt_response,
+            h_jet_LHA_lowPt_rel_response, h_jet_LHA_midPt_rel_response, h_jet_LHA_highPt_rel_response);
+
+          float gen_ptd = matchedGenJetCalc.getLambda(2, 0);
+          fill_lambda_rsp_hists(ptd, gen_ptd, weight,
+            h_jet_pTD_response, h_jet_pTD_rel_response,
+            jet_pt,
+            h_jet_pTD_lowPt_response, h_jet_pTD_midPt_response, h_jet_pTD_highPt_response,
+            h_jet_pTD_lowPt_rel_response, h_jet_pTD_midPt_rel_response, h_jet_pTD_highPt_rel_response);
+
+          float gen_width = matchedGenJetCalc.getLambda(1, 1);
+          fill_lambda_rsp_hists(width, gen_width, weight,
+            h_jet_width_response, h_jet_width_rel_response,
+            jet_pt,
+            h_jet_width_lowPt_response, h_jet_width_midPt_response, h_jet_width_highPt_response,
+            h_jet_width_lowPt_rel_response, h_jet_width_midPt_rel_response, h_jet_width_highPt_rel_response);
+
+          float gen_thrust = matchedGenJetCalc.getLambda(1, 2);
+          fill_lambda_rsp_hists(thrust, gen_thrust, weight,
+            h_jet_thrust_response, h_jet_thrust_rel_response,
+            jet_pt,
+            h_jet_thrust_lowPt_response, h_jet_thrust_midPt_response, h_jet_thrust_highPt_response,
+            h_jet_thrust_lowPt_rel_response, h_jet_thrust_midPt_rel_response, h_jet_thrust_highPt_rel_response);
+
+          // Do charged-only daughters version
+          float gen_mult_charged = matchedGenJetCalcCharged.getLambda(0, 0);
+          fill_lambda_rsp_hists(mult_charged, gen_mult_charged, weight,
+            h_jet_multiplicity_charged_response, h_jet_multiplicity_charged_rel_response,
+            jet_pt,
+            h_jet_multiplicity_charged_lowPt_response, h_jet_multiplicity_charged_midPt_response, h_jet_multiplicity_charged_highPt_response,
+            h_jet_multiplicity_charged_lowPt_rel_response, h_jet_multiplicity_charged_midPt_rel_response, h_jet_multiplicity_charged_highPt_rel_response);
+
+          fill_lambda_rsp_hists(puppiMult_charged, gen_mult_charged, weight,
+            h_jet_puppiMultiplicity_charged_response, h_jet_puppiMultiplicity_charged_rel_response,
+            jet_pt,
+            h_jet_puppiMultiplicity_charged_lowPt_response, h_jet_puppiMultiplicity_charged_midPt_response, h_jet_puppiMultiplicity_charged_highPt_response,
+            h_jet_puppiMultiplicity_charged_lowPt_rel_response, h_jet_puppiMultiplicity_charged_midPt_rel_response, h_jet_puppiMultiplicity_charged_highPt_rel_response);
+
+          float gen_lha_charged = matchedGenJetCalcCharged.getLambda(1, 0.5);
+          fill_lambda_rsp_hists(lha_charged, gen_lha_charged, weight,
+            h_jet_LHA_charged_response, h_jet_LHA_charged_rel_response,
+            jet_pt,
+            h_jet_LHA_charged_lowPt_response, h_jet_LHA_charged_midPt_response, h_jet_LHA_charged_highPt_response,
+            h_jet_LHA_charged_lowPt_rel_response, h_jet_LHA_charged_midPt_rel_response, h_jet_LHA_charged_highPt_rel_response);
+
+          float gen_ptd_charged = matchedGenJetCalcCharged.getLambda(2, 0);
+          fill_lambda_rsp_hists(ptd_charged, gen_ptd_charged, weight,
+            h_jet_pTD_charged_response, h_jet_pTD_charged_rel_response,
+            jet_pt,
+            h_jet_pTD_charged_lowPt_response, h_jet_pTD_charged_midPt_response, h_jet_pTD_charged_highPt_response,
+            h_jet_pTD_charged_lowPt_rel_response, h_jet_pTD_charged_midPt_rel_response, h_jet_pTD_charged_highPt_rel_response);
+
+          float gen_width_charged = matchedGenJetCalcCharged.getLambda(1, 1);
+          fill_lambda_rsp_hists(width_charged, gen_width_charged, weight,
+            h_jet_width_charged_response, h_jet_width_charged_rel_response,
+            jet_pt,
+            h_jet_width_charged_lowPt_response, h_jet_width_charged_midPt_response, h_jet_width_charged_highPt_response,
+            h_jet_width_charged_lowPt_rel_response, h_jet_width_charged_midPt_rel_response, h_jet_width_charged_highPt_rel_response);
+
+          float gen_thrust_charged = matchedGenJetCalcCharged.getLambda(1, 2);
+          fill_lambda_rsp_hists(thrust_charged, gen_thrust_charged, weight,
+            h_jet_thrust_charged_response, h_jet_thrust_charged_rel_response,
+            jet_pt,
+            h_jet_thrust_charged_lowPt_response, h_jet_thrust_charged_midPt_response, h_jet_thrust_charged_highPt_response,
+            h_jet_thrust_charged_lowPt_rel_response, h_jet_thrust_charged_midPt_rel_response, h_jet_thrust_charged_highPt_rel_response);
+
+        } // end ifmc
+
+        // int jet_flav = get_jet_flavour(thisjet, event.genparticles);
+        int jet_flav = abs(thisjet.flavor());
+
+        // Split by actual jet flavour - these only make sense for MC
+        if (jet_flav == 21) { // gluon jets
+          h_gjet_multiplicity->Fill(mult, weight);
+          h_gjet_LHA->Fill(lha, weight);
+          h_gjet_pTD->Fill(ptd, weight);
+          h_gjet_width->Fill(width, weight);
+          h_gjet_thrust->Fill(thrust, weight);
+
+          h_gjet_multiplicity_vs_pt->Fill(mult, jet_pt, weight);
+          h_gjet_LHA_vs_pt->Fill(lha, jet_pt, weight);
+          h_gjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
+          h_gjet_width_vs_pt->Fill(width, jet_pt, weight);
+          h_gjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
+          if (matchedGenJet) h_gjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+          h_gjet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
+        } else if ((jet_flav <= 3) && (jet_flav > 0)){ // uds jets
+          h_qjet_multiplicity->Fill(mult, weight);
+          h_qjet_LHA->Fill(lha, weight);
+          h_qjet_pTD->Fill(ptd, weight);
+          h_qjet_width->Fill(width, weight);
+          h_qjet_thrust->Fill(thrust, weight);
+
+          h_qjet_multiplicity_vs_pt->Fill(mult, jet_pt, weight);
+          h_qjet_LHA_vs_pt->Fill(lha, jet_pt, weight);
+          h_qjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
+          h_qjet_width_vs_pt->Fill(width, jet_pt, weight);
+          h_qjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
+          if (matchedGenJet) h_qjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+          h_qjet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
+        }
+
+        h_jet_flavour->Fill(jet_flav, weight);
+        h_jet_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
+        if (i == 0) {
+          h_jet1_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
+        }
+        else if (i == 1) {
+          h_jet2_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
+        }
+
+        h_jet_flavour_vs_eta->Fill(jet_flav, thisjet.eta(), weight);
+      } // end is_mc_
+
+      //  Do lambda correlation hists
+      // if (jet_pt > 100 && jet_pt < 200) {
+      //   h_jet_multiplicity_vs_LHA->Fill(mult, lha, weight);
+      //   h_jet_multiplicity_vs_pTD->Fill(mult, ptd, weight);
+      //   h_jet_multiplicity_vs_width->Fill(mult, width, weight);
+      //   h_jet_multiplicity_vs_thrust->Fill(mult, thrust, weight);
+      //   h_jet_LHA_vs_pTD->Fill(lha, ptd, weight);
+      //   h_jet_LHA_vs_width->Fill(lha, width, weight);
+      //   h_jet_LHA_vs_thrust->Fill(lha, thrust, weight);
+      //   h_jet_pTD_vs_width->Fill(ptd, width, weight);
+      //   h_jet_pTD_vs_thrust->Fill(ptd, thrust, weight);
+      //   h_jet_width_vs_thrust->Fill(width, thrust, weight);
+
+      //   if (abs(jet_flav) == 21) { // gluon jets
+      //     h_gjet_multiplicity_vs_LHA->Fill(mult, lha, weight);
+      //     h_gjet_multiplicity_vs_pTD->Fill(mult, ptd, weight);
+      //     h_gjet_multiplicity_vs_width->Fill(mult, width, weight);
+      //     h_gjet_multiplicity_vs_thrust->Fill(mult, thrust, weight);
+      //     h_gjet_LHA_vs_pTD->Fill(lha, ptd, weight);
+      //     h_gjet_LHA_vs_width->Fill(lha, width, weight);
+      //     h_gjet_LHA_vs_thrust->Fill(lha, thrust, weight);
+      //     h_gjet_pTD_vs_width->Fill(ptd, width, weight);
+      //     h_gjet_pTD_vs_thrust->Fill(ptd, thrust, weight);
+      //     h_gjet_width_vs_thrust->Fill(width, thrust, weight);
+      //   } else if ((abs(jet_flav) <= 3) && (abs(jet_flav) > 0)){ // uds jets
+      //     h_qjet_multiplicity_vs_LHA->Fill(mult, lha, weight);
+      //     h_qjet_multiplicity_vs_pTD->Fill(mult, ptd, weight);
+      //     h_qjet_multiplicity_vs_width->Fill(mult, width, weight);
+      //     h_qjet_multiplicity_vs_thrust->Fill(mult, thrust, weight);
+      //     h_qjet_LHA_vs_pTD->Fill(lha, ptd, weight);
+      //     h_qjet_LHA_vs_width->Fill(lha, width, weight);
+      //     h_qjet_LHA_vs_thrust->Fill(lha, thrust, weight);
+      //     h_qjet_pTD_vs_width->Fill(ptd, width, weight);
+      //     h_qjet_pTD_vs_thrust->Fill(ptd, thrust, weight);
+      //     h_qjet_width_vs_thrust->Fill(width, thrust, weight);
+      //   }
+      // }
+    } // end loop over reco jets
+  } //end if passReco
+
+  // Fill GenJet hists
+  // ---------------------------------------------------------------------------
+  if (is_mc_ && passGen) {
+    for (int i = 0; i < useNJets_; i++) {
+      const GenJetWithParts & thisjet = genjetLambdas->at(i).jet;
+      LambdaCalculator<GenParticle> genJetCalc = genjetLambdas->at(i).lambda; // can't be const as getLambda() modifies it
+      // FIXME check this corresponds to same jet as normal lambdas?
+      LambdaCalculator<GenParticle> genJetCalcCharged = genjetChargedLambdas->at(i).lambda;
 
       float genjet_pt = thisjet.pt();
-
-      counter++;
-      if (counter > useNJets_)
-        break;
 
       h_genjet_pt->Fill(genjet_pt, gen_weight);
       h_genjet_eta->Fill(thisjet.eta(), gen_weight);
 
-      std::vector<GenParticle*> orig_genJetDaughters = get_genjet_genparticles(thisjet, event.genparticles);
-
-      // apply cuts on genjet constituents
-      std::vector<GenParticle*> genJetDaughters;
-      // Do charged-only daughters version
-      std::vector<GenParticle*> genJetChargedDaughters;
-      for (auto dau : orig_genJetDaughters) {
-        if (dau->pt() > genDauPtCut_) {
-          genJetDaughters.push_back(dau);
-          if (dau->charge() != 0) {
-            genJetChargedDaughters.push_back(dau);
-          }
-        }
-      }
-
-      // do special vars according to 1704.03878
-      LambdaCalculator<GenParticle> genJetCalc(genJetDaughters, jetRadius, thisjet.v4(), false);
       float gen_lha = genJetCalc.getLambda(1, 0.5);
+      float gen_mult = genJetCalc.getLambda(0, 0);
       float gen_ptd = genJetCalc.getLambda(2, 0);
       float gen_width = genJetCalc.getLambda(1, 1);
       float gen_thrust = genJetCalc.getLambda(1, 2);
-      uint gen_mult = genJetDaughters.size();
 
       h_genjet_multiplicity->Fill(gen_mult, gen_weight);
       h_genjet_LHA->Fill(gen_lha, gen_weight);
@@ -786,13 +703,11 @@ void QGAnalysisHists::fill(const Event & event){
       h_genjet_width_vs_pt->Fill(gen_width, genjet_pt, gen_weight);
       h_genjet_thrust_vs_pt->Fill(gen_thrust, genjet_pt, gen_weight);
 
-      LambdaCalculator<GenParticle> genJetCalcCharged(genJetChargedDaughters, jetRadius, thisjet.v4(), false);
       float gen_lha_charged = genJetCalcCharged.getLambda(1, 0.5);
+      float gen_mult_charged = genJetCalcCharged.getLambda(0, 0);
       float gen_ptd_charged = genJetCalcCharged.getLambda(2, 0);
       float gen_width_charged = genJetCalcCharged.getLambda(1, 1);
       float gen_thrust_charged = genJetCalcCharged.getLambda(1, 2);
-      uint gen_mult_charged = genJetDaughters.size();
-
 
       // if (thisjet.flavor() == 21) { // gluon jets
       //   h_ggenjet_multiplicity->Fill(mult, weight);
@@ -845,13 +760,13 @@ void QGAnalysisHists::fill_lambda_rsp_hists(float reco_val, float gen_val, float
 /**
  * Get the collection of GenParticle*s for a given GenJet
  */
-std::vector<GenParticle*> QGAnalysisHists::get_genjet_genparticles(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles) {
-  std::vector<GenParticle*> gp;
-  for (const uint i : jet.genparticles_indices()) {
-    gp.push_back(&(genparticles->at(i)));
-  }
-  return gp;
-}
+// std::vector<GenParticle*> QGAnalysisHists::get_genjet_genparticles(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles) {
+//   std::vector<GenParticle*> gp;
+//   for (const uint i : jet.genparticles_indices()) {
+//     gp.push_back(&(genparticles->at(i)));
+//   }
+//   return gp;
+// }
 
 
 /**
@@ -865,54 +780,6 @@ std::vector<PFParticle*> QGAnalysisHists::get_jet_pfparticles(const Jet & jet, s
   return pf;
 }
 
-
-void QGAnalysisHists::shift_neutral_hadron_pfparticles(std::vector<PFParticle*> pfparticles, float direction, float rel_shift) {
-  for (auto & itr : pfparticles) {
-    if (itr->particleID() == PFParticle::eH0) {
-      itr->set_pt(itr->pt() * (1 + (direction * rel_shift)));
-    }
-  }
-}
-
-void QGAnalysisHists::shift_photon_pfparticles(std::vector<PFParticle*> pfparticles, float direction, float rel_shift) {
-  for (auto & itr : pfparticles) {
-    if (itr->particleID() == PFParticle::eGamma) {
-      itr->set_pt(itr->pt() * (1 + (direction * rel_shift)));
-    }
-  }
-}
-
-std::vector<PFParticle*> QGAnalysisHists::create_copy(std::vector<PFParticle*> pfparticles) {
-  std::vector<PFParticle*> pfCopy;
-  for (const auto & itr: pfparticles) {
-    PFParticle * newPf = new PFParticle();
-    newPf->set_particleID(itr->particleID());
-    newPf->set_puppiWeight(itr->puppiWeight());
-    newPf->set_v4(itr->v4());
-    newPf->set_charge(itr->charge());
-    pfCopy.push_back(newPf);
-  }
-  return pfCopy;
-}
-
-
-/**
- *
- */
-// int QGAnalysisHists::get_jet_flavour(const Jet & jet, std::vector<GenParticle>* genparticles) {
-//   cout << "jet:" << endl;
-//   cout << jet.eta() << " : " << jet.phi() << endl;
-//   if (jet.genParton() != nullptr) {
-//     cout << "gp: " << jet.genParton()->eta() << " : " << jet.genParton()->phi() << endl;
-//   }
-//   for (const auto& gp : *genparticles) {
-
-//     if (deltaR(jet.v4(), gp.v4()) < 0.1) cout << "*** ";
-//     cout << gp.eta() << " : " << gp.phi() << " : " << gp.pdgId() << " : " << gp.status() << " : " << deltaR(jet.v4(), gp.v4()) << endl;
-//     // if (gp.status)
-//   }
-//   return 1;
-// }
 
 QGAnalysisHists::~QGAnalysisHists(){}
 

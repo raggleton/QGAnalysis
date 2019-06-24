@@ -142,7 +142,6 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     genmuons_handle = ctx.declare_event_output< std::vector<GenParticle> > ("GoodGenMuons");
     gen_weight_handle = ctx.declare_event_output<double>("gen_weight");
 
-
     pass_zpj_sel_handle = ctx.declare_event_output<bool> ("ZPlusJetsSelection");
     pass_zpj_gen_sel_handle = ctx.declare_event_output<bool> ("ZPlusJetsGenSelection");
     pass_dj_sel_handle = ctx.declare_event_output<bool> ("DijetSelection");
@@ -164,8 +163,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     jetLambdaCreator.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, PtEtaCut(recoConstitPtMin, 5.), "jets", "JetLambdas"));
     jetChargedLambdaCreator.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, AndId<PFParticle>(PtEtaCut(recoConstitPtMin, 5.), ChargedCut()), "jets", "JetChargedLambdas"));
     // do Lambda for more genjets, since we sometimes are interested in reco-genjet matches for genjets >= #3
-    genjetLambdaCreator.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 4, PtEtaCut(0., 5.), "GoodGenJets", "GoodGenJetLambdas"));
-    genjetChargedLambdaCreator.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 4, ChargedCut(), "GoodGenJets", "GoodGenJetChargedLambdas"));
+    genjetLambdaCreator.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 5, PtEtaCut(0., 5.), "GoodGenJets", "GoodGenJetLambdas"));
+    genjetChargedLambdaCreator.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 5, ChargedCut(), "GoodGenJets", "GoodGenJetChargedLambdas"));
 
     // Setup for systematics
     // FIXME put all this inside the ctor as it has ctx!
@@ -237,7 +236,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     zplusjets_hists_presel_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_g", zLabel));
     zplusjets_hists_presel_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown", zLabel));
     zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
-    zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", NJETS_ZPJ, "zplusjets"));
+    zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", NJETS_ZPJ, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection"));
     zplusjets_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG_Unfold", NJETS_ZPJ, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection"));
 
     std::string binning_method = "ave";
@@ -254,8 +253,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     dijet_hists_presel_g_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_g_unknown", binning_method));
     dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet", binning_method));
     dijet_hists_tighter.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
-    dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", NJETS_DIJET, "dijet"));
-    dijet_qg_hists_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter", NJETS_DIJET, "dijet"));
+    dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", NJETS_DIJET, "dijet", "DijetSelection", "DijetGenSelection"));
+    dijet_qg_hists_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter", NJETS_DIJET, "dijet", "DijetSelection", "DijetGenSelection"));
     dijet_qg_unfold_hists_tighter.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_Unfold_tighter", NJETS_DIJET, "dijet", "DijetSelection", "DijetGenSelection"));
 
     // dijet_hists_presel_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_highPt", binning_method));
@@ -292,9 +291,9 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         for (auto puBin : pu_bins) {
             std::unique_ptr<Selection> pu_sel(new NPVSelection(puBin.first, puBin.second));
             sel_pu_binned.push_back(std::move(pu_sel));
-            std::unique_ptr<QGAnalysisHists> zpj(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), NJETS_ZPJ, "zplusjets"));
+            std::unique_ptr<QGAnalysisHists> zpj(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), NJETS_ZPJ, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection"));
             zplusjets_qg_hists_pu_binned.push_back(std::move(zpj));
-            std::unique_ptr<QGAnalysisHists> dj(new QGAnalysisHists(ctx, TString::Format("Dijet_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), NJETS_DIJET, "dijet"));
+            std::unique_ptr<QGAnalysisHists> dj(new QGAnalysisHists(ctx, TString::Format("Dijet_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), NJETS_DIJET, "dijet", "DijetSelection", "DijetGenSelection"));
             dijet_qg_hists_pu_binned.push_back(std::move(dj));
         }
     }
@@ -312,7 +311,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     event.set(gen_weight_handle, orig_weight); // need to set this at the start
 
     if (PRINTOUT) { cout << "-- Event: " << event.event << endl; }
-    cout << "-- Event: " << event.event << endl;
+    // cout << "-- Event: " << event.event << endl;
 
     if (!(njet_sel->passes(event) || ngenjet_sel->passes(event))) return false;
 
@@ -427,7 +426,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     // -------------------------------------------------------------------------
     // But we still use the event.jets as all interesting
     std::vector<Jet> goodJets = getMatchedJets(event.jets, &event.get(genjets_handle), jetRadius/2.);
-    // std::swap(goodJets, *event.jets);
+    // std::swap(goodJets, *event.jets); // only save recojets with a match
 
     if (PRINTOUT) printJets(*event.jets, "Matched Jets");
     if (PRINTOUT) printGenJetsWithParts(event.get(genjets_handle), event.genparticles, "GoodGenJets");
