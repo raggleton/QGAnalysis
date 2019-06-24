@@ -107,7 +107,7 @@ private:
     float jetRadius;
     float htMax;
 
-    const bool DO_PU_BINNED_HISTS = false;
+    const bool DO_PU_BINNED_HISTS = true;
 
     std::unique_ptr<EventNumberSelection> event_sel;
 
