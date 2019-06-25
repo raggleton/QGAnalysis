@@ -22,15 +22,16 @@ void uhh2examples::printGenParticles(const std::vector<GenParticle> & gps, const
   }
 }
 
-std::vector<GenParticle*> uhh2examples::print_genjet_genparticles(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles) {
-  std::vector<GenParticle*> gp;
+void uhh2examples::print_genjet_genparticles(const GenJetWithParts & jet, const std::vector<GenParticle>* genparticles) {
   for (const uint i : jet.genparticles_indices()) {
-    gp.push_back(&(genparticles->at(i)));
+    std::cout << genparticles->at(i).pdgId() << " : " << genparticles->at(i).pt() << " : " << deltaR(jet.v4(), genparticles->at(i).v4()) << std::endl;
   }
-  for (const auto *itr : gp) {
-    std::cout << itr->pdgId() << " : " << itr->pt() << " : " << deltaR(jet.v4(), itr->v4()) << std::endl;
+}
+
+void uhh2examples::print_jet_pfparticles(const Jet & jet, const std::vector<PFParticle>* pfparticles) {
+  for (const uint i : jet.daughterIndices()) {
+    std::cout << pfparticles->at(i).pt() << " : " << pfparticles->at(i).charge() << " : " << deltaR(jet.v4(), pfparticles->at(i).v4()) << std::endl;
   }
-  return gp;
 }
 
 void uhh2examples::printGenJets(const std::vector<GenJetWithParts> & gps, const std::string & label, Color::Code color) {
@@ -43,14 +44,14 @@ void uhh2examples::printGenJets(const std::vector<GenJetWithParts> & gps, const 
   }
 }
 
-void uhh2examples::printGenJetsWithParts(const std::vector<GenJetWithParts> & gps, std::vector<GenParticle>* genparticles, const std::string & label, Color::Code color) {
+void uhh2examples::printGenJetsWithParts(const std::vector<GenJetWithParts> & gps, const std::vector<GenParticle>* genparticles, const std::string & label, Color::Code color) {
   for (auto & itr: gps) {
     std::cout << color << "GenJet";
     if (label != "") {
         std::cout << " [" << label << "]";
     }
     std::cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << std::endl;
-    print_genjet_genparticles(itr, genparticles);  // requires the print* funcs to have namespace explicitly written
+    uhh2examples::print_genjet_genparticles(itr, genparticles);  // requires the print* funcs to have namespace explicitly written
   }
 }
 
@@ -61,6 +62,18 @@ void uhh2examples::printJets(const std::vector<Jet> & jets, const std::string & 
         std::cout << " [" << label << "]";
     }
     std::cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << " : GenJet: " << itr.genjet_index() << Color::FG_DEFAULT << std::endl;
+  }
+}
+
+
+void uhh2examples::printJetsWithParts(const std::vector<Jet> & jets, const std::vector<PFParticle> * pfparticles, const std::string & label, Color::Code color) {
+  for (auto & itr: jets) {
+    std::cout << color << "jet";
+    if (label != "") {
+        std::cout << " [" << label << "]";
+    }
+    std::cout << ": " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << " : GenJet: " << itr.genjet_index() << Color::FG_DEFAULT << std::endl;
+    uhh2examples::print_jet_pfparticles(itr, pfparticles);
   }
 }
 
