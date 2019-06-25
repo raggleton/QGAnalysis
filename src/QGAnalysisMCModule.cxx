@@ -30,6 +30,7 @@ using namespace uhh2;
 
 namespace uhh2examples {
 
+// print out info about collections, only use for debugging
 const bool PRINTOUT = false;
 
 
@@ -430,9 +431,10 @@ bool QGAnalysisMCModule::process(Event & event) {
     std::vector<Jet> goodJets = getMatchedJets(event.jets, &event.get(genjets_handle), jetRadius/2.);
     // std::swap(goodJets, *event.jets); // only save recojets with a match
 
-    if (PRINTOUT) printJets(*event.jets, "Matched Jets");
-    if (PRINTOUT) printGenJets(event.get(genjets_handle), "GoodGenJets");
-    // if (PRINTOUT) printGenJetsWithParts(event.get(genjets_handle), event.genparticles, "GoodGenJets");
+    // if (PRINTOUT) printJets(*event.jets, "Matched Jets");
+    // if (PRINTOUT) printGenJets(event.get(genjets_handle), "GoodGenJets");
+    if (PRINTOUT) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets");
+    if (PRINTOUT) printGenJetsWithParts(event.get(genjets_handle), event.genparticles, "GoodGenJets");
 
     // Save selection flags
     // At this point, all objects should have had all necessary corrections, filtering, etc
