@@ -437,6 +437,8 @@ QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx, float jetRadius, i
   nJetsMax_(nJetsMax),
   doPuppi_(doPuppi),
   pfId_(pfId),
+  neutralHadronShift_(0), // these are the fractional shift, e.g. 0.2 for 20%
+  photonShift_(0),
   jet_handle(ctx.get_handle<std::vector<Jet>>(jet_coll_name)),
   output_handle(ctx.get_handle<std::vector<JetLambdaBundle>>(output_coll_name))
 {}
@@ -501,6 +503,8 @@ QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx, float jetRad
   jetRadius_(jetRadius),
   nJetsMax_(nJetsMax),
   genId_(genId),
+  neutralHadronShift_(0), // these are the fractional shift, e.g. 0.2 for 20%
+  photonShift_(0),
   genjet_handle(ctx.get_handle<std::vector<GenJetWithParts>>(jet_coll_name)),
   output_handle(ctx.get_handle<std::vector<GenJetLambdaBundle>>(output_coll_name))
 {}
