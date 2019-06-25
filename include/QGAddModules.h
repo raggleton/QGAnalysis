@@ -148,11 +148,11 @@ private:
  */
 template <class T> class LambdaCalculator {
 public:
-  LambdaCalculator(std::vector<T*> daughters, float jet_radius, const LorentzVector & jet_vector, bool usePuppiWeight);
+  LambdaCalculator(std::vector<T> & daughters, float jet_radius, const LorentzVector & jet_vector, bool usePuppiWeight);
   float getLambda(float kappa, float beta);
   void clearCache();
 private:
-  std::vector<T*> daughters_;
+  std::vector<T> daughters_;
   float jetRadius_, ptSum_;
   LorentzVector jetVector_;
   bool usePuppiWeight_;
@@ -186,7 +186,7 @@ float calcGenHT(const std::vector<GenParticle> & gps);
 
 
 /**
-* Class to create et, LambdaCalcualtor structs
+* Class to create Jet, LambdaCalculator structs
 */
 class QGAnalysisJetLambda : public uhh2::AnalysisModule {
 public:
@@ -198,13 +198,13 @@ public:
                       const std::string & jet_coll_name="jets",
                       const std::string & output_coll_name="jetlambdas");
   bool process(uhh2::Event & event);
-  std::vector<PFParticle*> get_jet_pfparticles(const Jet & jet, uhh2::Event & event);
+  std::vector<PFParticle> get_jet_pfparticles(const Jet & jet, uhh2::Event & event);
 
   void set_neutral_hadron_shift(int direction, float rel_shift);
-  void shift_neutral_hadron_pfparticles(std::vector<PFParticle*> pfparticles, float shift);
+  void shift_neutral_hadron_pfparticles(std::vector<PFParticle> & pfparticles, float shift);
 
   void set_photon_shift(int direction, float rel_shift);
-  void shift_photon_pfparticles(std::vector<PFParticle*> pfparticles, float shift);
+  void shift_photon_pfparticles(std::vector<PFParticle> & pfparticles, float shift);
 
 private:
   float jetRadius_;
@@ -217,7 +217,7 @@ private:
 };
 
 /**
- * Class to create GenJet, LambdaCalcualtor structs
+ * Class to create GenJet, LambdaCalculator structs
  */
 class QGAnalysisGenJetLambda : public uhh2::AnalysisModule {
 public:
@@ -228,7 +228,7 @@ public:
                          const std::string & jet_coll_name="genjets",
                          const std::string & output_coll_name="genjetlambdas");
   bool process(uhh2::Event & event);
-  std::vector<GenParticle*> get_jet_genparticles(const GenJetWithParts & genjet, uhh2::Event & event);
+  std::vector<GenParticle> get_jet_genparticles(const GenJetWithParts & genjet, uhh2::Event & event);
 
   // Is shifting genjet constit energies sensible?
   // void set_neutral_hadron_shift(float direction, float rel_shift);

@@ -336,7 +336,7 @@ bool PtReweight::process(uhh2::Event & event, float value) {
 
 
 template<class T>
-LambdaCalculator<T>::LambdaCalculator(std::vector<T*> daughters, float jet_radius, const LorentzVector & jet_vector, bool usePuppiWeight):
+LambdaCalculator<T>::LambdaCalculator(std::vector<T> & daughters, float jet_radius, const LorentzVector & jet_vector, bool usePuppiWeight):
   daughters_(daughters),
   jetRadius_(jet_radius),
   ptSum_(0),
@@ -344,15 +344,15 @@ LambdaCalculator<T>::LambdaCalculator(std::vector<T*> daughters, float jet_radiu
   usePuppiWeight_(usePuppiWeight)
 {
   // cache pt_sum
-  for (auto dtr : daughters_) {
-    float weight = usePuppiWeight_ ? dtr->puppiWeight() : 1.;
-    ptSum_ += weight*dtr->pt();
+  for (auto & dtr : daughters_) {
+    float weight = usePuppiWeight_ ? dtr.puppiWeight() : 1.;
+    ptSum_ += weight*dtr.pt();
   }
   // cout << "calc ptSum: " << ptSum_ << endl;
 }
 
 template<>
-LambdaCalculator<GenParticle>::LambdaCalculator(std::vector<GenParticle*> daughters, float jet_radius, const LorentzVector & jet_vector, bool usePuppiWeight):
+LambdaCalculator<GenParticle>::LambdaCalculator(std::vector<GenParticle> & daughters, float jet_radius, const LorentzVector & jet_vector, bool usePuppiWeight):
   daughters_(daughters),
   jetRadius_(jet_radius),
   ptSum_(0),
@@ -360,8 +360,8 @@ LambdaCalculator<GenParticle>::LambdaCalculator(std::vector<GenParticle*> daught
   usePuppiWeight_(usePuppiWeight)
 {
   // cache pt_sum
-  for (auto dtr : daughters_) {
-    ptSum_ += dtr->pt();
+  for (auto & dtr : daughters_) {
+    ptSum_ += dtr.pt();
   }
 }
 
@@ -383,7 +383,7 @@ float LambdaCalculator<T>::getLambda(float kappa, float beta)
   if (kappa == 0 && beta == 0) {
     if (usePuppiWeight_) {
       for (auto dtr : daughters_) {
-        result += dtr->puppiWeight();
+        result += dtr.puppiWeight();
       }
     } else {
       result = daughters_.size();
@@ -393,10 +393,10 @@ float LambdaCalculator<T>::getLambda(float kappa, float beta)
   }
 
   for (auto dtr : daughters_) {
-    float weight = usePuppiWeight_ ? dtr->puppiWeight() : 1.;
-    float z = (kappa != 0) ? dtr->pt() / ptSum_ : 1.;
+    float weight = usePuppiWeight_ ? dtr.puppiWeight() : 1.;
+    float z = (kappa != 0) ? dtr.pt() / ptSum_ : 1.;
     z *= weight;
-    float theta = (beta != 0) ? deltaR(dtr->v4(), jetVector_) / jetRadius_ : 1.; // 1 as puppi doesn't change direction
+    float theta = (beta != 0) ? deltaR(dtr.v4(), jetVector_) / jetRadius_ : 1.; // 1 as puppi doesn't change direction
     result += (pow(z, kappa) * pow(theta, beta));
   }
   resultsCache_[thisArgs] = result;
@@ -416,8 +416,8 @@ float LambdaCalculator<GenParticle>::getLambda(float kappa, float beta)
   // If not, calculate it and store in cache
   float result = 0.;
   for (auto dtr : daughters_) {
-    float z = (kappa != 0) ? dtr->pt() / ptSum_ : 1.;
-    float theta = (beta != 0) ? deltaR(dtr->v4(), jetVector_) / jetRadius_ : 1.;
+    float z = (kappa != 0) ? dtr.pt() / ptSum_ : 1.;
+    float theta = (beta != 0) ? deltaR(dtr.v4(), jetVector_) / jetRadius_ : 1.;
     result += (pow(z, kappa) * pow(theta, beta));
   }
   resultsCache_[thisArgs] = result;
@@ -438,7 +438,7 @@ QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx, float jetRadius, i
   doPuppi_(doPuppi),
   pfId_(pfId),
   neutralHadronShift_(0), // these are the fractional shift, e.g. 0.2 for 20%
-  photonShift_(0),
+  photonShift_(0), // must init to 0 otherwise bad things will happen, will go haywire!
   jet_handle(ctx.get_handle<std::vector<Jet>>(jet_coll_name)),
   output_handle(ctx.get_handle<std::vector<JetLambdaBundle>>(output_coll_name))
 {}
@@ -450,10 +450,12 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
   for (auto & jet : jets) {
     if (nJetsMax_ > 0 && nJetCounter == nJetsMax_) break;
     // Get constituents
-    std::vector<PFParticle*> daughters = get_jet_pfparticles(jet, event);
+    std::vector<PFParticle> daughters = get_jet_pfparticles(jet, event);
     // Shift energies if appropriate
     if (fabs(neutralHadronShift_) > 1E-6) { shift_neutral_hadron_pfparticles(daughters, neutralHadronShift_); }
     if (fabs(photonShift_) > 1E-6) { shift_photon_pfparticles(daughters, photonShift_); }
+    // Finally apply any pt cuts etc
+    if (pfId_) clean_collection<PFParticle>(daughters, event, pfId_);
     LambdaCalculator<PFParticle> recoJetCalc(daughters, jetRadius_, jet.v4(), doPuppi_);
     JetLambdaBundle thisBundle{jet, recoJetCalc};
     outputs.push_back(thisBundle);
@@ -463,25 +465,29 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
   return true;
 }
 
-std::vector<PFParticle*> QGAnalysisJetLambda::get_jet_pfparticles(const Jet & jet, uhh2::Event & event) {
+std::vector<PFParticle> QGAnalysisJetLambda::get_jet_pfparticles(const Jet & jet, uhh2::Event & event) {
   std::vector<PFParticle> * pfparticles = event.pfparticles;
-  std::vector<PFParticle*> pf;
+  std::vector<PFParticle> pfCopy;
+  // Create a copy, since we might modify it later and we want to keep the original event.pfparticles intact
   for (const uint i : jet.daughterIndices()) {
-    if ((pfId_ && pfId_(pfparticles->at(i), event)) || !(pfId_)) {
-      pf.push_back(&(pfparticles->at(i)));
-    }
+    PFParticle newPf;
+    newPf.set_particleID(pfparticles->at(i).particleID());
+    newPf.set_puppiWeight(pfparticles->at(i).puppiWeight());
+    newPf.set_v4(pfparticles->at(i).v4());
+    newPf.set_charge(pfparticles->at(i).charge());
+    pfCopy.push_back(newPf);
   }
-  return pf;
+  return pfCopy;
 }
 
 void QGAnalysisJetLambda::set_neutral_hadron_shift(int direction, float rel_shift) {
   neutralHadronShift_ = (direction * rel_shift);
 }
 
-void QGAnalysisJetLambda::shift_neutral_hadron_pfparticles(std::vector<PFParticle*> pfparticles, float shift) {
+void QGAnalysisJetLambda::shift_neutral_hadron_pfparticles(std::vector<PFParticle> & pfparticles, float shift) {
   for (auto & itr : pfparticles) {
-    if (itr->particleID() == PFParticle::eH0) {
-      itr->set_pt(itr->pt() * (1 + shift));
+    if (itr.particleID() == PFParticle::eH0) {
+      itr.set_pt(itr.pt() * (1 + shift));
     }
   }
 }
@@ -490,10 +496,10 @@ void QGAnalysisJetLambda::set_photon_shift(int direction, float rel_shift) {
   photonShift_ = (direction * rel_shift);
 }
 
-void QGAnalysisJetLambda::shift_photon_pfparticles(std::vector<PFParticle*> pfparticles, float shift) {
+void QGAnalysisJetLambda::shift_photon_pfparticles(std::vector<PFParticle> & pfparticles, float shift) {
   for (auto & itr : pfparticles) {
-    if (itr->particleID() == PFParticle::eGamma) {
-      itr->set_pt(itr->pt() * (1 + shift));
+    if (itr.particleID() == PFParticle::eGamma) {
+      itr.set_pt(itr.pt() * (1 + shift));
     }
   }
 }
@@ -516,7 +522,7 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
   for (auto & jet : jets) {
     if (nJetsMax_ > 0 && nJetCounter == nJetsMax_) break;
     // Get constituents
-    std::vector<GenParticle*> daughters = get_jet_genparticles(jet, event);
+    std::vector<GenParticle> daughters = get_jet_genparticles(jet, event);
     // Shift energies if appropriate
     // if (fabs(neutralHadronShift_) > 1E-6) { shift_neutral_hadron_genparticles(daughters, neutralHadronShift_); }
     // if (fabs(photonShift_) > 1E-6) { shift_photon_genparticles(daughters, photonShift_); }
@@ -529,12 +535,12 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
   return true;
 }
 
-std::vector<GenParticle*> QGAnalysisGenJetLambda::get_jet_genparticles(const GenJetWithParts & genjet, uhh2::Event & event) {
+std::vector<GenParticle> QGAnalysisGenJetLambda::get_jet_genparticles(const GenJetWithParts & genjet, uhh2::Event & event) {
   std::vector<GenParticle> * genparticles = event.genparticles;
-  std::vector<GenParticle*> gp;
+  std::vector<GenParticle> gp;
   for (const uint i : genjet.genparticles_indices()) {
     if ((genId_ && genId_(genparticles->at(i), event)) || !(genId_)) {
-      gp.push_back(&(genparticles->at(i)));
+      gp.push_back(genparticles->at(i)); // TODO store copy incase we shift it?
     }
   }
   return gp;
