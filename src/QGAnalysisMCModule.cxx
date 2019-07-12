@@ -228,7 +228,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     dijet_sel.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, 1000, ss_eta, deta, sumEta));
     dijet_sel_tighter.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta));
 
-    dijet_gen_sel.reset(new DijetGenSelection(ctx, dphi_min*mcSelFactor, second_jet_frac_max_dj*mcSelFactor, jet_asym_max*mcSelFactor, ss_eta, deta*mcSelFactor, sumEta*mcSelFactor, "DijetGenSel", "GoodGenJets"));
+    dijet_gen_sel.reset(new DijetGenSelection(ctx, dphi_min/mcSelFactor, second_jet_frac_max_dj*mcSelFactor, jet_asym_max*mcSelFactor, ss_eta, deta*mcSelFactor, sumEta*mcSelFactor, "DijetGenSel", "GoodGenJets"));
 
     // zplusjets_theory_sel.reset(new ZplusJetsTheorySelection(ctx));
     // dijet_theory_sel.reset(new DijetTheorySelection(ctx));
