@@ -67,7 +67,7 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   pt_jet_qScale_ratio = book<TH1F>("pt_jet_qScale_ratio", ";p_{T}^{jet 1}/qScale", 250, 0, 25);
   pt_jet_genHT_ratio = book<TH1F>("pt_jet_genHT_ratio", ";p_{T}^{jet 1}/GenHT", 250, 0, 25);
   pt_jet_vs_pdf_scalePDF = book<TH2F>("pt_jet_vs_pdf_scalePDF", ";p_{T}^{jet 1};pdf_scalePDF", nbins_pt_equal, 0, pt_max, nbins_pt_equal, 0, pt_max);
-  pt_jet_vs_genHT = book<TH2F>("pt_jet_vs_genHT", ";p_{T}^{jet 1};GenHT", nbins_pt_equal, 0, pt_max, nbins_pt_equal, 0, 2*pt_max);
+  pt_jet_vs_genHT = book<TH2F>("pt_jet_vs_genHT", ";p_{T}^{jet 1};GenHT", nbins_pt_equal, 0, pt_max, 500, 0, 5000);
   // dont' reverse axis direction - it doens't like it
   pt_jet_response_fine = book<TH2F>("pt_jet_response_fine", TString::Format(";%s (GEN);%s (RECO)", binByVarLabel.Data(), binByVarLabel.Data()), nbins_pt_equal, 0, pt_max, nbins_pt_equal, 0, pt_max);
   pt_jet_response = book<TH2F>("pt_jet_response", TString::Format(";%s (GEN);%s (RECO)", binByVarLabel.Data(), binByVarLabel.Data()), nbins_pt, &pt_bin_edges[0], nbins_pt, &pt_bin_edges[0]);
