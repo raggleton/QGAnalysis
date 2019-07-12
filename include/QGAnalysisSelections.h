@@ -11,6 +11,7 @@
 #include "UHH2/common/include/ObjectIdUtils.h"
 #include "UHH2/common/include/TriggerSelection.h"
 
+#include "TH1.h"
 
 namespace uhh2examples {
 
@@ -43,6 +44,7 @@ public:
                           float mZ_window=20.,
                           float dphi_jet_z_min=2.0,
                           float second_jet_frac_max=0.3,
+                          const std::string & cutflow_hname = "_ZplusJetsGen",
                           const std::string & genjet_name="GoodGenJets",
                           const std::string & genmuon_name="GoodGenMuons");
     virtual bool passes(const uhh2::Event & event) override;
@@ -50,6 +52,7 @@ private:
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
     uhh2::Event::Handle<std::vector<GenParticle>> zMuons_handle;
     float mu1_pt_, mu2_pt_, mZ_window_, dphi_jet_z_min_, second_jet_frac_max_;
+    TH1D * cutflow_raw, * cutflow_weighted; // owned by Context
 };
 
 
@@ -82,11 +85,13 @@ public:
                       bool ss_eta=false,
                       float deta_max=10,
                       float sum_eta=10,
+                      const std::string & cutflow_hname = "_DijetGen",
                       const std::string & genjet_name="GoodGenJets");
     virtual bool passes(const uhh2::Event & event) override;
 private:
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
     float dphi_min_, second_jet_frac_max_, jet_asym_max_, ss_eta_, deta_max_, sum_eta_;
+    TH1D * cutflow_raw, * cutflow_weighted; // owned by Context
 };
 
 
