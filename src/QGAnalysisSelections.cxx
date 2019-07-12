@@ -204,7 +204,7 @@ DijetGenSelection::DijetGenSelection(uhh2::Context & ctx,
     {
         // Remember to update when you update passes() ! Yes is horrible
         std::vector<std::string> descriptions = {
-            "nGenJets>2",
+            "nGenJets>=2",
             "second_jet_frac_max",
             "dphi_min",
             "ss_eta",
