@@ -370,7 +370,6 @@ bool QGAnalysisMCModule::process(Event & event) {
     // -------------------------------------------------------------------------
 
     // 1. Cut on pt/genHt to avoid weird events
-    // Requirement on genHT since eg Herwig might have 0
     if (genHT > 0 && (hasRecoJets && ((event.jets->at(0).pt() / genHT) > 2.5))) { return false; }
     if (genHT > 0 && (hasGenJets && ((event.get(genjets_handle)[0].pt() / genHT) > 2.5))) { return false; }
 
