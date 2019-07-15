@@ -15,6 +15,7 @@
 #include "UHH2/common/include/ElectronIds.h"
 #include "UHH2/common/include/TriggerSelection.h"
 #include "UHH2/common/include/Utils.h"
+#include "UHH2/common/include/GenJetsHists.h"
 
 #include "UHH2/QGAnalysis/include/QGAnalysisSelections.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisHists.h"
@@ -70,6 +71,8 @@ private:
     std::unique_ptr<Hists> dijet_qg_hists, dijet_qg_hists_tighter;
     std::unique_ptr<Hists> dijet_qg_unfold_hists_tighter;
 
+    std::unique_ptr<Hists> genjet_hists, genjet_hists_passZpJReco, genjet_hists_passDijetReco;
+
     // high pT-specific hists for tests
     std::unique_ptr<Hists> dijet_hists_presel_highPt, dijet_hists_highPt;
     std::unique_ptr<Hists> dijet_hists_presel_gg_highPt, dijet_hists_presel_qg_highPt, dijet_hists_presel_gq_highPt, dijet_hists_presel_qq_highPt;
@@ -87,7 +90,7 @@ private:
     std::vector< std::unique_ptr<Hists> > dijet_qg_hists_pu_binned;
 
     // Gen selection
-    std::unique_ptr<Selection> zplusjets_gen_sel, dijet_gen_sel;
+    std::unique_ptr<Selection> zplusjets_gen_sel, zplusjets_gen_sel_passReco, dijet_gen_sel, dijet_gen_sel_passReco;
 
     // Theory selections/hists
     std::unique_ptr<Selection> zplusjets_theory_sel, dijet_theory_sel;
@@ -151,9 +154,10 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // Event Selections
     NJETS_ZPJ = 1;
     NJETS_DIJET = 2;
-    njet_sel.reset(new NJetSelection(NJETS_ZPJ));
-    ngenjet_sel.reset(new NGenJetWithPartsSelection(NJETS_ZPJ));
-    ngenjet_good_sel.reset(new NGenJetWithPartsSelection(NJETS_ZPJ, 10000, boost::none, genjets_handle));
+    int minNJets = min(NJETS_ZPJ, NJETS_DIJET);
+    njet_sel.reset(new NJetSelection(minNJets));
+    ngenjet_sel.reset(new NGenJetWithPartsSelection(minNJets));
+    ngenjet_good_sel.reset(new NGenJetWithPartsSelection(minNJets, -1, boost::none, genjets_handle));
 
     // Lambda calculators
     bool doPuppi = (pu_removal == "PUPPI");
@@ -212,6 +216,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
 
     zplusjets_gen_sel.reset(new ZplusJetsGenSelection(ctx, mu1_pt/mcSelFactor, mu2_pt/mcSelFactor, mZ_window*mcSelFactor, dphi_jet_z_min/mcSelFactor, second_jet_frac_max_zpj*mcSelFactor, "ZPlusJetsGenSel", "GoodGenJets", "GoodGenMuons"));
+    // just to plot cutflow only when passReco==true
+    zplusjets_gen_sel_passReco.reset(new ZplusJetsGenSelection(ctx, mu1_pt/mcSelFactor, mu2_pt/mcSelFactor, mZ_window*mcSelFactor, dphi_jet_z_min/mcSelFactor, second_jet_frac_max_zpj*mcSelFactor, "ZPlusJetsGenSelPassReco", "GoodGenJets", "GoodGenMuons"));
 
     // Preselection for Z+J - only 2 muons to reco Z
     dphi_jet_z_min = 0.;
@@ -229,6 +235,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     dijet_sel_tighter.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta));
 
     dijet_gen_sel.reset(new DijetGenSelection(ctx, dphi_min/mcSelFactor, second_jet_frac_max_dj*mcSelFactor, jet_asym_max*mcSelFactor, ss_eta, deta*mcSelFactor, sumEta*mcSelFactor, "DijetGenSel", "GoodGenJets"));
+    // just to plot cutflow only when passReco==true
+    dijet_gen_sel_passReco.reset(new DijetGenSelection(ctx, dphi_min/mcSelFactor, second_jet_frac_max_dj*mcSelFactor, jet_asym_max*mcSelFactor, ss_eta, deta*mcSelFactor, sumEta*mcSelFactor, "DijetGenSelPassReco", "GoodGenJets"));
 
     // zplusjets_theory_sel.reset(new ZplusJetsTheorySelection(ctx));
     // dijet_theory_sel.reset(new DijetTheorySelection(ctx));
@@ -275,6 +283,9 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // dijet_hists_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_highPt", binning_method));
     // dijet_qg_hists_highPt.reset(new QGAnalysisHists(ctx, "Dijet_QG_highPt", NJETS_DIJET, "dijet"));
 
+    genjet_hists.reset(new GenJetsHists(ctx, "GenJetsPresel", 3));
+    genjet_hists_passZpJReco.reset(new GenJetsHists(ctx, "GenJetsPassZPlusJetsReco", 3));
+    genjet_hists_passDijetReco.reset(new GenJetsHists(ctx, "GenJetsPassDijetReco", 3));
 
     // zplusjets_hists_theory.reset(new QGAnalysisTheoryHists(ctx, "ZPlusJets_genjet", NJETS_ZPJ, "zplusjets"));
     // dijet_hists_theory.reset(new QGAnalysisTheoryHists(ctx, "Dijet_genjet", NJETS_DIJET, "dijet"));
@@ -380,6 +391,8 @@ bool QGAnalysisMCModule::process(Event & event) {
         if (hasGenJets && (event.get(genjets_handle)[0].pt() / ptHat > 2)) return false;
     }
 
+    genjet_hists->fill(event);
+
     // Determine if good event if leading jet is a true jet or not (ie PU)
     // But really shouldn't need this?
     // bool goodEvent = false;
@@ -439,17 +452,13 @@ bool QGAnalysisMCModule::process(Event & event) {
     // At this point, all objects should have had all necessary corrections, filtering, etc
     // ------------------------------------------------------------------------------------
     bool pass_zpj_reco(false), pass_dj_reco(false);
+    bool pass_zpj_gen(false), pass_dj_gen(false);
     // incase they doesn't get set later
     event.set(pass_zpj_sel_handle, pass_zpj_reco);
     event.set(pass_dj_sel_handle, pass_dj_reco);
-
-    // bool pass_dj_highPt(false);
-
-    bool pass_zpj_gen = zplusjets_gen_sel->passes(event);
     event.set(pass_zpj_gen_sel_handle, pass_zpj_gen);
-
-    bool pass_dj_gen = dijet_gen_sel->passes(event);
     event.set(pass_dj_gen_sel_handle, pass_dj_gen);
+    // bool pass_dj_highPt(false);
 
     // Calculate lambda vars for jets & genjets
     // These will be used in various histogram classes
@@ -480,10 +489,14 @@ bool QGAnalysisMCModule::process(Event & event) {
                 if (pass_zpj_reco) {
                     zplusjets_hists->fill(event);
                     zplusjets_qg_hists->fill(event);
+                    zplusjets_gen_sel_passReco->passes(event);
+                    genjet_hists_passZpJReco->fill(event);
                 }
             }
         }
     }
+    pass_zpj_gen = zplusjets_gen_sel->passes(event);
+    event.set(pass_zpj_gen_sel_handle, pass_zpj_gen);
 
     if (pass_zpj_reco || pass_zpj_gen) zplusjets_qg_unfold_hists->fill(event);
 
@@ -525,6 +538,10 @@ bool QGAnalysisMCModule::process(Event & event) {
             // pass_dj_reco = dijet_sel->passes(event);
             pass_dj_reco = dijet_sel_tighter->passes(event);
             event.set(pass_dj_sel_handle, pass_dj_reco);
+            if (pass_dj_reco) {
+                dijet_gen_sel_passReco->passes(event);
+                genjet_hists_passDijetReco->fill(event);
+            }
 
             if (dijet_sel->passes(event)) {
                 dijet_hists->fill(event);
@@ -536,6 +553,9 @@ bool QGAnalysisMCModule::process(Event & event) {
             }
         }
     }
+
+    pass_dj_gen = dijet_gen_sel->passes(event);
+    event.set(pass_dj_gen_sel_handle, pass_dj_gen);
 
     if (pass_dj_reco || pass_dj_gen) dijet_qg_unfold_hists_tighter->fill(event);
 

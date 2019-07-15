@@ -75,6 +75,21 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   bool pt_uf(false), pt_of(false); // handle under/overflow ourselves
   bool var_uf(false), var_of(false); // don't need underflow bin, TUnfold has global uflow bin for when we have fakes/missing
 
+  // Remember to update
+  std::vector<std::string> descriptions = {
+      "!passGen",
+      "genjetIndex < 0",
+      "genjetIndex >= useNJets"
+  };
+  h_fake_counter_raw = book<TH1F>("fakes_counter_raw", "Fakes counter unweighted", descriptions.size()+1, -1, descriptions.size());
+  h_fake_counter_weighted = book<TH1F>("fakes_counter", "Fakes counter using weights", descriptions.size()+1, -1, descriptions.size());
+  for(TAxis * ax : {h_fake_counter_raw->GetXaxis(), h_fake_counter_weighted->GetXaxis()}){
+    ax->SetBinLabel(1, "passReco");
+    for(size_t i=0; i<descriptions.size(); ++i){
+      ax->SetBinLabel(i+2, descriptions[i].c_str());
+    }
+  }
+
   // LHA
   // -------------------------------------
   detector_tu_binning_LHA = new TUnfoldBinning("detector");
@@ -736,7 +751,25 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       // Fake = not pass Gen, or pass Gen but matching genjet not one of the
       // selection ones (i.e. doesn't count as a match)
       // -----------------------------------------------------------------------
+      h_fake_counter_raw->Fill(-1);
+      h_fake_counter_weighted->Fill(-1, weight);
       if (!passGen || (thisjet.genjet_index() < 0 || thisjet.genjet_index() >= useNJets_)) {
+        if (!passGen) {
+          int ind=0;
+          h_fake_counter_raw->Fill(ind);
+          h_fake_counter_weighted->Fill(ind, weight);
+        }
+        else if (thisjet.genjet_index() < 0) {
+          int ind=1;
+          h_fake_counter_raw->Fill(ind);
+          h_fake_counter_weighted->Fill(ind, weight);
+        }
+        else if (thisjet.genjet_index() >= useNJets_) {
+          int ind=2;
+          h_fake_counter_raw->Fill(ind);
+          h_fake_counter_weighted->Fill(ind, weight);
+        }
+
         h_tu_reco_LHA_fake->Fill(recBinLHA, weight);
         h_tu_reco_puppiMultiplicity_fake->Fill(recBinPuppiMult, weight);
         h_tu_reco_pTD_fake->Fill(recBinpTD, weight);
@@ -883,9 +916,14 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       int recoInd = -1;
       if (passReco) { // only valid match if reco selection also passed
         // First find matching recojet - annoyingly matches are held in the Jet class, not GenJet
-        // default to 0 for underflow
+        // default to -1 for underflow
         for (int j=0; j<useNJets_; j++) {
           if (jetLambdas.at(j).jet.genjet_index() == i) { recoInd = j; break; }
+        }
+        if (recoInd < 0) {
+          for (uint j=0; j<jetLambdas.size(); j++) {
+            if (jetLambdas.at(j).jet.genjet_index() == i) { cout << "Match for genjet " << i << " actually found with reco jet " << j << endl;}
+          }
         }
         if (recoInd >= 0) {
           const Jet & thisjet = jetLambdas.at(recoInd).jet;

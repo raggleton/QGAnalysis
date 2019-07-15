@@ -33,6 +33,8 @@ protected:
     TH1F * copy_book_th1f(TH1 * h, const std::string & newName);
     TH2F * copy_book_th2f(TH2 * h, const std::string & newName);
 
+    TH1F *h_fake_counter_raw, *h_fake_counter_weighted;
+
     // reco jet hists
     // For unfolding with TUnfold
     TUnfoldBinning *detector_tu_binning_LHA, *detector_distribution_LHA, *detector_distribution_underflow_LHA;

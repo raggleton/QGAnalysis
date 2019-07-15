@@ -673,7 +673,7 @@ void QGAnalysisHists::fill(const Event & event){
 
   // Fill GenJet hists
   // ---------------------------------------------------------------------------
-  if (is_mc_ && passGen) {
+  if (is_mc_ && passGen) { // note that there may be an implicit passReco as well from where this is called in the main module
     for (int i = 0; i < useNJets_; i++) {
       const GenJetWithParts & thisjet = genjetLambdas->at(i).jet;
       LambdaCalculator<GenParticle> genJetCalc = genjetLambdas->at(i).lambda; // can't be const as getLambda() modifies it
