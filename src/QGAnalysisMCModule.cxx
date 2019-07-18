@@ -138,7 +138,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     cout << "Running with PUS: " << pu_removal << endl;
 
     // FIXME: get everything from ctx not extra args
-    common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jetRadius));
+    float jet_pt_min = 30.;
+    common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jetRadius, jet_pt_min));
     mc_reweight.reset(new MCReweighting(ctx));
     mc_scalevar.reset(new MCScaleVariation(ctx));
 
