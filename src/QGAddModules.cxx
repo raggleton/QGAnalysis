@@ -127,7 +127,9 @@ GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx, const std::string & pu
     jet_met_corrector.reset(new DataJetMetCorrector(ctx, pu_removal, jet_cone));
   }
 
-  jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(jet_pt_min, 2.4)));
+  // eta cut at 2.1 to allow for all of the jet to fall inside tracker (<2.5)
+  // FIXME what about R=0.8 jets?
+  jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(jet_pt_min, 2.1)));
 
   jet_ele_cleaner.reset(new JetElectronOverlapRemoval(jet_radius));
 
