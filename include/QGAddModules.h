@@ -125,7 +125,7 @@ public:
   virtual bool process(uhh2::Event & event) override;
 private:
   uhh2::Event::Handle<std::vector<Muon>> hndlInput, hndlZ;
-  uhh2::Event::Handle<double> gen_weight_handle;
+  uhh2::Event::Handle<double> z_weight_handle;
   std::unique_ptr<ZllKFactor> zReweight;
 };
 

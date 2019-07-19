@@ -229,7 +229,7 @@ ZFinder::ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std
   // Would like more generic FlavourParticle handle, but may need to do additional declare_event_input?
   hndlInput(ctx.get_handle<vector<Muon>>(inputLabel_)),
   hndlZ(ctx.get_handle<vector<Muon>>(outputLabel_)),
-  gen_weight_handle(ctx.get_handle<double>("gen_weight"))
+  z_weight_handle(ctx.get_handle<double>("z_weight"))
 
 {
   if (weightFilename_ != "")
@@ -239,8 +239,6 @@ ZFinder::ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std
 bool ZFinder::process(uhh2::Event & event) {
   // Reweight to higher order cross-section using gen level Z pT
   if (zReweight) {
-    // Update the gen_weight stored in the event
-    double gen_weight = event.get(gen_weight_handle);
     // double realZPt = zCand.pt();
     double realZPt = 0;
     for (const auto & itr : *event.genparticles) {
@@ -255,8 +253,7 @@ bool ZFinder::process(uhh2::Event & event) {
     }
     double zWeight = 1;
     if (realZPt > 0) zWeight = zReweight->getKFactor(realZPt);
-    event.weight *= zWeight;
-    event.set(gen_weight_handle, gen_weight*zWeight);
+    event.set(z_weight_handle, zWeight);
   }
 
   // Now look for a reconstructed Z using inputs
