@@ -39,7 +39,7 @@
 
 <!--
    <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="15" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_pythia_newFlav_withAllResponses_jetAsymCut_chargedResp_pt1Constituents_V11JEC_JER_shiftPileupDown"/>
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_pythia_newFlav_withAllResponses_jetAsymCut_chargedResp_pt1RecoConstituents_V11JEC_JER_tUnfold"/>
 -->
 
 
@@ -57,6 +57,7 @@
         </InputData>
          -->
 
+<!--
         <InputData Lumi="0.02171" NEventsMax="&NEVT;" Type="MC" Version="MC_PYTHIA-QCD-Pt15to30" Cacheable="False">
         &PYTHIA-QCD-Pt15to30;
         <InputTree Name="AnalysisTree"/>
@@ -131,6 +132,14 @@
         &PYTHIA-QCD-Pt3200toInf;
         <InputTree Name="AnalysisTree"/>
         </InputData>
+-->
+
+        <InputData Lumi="1" NEventsMax="-1" Type="MC" Version="MC_PYTHIA-QCD-TEST" Cacheable="False">
+        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/QCD_Pt_15to30_TuneCUETP8M1_13TeV_pythia8/crab_QCD_Pt_15to30_TuneCUETP8M1_13TeV_pythia8_pythia_17_May_18_newRecoJetFlav_fixPuppi_v4/180517_215341/0000/Ntuple_1.root" Lumi="0.0"/>
+        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/QCD_Pt_120to170_TuneCUETP8M1_13TeV_pythia8/crab_QCD_Pt_120to170_TuneCUETP8M1_13TeV_pythia8_pythia_17_May_18_newRecoJetFlav_fixPuppi_v4/180517_220048/0000/Ntuple_1.root" Lumi="0.0"/>
+        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/QCD_Pt_1800to2400_TuneCUETP8M1_13TeV_pythia8/crab_QCD_Pt_1800to2400_TuneCUETP8M1_13TeV_pythia8_pythia_17_May_18_newRecoJetFlav_fixPuppi_v4/180517_221444/0000/Ntuple_1.root" Lumi="0.0"/>
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
 
 
         <UserConfig>
@@ -171,6 +180,14 @@
             <Item Name="pileup_direction" Value="nominal"/>
             <!-- <Item Name="pileup_direction" Value="down"/> -->
             <!-- <Item Name="pileup_direction" Value="up"/> -->
+
+            <Item Name="ScaleVariationMuR" Value="nominal"/>
+            <!-- <Item Name="ScaleVariationMuR" Value="down"/> -->
+            <!-- <Item Name="ScaleVariationMuR" Value="up"/> -->
+            
+            <Item Name="ScaleVariationMuF" Value="nominal"/>
+            <!-- <Item Name="ScaleVariationMuF" Value="down"/> -->
+            <!-- <Item Name="ScaleVariationMuF" Value="up"/> -->
 
         </UserConfig>
     </Cycle>

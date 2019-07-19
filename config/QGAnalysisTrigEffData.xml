@@ -51,8 +51,8 @@
 <!-- split 3 for mgpythia -->
 
 <!--
-   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="75" />
-   <ConfigSGE RAM ="4" DISK ="2" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak8puppi_jettrig_withAK8trig"/>
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="200" />
+   <ConfigSGE RAM ="1" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_jettrig_withAK8trig_V11JEC_JER_fixtrig"/>
 -->
 
 
@@ -69,18 +69,18 @@
         <!-- <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_ZeroBias" Cacheable="False"> -->
         <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/ZeroBias/crab_ZeroBias_Run2016B-03Feb2017_ver2-v2_26_Apr_18_newRecoJetFlav_fixPuppi_v3/180426_113929/0000/Ntuple_1.root" Lumi="0.0"/> -->
 
-<!--        
-        &ZB-B;
-        &ZB-C;
-        &ZB-D;
-        &ZB-E;
-        &ZB-F;
-        &ZB-G;
-        &ZB-H-v2;
-        &ZB-H-v3; 
--->
-        <!-- <InputTree Name="AnalysisTree"/> -->
-        <!-- </InputData> -->
+
+        <!-- &ZB-B; -->
+        <!-- &ZB-C; -->
+<!--         &ZB-D; -->
+<!--         &ZB-E; -->
+<!--         &ZB-F; -->
+<!--         &ZB-G; -->
+<!--         &ZB-H-v2; -->
+<!--         &ZB-H-v3;  -->
+
+<!--         <InputTree Name="AnalysisTree"/> -->
+<!--         </InputData> -->
 
         <!-- <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_SingleMu" Cacheable="False"> -->
 <!--         <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/SingleMuon/crab_SingleMuon_Run2016E-03Feb2017-v1_10_Feb_18_newRecoJetFlav_fixPuppi_v3/180210_120754/0000/Ntuple_1.root" Lumi="0.0"/>
@@ -100,11 +100,11 @@
         </InputData> -->
 
         <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_JetHT" Cacheable="False">
-        
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/JetHT/crab_JetHT_Run2016B-03Feb2017_ver2-v2_10_Feb_18_newRecoJetFlav_fixPuppi_v3/180210_121633/0000/Ntuple_1.root" Lumi="0.0"/> -->
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/JetHT/crab_JetHT_Run2016G-03Feb2017-v1_10_Feb_18_newRecoJetFlav_fixPuppi_v3/180210_122515/0000/Ntuple_1.root" Lumi="0.0"/> -->
-        
-        &JETHT-B;
+
+        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/JetHT/crab_JetHT_Run2016B-03Feb2017_ver2-v2_10_Feb_18_newRecoJetFlav_fixPuppi_v3/180210_121633/0000/Ntuple_1.root" Lumi="0.0"/>
+        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/JetHT/crab_JetHT_Run2016G-03Feb2017-v1_10_Feb_18_newRecoJetFlav_fixPuppi_v3/180210_122515/0000/Ntuple_1.root" Lumi="0.0"/>
+
+<!--         &JETHT-B;
         &JETHT-C;
         &JETHT-D;
         &JETHT-E;
@@ -112,7 +112,7 @@
         &JETHT-G;
         &JETHT-H-v2;
         &JETHT-H-v3;
-
+ -->
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
@@ -136,9 +136,9 @@
             <!-- Choose your jet configuration -->
 
             <!-- &AK4CHS; -->
-            <!-- &AK4PUPPI; -->
+            &AK4PUPPI;
             <!-- &AK8CHS; -->
-            &AK8PUPPI;
+            <!-- &AK8PUPPI; -->
         </UserConfig>
     </Cycle>
 

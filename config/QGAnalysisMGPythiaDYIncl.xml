@@ -23,7 +23,7 @@
 
 <!--
    <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="35" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak8puppi_mgpythia_newFlav_binByAve_withResponse_trigBinningBetter_jetAsymCut"/>
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_mgpythia_newFlav_jetAsymCut_chargedVars_pt1RecoConstituents_V11JEC_JER_tUnfoldBetter_target0p5_noZReweight"/>
 -->
 
 
@@ -33,14 +33,14 @@
     <Package Name="SUHH2QGAnalysis.par" />
 
    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-MG-PYTHIA;/" PostFix="" TargetLumi="35918" >
-       
+
         <InputData Lumi="9890.307" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-0to70" Cacheable="False">
         &MG-PYTHIA-DYJetsToLL_INCL;
         <InputTree Name="AnalysisTree"/>
         </InputData>
-       
+
         <!-- TEST FILES -->
-         
+
         <!-- <InputData Lumi="1" NEventsMax="100000" NEventsSkip="0" Type="MC" Version="MC_Test" Cacheable="False"> -->
         <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/QCD_HT50to100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/crab_QCD_HT50to100_mg-pythia_10_Feb_18_newRecoJetFlav_fixPuppi/180210_101942/0000/Ntuple_213.root" Lumi="0.0"/> -->
         <!-- <InputTree Name="AnalysisTree"/> -->
@@ -53,12 +53,41 @@
             <!-- Choose your jet configuration -->
 
             <!-- &AK4CHS; -->
-            <!-- &AK4PUPPI; -->
+            &AK4PUPPI;
             <!-- &AK8CHS; -->
-            &AK8PUPPI;
+            <!-- &AK8PUPPI; -->
 
-            <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
+            <!-- <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/> -->
             <Item Name="maxHT" Value="70"/>
+
+            <Item Name="neutralHadronShift" Value="nominal"/>
+            <!-- <Item Name="neutralHadronShift" Value="down"/> -->
+            <!-- <Item Name="neutralHadronShift" Value="up"/> -->
+
+            <Item Name="photonShift" Value="nominal"/>
+            <!-- <Item Name="photonShift" Value="down"/> -->
+            <!-- <Item Name="photonShift" Value="up"/> -->
+
+            <Item Name="jecsmear_direction" Value="nominal"/>
+            <!-- <Item Name="jecsmear_direction" Value="down"/> -->
+            <!-- <Item Name="jecsmear_direction" Value="up"/> -->
+
+            <Item Name="jersmear_direction" Value="nominal"/>
+            <!-- <Item Name="jersmear_direction" Value="down"/> -->
+            <!-- <Item Name="jersmear_direction" Value="up"/> -->
+
+            <Item Name="pileup_direction" Value="nominal"/>
+            <!-- <Item Name="pileup_direction" Value="down"/> -->
+            <!-- <Item Name="pileup_direction" Value="up"/> -->
+
+            <!-- Need to set BOTH MuR and MuF otherwise fail -->
+            <Item Name="ScaleVariationMuR" Value="nominal"/>
+            <!-- <Item Name="ScaleVariationMuR" Value="down"/> -->
+            <!-- <Item Name="ScaleVariationMuR" Value="up"/> -->
+
+            <Item Name="ScaleVariationMuF" Value="nominal"/>
+            <!-- <Item Name="ScaleVariationMuF" Value="down"/> -->
+            <!-- <Item Name="ScaleVariationMuF" Value="up"/> -->
         </UserConfig>
     </Cycle>
 </JobConfiguration>

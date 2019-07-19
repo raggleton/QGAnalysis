@@ -28,9 +28,8 @@
 <!-- 300 for jetht -->
 <!--
    <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="100" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak8puppi_data_jetht_binByAve_trigBinningBetter_jetAsymCut"/>
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_data_jetht_trigBinningBetter2_jetAsymCut_pt1RecoConstituents_V11JEC_JER_tUnfoldBetter_target0p5"/>
 -->
-
 
 <!-- OutputLevel controls which messages are printed; set to VERBOSE or DEBUG for more verbosity, to WARNING or ERROR for less -->
 <JobConfiguration JobName="ExampleCycleJob" OutputLevel="INFO">
@@ -41,6 +40,7 @@
 
         <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_JetHT" Cacheable="False">
         <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/JetHT/crab_JetHT_Run2016F-03Feb2017-v1_10_Feb_18_newRecoJetFlav_fixPuppi_v3/180210_122328/0000/Ntuple_1.root" Lumi="0.0"/> -->
+        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/SingleMuon/crab_SingleMuon_Run2016B-03Feb2017_ver2-v2_10_Feb_18_newRecoJetFlav_fixPuppi_v3/180210_120234/0000/Ntuple_1.root" Lumi="0.0"/> -->
 
         &JETHT-B;
         &JETHT-C;
@@ -50,18 +50,20 @@
         &JETHT-G;
         &JETHT-H-v2;
         &JETHT-H-v3;
+
+
         <InputTree Name="AnalysisTree"/>
         </InputData>
- 
+
         <UserConfig>
             &COMMON;
 
             <!-- Choose your jet configuration -->
 
             <!-- &AK4CHS; -->
-            <!-- &AK4PUPPI; -->
+            &AK4PUPPI;
             <!-- &AK8CHS; -->
-            &AK8PUPPI;
+            <!-- &AK8PUPPI; -->
 
             <Item Name="Dataset" Value="JetHT" />
 
