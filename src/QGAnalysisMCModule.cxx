@@ -111,7 +111,7 @@ private:
     float jetRadius;
     float htMax;
 
-    const bool DO_PU_BINNED_HISTS = true;
+    const bool DO_PU_BINNED_HISTS = false;
 
     std::unique_ptr<EventNumberSelection> event_sel;
 
@@ -367,7 +367,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     double genjet_pt_cut = 15.;
     double genjet_eta_cut = 2.4+(jetRadius/2.);
     std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, &event.get(genmuons_handle), genjet_pt_cut, genjet_eta_cut, jetRadius);
-    sort_by_pt(goodGenJets);
+    // std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, nullptr, genjet_pt_cut, genjet_eta_cut, jetRadius);
     event.set(genjets_handle, std::move(goodGenJets));
 
     // Need these as loosest possible requirement to run reco- or gen-specific bits
