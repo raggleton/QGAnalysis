@@ -365,7 +365,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Get good GenJets, store in event
     // -------------------------------------------------------------------------
     double genjet_pt_cut = 15.;
-    double genjet_eta_cut = 2.4+(jetRadius/2.);
+    double genjet_eta_cut = 2.5-(jetRadius/2.); // reco jets go up to 2.5-jetRadius. We also need an extra jetRadius/2 to account for dR matching
     std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, &event.get(genmuons_handle), genjet_pt_cut, genjet_eta_cut, jetRadius);
     // std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, nullptr, genjet_pt_cut, genjet_eta_cut, jetRadius);
     event.set(genjets_handle, std::move(goodGenJets));
