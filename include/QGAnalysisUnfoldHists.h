@@ -35,6 +35,13 @@ protected:
 
     TH1F *h_fake_counter_raw, *h_fake_counter_weighted;
 
+    // For pt-only unfolding
+    TUnfoldBinning *detector_tu_binning_pt, *detector_distribution_pt, *detector_distribution_underflow_pt;
+    TUnfoldBinning *generator_tu_binning_pt, *generator_distribution_pt, *generator_distribution_underflow_pt;
+    TH2F *h_tu_response_pt, *h_tu_response_pt_split;
+    TH1F *h_tu_reco_pt, *h_tu_reco_pt_split, *h_tu_reco_pt_fake, *h_tu_reco_pt_fake_split;
+    TH1F *h_tu_gen_pt, *h_tu_gen_pt_split;
+
     // reco jet hists
     // For unfolding with TUnfold
     TUnfoldBinning *detector_tu_binning_LHA, *detector_distribution_LHA, *detector_distribution_underflow_LHA;

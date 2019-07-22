@@ -90,6 +90,48 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
     }
   }
 
+  // pT only
+  // -------------------------------------
+  detector_tu_binning_pt = new TUnfoldBinning("detector");
+  // add binning scheme for pT underflow regions
+  // we handle it ourselves (instead of just having underflow bin in standard detector binning)
+  // so that we can also use it to constrain the unfolding
+  // (like simultaneously fitting to sideband regions)
+  detector_distribution_underflow_pt = detector_tu_binning_pt->AddBinning("detector_underflow");
+  detector_distribution_underflow_pt->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow.data(), pt_uf, pt_of);
+
+  detector_distribution_pt = detector_tu_binning_pt->AddBinning("detector");
+  detector_distribution_pt->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), pt_uf, pt_of);
+
+  generator_tu_binning_pt = new TUnfoldBinning("generator");
+  generator_distribution_underflow_pt = generator_tu_binning_pt->AddBinning("signal_underflow");
+  generator_distribution_underflow_pt->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, pt_of);
+
+  generator_distribution_pt = generator_tu_binning_pt->AddBinning("signal");
+  generator_distribution_pt->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), pt_uf, pt_of);
+
+  // Response matrix
+  // make tmp copies which we can then copy and use with book<>
+  TH2 * h_tu_response_pt_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_pt, detector_tu_binning_pt, "tu_pt_GenReco");
+  h_tu_response_pt = copy_book_th2f(h_tu_response_pt_tmp, "tu_pt_GenReco_all");
+  h_tu_response_pt_split = copy_book_th2f(h_tu_response_pt_tmp, "tu_pt_GenReco_split");
+  delete h_tu_response_pt_tmp;
+
+  // detector histograms
+  TH1 * h_tu_reco_pt_tmp = detector_tu_binning_pt->CreateHistogram("hist_pt_reco");
+  h_tu_reco_pt = copy_book_th1f(h_tu_reco_pt_tmp, "hist_pt_reco_all");
+  h_tu_reco_pt_split = copy_book_th1f(h_tu_reco_pt_tmp, "hist_pt_reco_split");
+  // for fakes, detector binning
+  h_tu_reco_pt_fake = copy_book_th1f(h_tu_reco_pt_tmp, "hist_pt_reco_fake_all");
+  h_tu_reco_pt_fake_split = copy_book_th1f(h_tu_reco_pt_tmp, "hist_pt_reco_fake_split");
+  delete h_tu_reco_pt_tmp;
+
+  // truth histograms
+  TH1 * h_tu_gen_pt_tmp = generator_tu_binning_pt->CreateHistogram("hist_pt_truth");
+  h_tu_gen_pt = copy_book_th1f(h_tu_gen_pt_tmp, "hist_pt_truth_all");
+  h_tu_gen_pt_split = copy_book_th1f(h_tu_gen_pt_tmp, "hist_pt_truth_split");
+  delete h_tu_gen_pt_tmp;
+
   // LHA
   // -------------------------------------
   detector_tu_binning_LHA = new TUnfoldBinning("detector");
@@ -640,6 +682,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       float jet_pt = thisjet.pt();
 
       // default to 0 for underflow
+      int recBinPt(0);
       int recBinLHA(0), recBinPuppiMult(0), recBinpTD(0), recBinThrust(0), recBinWidth(0);
       int recBinLHACharged(0), recBinPuppiMultCharged(0), recBinpTDCharged(0), recBinThrustCharged(0), recBinWidthCharged(0);
       // generator-bin for reco-level quantities (for displaying later)
@@ -648,6 +691,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       bool isUnderflow = (jet_pt < Binning::pt_bin_edges_reco[0]);
       // here we get bin number based on if underflow or not
       if (isUnderflow) {
+        recBinPt = detector_distribution_underflow_pt->GetGlobalBinNumber(jet_pt);
+
         recBinLHA = detector_distribution_underflow_LHA->GetGlobalBinNumber(lha, jet_pt);
         recBinPuppiMult = detector_distribution_underflow_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
         recBinpTD = detector_distribution_underflow_pTD->GetGlobalBinNumber(ptd, jet_pt);
@@ -672,6 +717,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         genBinThrustCharged = generator_distribution_underflow_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
         genBinWidthCharged = generator_distribution_underflow_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
       } else {
+        recBinPt = detector_distribution_pt->GetGlobalBinNumber(jet_pt);
+
         recBinLHA = detector_distribution_LHA->GetGlobalBinNumber(lha, jet_pt);
         recBinPuppiMult = detector_distribution_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
         recBinpTD = detector_distribution_pTD->GetGlobalBinNumber(ptd, jet_pt);
@@ -696,6 +743,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         genBinThrustCharged = generator_distribution_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
         genBinWidthCharged = generator_distribution_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
       }
+
+      h_tu_reco_pt->Fill(recBinPt, weight);
 
       h_tu_reco_LHA->Fill(recBinLHA, weight);
       h_tu_reco_puppiMultiplicity->Fill(recBinPuppiMult, weight);
@@ -722,6 +771,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       h_tu_reco_width_charged_gen_binning->Fill(genBinWidthCharged, weight);
 
       if (!onlyFillResponse && doMCsplit_) {
+        h_tu_reco_pt_split->Fill(recBinPt, weight);
+
         h_tu_reco_LHA_split->Fill(recBinLHA, weight);
         h_tu_reco_puppiMultiplicity_split->Fill(recBinPuppiMult, weight);
         h_tu_reco_pTD_split->Fill(recBinpTD, weight);
@@ -770,6 +821,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           h_fake_counter_weighted->Fill(ind, weight);
         }
 
+        h_tu_reco_pt_fake->Fill(recBinPt, weight);
+
         h_tu_reco_LHA_fake->Fill(recBinLHA, weight);
         h_tu_reco_puppiMultiplicity_fake->Fill(recBinPuppiMult, weight);
         h_tu_reco_pTD_fake->Fill(recBinpTD, weight);
@@ -795,6 +848,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         h_tu_reco_width_charged_fake_gen_binning->Fill(genBinWidthCharged, weight);
 
         if (!onlyFillResponse && doMCsplit_) {
+          h_tu_reco_pt_fake_split->Fill(recBinPt, weight);
+
           h_tu_reco_LHA_fake_split->Fill(recBinLHA, weight);
           h_tu_reco_puppiMultiplicity_fake_split->Fill(recBinPuppiMult, weight);
           h_tu_reco_pTD_fake_split->Fill(recBinpTD, weight);
@@ -848,11 +903,14 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
 
       // Get TUnfold gen bins
       // default to 0 for underflow
+      int genBinPt(0);
       int genBinLHA(0), genBinPuppiMult(0), genBinpTD(0), genBinThrust(0), genBinWidth(0);
       int genBinLHACharged(0), genBinPuppiMultCharged(0), genBinpTDCharged(0), genBinThrustCharged(0), genBinWidthCharged(0);
       bool isUnderflowGen = (genjet_pt < Binning::pt_bin_edges_gen[0]);
       // here we get bin number based on if underflow or not
       if (isUnderflowGen) {
+        genBinPt = generator_distribution_underflow_pt->GetGlobalBinNumber(genjet_pt);
+
         genBinLHA = generator_distribution_underflow_LHA->GetGlobalBinNumber(gen_lha, genjet_pt);
         genBinPuppiMult = generator_distribution_underflow_puppiMultiplicity->GetGlobalBinNumber(gen_mult, genjet_pt);
         genBinpTD = generator_distribution_underflow_pTD->GetGlobalBinNumber(gen_ptd, genjet_pt);
@@ -865,6 +923,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         genBinThrustCharged = generator_distribution_underflow_thrust_charged->GetGlobalBinNumber(gen_thrust_charged, genjet_pt);
         genBinWidthCharged = generator_distribution_underflow_width_charged->GetGlobalBinNumber(gen_width_charged, genjet_pt);
       } else {
+        genBinPt = generator_distribution_pt->GetGlobalBinNumber(genjet_pt);
+
         genBinLHA = generator_distribution_LHA->GetGlobalBinNumber(gen_lha, genjet_pt);
         genBinPuppiMult = generator_distribution_puppiMultiplicity->GetGlobalBinNumber(gen_mult, genjet_pt);
         genBinpTD = generator_distribution_pTD->GetGlobalBinNumber(gen_ptd, genjet_pt);
@@ -880,6 +940,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
 
       // Fill 1D gen hist
       // -----------------------------------------------------------------------
+      h_tu_gen_pt->Fill(genBinPt, gen_weight);
+
       h_tu_gen_puppiMultiplicity->Fill(genBinPuppiMult, gen_weight);
       h_tu_gen_LHA->Fill(genBinLHA, gen_weight);
       h_tu_gen_pTD->Fill(genBinpTD, gen_weight);
@@ -894,6 +956,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
 
       if (!onlyFillResponse && doMCsplit_) {
         // Fill 1D gen hist
+        h_tu_gen_pt_split->Fill(genBinPt, gen_weight);
+
         h_tu_gen_puppiMultiplicity_split->Fill(genBinPuppiMult, gen_weight);
         h_tu_gen_LHA_split->Fill(genBinLHA, gen_weight);
         h_tu_gen_pTD_split->Fill(genBinpTD, gen_weight);
@@ -911,6 +975,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       // -----------------------------------------------------------------------
       // Loop through genjets, since if there isn't a reco jet then it's a miss-reco,
       // whereas a recojet & no genjet is a fake, which we don't want in our migration matrix
+      int recBinPt(0);
       int recBinLHA(0), recBinPuppiMult(0), recBinpTD(0), recBinThrust(0), recBinWidth(0);
       int recBinLHACharged(0), recBinPuppiMultCharged(0), recBinpTDCharged(0), recBinThrustCharged(0), recBinWidthCharged(0);
       int recoInd = -1;
@@ -948,6 +1013,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           bool isUnderflow = (jet_pt < Binning::pt_bin_edges_reco[0]);
           // here we get bin number based on if underflow or not
           if (isUnderflow) {
+            recBinPt = detector_distribution_underflow_pt->GetGlobalBinNumber(jet_pt);
+
             recBinLHA = detector_distribution_underflow_LHA->GetGlobalBinNumber(lha, jet_pt);
             recBinPuppiMult = detector_distribution_underflow_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
             recBinpTD = detector_distribution_underflow_pTD->GetGlobalBinNumber(ptd, jet_pt);
@@ -960,6 +1027,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
             recBinThrustCharged = detector_distribution_underflow_thrust_charged->GetGlobalBinNumber(thrust_charged, jet_pt);
             recBinWidthCharged = detector_distribution_underflow_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
           } else {
+            recBinPt = detector_distribution_pt->GetGlobalBinNumber(jet_pt);
+
             recBinLHA = detector_distribution_LHA->GetGlobalBinNumber(lha, jet_pt);
             recBinPuppiMult = detector_distribution_puppiMultiplicity->GetGlobalBinNumber(puppiMult, jet_pt);
             recBinpTD = detector_distribution_pTD->GetGlobalBinNumber(ptd, jet_pt);
@@ -977,6 +1046,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
 
       // Fill TUnfold 2D response maps
       // ---------------------------------------------------------------
+      h_tu_response_pt->Fill(genBinPt, recBinPt, weight);
+
       h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, recBinPuppiMult, weight);
       h_tu_response_LHA->Fill(genBinLHA, recBinLHA, weight);
       h_tu_response_pTD->Fill(genBinpTD, recBinpTD, weight);
@@ -997,6 +1068,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       // not to be confused with ROOT binning, starting at 1 :s)
       double corr_weight = gen_weight * (1 - reco_weight);
       int underflow_bin = 0;
+      h_tu_response_pt->Fill(genBinPt, underflow_bin, corr_weight);
+
       h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, underflow_bin, corr_weight);
       h_tu_response_LHA->Fill(genBinLHA, underflow_bin, corr_weight);
       h_tu_response_pTD->Fill(genBinpTD, underflow_bin, corr_weight);
@@ -1010,6 +1083,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       h_tu_response_thrust_charged->Fill(genBinThrustCharged, underflow_bin, corr_weight);
 
       if (onlyFillResponse && doMCsplit_) {
+        h_tu_response_pt_split->Fill(genBinPt, recBinPt, weight);
+
         h_tu_response_puppiMultiplicity_split->Fill(genBinPuppiMult, recBinPuppiMult, weight);
         h_tu_response_LHA_split->Fill(genBinLHA, recBinLHA, weight);
         h_tu_response_pTD_split->Fill(genBinpTD, recBinpTD, weight);
@@ -1023,6 +1098,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         h_tu_response_thrust_charged_split->Fill(genBinThrustCharged, recBinThrustCharged, weight);
 
         // extra part for correct weighting
+        h_tu_response_pt_split->Fill(genBinPt, underflow_bin, corr_weight);
+
         h_tu_response_puppiMultiplicity_split->Fill(genBinPuppiMult, underflow_bin, corr_weight);
         h_tu_response_LHA_split->Fill(genBinLHA, underflow_bin, corr_weight);
         h_tu_response_pTD_split->Fill(genBinpTD, underflow_bin, corr_weight);
