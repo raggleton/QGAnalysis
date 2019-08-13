@@ -323,8 +323,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 bool QGAnalysisMCModule::process(Event & event) {
     // if (!event_sel->passes(event)) return false;
 
-    double orig_weight = 1.;
-    event.set(gen_weight_handle, orig_weight); // need to set this at the start
+    event.set(gen_weight_handle, event.weight); // need to set this at the start
 
     if (PRINTOUT) { cout << "-- Event: " << event.event << endl; }
     // cout << "-- Event: " << event.event << endl;
