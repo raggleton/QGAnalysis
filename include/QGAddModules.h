@@ -13,6 +13,12 @@
 #include "UHH2/common/include/CleaningModules.h"
 #include "UHH2/common/include/MCWeight.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#include "fastjet/JetDefinition.hh"
+#include "fastjet/ClusterSequence.hh"
+#pragma GCC diagnostic pop
+
 #include "TFile.h"
 #include "TGraph.h"
 
@@ -199,7 +205,8 @@ public:
                       const std::string & jet_coll_name="jets",
                       const std::string & output_coll_name="jetlambdas");
   bool process(uhh2::Event & event);
-  std::vector<PFParticle> get_jet_pfparticles(const Jet & jet, uhh2::Event & event);
+  fastjet::PseudoJet convert_uhh_pfparticle_to_pseudojet(const PFParticle & particle, bool applyPuppiWeight);
+  std::vector<PFParticle> get_jet_pfparticles(const Jet & jet, uhh2::Event & event, bool applyPuppiWeight);
 
   void set_neutral_hadron_shift(int direction, float rel_shift);
   void shift_neutral_hadron_pfparticles(std::vector<PFParticle> & pfparticles, float shift);
@@ -208,6 +215,7 @@ public:
   void shift_photon_pfparticles(std::vector<PFParticle> & pfparticles, float shift);
 
 private:
+  fastjet::JetDefinition ca_wta_cluster_;
   float jetRadius_;
   int nJetsMax_;
   bool doPuppi_;
@@ -229,6 +237,7 @@ public:
                          const std::string & jet_coll_name="genjets",
                          const std::string & output_coll_name="genjetlambdas");
   bool process(uhh2::Event & event);
+  fastjet::PseudoJet convert_uhh_genparticle_to_pseudojet(const GenParticle & particle);
   std::vector<GenParticle> get_jet_genparticles(const GenJetWithParts & genjet, uhh2::Event & event);
 
   // Is shifting genjet constit energies sensible?
@@ -239,6 +248,7 @@ public:
   // void shift_photon_genparticles(std::vector<GenParticle*> genparticles, float shift);
 
 private:
+  fastjet::JetDefinition ca_wta_cluster_;
   float jetRadius_;
   int nJetsMax_;
   GenParticleId genId_;

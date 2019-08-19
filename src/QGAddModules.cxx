@@ -10,6 +10,7 @@
 
 using namespace std;
 using namespace uhh2;
+using namespace fastjet;
 
 
 DataJetMetCorrector::DataJetMetCorrector(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone){
@@ -431,6 +432,7 @@ void LambdaCalculator<T>::clearCache()
 
 
 QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx, float jetRadius, int nJetsMax, bool doPuppi, const PFParticleId & pfId, const std::string & jet_coll_name, const std::string & output_coll_name):
+  ca_wta_cluster_(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme)),
   jetRadius_(jetRadius),
   nJetsMax_(nJetsMax),
   doPuppi_(doPuppi),
@@ -441,6 +443,14 @@ QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx, float jetRadius, i
   output_handle(ctx.get_handle<std::vector<JetLambdaBundle>>(output_coll_name))
 {}
 
+
+PseudoJet QGAnalysisJetLambda::convert_uhh_pfparticle_to_pseudojet(const PFParticle & particle, bool applyPuppiWeight) {
+  float weight = (applyPuppiWeight) ? particle.puppiWeight() : 1.;
+  LorentzVectorXYZE lv = toXYZ(particle.v4()) * weight;
+  PseudoJet outputParticle(lv.px(), lv.py(), lv.pz(), lv.E());
+  return outputParticle;
+}
+
 bool QGAnalysisJetLambda::process(uhh2::Event & event) {
   std::vector<Jet> jets = event.get(jet_handle);
   std::vector<JetLambdaBundle> outputs;
@@ -448,13 +458,40 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
   for (auto & jet : jets) {
     if (nJetsMax_ > 0 && nJetCounter == nJetsMax_) break;
     // Get constituents
-    std::vector<PFParticle> daughters = get_jet_pfparticles(jet, event);
+    // don't apply puppi weight here, since we already account for it in the LambdaCalculator
+    std::vector<PFParticle> daughters = get_jet_pfparticles(jet, event, false);
     // Shift energies if appropriate
     if (fabs(neutralHadronShift_) > 1E-6) { shift_neutral_hadron_pfparticles(daughters, neutralHadronShift_); }
     if (fabs(photonShift_) > 1E-6) { shift_photon_pfparticles(daughters, photonShift_); }
+
+    // Calculate the WTA axis
+    // First convert Jet to PseudoJet, then convert it
+    // PseudoJet origJet = convert_uhh_jet_to_pseudojet(jet);
+    vector<PseudoJet> constits = {};
+    int dauCounter = 0;
+    for (const auto & dau : daughters) {
+      PseudoJet thisDau = convert_uhh_pfparticle_to_pseudojet(dau, doPuppi_); // apply puppi weight here to recluster
+      thisDau.set_user_index(dauCounter);
+      constits.push_back(thisDau);
+      dauCounter++;
+    }
+    ClusterSequence cs(constits, ca_wta_cluster_);
+    vector<PseudoJet> wtaJets = sorted_by_pt(cs.inclusive_jets());
+    if (wtaJets.size() > 1) {
+      cout << " >1 WTA jets" << endl;
+    } else if (wtaJets.size() == 0) {
+      throw std::runtime_error("WTA reclustering failed - no jets");
+    }
+    LorentzVectorXYZE wtaJetAxis(wtaJets[0].px(), wtaJets[0].py(), wtaJets[0].pz(), wtaJets[0].E());
+
+    // cout << "Original jet axis: " << jet.v4().px() << " : " << jet.v4().py() << " : " << jet.v4().pz() << endl;
+    // cout << "Original jet axis: " << jet.eta() << " : " << jet.phi() << endl;
+    // cout << "WTA jet axis: " << wtaJetAxis.px() << " : " << wtaJetAxis.py() << " : " << wtaJetAxis.pz() << endl;
+    // cout << "WTA jet axis: " << wtaJetAxis.eta() << " : " << wtaJetAxis.phi() << endl;
+
     // Finally apply any pt cuts etc
     if (pfId_) clean_collection<PFParticle>(daughters, event, pfId_);
-    LambdaCalculator<PFParticle> recoJetCalc(daughters, jetRadius_, jet.v4(), doPuppi_);
+    LambdaCalculator<PFParticle> recoJetCalc(daughters, jetRadius_, toPtEtaPhi(wtaJetAxis), doPuppi_);
     JetLambdaBundle thisBundle{jet, recoJetCalc};
     outputs.push_back(thisBundle);
     nJetCounter++;
@@ -463,7 +500,7 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
   return true;
 }
 
-std::vector<PFParticle> QGAnalysisJetLambda::get_jet_pfparticles(const Jet & jet, uhh2::Event & event) {
+std::vector<PFParticle> QGAnalysisJetLambda::get_jet_pfparticles(const Jet & jet, uhh2::Event & event, bool applyPuppiWeight) {
   std::vector<PFParticle> * pfparticles = event.pfparticles;
   std::vector<PFParticle> pfCopy;
   // Create a copy, since we might modify it later and we want to keep the original event.pfparticles intact
@@ -471,7 +508,13 @@ std::vector<PFParticle> QGAnalysisJetLambda::get_jet_pfparticles(const Jet & jet
     PFParticle newPf;
     newPf.set_particleID(pfparticles->at(i).particleID());
     newPf.set_puppiWeight(pfparticles->at(i).puppiWeight());
-    newPf.set_v4(pfparticles->at(i).v4());
+    if (applyPuppiWeight) {
+      LorentzVectorXYZE v4XYZ = toXYZ(pfparticles->at(i).v4());
+      v4XYZ * pfparticles->at(i).puppiWeight();
+      newPf.set_v4(toPtEtaPhi(v4XYZ));
+    } else {
+      newPf.set_v4(pfparticles->at(i).v4());
+    }
     newPf.set_charge(pfparticles->at(i).charge());
     pfCopy.push_back(newPf);
   }
@@ -504,6 +547,7 @@ void QGAnalysisJetLambda::shift_photon_pfparticles(std::vector<PFParticle> & pfp
 
 
 QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx, float jetRadius, int nJetsMax, const GenParticleId & genId, const std::string & jet_coll_name, const std::string & output_coll_name):
+  ca_wta_cluster_(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme)),
   jetRadius_(jetRadius),
   nJetsMax_(nJetsMax),
   genId_(genId),
@@ -512,6 +556,14 @@ QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx, float jetRad
   genjet_handle(ctx.get_handle<std::vector<GenJetWithParts>>(jet_coll_name)),
   output_handle(ctx.get_handle<std::vector<GenJetLambdaBundle>>(output_coll_name))
 {}
+
+
+PseudoJet QGAnalysisGenJetLambda::convert_uhh_genparticle_to_pseudojet(const GenParticle & particle) {
+  LorentzVectorXYZE lv = toXYZ(particle.v4());
+  PseudoJet outputParticle(lv.px(), lv.py(), lv.pz(), lv.E());
+  return outputParticle;
+}
+
 
 bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
   std::vector<GenJetWithParts> jets = event.get(genjet_handle);
@@ -524,7 +576,33 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     // Shift energies if appropriate
     // if (fabs(neutralHadronShift_) > 1E-6) { shift_neutral_hadron_genparticles(daughters, neutralHadronShift_); }
     // if (fabs(photonShift_) > 1E-6) { shift_photon_genparticles(daughters, photonShift_); }
-    LambdaCalculator<GenParticle> genJetCalc(daughters, jetRadius_, jet.v4(), false);
+
+    // Calculate the WTA axis
+    // First convert Jet to PseudoJet, then convert it
+    // PseudoJet origJet = convert_uhh_jet_to_pseudojet(jet);
+    vector<PseudoJet> constits = {};
+    int dauCounter = 0;
+    for (const auto & dau : daughters) {
+      PseudoJet thisDau = convert_uhh_genparticle_to_pseudojet(dau);
+      thisDau.set_user_index(dauCounter);
+      constits.push_back(thisDau);
+      dauCounter++;
+    }
+    ClusterSequence cs(constits, ca_wta_cluster_);
+    vector<PseudoJet> wtaJets = sorted_by_pt(cs.inclusive_jets());
+    if (wtaJets.size() > 1) {
+      cout << " >1 WTA jets" << endl;
+    } else if (wtaJets.size() == 0) {
+      throw std::runtime_error("WTA reclustering failed - no jets");
+    }
+    LorentzVectorXYZE wtaJetAxis(wtaJets[0].px(), wtaJets[0].py(), wtaJets[0].pz(), wtaJets[0].E());
+
+    // cout << "Original jet axis: " << jet.v4().px() << " : " << jet.v4().py() << " : " << jet.v4().pz() << endl;
+    // cout << "Original jet axis: " << jet.eta() << " : " << jet.phi() << endl;
+    // cout << "WTA jet axis: " << wtaJetAxis.px() << " : " << wtaJetAxis.py() << " : " << wtaJetAxis.pz() << endl;
+    // cout << "WTA jet axis: " << wtaJetAxis.eta() << " : " << wtaJetAxis.phi() << endl;
+
+    LambdaCalculator<GenParticle> genJetCalc(daughters, jetRadius_, toPtEtaPhi(wtaJetAxis), false);
     GenJetLambdaBundle thisBundle{jet, genJetCalc};
     outputs.push_back(thisBundle);
     nJetCounter++;
