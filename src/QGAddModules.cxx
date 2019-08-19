@@ -528,7 +528,13 @@ void QGAnalysisJetLambda::set_neutral_hadron_shift(int direction, float rel_shif
 void QGAnalysisJetLambda::shift_neutral_hadron_pfparticles(std::vector<PFParticle> & pfparticles, float shift) {
   for (auto & itr : pfparticles) {
     if (itr.particleID() == PFParticle::eH0) {
-      itr.set_pt(itr.pt() * (1 + shift));
+      LorentzVectorXYZE lv = toXYZ(itr.v4());
+      lv *= (1+shift);
+      LorentzVector newLv = toPtEtaPhi(lv);
+      itr.set_pt(newLv.pt());
+      itr.set_eta(newLv.eta());
+      itr.set_phi(newLv.phi());
+      itr.set_energy(newLv.energy());
     }
   }
 }
@@ -540,7 +546,13 @@ void QGAnalysisJetLambda::set_photon_shift(int direction, float rel_shift) {
 void QGAnalysisJetLambda::shift_photon_pfparticles(std::vector<PFParticle> & pfparticles, float shift) {
   for (auto & itr : pfparticles) {
     if (itr.particleID() == PFParticle::eGamma) {
-      itr.set_pt(itr.pt() * (1 + shift));
+      LorentzVectorXYZE lv = toXYZ(itr.v4());
+      lv *= (1+shift);
+      LorentzVector newLv = toPtEtaPhi(lv);
+      itr.set_pt(newLv.pt());
+      itr.set_eta(newLv.eta());
+      itr.set_phi(newLv.phi());
+      itr.set_energy(newLv.energy());
     }
   }
 }
