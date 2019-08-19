@@ -151,6 +151,7 @@ public:
   LambdaCalculator(std::vector<T> & daughters, float jet_radius, const LorentzVector & jet_vector, bool usePuppiWeight);
   float getLambda(float kappa, float beta);
   void clearCache();
+  std::vector<T> daughters() { return daughters_; }
 private:
   std::vector<T> daughters_;
   float jetRadius_, ptSum_;
