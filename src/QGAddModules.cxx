@@ -480,6 +480,7 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     if (wtaJets.size() > 1) {
       cout << " >1 WTA jets" << endl;
     } else if (wtaJets.size() == 0) {
+      cout << constits.size() << " daughters" << endl;
       throw std::runtime_error("WTA reclustering failed - no jets");
     }
     LorentzVectorXYZE wtaJetAxis(wtaJets[0].px(), wtaJets[0].py(), wtaJets[0].pz(), wtaJets[0].E());
@@ -605,7 +606,17 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     if (wtaJets.size() > 1) {
       cout << " >1 WTA jets" << endl;
     } else if (wtaJets.size() == 0) {
-      throw std::runtime_error("WTA reclustering failed - no jets");
+      cout << jet.genparticles_indices().size() << " genjet gp indices" << endl;
+      cout << constits.size() << " gen pseudo daughters" << endl;
+      std::vector<GenParticle> * genparticles = event.genparticles;
+      for (const uint i : jet.genparticles_indices()) {
+        auto gp = genparticles->at(i);
+        cout << gp.pt() << " : " << gp.eta() << " : " << gp.phi() << " : " << gp.charge() << " : " << gp.pdgId() << " : " << gp.status() << endl;
+        if (genId_ && !genId_(genparticles->at(i), event)) {
+          cout << "FAIL GEN ID" << endl;
+        }
+      }
+      throw std::runtime_error("WTA reclustering failed - no genjets");
     }
     LorentzVectorXYZE wtaJetAxis(wtaJets[0].px(), wtaJets[0].py(), wtaJets[0].pz(), wtaJets[0].E());
 
