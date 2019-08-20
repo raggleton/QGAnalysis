@@ -11,6 +11,7 @@
 using namespace std;
 using namespace uhh2;
 using namespace fastjet;
+using namespace fastjet::contrib;
 
 
 DataJetMetCorrector::DataJetMetCorrector(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone){
@@ -431,17 +432,22 @@ void LambdaCalculator<T>::clearCache()
 
 
 
-QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx, float jetRadius, int nJetsMax, bool doPuppi, const PFParticleId & pfId, const std::string & jet_coll_name, const std::string & output_coll_name):
+QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx, float jetRadius, int nJetsMax, bool doPuppi, bool doGrooming, const PFParticleId & pfId, const std::string & jet_coll_name, const std::string & output_coll_name):
   ca_wta_cluster_(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme)),
+  mmdt(ModifiedMassDropTagger(0.1)),
   jetRadius_(jetRadius),
   nJetsMax_(nJetsMax),
   doPuppi_(doPuppi),
+  doGrooming_(doGrooming),
   pfId_(pfId),
   neutralHadronShift_(0), // these are the fractional shift, e.g. 0.2 for 20%
   photonShift_(0), // must init to 0 otherwise bad things will happen, will go haywire!
   jet_handle(ctx.get_handle<std::vector<Jet>>(jet_coll_name)),
   output_handle(ctx.get_handle<std::vector<JetLambdaBundle>>(output_coll_name))
-{}
+{
+  mmdt.set_grooming_mode();
+  mmdt.set_reclustering(false);
+}
 
 
 PseudoJet QGAnalysisJetLambda::convert_uhh_pfparticle_to_pseudojet(const PFParticle & particle, bool applyPuppiWeight) {
@@ -465,8 +471,7 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     if (fabs(photonShift_) > 1E-6) { shift_photon_pfparticles(daughters, photonShift_); }
 
     // Calculate the WTA axis
-    // First convert Jet to PseudoJet, then convert it
-    // PseudoJet origJet = convert_uhh_jet_to_pseudojet(jet);
+    // First convert daughters to PseudoJets, then pass to clusterer
     vector<PseudoJet> constits = {};
     int dauCounter = 0;
     for (const auto & dau : daughters) {
@@ -483,7 +488,21 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
       cout << constits.size() << " daughters" << endl;
       throw std::runtime_error("WTA reclustering failed - no jets");
     }
-    LorentzVectorXYZE wtaJetAxis(wtaJets[0].px(), wtaJets[0].py(), wtaJets[0].pz(), wtaJets[0].E());
+    PseudoJet wtaJet = wtaJets[0];
+    LorentzVectorXYZE wtaJetAxis(wtaJet.px(), wtaJet.py(), wtaJet.pz(), wtaJet.E());
+
+    // Optionally apply grooming to jet, update axis and daughters left after grooming
+    if (doGrooming_) {
+      PseudoJet mmdtJet = mmdt(wtaJet);
+      // Update jet axis with that of the groomed jet
+      wtaJetAxis.SetPxPyPzE(mmdtJet.px(), mmdtJet.py(), mmdtJet.pz(), mmdtJet.E());
+      // update daughters collection with only those in groomed jet
+      std::vector<PFParticle> tmp;
+      for (const auto & dItr : mmdtJet.constituents()) {
+        tmp.push_back(daughters.at(dItr.user_index()));
+      }
+      std::swap(tmp, daughters);
+    }
 
     // cout << "Original jet axis: " << jet.v4().px() << " : " << jet.v4().py() << " : " << jet.v4().pz() << endl;
     // cout << "Original jet axis: " << jet.eta() << " : " << jet.phi() << endl;
@@ -559,16 +578,21 @@ void QGAnalysisJetLambda::shift_photon_pfparticles(std::vector<PFParticle> & pfp
 }
 
 
-QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx, float jetRadius, int nJetsMax, const GenParticleId & genId, const std::string & jet_coll_name, const std::string & output_coll_name):
+QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx, float jetRadius, int nJetsMax, bool doGrooming, const GenParticleId & genId, const std::string & jet_coll_name, const std::string & output_coll_name):
   ca_wta_cluster_(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme)),
+  mmdt(ModifiedMassDropTagger(0.1)),
   jetRadius_(jetRadius),
   nJetsMax_(nJetsMax),
+  doGrooming_(doGrooming),
   genId_(genId),
   neutralHadronShift_(0), // these are the fractional shift, e.g. 0.2 for 20%
   photonShift_(0),
   genjet_handle(ctx.get_handle<std::vector<GenJetWithParts>>(jet_coll_name)),
   output_handle(ctx.get_handle<std::vector<GenJetLambdaBundle>>(output_coll_name))
-{}
+{
+  mmdt.set_grooming_mode();
+  mmdt.set_reclustering(false);
+}
 
 
 PseudoJet QGAnalysisGenJetLambda::convert_uhh_genparticle_to_pseudojet(const GenParticle & particle) {
@@ -593,8 +617,7 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     // FIXME: handle when 0 leftover constituents
 
     // Calculate the WTA axis
-    // First convert Jet to PseudoJet, then convert it
-    // PseudoJet origJet = convert_uhh_jet_to_pseudojet(jet);
+    // First convert daughters to PseudoJets, then pass to clusterer
     vector<PseudoJet> constits = {};
     int dauCounter = 0;
     for (const auto & dau : daughters) {
@@ -620,8 +643,21 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
       }
       throw std::runtime_error("WTA reclustering failed - no genjets");
     }
-    LorentzVectorXYZE wtaJetAxis(wtaJets[0].px(), wtaJets[0].py(), wtaJets[0].pz(), wtaJets[0].E());
+    PseudoJet wtaJet = wtaJets[0];
+    LorentzVectorXYZE wtaJetAxis(wtaJet.px(), wtaJet.py(), wtaJet.pz(), wtaJet.E());
 
+    // Optionally apply grooming to jet, update axis and daughters left after grooming
+    if (doGrooming_) {
+      PseudoJet mmdtJet = mmdt(wtaJet);
+      // Update jet axis with that of the groomed jet
+      wtaJetAxis.SetPxPyPzE(mmdtJet.px(), mmdtJet.py(), mmdtJet.pz(), mmdtJet.E());
+      // update daughters collection with only those in groomed jet
+      std::vector<GenParticle> tmp;
+      for (const auto & dItr : mmdtJet.constituents()) {
+        tmp.push_back(daughters.at(dItr.user_index()));
+      }
+      std::swap(tmp, daughters);
+    }
     // cout << "Original jet axis: " << jet.v4().px() << " : " << jet.v4().py() << " : " << jet.v4().pz() << endl;
     // cout << "Original jet axis: " << jet.eta() << " : " << jet.phi() << endl;
     // cout << "WTA jet axis: " << wtaJetAxis.px() << " : " << wtaJetAxis.py() << " : " << wtaJetAxis.pz() << endl;

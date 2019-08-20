@@ -68,12 +68,12 @@ private:
 
     Event::Handle<bool> pass_zpj_sel_handle, pass_dj_sel_handle;
 
-    std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreator, jetChargedLambdaCreator;
+    std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreator, jetLambdaCreatorGroomed, jetChargedLambdaCreator, jetChargedLambdaCreatorGroomed;
 
-    std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists, zplusjets_qg_hists;
+    std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists, zplusjets_qg_hists, zplusjets_qg_hists_groomed;
     std::unique_ptr<Hists> zplusjets_qg_unfold_hists;
 
-    std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_qg_hists;
+    std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_qg_hists, dijet_qg_hists_groomed;
     std::unique_ptr<Hists> dijet_qg_unfold_hists;
 
     std::unique_ptr<EventNumberSelection> event_sel;
@@ -142,8 +142,23 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     int maxNJets = max(NJETS_ZPJ, NJETS_DIJET);
     float recoConstitPtMin = 1.;
 
-    jetLambdaCreator.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, PtEtaCut(recoConstitPtMin, 5.), "jets", "JetLambdas"));
-    jetChargedLambdaCreator.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, AndId<PFParticle>(PtEtaCut(recoConstitPtMin, 5.), ChargedCut()), "jets", "JetChargedLambdas"));
+    bool groomed = false;
+    std::string reco_jetlambda_handle_name = "JetLambdas";
+    std::string reco_charged_jetlambda_handle_name = "JetChargedLambdas";
+    jetLambdaCreator.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, groomed, PtEtaCut(recoConstitPtMin, 5.), "jets", reco_jetlambda_handle_name));
+    jetChargedLambdaCreator.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, groomed, AndId<PFParticle>(PtEtaCut(recoConstitPtMin, 5.), ChargedCut()), "jets", reco_charged_jetlambda_handle_name));
+
+    groomed = true;
+    std::string reco_jetlambda_groomed_handle_name = "JetLambdasGroomed";
+    std::string reco_charged_jetlambda_groomed_handle_name = "JetChargedLambdasGroomed";
+    jetLambdaCreatorGroomed.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, groomed, PtEtaCut(recoConstitPtMin, 5.), "jets", reco_jetlambda_groomed_handle_name));
+    jetChargedLambdaCreatorGroomed.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, groomed, AndId<PFParticle>(PtEtaCut(recoConstitPtMin, 5.), ChargedCut()), "jets", reco_charged_jetlambda_groomed_handle_name));
+
+    // dummy
+    std::string gen_jetlambda_handle_name = "GoodGenJetLambdas";
+    std::string gen_charged_jetlambda_handle_name = "GoodGenJetChargedLambdas";
+    std::string gen_jetlambda_groomed_handle_name = "GoodGenJetLambdasGroomed";
+    std::string gen_charged_jetlambda_groomed_handle_name = "GoodGenJetChargedLambdasGroomed";
 
     // Setup for systematics
     // FIXME put all this inside the ctor as it has ctx!
@@ -153,10 +168,14 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
         // pass
     } else if (neutralHadronShift == "up") {
         jetLambdaCreator->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
+        jetLambdaCreatorGroomed->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
         jetChargedLambdaCreator->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
+        jetChargedLambdaCreatorGroomed->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
     } else if (neutralHadronShift == "down") {
         jetLambdaCreator->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
+        jetLambdaCreatorGroomed->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
         jetChargedLambdaCreator->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
+        jetChargedLambdaCreatorGroomed->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
     } else {
         throw runtime_error("neutralHadronShift must be nominal, up, or down");
     }
@@ -167,10 +186,14 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
         // pass
     } else if (photonShift == "up") {
         jetLambdaCreator->set_photon_shift(1, photonShiftAmount);
+        jetLambdaCreatorGroomed->set_photon_shift(1, photonShiftAmount);
         jetChargedLambdaCreator->set_photon_shift(1, photonShiftAmount);
+        jetChargedLambdaCreatorGroomed->set_photon_shift(1, photonShiftAmount);
     } else if (photonShift == "down") {
         jetLambdaCreator->set_photon_shift(-1, photonShiftAmount);
+        jetLambdaCreatorGroomed->set_photon_shift(-1, photonShiftAmount);
         jetChargedLambdaCreator->set_photon_shift(-1, photonShiftAmount);
+        jetChargedLambdaCreatorGroomed->set_photon_shift(-1, photonShiftAmount);
     } else {
         throw runtime_error("photonShift must be nominal, up, or down");
     }
@@ -277,13 +300,23 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     // Hists
     zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLabel));
     zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
-    zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection"));
+    zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", 1, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection",
+                                                 reco_jetlambda_handle_name, gen_jetlambda_handle_name,
+                                                 reco_charged_jetlambda_handle_name, gen_charged_jetlambda_handle_name));
+    zplusjets_qg_hists_groomed.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG_groomed", 1, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection",
+                                                         reco_jetlambda_groomed_handle_name, gen_jetlambda_groomed_handle_name,
+                                                         reco_charged_jetlambda_groomed_handle_name, gen_charged_jetlambda_groomed_handle_name));
     zplusjets_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG_Unfold", 1, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection"));
 
     std::string binning_method = "ave";
     dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
     dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
-    dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter", 2, "dijet", "DijetSelection", "DijetGenSelection"));
+    dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter", 2, "dijet", "DijetSelection", "DijetGenSelection",
+                                             reco_jetlambda_handle_name, gen_jetlambda_handle_name,
+                                             reco_charged_jetlambda_handle_name, gen_charged_jetlambda_handle_name));
+    dijet_qg_hists_groomed.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter_groomed", 2, "dijet", "DijetSelection", "DijetGenSelection",
+                                                     reco_jetlambda_groomed_handle_name, gen_jetlambda_groomed_handle_name,
+                                                     reco_charged_jetlambda_groomed_handle_name, gen_charged_jetlambda_groomed_handle_name));
     dijet_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_Unfold_tighter", 2, "dijet", "DijetSelection", "DijetGenSelection"));
 
     // event_sel.reset(new EventNumberSelection({111}));
@@ -342,6 +375,8 @@ bool QGAnalysisDataModule::process(Event & event) {
     // -------------------------------------------------------------------------
     jetLambdaCreator->process(event);
     jetChargedLambdaCreator->process(event);
+    jetLambdaCreatorGroomed->process(event);
+    jetChargedLambdaCreatorGroomed->process(event);
 
     if (dataset == DATASET::SingleMu) {
         if (!zFinder->process(event))
@@ -353,6 +388,7 @@ bool QGAnalysisDataModule::process(Event & event) {
             if (selected) {
                 zplusjets_hists->fill(event);
                 zplusjets_qg_hists->fill(event);
+                zplusjets_qg_hists_groomed->fill(event);
                 zplusjets_qg_unfold_hists->fill(event);
             }
         }
@@ -364,6 +400,7 @@ bool QGAnalysisDataModule::process(Event & event) {
             if (dataset == DATASET::JetHT) event.weight *= dj_trig_prescales.at(dj_trig_ind);
             dijet_hists->fill(event);
             dijet_qg_hists->fill(event);
+            dijet_qg_hists_groomed->fill(event);
             dijet_qg_unfold_hists->fill(event);
         }
     }

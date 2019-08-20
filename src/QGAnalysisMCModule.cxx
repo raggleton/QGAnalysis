@@ -53,8 +53,8 @@ private:
     std::unique_ptr<MCReweighting> mc_reweight;
     std::unique_ptr<MCScaleVariation> mc_scalevar;
 
-    std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreator, jetChargedLambdaCreator;
-    std::unique_ptr<QGAnalysisGenJetLambda> genjetLambdaCreator, genjetChargedLambdaCreator;
+    std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreator, jetChargedLambdaCreator, jetLambdaCreatorGroomed, jetChargedLambdaCreatorGroomed;
+    std::unique_ptr<QGAnalysisGenJetLambda> genjetLambdaCreator, genjetChargedLambdaCreator, genjetLambdaCreatorGroomed, genjetChargedLambdaCreatorGroomed;
 
     // Reco selections/hists
     std::unique_ptr<ZFinder> zFinder;
@@ -62,13 +62,13 @@ private:
 
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists;
     std::unique_ptr<Hists> zplusjets_hists_presel_q, zplusjets_hists_presel_g, zplusjets_hists_presel_unknown;
-    std::unique_ptr<Hists> zplusjets_qg_hists;
+    std::unique_ptr<Hists> zplusjets_qg_hists, zplusjets_qg_hists_groomed;
     std::unique_ptr<Hists> zplusjets_qg_unfold_hists;
 
     std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_hists_tighter;
     std::unique_ptr<Hists> dijet_hists_presel_gg, dijet_hists_presel_qg, dijet_hists_presel_gq, dijet_hists_presel_qq;
     std::unique_ptr<Hists> dijet_hists_presel_q_unknown, dijet_hists_presel_g_unknown, dijet_hists_presel_unknown_unknown, dijet_hists_presel_unknown_q, dijet_hists_presel_unknown_g;
-    std::unique_ptr<Hists> dijet_qg_hists, dijet_qg_hists_tighter;
+    std::unique_ptr<Hists> dijet_qg_hists, dijet_qg_hists_tighter, dijet_qg_hists_tighter_groomed;
     std::unique_ptr<Hists> dijet_qg_unfold_hists_tighter;
 
     std::unique_ptr<Hists> genjet_hists, genjet_hists_passZpJReco, genjet_hists_passDijetReco;
@@ -86,8 +86,8 @@ private:
         std::make_pair(30, 40)
     };
     std::vector< std::unique_ptr<Selection> > sel_pu_binned;
-    std::vector< std::unique_ptr<Hists> > zplusjets_qg_hists_pu_binned;
-    std::vector< std::unique_ptr<Hists> > dijet_qg_hists_pu_binned;
+    std::vector< std::unique_ptr<Hists> > zplusjets_qg_hists_pu_binned, zplusjets_qg_hists_groomed_pu_binned;
+    std::vector< std::unique_ptr<Hists> > dijet_qg_hists_pu_binned, dijet_qg_hists_groomed_pu_binned;
 
     // Gen selection
     std::unique_ptr<Selection> zplusjets_gen_sel, zplusjets_gen_sel_passReco, dijet_gen_sel, dijet_gen_sel_passReco;
@@ -111,7 +111,7 @@ private:
     float jetRadius;
     float htMax;
 
-    const bool DO_PU_BINNED_HISTS = false;
+    const bool DO_PU_BINNED_HISTS = true;
 
     std::unique_ptr<EventNumberSelection> event_sel;
 
@@ -166,11 +166,27 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     float recoConstitPtMin = 1.;
 
     // FIXME: get stuff from ctx not extra args
-    jetLambdaCreator.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, PtEtaCut(recoConstitPtMin, 5.), "jets", "JetLambdas"));
-    jetChargedLambdaCreator.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, AndId<PFParticle>(PtEtaCut(recoConstitPtMin, 5.), ChargedCut()), "jets", "JetChargedLambdas"));
+    bool groomed = false;
+    std::string reco_jetlambda_handle_name = "JetLambdas";
+    std::string reco_charged_jetlambda_handle_name = "JetChargedLambdas";
+    jetLambdaCreator.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, groomed, PtEtaCut(recoConstitPtMin, 5.), "jets", reco_jetlambda_handle_name));
+    jetChargedLambdaCreator.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, groomed, AndId<PFParticle>(PtEtaCut(recoConstitPtMin, 5.), ChargedCut()), "jets", reco_charged_jetlambda_handle_name));
     // do Lambda for more genjets, since we sometimes are interested in reco-genjet matches for genjets >= #3
-    genjetLambdaCreator.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 5, PtEtaCut(0., 5.), "GoodGenJets", "GoodGenJetLambdas"));
-    genjetChargedLambdaCreator.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 5, ChargedCut(), "GoodGenJets", "GoodGenJetChargedLambdas"));
+    std::string gen_jetlambda_handle_name = "GoodGenJetLambdas";
+    std::string gen_charged_jetlambda_handle_name = "GoodGenJetChargedLambdas";
+    genjetLambdaCreator.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 5, groomed, PtEtaCut(0., 5.), "GoodGenJets", gen_jetlambda_handle_name));
+    genjetChargedLambdaCreator.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 5, groomed, ChargedCut(), "GoodGenJets", gen_charged_jetlambda_handle_name));
+
+    groomed = true;
+    std::string reco_jetlambda_groomed_handle_name = "JetLambdasGroomed";
+    std::string reco_charged_jetlambda_groomed_handle_name = "JetChargedLambdasGroomed";
+    jetLambdaCreatorGroomed.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, groomed, PtEtaCut(recoConstitPtMin, 5.), "jets", reco_jetlambda_groomed_handle_name));
+    jetChargedLambdaCreatorGroomed.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, groomed, AndId<PFParticle>(PtEtaCut(recoConstitPtMin, 5.), ChargedCut()), "jets", reco_charged_jetlambda_groomed_handle_name));
+
+    std::string gen_jetlambda_groomed_handle_name = "GoodGenJetLambdasGroomed";
+    std::string gen_charged_jetlambda_groomed_handle_name = "GoodGenJetChargedLambdasGroomed";
+    genjetLambdaCreatorGroomed.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 5, groomed, PtEtaCut(0., 5.), "GoodGenJets", "GoodGenJetLambdasGroomed"));
+    genjetChargedLambdaCreatorGroomed.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 5, groomed, ChargedCut(), "GoodGenJets", "GoodGenJetChargedLambdasGroomed"));
 
     // Setup for systematics
     // FIXME put all this inside the ctor as it has ctx!
@@ -181,9 +197,13 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     } else if (neutralHadronShift == "up") {
         jetLambdaCreator->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
         jetChargedLambdaCreator->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
+        jetLambdaCreatorGroomed->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
+        jetChargedLambdaCreatorGroomed->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
     } else if (neutralHadronShift == "down") {
         jetLambdaCreator->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
+        jetLambdaCreatorGroomed->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
         jetChargedLambdaCreator->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
+        jetChargedLambdaCreatorGroomed->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
     } else {
         throw runtime_error("neutralHadronShift must be nominal, up, or down");
     }
@@ -195,9 +215,13 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     } else if (photonShift == "up") {
         jetLambdaCreator->set_photon_shift(1, photonShiftAmount);
         jetChargedLambdaCreator->set_photon_shift(1, photonShiftAmount);
+        jetLambdaCreatorGroomed->set_photon_shift(1, photonShiftAmount);
+        jetChargedLambdaCreatorGroomed->set_photon_shift(1, photonShiftAmount);
     } else if (photonShift == "down") {
         jetLambdaCreator->set_photon_shift(-1, photonShiftAmount);
         jetChargedLambdaCreator->set_photon_shift(-1, photonShiftAmount);
+        jetLambdaCreatorGroomed->set_photon_shift(-1, photonShiftAmount);
+        jetChargedLambdaCreatorGroomed->set_photon_shift(-1, photonShiftAmount);
     } else {
         throw runtime_error("photonShift must be nominal, up, or down");
     }
@@ -249,7 +273,14 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     zplusjets_hists_presel_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_g", zLabel));
     zplusjets_hists_presel_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown", zLabel));
     zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
-    zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG", NJETS_ZPJ, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection"));
+    zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG",
+                                                 NJETS_ZPJ, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection",
+                                                 reco_jetlambda_handle_name, gen_jetlambda_handle_name,
+                                                 reco_charged_jetlambda_handle_name, gen_charged_jetlambda_handle_name));
+    zplusjets_qg_hists_groomed.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG_groomed",
+                                                         NJETS_ZPJ, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection",
+                                                         reco_jetlambda_groomed_handle_name, gen_jetlambda_groomed_handle_name,
+                                                         reco_charged_jetlambda_groomed_handle_name, gen_charged_jetlambda_groomed_handle_name));
     zplusjets_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG_Unfold", NJETS_ZPJ, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection"));
 
     std::string binning_method = "ave";
@@ -266,8 +297,18 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     dijet_hists_presel_g_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_g_unknown", binning_method));
     dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet", binning_method));
     dijet_hists_tighter.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
-    dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG", NJETS_DIJET, "dijet", "DijetSelection", "DijetGenSelection"));
-    dijet_qg_hists_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter", NJETS_DIJET, "dijet", "DijetSelection", "DijetGenSelection"));
+    dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG",
+                                             NJETS_DIJET, "dijet", "DijetSelection", "DijetGenSelection",
+                                             reco_jetlambda_handle_name, gen_jetlambda_handle_name,
+                                             reco_charged_jetlambda_handle_name, gen_charged_jetlambda_handle_name));
+    dijet_qg_hists_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter",
+                                                     NJETS_DIJET, "dijet", "DijetSelection", "DijetGenSelection",
+                                                     reco_jetlambda_handle_name, gen_jetlambda_handle_name,
+                                                     reco_charged_jetlambda_handle_name, gen_charged_jetlambda_handle_name));
+    dijet_qg_hists_tighter_groomed.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter_groomed",
+                                                             NJETS_DIJET, "dijet", "DijetSelection", "DijetGenSelection",
+                                                             reco_jetlambda_groomed_handle_name, gen_jetlambda_groomed_handle_name,
+                                                             reco_charged_jetlambda_groomed_handle_name, gen_charged_jetlambda_groomed_handle_name));
     dijet_qg_unfold_hists_tighter.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_Unfold_tighter", NJETS_DIJET, "dijet", "DijetSelection", "DijetGenSelection"));
 
     // dijet_hists_presel_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_highPt", binning_method));
@@ -307,10 +348,26 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         for (auto puBin : pu_bins) {
             std::unique_ptr<Selection> pu_sel(new NPVSelection(puBin.first, puBin.second));
             sel_pu_binned.push_back(std::move(pu_sel));
-            std::unique_ptr<QGAnalysisHists> zpj(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), NJETS_ZPJ, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection"));
+            std::unique_ptr<QGAnalysisHists> zpj(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(),
+                                                                     NJETS_ZPJ, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection",
+                                                                     reco_jetlambda_handle_name, gen_jetlambda_handle_name,
+                                                                     reco_charged_jetlambda_handle_name, gen_charged_jetlambda_handle_name));
             zplusjets_qg_hists_pu_binned.push_back(std::move(zpj));
-            std::unique_ptr<QGAnalysisHists> dj(new QGAnalysisHists(ctx, TString::Format("Dijet_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(), NJETS_DIJET, "dijet", "DijetSelection", "DijetGenSelection"));
+            std::unique_ptr<QGAnalysisHists> zpjg(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d_groomed", puBin.first, puBin.second).Data(),
+                                                                      NJETS_ZPJ, "zplusjets", "ZPlusJetsSelection", "ZPlusJetsGenSelection",
+                                                                      reco_jetlambda_groomed_handle_name, gen_jetlambda_groomed_handle_name,
+                                                                      reco_charged_jetlambda_groomed_handle_name, gen_charged_jetlambda_groomed_handle_name));
+            zplusjets_qg_hists_groomed_pu_binned.push_back(std::move(zpjg));
+            std::unique_ptr<QGAnalysisHists> dj(new QGAnalysisHists(ctx, TString::Format("Dijet_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(),
+                                                                    NJETS_DIJET, "dijet", "DijetSelection", "DijetGenSelection",
+                                                                    reco_jetlambda_handle_name, gen_jetlambda_handle_name,
+                                                                    reco_charged_jetlambda_handle_name, gen_charged_jetlambda_handle_name));
             dijet_qg_hists_pu_binned.push_back(std::move(dj));
+            std::unique_ptr<QGAnalysisHists> djg(new QGAnalysisHists(ctx, TString::Format("Dijet_QG_PU_%d_to_%d_groomed", puBin.first, puBin.second).Data(),
+                                                                     NJETS_DIJET, "dijet", "DijetSelection", "DijetGenSelection",
+                                                                     reco_jetlambda_groomed_handle_name, gen_jetlambda_groomed_handle_name,
+                                                                     reco_charged_jetlambda_groomed_handle_name, gen_charged_jetlambda_groomed_handle_name));
+            dijet_qg_hists_groomed_pu_binned.push_back(std::move(djg));
         }
     }
 
@@ -468,6 +525,11 @@ bool QGAnalysisMCModule::process(Event & event) {
     genjetLambdaCreator->process(event);
     genjetChargedLambdaCreator->process(event);
 
+    jetLambdaCreatorGroomed->process(event);
+    jetChargedLambdaCreatorGroomed->process(event);
+    genjetLambdaCreatorGroomed->process(event);
+    genjetChargedLambdaCreatorGroomed->process(event);
+
     // Do reco-specific Z+Jet hists & selection
     // -------------------------------------------------------------------------
     if (hasRecoJets) {
@@ -489,6 +551,7 @@ bool QGAnalysisMCModule::process(Event & event) {
                 if (pass_zpj_reco) {
                     zplusjets_hists->fill(event);
                     zplusjets_qg_hists->fill(event);
+                    zplusjets_qg_hists_groomed->fill(event);
                     zplusjets_gen_sel_passReco->passes(event);
                     genjet_hists_passZpJReco->fill(event);
                 }
@@ -550,6 +613,7 @@ bool QGAnalysisMCModule::process(Event & event) {
             if (dijet_sel_tighter->passes(event)) {
                 dijet_hists_tighter->fill(event);
                 dijet_qg_hists_tighter->fill(event);
+                dijet_qg_hists_tighter_groomed->fill(event);
             }
         }
     }
@@ -564,8 +628,14 @@ bool QGAnalysisMCModule::process(Event & event) {
     if (DO_PU_BINNED_HISTS) {
         for (uint i=0; i<sel_pu_binned.size(); i++) {
             if (sel_pu_binned.at(i)->passes(event)) {
-                if (pass_zpj_reco) zplusjets_qg_hists_pu_binned.at(i)->fill(event);
-                if (pass_dj_reco) dijet_qg_hists_pu_binned.at(i)->fill(event);
+                if (pass_zpj_reco) {
+                    zplusjets_qg_hists_pu_binned.at(i)->fill(event);
+                    zplusjets_qg_hists_groomed_pu_binned.at(i)->fill(event);
+                }
+                if (pass_dj_reco) {
+                    dijet_qg_hists_pu_binned.at(i)->fill(event);
+                    dijet_qg_hists_groomed_pu_binned.at(i)->fill(event);
+                }
             }
         }
     }

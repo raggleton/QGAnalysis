@@ -20,8 +20,11 @@ namespace uhh2examples {
  */
 class QGAnalysisHists: public uhh2::Hists {
 public:
-    // use the same constructor arguments as Hists for forwarding:
-    QGAnalysisHists(uhh2::Context & ctx, const std::string & dirname, int useNJets, const std::string & selection, const std::string & reco_sel_handle_name, const std::string & gen_sel_handle_name);
+    QGAnalysisHists(uhh2::Context & ctx, const std::string & dirname, int useNJets,
+                    const std::string & selection,
+                    const std::string & reco_sel_handle_name, const std::string & gen_sel_handle_name,
+                    const std::string & reco_jetlambda_handle_name, const std::string & gen_jetlambda_handle_name,
+                    const std::string & reco_charged_jetlambda_handle_name, const std::string & gen_charged_jetlambda_handle_name);
 
     virtual void fill(const uhh2::Event & ev) override;
     virtual ~QGAnalysisHists();

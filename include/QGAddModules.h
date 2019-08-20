@@ -17,6 +17,7 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include "fastjet/JetDefinition.hh"
 #include "fastjet/ClusterSequence.hh"
+#include "fastjet/contrib/ModifiedMassDropTagger.hh"
 #pragma GCC diagnostic pop
 
 #include "TFile.h"
@@ -201,6 +202,7 @@ public:
                       float jetRadius,
                       int nJetsMax,
                       bool doPuppi,
+                      bool doGrooming,
                       const PFParticleId & pfId,
                       const std::string & jet_coll_name="jets",
                       const std::string & output_coll_name="jetlambdas");
@@ -216,9 +218,11 @@ public:
 
 private:
   fastjet::JetDefinition ca_wta_cluster_;
+  fastjet::contrib::ModifiedMassDropTagger mmdt;
   float jetRadius_;
   int nJetsMax_;
   bool doPuppi_;
+  bool doGrooming_;
   PFParticleId pfId_;
   float neutralHadronShift_, photonShift_;
   uhh2::Event::Handle<std::vector<Jet>> jet_handle;
@@ -233,6 +237,7 @@ public:
   QGAnalysisGenJetLambda(uhh2::Context & ctx,
                          float jetRadius,
                          int nJetsMax,
+                         bool doGrooming,
                          const GenParticleId & genId,
                          const std::string & jet_coll_name="genjets",
                          const std::string & output_coll_name="genjetlambdas");
@@ -249,8 +254,10 @@ public:
 
 private:
   fastjet::JetDefinition ca_wta_cluster_;
+  fastjet::contrib::ModifiedMassDropTagger mmdt;
   float jetRadius_;
   int nJetsMax_;
+  bool doGrooming_;
   GenParticleId genId_;
   float neutralHadronShift_, photonShift_;
   uhh2::Event::Handle<std::vector<GenJetWithParts>> genjet_handle;

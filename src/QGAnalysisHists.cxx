@@ -10,7 +10,13 @@ using namespace std;
 using namespace uhh2;
 using namespace uhh2examples;
 
-QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useNJets, const string & selection, const string & reco_sel_handle_name, const string & gen_sel_handle_name):
+QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
+                                 int useNJets,
+                                 const string & selection,
+                                 const string & reco_sel_handle_name, const string & gen_sel_handle_name,
+                                 const string & reco_jetlambda_handle_name, const string & gen_jetlambda_handle_name,
+                                 const string & reco_charged_jetlambda_handle_name, const string & gen_charged_jetlambda_handle_name
+                                 ):
   Hists(ctx, dirname),
   useNJets_(useNJets),
   rsp_midPt_cut_(100.),
@@ -349,13 +355,13 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname, int useN
 
   if (is_mc_) {
     genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > ("GoodGenJets");
-    genJetsLambda_handle = ctx.get_handle< std::vector<GenJetLambdaBundle> > ("GoodGenJetLambdas");
-    genJetsChargedLambda_handle = ctx.get_handle< std::vector<GenJetLambdaBundle> > ("GoodGenJetChargedLambdas");
+    genJetsLambda_handle = ctx.get_handle< std::vector<GenJetLambdaBundle> > (gen_jetlambda_handle_name);
+    genJetsChargedLambda_handle = ctx.get_handle< std::vector<GenJetLambdaBundle> > (gen_charged_jetlambda_handle_name);
     pass_gen_handle = ctx.get_handle<bool> (gen_sel_handle_name);
   }
 
-  jetsLambda_handle = ctx.get_handle< std::vector<JetLambdaBundle> > ("JetLambdas");
-  jetsChargedLambda_handle = ctx.get_handle< std::vector<JetLambdaBundle> > ("JetChargedLambdas");
+  jetsLambda_handle = ctx.get_handle< std::vector<JetLambdaBundle> > (reco_jetlambda_handle_name);
+  jetsChargedLambda_handle = ctx.get_handle< std::vector<JetLambdaBundle> > (reco_charged_jetlambda_handle_name);
 
   pass_reco_handle = ctx.get_handle<bool> (reco_sel_handle_name);
 }
