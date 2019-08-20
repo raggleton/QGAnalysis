@@ -41,15 +41,17 @@ protected:
 
     TH1F *h_jet_pt, *h_jet_pt_unweighted, *h_jet_eta, *h_jet_flavour;
     TH1F *h_jet_multiplicity, *h_jet_puppiMultiplicity, *h_jet_LHA, *h_jet_pTD, *h_jet_width, *h_jet_thrust;
+    TH1F *h_jet_multiplicity_charged, *h_jet_puppiMultiplicity_charged, *h_jet_LHA_charged, *h_jet_pTD_charged, *h_jet_width_charged, *h_jet_thrust_charged;
     TH1F *h_qjet_multiplicity, *h_qjet_LHA, *h_qjet_pTD, *h_qjet_width, *h_qjet_thrust;
     TH1F *h_gjet_multiplicity, *h_gjet_LHA, *h_gjet_pTD, *h_gjet_width, *h_gjet_thrust;
 
     TH2F *h_jet_multiplicity_vs_pt, *h_jet_LHA_vs_pt, *h_jet_pTD_vs_pt, *h_jet_width_vs_pt, *h_jet_thrust_vs_pt;
+    TH2F *h_jet_multiplicity_charged_vs_pt, *h_jet_LHA_charged_vs_pt, *h_jet_pTD_charged_vs_pt, *h_jet_width_charged_vs_pt, *h_jet_thrust_charged_vs_pt;
     TH2F *h_jet_flavour_vs_pt, *h_jet1_flavour_vs_pt, *h_jet2_flavour_vs_pt;
     TH2F *h_jet_flavour_vs_eta, *h_jet_response_vs_genjet_pt;
     TH2F *h_qjet_multiplicity_vs_pt, *h_qjet_LHA_vs_pt, *h_qjet_pTD_vs_pt, *h_qjet_width_vs_pt, *h_qjet_thrust_vs_pt, *h_qjet_response_vs_genjet_pt;
     TH2F *h_gjet_multiplicity_vs_pt, *h_gjet_LHA_vs_pt, *h_gjet_pTD_vs_pt, *h_gjet_width_vs_pt, *h_gjet_thrust_vs_pt, *h_gjet_response_vs_genjet_pt;
-    TH2F *h_jet_puppiMultiplicity_vs_pt, *h_qjet_puppiMultiplicity_vs_pt, *h_gjet_puppiMultiplicity_vs_pt;
+    TH2F *h_jet_puppiMultiplicity_vs_pt, *h_jet_puppiMultiplicity_charged_vs_pt, *h_qjet_puppiMultiplicity_vs_pt, *h_gjet_puppiMultiplicity_vs_pt;
 
     // gen-reco response hists
     TH2F * h_jet_multiplicity_response, *h_jet_puppiMultiplicity_response, *h_jet_LHA_response, *h_jet_pTD_response, *h_jet_width_response, *h_jet_thrust_response;
