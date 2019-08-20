@@ -7,6 +7,7 @@
     <!ENTITY ODIR-PYTHIA "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/PythiaOnlyFlat">
 
     <!-- Full datasets -->
+    <!ENTITY PYTHIA-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/PythiaOnly/QCD_Pt15to7000_Flat.xml">
     <!ENTITY PYTHIA-QCD-Pt15to30 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/PythiaOnly/QCD_Pt15to30.xml">
     <!ENTITY PYTHIA-QCD-Pt30to50 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/PythiaOnly/QCD_Pt30to50.xml">
     <!ENTITY PYTHIA-QCD-Pt50to80 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/PythiaOnly/QCD_Pt50to80.xml">
@@ -50,12 +51,13 @@
 
     <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-PYTHIA;/" PostFix="" TargetLumi="35918" >
 
-        <!-- PYTHIA ONLY -->
-        <!-- <InputData Lumi="1" NEventsMax="&NEVT;" Type="MC" Version="MC_QCD_PYTHIA_ONLY" Cacheable="False">
+
+<!--
+        <InputData Lumi="1781.04873455" NEventsMax="&NEVT;" Type="MC" Version="MC_QCD_PYTHIA_FLAT" Cacheable="False">
         &PYTHIA-QCD;
         <InputTree Name="AnalysisTree"/>
         </InputData>
-         -->
+    -->    
 
 
         <InputData Lumi="0.02171" NEventsMax="&NEVT;" Type="MC" Version="MC_PYTHIA-QCD-Pt15to30" Cacheable="False">
