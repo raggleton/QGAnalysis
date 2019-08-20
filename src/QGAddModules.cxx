@@ -590,6 +590,8 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     // if (fabs(neutralHadronShift_) > 1E-6) { shift_neutral_hadron_genparticles(daughters, neutralHadronShift_); }
     // if (fabs(photonShift_) > 1E-6) { shift_photon_genparticles(daughters, photonShift_); }
 
+    // FIXME: handle when 0 leftover constituents
+
     // Calculate the WTA axis
     // First convert Jet to PseudoJet, then convert it
     // PseudoJet origJet = convert_uhh_jet_to_pseudojet(jet);
@@ -625,6 +627,9 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     // cout << "WTA jet axis: " << wtaJetAxis.px() << " : " << wtaJetAxis.py() << " : " << wtaJetAxis.pz() << endl;
     // cout << "WTA jet axis: " << wtaJetAxis.eta() << " : " << wtaJetAxis.phi() << endl;
 
+    // Finally apply any pt charge cuts etc
+    if (genId_) clean_collection<GenParticle>(daughters, event, genId_);
+
     LambdaCalculator<GenParticle> genJetCalc(daughters, jetRadius_, toPtEtaPhi(wtaJetAxis), false);
     GenJetLambdaBundle thisBundle{jet, genJetCalc};
     outputs.push_back(thisBundle);
@@ -638,9 +643,7 @@ std::vector<GenParticle> QGAnalysisGenJetLambda::get_jet_genparticles(const GenJ
   std::vector<GenParticle> * genparticles = event.genparticles;
   std::vector<GenParticle> gp;
   for (const uint i : genjet.genparticles_indices()) {
-    if ((genId_ && genId_(genparticles->at(i), event)) || !(genId_)) {
-      gp.push_back(genparticles->at(i)); // TODO store copy incase we shift it?
-    }
+    gp.push_back(genparticles->at(i)); // TODO store copy incase we shift it?
   }
   return gp;
 }
