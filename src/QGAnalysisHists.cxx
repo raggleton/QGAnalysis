@@ -499,6 +499,12 @@ void QGAnalysisHists::fill(const Event & event){
       h_jet_width_charged->Fill(width_charged, weight);
       h_jet_thrust_charged->Fill(thrust_charged, weight);
 
+      h_jet_multiplicity_vs_pt->Fill(mult, jet_pt, weight);
+      h_jet_LHA_vs_pt->Fill(lha, jet_pt, weight);
+      h_jet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
+      h_jet_width_vs_pt->Fill(width, jet_pt, weight);
+      h_jet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
+
       h_jet_multiplicity_charged_vs_pt->Fill(mult_charged, jet_pt, weight);
       h_jet_LHA_charged_vs_pt->Fill(lha_charged, jet_pt, weight);
       h_jet_pTD_charged_vs_pt->Fill(ptd_charged, jet_pt, weight);
@@ -731,11 +737,11 @@ void QGAnalysisHists::fill(const Event & event){
       h_genjet_width_vs_pt->Fill(gen_width, genjet_pt, gen_weight);
       h_genjet_thrust_vs_pt->Fill(gen_thrust, genjet_pt, gen_weight);
 
-      float gen_lha_charged = genJetCalcCharged.getLambda(1, 0.5);
-      float gen_mult_charged = genJetCalcCharged.getLambda(0, 0);
-      float gen_ptd_charged = genJetCalcCharged.getLambda(2, 0);
-      float gen_width_charged = genJetCalcCharged.getLambda(1, 1);
-      float gen_thrust_charged = genJetCalcCharged.getLambda(1, 2);
+      // float gen_lha_charged = genJetCalcCharged.getLambda(1, 0.5);
+      // float gen_mult_charged = genJetCalcCharged.getLambda(0, 0);
+      // float gen_ptd_charged = genJetCalcCharged.getLambda(2, 0);
+      // float gen_width_charged = genJetCalcCharged.getLambda(1, 1);
+      // float gen_thrust_charged = genJetCalcCharged.getLambda(1, 2);
 
       // if (thisjet.flavor() == 21) { // gluon jets
       //   h_ggenjet_multiplicity->Fill(mult, weight);
