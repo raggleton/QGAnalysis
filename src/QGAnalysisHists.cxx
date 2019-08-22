@@ -35,20 +35,20 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   }
 
   doHerwigReweighting = ctx.get("herwig_reweight_file", "") != "";
-  if (doHerwigReweighting) {
-    TFile f_weight(ctx.get("herwig_reweight_file", "").c_str());
-    if (selection == "dijet")
-      reweightHist = (TH1F*) f_weight.Get("dijet_reco");
-    else if (selection == "zplusjets")
-      reweightHist = (TH1F*) f_weight.Get("zpj_reco");
+  // if (doHerwigReweighting) {
+  //   TFile f_weight(ctx.get("herwig_reweight_file", "").c_str());
+  //   if (selection == "dijet")
+  //     reweightHist = (TH1F*) f_weight.Get("dijet_reco");
+  //   else if (selection == "zplusjets")
+  //     reweightHist = (TH1F*) f_weight.Get("zpj_reco");
 
-    if (reweightHist == nullptr) {
-      doHerwigReweighting = false;
-      cout << "WARNING: could not find reweight hist - not reweighting AnalysisHists!" << endl;
-    } else {
-      reweightHist->SetDirectory(0);
-    }
-  }
+  //   if (reweightHist == nullptr) {
+  //     doHerwigReweighting = false;
+  //     cout << "WARNING: could not find reweight hist - not reweighting AnalysisHists!" << endl;
+  //   } else {
+  //     reweightHist->SetDirectory(0);
+  //   }
+  // }
 
   gen_weight_handle = ctx.get_handle<double>("gen_weight");
 
@@ -369,18 +369,18 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
 
 void QGAnalysisHists::fill(const Event & event){
   std::vector<Jet>* jets = event.jets;
-  int Njets = jets->size();
+  // int Njets = jets->size();
 
   // Optionally apply weight to Herwig to ensure spectrum matches Pythia spectrum
   float herwig_weight = 1.;
-  if (doHerwigReweighting && Njets >= 1) {
-    float pt = jets->at(0).pt();
-    if (pt >= reweightHist->GetXaxis()->GetXmax()) {
-      pt = reweightHist->GetXaxis()->GetXmax() - 0.1;
-    }
-    int bin_num = reweightHist->GetXaxis()->FindBin(pt);
-    herwig_weight = reweightHist->GetBinContent(bin_num);
-  }
+  // if (doHerwigReweighting && Njets >= 1) {
+  //   float pt = jets->at(0).pt();
+  //   if (pt >= reweightHist->GetXaxis()->GetXmax()) {
+  //     pt = reweightHist->GetXaxis()->GetXmax() - 0.1;
+  //   }
+  //   int bin_num = reweightHist->GetXaxis()->FindBin(pt);
+  //   herwig_weight = reweightHist->GetBinContent(bin_num);
+  // }
 
   double weight = event.weight * herwig_weight;
 

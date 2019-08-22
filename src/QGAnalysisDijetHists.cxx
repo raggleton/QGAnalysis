@@ -17,16 +17,16 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   binning(binning_)
 {
   doHerwigReweighting = ctx.get("herwig_reweight_file", "") != "";
-  if (doHerwigReweighting) {
-    TFile f_weight(ctx.get("herwig_reweight_file", "").c_str());
-    reweightHist = (TH1F*) f_weight.Get("dijet_reco");
-    if (reweightHist == nullptr) {
-      doHerwigReweighting = false;
-      cout << "WARNING: could not find dijet_reco reweight hist - not reweighting DijetHists!" << endl;
-    } else {
-      reweightHist->SetDirectory(0);
-    }
-  }
+  // if (doHerwigReweighting) {
+  //   TFile f_weight(ctx.get("herwig_reweight_file", "").c_str());
+  //   reweightHist = (TH1F*) f_weight.Get("dijet_reco");
+  //   if (reweightHist == nullptr) {
+  //     doHerwigReweighting = false;
+  //     cout << "WARNING: could not find dijet_reco reweight hist - not reweighting DijetHists!" << endl;
+  //   } else {
+  //     reweightHist->SetDirectory(0);
+  //   }
+  // }
 
   string jet_cone = ctx.get("JetCone", "AK4");
   jetRadius = get_jet_radius(jet_cone);
@@ -126,14 +126,14 @@ void QGAnalysisDijetHists::fill(const Event & event){
 
   // Optionally apply weight to Herwig to ensure spectrum matches Pythia spectrum
   float herwig_weight = 1.;
-  if (doHerwigReweighting && Njets >= 1) {
-    float pt = jets->at(0).pt();
-    if (pt >= reweightHist->GetXaxis()->GetXmax()) {
-      pt = reweightHist->GetXaxis()->GetXmax() - 0.1;
-    }
-    int bin_num = reweightHist->GetXaxis()->FindBin(pt);
-    herwig_weight = reweightHist->GetBinContent(bin_num);
-  }
+  // if (doHerwigReweighting && Njets >= 1) {
+  //   float pt = jets->at(0).pt();
+  //   if (pt >= reweightHist->GetXaxis()->GetXmax()) {
+  //     pt = reweightHist->GetXaxis()->GetXmax() - 0.1;
+  //   }
+  //   int bin_num = reweightHist->GetXaxis()->FindBin(pt);
+  //   herwig_weight = reweightHist->GetBinContent(bin_num);
+  // }
 
   // fill the histograms. Please note better to
   // use histogram pointers as members instead of hist("name")
