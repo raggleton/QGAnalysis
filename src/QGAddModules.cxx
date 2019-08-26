@@ -432,9 +432,16 @@ void LambdaCalculator<T>::clearCache()
 
 
 
-QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx, float jetRadius, int nJetsMax, bool doPuppi, bool doGrooming, const PFParticleId & pfId, const std::string & jet_coll_name, const std::string & output_coll_name):
+QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx,
+                                         float jetRadius,
+                                         int nJetsMax,
+                                         bool doPuppi,
+                                         bool doGrooming,
+                                         const PFParticleId & pfId,
+                                         const std::string & jet_coll_name,
+                                         const std::string & output_coll_name):
   ca_wta_cluster_(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme)),
-  mmdt(ModifiedMassDropTagger(0.1)),
+  mmdt_(ModifiedMassDropTagger(0.1)),
   jetRadius_(jetRadius),
   nJetsMax_(nJetsMax),
   doPuppi_(doPuppi),
@@ -442,11 +449,11 @@ QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx, float jetRadius, i
   pfId_(pfId),
   neutralHadronShift_(0), // these are the fractional shift, e.g. 0.2 for 20%
   photonShift_(0), // must init to 0 otherwise bad things will happen, will go haywire!
-  jet_handle(ctx.get_handle<std::vector<Jet>>(jet_coll_name)),
-  output_handle(ctx.get_handle<std::vector<JetLambdaBundle>>(output_coll_name))
+  jet_handle_(ctx.get_handle<std::vector<Jet>>(jet_coll_name)),
+  output_handle_(ctx.get_handle<std::vector<JetLambdaBundle>>(output_coll_name))
 {
-  mmdt.set_grooming_mode();
-  mmdt.set_reclustering(false);
+  mmdt_.set_grooming_mode();
+  mmdt_.set_reclustering(false);
 }
 
 
@@ -458,11 +465,20 @@ PseudoJet QGAnalysisJetLambda::convert_uhh_pfparticle_to_pseudojet(const PFParti
 }
 
 bool QGAnalysisJetLambda::process(uhh2::Event & event) {
-  std::vector<Jet> jets = event.get(jet_handle);
+  std::vector<Jet> jets = event.get(jet_handle_);
   std::vector<JetLambdaBundle> outputs;
   int nJetCounter = 0;
   for (auto & jet : jets) {
     if (nJetsMax_ > 0 && nJetCounter == nJetsMax_) break;
+    // For each jet, we:
+    // - get daughters, apply energy shifts if need be
+    // - Calculate the WTA axis
+    // - Apply grooming to create subset of groomed daughters
+    // - Create subsets of charged daughters (groomed & ungroomed)
+    // - Apply any other cuts (e.g. pt)
+    // - Create LambdaCalculator for each daughter collection, save to struct
+    // {ungroomed, groomed} x {neutral+charged, charged-only}
+
     // Get constituents
     // don't apply puppi weight here, since we already account for it in the LambdaCalculator
     std::vector<PFParticle> daughters = get_jet_pfparticles(jet, event, false);
@@ -491,18 +507,23 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     PseudoJet wtaJet = wtaJets[0];
     LorentzVectorXYZE wtaJetAxis(wtaJet.px(), wtaJet.py(), wtaJet.pz(), wtaJet.E());
 
+    std::vector<PFParticle> groomedDaughters;
     // Optionally apply grooming to jet, update axis and daughters left after grooming
     if (doGrooming_) {
-      PseudoJet mmdtJet = mmdt(wtaJet);
+      PseudoJet mmdtJet = mmdt_(wtaJet);
       // Update jet axis with that of the groomed jet
       wtaJetAxis.SetPxPyPzE(mmdtJet.px(), mmdtJet.py(), mmdtJet.pz(), mmdtJet.E());
       // update daughters collection with only those in groomed jet
-      std::vector<PFParticle> tmp;
       for (const auto & dItr : mmdtJet.constituents()) {
-        tmp.push_back(daughters.at(dItr.user_index()));
+        groomedDaughters.push_back(daughters.at(dItr.user_index()));
       }
-      std::swap(tmp, daughters);
     }
+
+    // create charged-only subset of daughters
+    std::vector<PFParticle> chargedDaughters(daughters);
+    std::vector<PFParticle> groomedChargedDaughters(groomedDaughters);
+    clean_collection<PFParticle>(chargedDaughters, event, ChargedCut());
+    clean_collection<PFParticle>(groomedChargedDaughters, event, ChargedCut());
 
     // cout << "Original jet axis: " << jet.v4().px() << " : " << jet.v4().py() << " : " << jet.v4().pz() << endl;
     // cout << "Original jet axis: " << jet.eta() << " : " << jet.phi() << endl;
@@ -510,13 +531,22 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     // cout << "WTA jet axis: " << wtaJetAxis.eta() << " : " << wtaJetAxis.phi() << endl;
 
     // Finally apply any pt cuts etc
-    if (pfId_) clean_collection<PFParticle>(daughters, event, pfId_);
+    if (pfId_) {
+      clean_collection<PFParticle>(daughters, event, pfId_);
+      clean_collection<PFParticle>(chargedDaughters, event, pfId_);
+      clean_collection<PFParticle>(groomedDaughters, event, pfId_);
+      clean_collection<PFParticle>(groomedChargedDaughters, event, pfId_);
+    }
+
     LambdaCalculator<PFParticle> recoJetCalc(daughters, jetRadius_, toPtEtaPhi(wtaJetAxis), doPuppi_);
-    JetLambdaBundle thisBundle{jet, recoJetCalc};
+    LambdaCalculator<PFParticle> recoJetCalcCharged(chargedDaughters, jetRadius_, toPtEtaPhi(wtaJetAxis), doPuppi_);
+    LambdaCalculator<PFParticle> recoJetCalcGroomed(groomedDaughters, jetRadius_, toPtEtaPhi(wtaJetAxis), doPuppi_);
+    LambdaCalculator<PFParticle> recoJetCalcGroomedCharged(groomedChargedDaughters, jetRadius_, toPtEtaPhi(wtaJetAxis), doPuppi_);
+    JetLambdaBundle thisBundle{jet, recoJetCalc, recoJetCalcCharged, recoJetCalcGroomed, recoJetCalcGroomedCharged};
     outputs.push_back(thisBundle);
     nJetCounter++;
   }
-  event.set(output_handle, std::move(outputs));
+  event.set(output_handle_, std::move(outputs));
   return true;
 }
 
@@ -578,20 +608,26 @@ void QGAnalysisJetLambda::shift_photon_pfparticles(std::vector<PFParticle> & pfp
 }
 
 
-QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx, float jetRadius, int nJetsMax, bool doGrooming, const GenParticleId & genId, const std::string & jet_coll_name, const std::string & output_coll_name):
+QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx,
+                                               float jetRadius,
+                                               int nJetsMax,
+                                               bool doGrooming,
+                                               const GenParticleId & genId,
+                                               const std::string & jet_coll_name,
+                                               const std::string & output_coll_name):
   ca_wta_cluster_(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme)),
-  mmdt(ModifiedMassDropTagger(0.1)),
+  mmdt_(ModifiedMassDropTagger(0.1)),
   jetRadius_(jetRadius),
   nJetsMax_(nJetsMax),
   doGrooming_(doGrooming),
   genId_(genId),
   neutralHadronShift_(0), // these are the fractional shift, e.g. 0.2 for 20%
   photonShift_(0),
-  genjet_handle(ctx.get_handle<std::vector<GenJetWithParts>>(jet_coll_name)),
-  output_handle(ctx.get_handle<std::vector<GenJetLambdaBundle>>(output_coll_name))
+  genjet_handle_(ctx.get_handle<std::vector<GenJetWithParts>>(jet_coll_name)),
+  output_handle_(ctx.get_handle<std::vector<GenJetLambdaBundle>>(output_coll_name))
 {
-  mmdt.set_grooming_mode();
-  mmdt.set_reclustering(false);
+  mmdt_.set_grooming_mode();
+  mmdt_.set_reclustering(false);
 }
 
 
@@ -603,11 +639,20 @@ PseudoJet QGAnalysisGenJetLambda::convert_uhh_genparticle_to_pseudojet(const Gen
 
 
 bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
-  std::vector<GenJetWithParts> jets = event.get(genjet_handle);
+  std::vector<GenJetWithParts> jets = event.get(genjet_handle_);
   std::vector<GenJetLambdaBundle> outputs;
   int nJetCounter = 0;
   for (auto & jet : jets) {
     if (nJetsMax_ > 0 && nJetCounter == nJetsMax_) break;
+    // For each jet, we:
+    // - get daughters, apply energy shifts if need be
+    // - Calculate the WTA axis
+    // - Apply grooming to create subset of groomed daughters
+    // - Create subsets of charged daughters (groomed & ungroomed)
+    // - Apply any other cuts (e.g. pt)
+    // - Create LambdaCalculator for each daughter collection, save to struct
+    // {ungroomed, groomed} x {neutral+charged, charged-only}
+
     // Get constituents
     std::vector<GenParticle> daughters = get_jet_genparticles(jet, event);
     // Shift energies if appropriate
@@ -647,31 +692,45 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     LorentzVectorXYZE wtaJetAxis(wtaJet.px(), wtaJet.py(), wtaJet.pz(), wtaJet.E());
 
     // Optionally apply grooming to jet, update axis and daughters left after grooming
+    std::vector<GenParticle> groomedDaughters;
     if (doGrooming_) {
-      PseudoJet mmdtJet = mmdt(wtaJet);
+      PseudoJet mmdtJet = mmdt_(wtaJet);
       // Update jet axis with that of the groomed jet
       wtaJetAxis.SetPxPyPzE(mmdtJet.px(), mmdtJet.py(), mmdtJet.pz(), mmdtJet.E());
       // update daughters collection with only those in groomed jet
-      std::vector<GenParticle> tmp;
       for (const auto & dItr : mmdtJet.constituents()) {
-        tmp.push_back(daughters.at(dItr.user_index()));
+        groomedDaughters.push_back(daughters.at(dItr.user_index()));
       }
-      std::swap(tmp, daughters);
     }
+
+    // create charged-only subset of daughters
+    std::vector<GenParticle> chargedDaughters(daughters);
+    std::vector<GenParticle> groomedChargedDaughters(groomedDaughters);
+    clean_collection<GenParticle>(chargedDaughters, event, ChargedCut());
+    clean_collection<GenParticle>(groomedChargedDaughters, event, ChargedCut());
+
     // cout << "Original jet axis: " << jet.v4().px() << " : " << jet.v4().py() << " : " << jet.v4().pz() << endl;
     // cout << "Original jet axis: " << jet.eta() << " : " << jet.phi() << endl;
     // cout << "WTA jet axis: " << wtaJetAxis.px() << " : " << wtaJetAxis.py() << " : " << wtaJetAxis.pz() << endl;
     // cout << "WTA jet axis: " << wtaJetAxis.eta() << " : " << wtaJetAxis.phi() << endl;
 
-    // Finally apply any pt charge cuts etc
-    if (genId_) clean_collection<GenParticle>(daughters, event, genId_);
+      // Finally apply any pt cuts etc
+    if (genId_) {
+      clean_collection<GenParticle>(daughters, event, genId_);
+      clean_collection<GenParticle>(chargedDaughters, event, genId_);
+      clean_collection<GenParticle>(groomedDaughters, event, genId_);
+      clean_collection<GenParticle>(groomedChargedDaughters, event, genId_);
+    }
 
     LambdaCalculator<GenParticle> genJetCalc(daughters, jetRadius_, toPtEtaPhi(wtaJetAxis), false);
-    GenJetLambdaBundle thisBundle{jet, genJetCalc};
+    LambdaCalculator<GenParticle> genJetCalcCharged(chargedDaughters, jetRadius_, toPtEtaPhi(wtaJetAxis), false);
+    LambdaCalculator<GenParticle> genJetCalcGroomed(groomedDaughters, jetRadius_, toPtEtaPhi(wtaJetAxis), false);
+    LambdaCalculator<GenParticle> genJetCalcGroomedCharged(groomedChargedDaughters, jetRadius_, toPtEtaPhi(wtaJetAxis), false);
+    GenJetLambdaBundle thisBundle{jet, genJetCalc, genJetCalcCharged, genJetCalcGroomed, genJetCalcGroomedCharged};
     outputs.push_back(thisBundle);
     nJetCounter++;
   }
-  event.set(output_handle, std::move(outputs));
+  event.set(output_handle_, std::move(outputs));
   return true;
 }
 
