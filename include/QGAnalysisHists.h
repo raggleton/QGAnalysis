@@ -101,6 +101,7 @@ protected:
 
     TH2F *h_genjet_multiplicity_vs_pt, *h_genjet_LHA_vs_pt, *h_genjet_pTD_vs_pt, *h_genjet_width_vs_pt, *h_genjet_thrust_vs_pt;
 
+    std::string dirname_;
     int useNJets_;
     bool doPuppi_;
     bool doGroomed_;

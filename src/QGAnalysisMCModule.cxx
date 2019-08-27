@@ -56,6 +56,9 @@ private:
     std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreatorPtSorted, jetLambdaCreatorForward, jetLambdaCreatorCentral;
     std::unique_ptr<QGAnalysisGenJetLambda> genjetLambdaCreatorPtSorted, genjetLambdaCreatorForward, genjetLambdaCreatorCentral;
 
+    // For doing reco/gen jet matching e.g. after forward/central eta split
+    std::unique_ptr<JetMatcher> jetMatcherPtOrdered, jetMatcherForward, jetMatcherCentral;
+
     Event::Handle<std::vector<GenJetWithParts>> genjets_handle;
     Event::Handle<std::vector<GenParticle>> genmuons_handle;
     Event::Handle<std::vector<Jet>> dijet_forward_handle, dijet_central_handle;
@@ -63,7 +66,8 @@ private:
 
     // Reco selections/hists
     std::unique_ptr<ZFinder> zFinder;
-    std::unique_ptr<Selection> njet_min_sel, njet_two_sel, ngenjet_min_sel, ngenjet_two_sel, ngenjet_good_sel, zplusjets_sel, zplusjets_presel, dijet_sel, dijet_sel_tighter;
+    std::unique_ptr<Selection> njet_min_sel, njet_two_sel, ngenjet_min_sel, ngenjet_two_sel, ngenjet_good_sel, ngenjet_good_two_sel;
+    std::unique_ptr<Selection> zplusjets_sel, zplusjets_presel, dijet_sel, dijet_sel_tighter;
 
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists;
     std::unique_ptr<Hists> zplusjets_hists_presel_q, zplusjets_hists_presel_g, zplusjets_hists_presel_unknown;
@@ -101,6 +105,7 @@ private:
     // Theory selections/hists
     std::unique_ptr<Selection> zplusjets_theory_sel, dijet_theory_sel;
     std::unique_ptr<Hists> zplusjets_hists_theory, dijet_hists_theory;
+
 
     // for sweeping over ptMin
     // std::vector<float> theory_pt_bins = {50, 100, 200, 400, 800};
@@ -169,6 +174,12 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     pass_dj_sel_handle = ctx.get_handle<bool> (pass_dj_sel_handle_name);
     pass_dj_gen_sel_handle = ctx.get_handle<bool> (pass_dj_gen_sel_handle_name);
 
+    float drMatch = jetRadius/2.;
+    bool uniqueMatch = true;
+    jetMatcherPtOrdered.reset(new JetMatcher(ctx, "jets", genjet_handle_name, drMatch, uniqueMatch));
+    jetMatcherForward.reset(new JetMatcher(ctx, dijet_forward_handle_name, dijet_gen_forward_handle_name, drMatch, uniqueMatch));
+    jetMatcherCentral.reset(new JetMatcher(ctx, dijet_central_handle_name, dijet_gen_central_handle_name, drMatch, uniqueMatch));
+
     // Event Selections
     NJETS_ZPJ = 1;
     NJETS_DIJET = 2;
@@ -178,6 +189,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     ngenjet_min_sel.reset(new NGenJetWithPartsSelection(minNJets));
     ngenjet_two_sel.reset(new NGenJetWithPartsSelection(NJETS_DIJET)); //, -1, boost::none, genjet_handle_name));
     ngenjet_good_sel.reset(new NGenJetWithPartsSelection(minNJets, -1, boost::none, genjets_handle));
+    ngenjet_good_two_sel.reset(new NGenJetWithPartsSelection(2, -1, boost::none, genjets_handle));
 
     // Lambda calculators
     bool doPuppi = (pu_removal == "PUPPI");
@@ -194,7 +206,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     float genConstitPtMin = 1.;
     float genConstitEtaMax = 5.;
     std::string gen_jetlambda_handle_name = "GoodGenJetLambdas";
-    genjetLambdaCreatorPtSorted.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 1, alsoDoGroomed,
+    genjetLambdaCreatorPtSorted.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 5, alsoDoGroomed, // allow more jets for possible reco/gen matching outside of top 2
                                                                  PtEtaCut(genConstitPtMin, genConstitEtaMax),
                                                                  genjet_handle_name, gen_jetlambda_handle_name));
 
@@ -203,7 +215,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
                                                           PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
                                                           dijet_forward_handle_name, reco_jetlambda_forward_handle_name));
 
-    std::string gen_jetlambda_forward_handle_name = "GoodGenJetLambdas";
+    std::string gen_jetlambda_forward_handle_name = "GoodGenJetLambdasForward";
     genjetLambdaCreatorForward.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 1, alsoDoGroomed,
                                                                 PtEtaCut(genConstitPtMin, genConstitEtaMax),
                                                                 dijet_gen_forward_handle_name, gen_jetlambda_forward_handle_name));
@@ -213,7 +225,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
                                                           PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
                                                           dijet_central_handle_name, reco_jetlambda_central_handle_name));
 
-    std::string gen_jetlambda_central_handle_name = "GoodGenJetLambdas";
+    std::string gen_jetlambda_central_handle_name = "GoodGenJetLambdasCentral";
     genjetLambdaCreatorCentral.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 1, alsoDoGroomed,
                                                                 PtEtaCut(genConstitPtMin, genConstitEtaMax),
                                                                 dijet_gen_central_handle_name, gen_jetlambda_central_handle_name));
@@ -490,7 +502,6 @@ bool QGAnalysisMCModule::process(Event & event) {
     event.set(dijet_gen_forward_handle, std::vector<GenJetWithParts>());
     event.set(dijet_gen_central_handle, std::vector<GenJetWithParts>());
 
-
     if (PRINTOUT) { cout << "-- Event: " << event.event << endl; }
     // cout << "-- Event: " << event.event << endl;
 
@@ -605,9 +616,7 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // Get matching GenJets for reco jets
     // -------------------------------------------------------------------------
-    // But we still use the event.jets as all interesting
-    std::vector<Jet> goodJets = getMatchedJets(event.jets, &event.get(genjets_handle), jetRadius/2.);
-    // std::swap(goodJets, *event.jets); // only save recojets with a match
+    jetMatcherPtOrdered->process(event);
 
     // if (PRINTOUT) printJets(*event.jets, "Matched Jets");
     // if (PRINTOUT) printGenJets(event.get(genjets_handle), "GoodGenJets");
@@ -660,84 +669,29 @@ bool QGAnalysisMCModule::process(Event & event) {
     // -------------------------------------------------------------------------
     // For dijet, we sort our leading 2 jets by eta, and use the largest and
     // smallest abs(eta) jets separately for unfolding etc
-    if (hasRecoJets) {
-        // flav-specific preselection hists, useful for optimising selection
-        uint flav1 = event.jets->at(0).flavor();
-        uint flav2(99999999);
-        if (njet_two_sel->passes(event)) {
-            // Sort by eta & assign to handles
-            // assign forward/central jets to handles for later use
-            std::vector<Jet> leadingJets(event.jets->begin(), event.jets->begin()+2);
-            if (leadingJets.size() != 2) {
-                throw std::runtime_error("Slicing jets gone wrong!");
-            }
-            sort_by_eta(leadingJets);
-            std::vector<Jet> forwardJet = {leadingJets[0]};
-            std::vector<Jet> centralJet = {leadingJets[1]};
-            event.set(dijet_forward_handle, forwardJet);
-            event.set(dijet_central_handle, centralJet);
 
-            // Calculate lambda vars for recojets for dijets
-            // These will be used in various histogram classes
-            // At this point, all objects should have had all necessary corrections, filtering, etc
-            jetLambdaCreatorForward->process(event);
-            jetLambdaCreatorCentral->process(event);
+    // This is pretty horrible - need to run the Lambda bundle creators NO MATTER
+    // wether we have enough jets or not. This is because we need to call event.set()
+    // anyway, otherwise e.g. unfolding Hists module dies
+    //
+    // So we do eta sorting, and jet lambda, then do all the hist filling,
+    // since they might use these handles.
 
-            // Fill hists
-            dijet_hists_presel->fill(event);
-            flav2 = event.jets->at(1).flavor();
-            if (flav1 == PDGID::GLUON) {
-                if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-                    dijet_hists_presel_gq->fill(event);
-                } else if (flav2 == PDGID::GLUON) {
-                    dijet_hists_presel_gg->fill(event);
-                } else if (flav2 == PDGID::UNKNOWN) {
-                    dijet_hists_presel_g_unknown->fill(event);
-                }
-            } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
-                if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-                    dijet_hists_presel_qq->fill(event);
-                } else if (flav2 == PDGID::GLUON) {
-                    dijet_hists_presel_qg->fill(event);
-                } else if (flav2 == PDGID::UNKNOWN) {
-                    dijet_hists_presel_q_unknown->fill(event);
-                }
-            } else if (flav1 == PDGID::UNKNOWN) {
-                if (flav2 == PDGID::GLUON) {
-                    dijet_hists_presel_unknown_g->fill(event);
-                } else if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-                    dijet_hists_presel_unknown_q->fill(event);
-                } else if (flav2 == PDGID::UNKNOWN) {
-                    dijet_hists_presel_unknown_unknown->fill(event);
-                }
-            }
-
-            // pass_dj_reco = dijet_sel->passes(event);
-            pass_dj_reco = dijet_sel_tighter->passes(event);
-            event.set(pass_dj_sel_handle, pass_dj_reco);
-            if (pass_dj_reco) {
-                dijet_gen_sel_passReco->passes(event); // this plots cutflow as well - only if we pass dijet reco selection
-                genjet_hists_passDijetReco->fill(event);
-            }
-
-            if (dijet_sel->passes(event)) {
-                dijet_hists->fill(event);
-                dijet_qg_hists->fill(event);
-            }
-            if (dijet_sel_tighter->passes(event)) {
-                dijet_hists_tighter->fill(event);
-                dijet_qg_hists_central_tighter->fill(event);
-                dijet_qg_hists_forward_tighter->fill(event);
-                dijet_qg_hists_central_tighter_groomed->fill(event);
-                dijet_qg_hists_forward_tighter_groomed->fill(event);
-            }
+    if (hasRecoJets && njet_two_sel->passes(event)) {
+        // Sort by eta & assign to handles
+        // assign forward/central jets to handles for later use
+        std::vector<Jet> leadingJets(event.jets->begin(), event.jets->begin()+2);
+        if (leadingJets.size() != 2) {
+            throw std::runtime_error("Slicing jets gone wrong!");
         }
+        sort_by_eta(leadingJets);
+        std::vector<Jet> forwardJet = {leadingJets[0]};
+        std::vector<Jet> centralJet = {leadingJets[1]};
+        event.set(dijet_forward_handle, forwardJet);
+        event.set(dijet_central_handle, centralJet);
     }
 
-    pass_dj_gen = dijet_gen_sel->passes(event);
-    event.set(pass_dj_gen_sel_handle, pass_dj_gen);
-
-    if (pass_dj_gen) {
+    if (ngenjet_good_two_sel->passes(event)) {
         // Save forward/central genjets to own handles
         std::vector<GenJetWithParts> leadingGenJets(event.get(genjets_handle).begin(), event.get(genjets_handle).begin()+2);
         if (leadingGenJets.size() != 2) {
@@ -748,14 +702,79 @@ bool QGAnalysisMCModule::process(Event & event) {
         std::vector<GenJetWithParts> centralGenJet = {leadingGenJets[1]};
         event.set(dijet_gen_forward_handle, forwardGenJet);
         event.set(dijet_gen_central_handle, centralGenJet);
-
-        // Calculate lambda vars for genjets for dijets
-        // These will be used in various histogram classes
-        // At this point, all objects should have had all necessary corrections, filtering, etc
-        genjetLambdaCreatorForward->process(event);
-        genjetLambdaCreatorCentral->process(event);
-
     }
+
+    // Do genjet matching specifically for forward/central
+    jetMatcherForward->process(event);
+    jetMatcherCentral->process(event);
+
+    // Calculate lambda vars for genjets for dijets
+    // These will be used in various histogram classes
+    // At this point, all objects should have had all necessary corrections, filtering, etc
+    // Have to do outside of any if(), because we always need it to run event.set()
+    // otherwise unfolding module dies
+    jetLambdaCreatorForward->process(event);
+    jetLambdaCreatorCentral->process(event);
+
+    genjetLambdaCreatorForward->process(event);
+    genjetLambdaCreatorCentral->process(event);
+
+    if (hasRecoJets && njet_two_sel->passes(event)) {
+        // flav-specific preselection hists, useful for optimising selection
+        uint flav1 = event.jets->at(0).flavor();
+        uint flav2 = event.jets->at(1).flavor();
+
+        // Fill hists
+        dijet_hists_presel->fill(event);
+        if (flav1 == PDGID::GLUON) {
+            if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                dijet_hists_presel_gq->fill(event);
+            } else if (flav2 == PDGID::GLUON) {
+                dijet_hists_presel_gg->fill(event);
+            } else if (flav2 == PDGID::UNKNOWN) {
+                dijet_hists_presel_g_unknown->fill(event);
+            }
+        } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
+            if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                dijet_hists_presel_qq->fill(event);
+            } else if (flav2 == PDGID::GLUON) {
+                dijet_hists_presel_qg->fill(event);
+            } else if (flav2 == PDGID::UNKNOWN) {
+                dijet_hists_presel_q_unknown->fill(event);
+            }
+        } else if (flav1 == PDGID::UNKNOWN) {
+            if (flav2 == PDGID::GLUON) {
+                dijet_hists_presel_unknown_g->fill(event);
+            } else if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                dijet_hists_presel_unknown_q->fill(event);
+            } else if (flav2 == PDGID::UNKNOWN) {
+                dijet_hists_presel_unknown_unknown->fill(event);
+            }
+        }
+
+        // pass_dj_reco = dijet_sel->passes(event);
+        pass_dj_reco = dijet_sel_tighter->passes(event);
+        event.set(pass_dj_sel_handle, pass_dj_reco);
+        if (pass_dj_reco) {
+            dijet_gen_sel_passReco->passes(event); // this plots cutflow as well - only if we pass dijet reco selection
+            genjet_hists_passDijetReco->fill(event);
+        }
+
+        if (dijet_sel->passes(event)) {
+            dijet_hists->fill(event);
+            dijet_qg_hists->fill(event);
+        }
+        if (dijet_sel_tighter->passes(event)) {
+            dijet_hists_tighter->fill(event);
+            dijet_qg_hists_central_tighter->fill(event);
+            dijet_qg_hists_forward_tighter->fill(event);
+            dijet_qg_hists_central_tighter_groomed->fill(event);
+            dijet_qg_hists_forward_tighter_groomed->fill(event);
+        }
+    }
+
+    pass_dj_gen = dijet_gen_sel->passes(event);
+    event.set(pass_dj_gen_sel_handle, pass_dj_gen);
 
     // do unfolding hists
     if (pass_dj_reco || pass_dj_gen) {

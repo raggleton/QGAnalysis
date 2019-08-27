@@ -210,6 +210,9 @@ struct JetLambdaBundle {
  * - ungroomed, charged-only constits
  * - groomed, charged+neutral constits
  * - groomed, charged-only constits
+ *
+ * It's easier to create & store all these LambdaCalculators in once go,
+ * because then we only need to run fastjet once per jet for e.g. WTA axis
  */
 struct GenJetLambdaBundle {
   GenJetWithParts jet;
@@ -253,8 +256,8 @@ public:
                       bool doPuppi,
                       bool doGrooming,
                       const PFParticleId & pfId, // applied to all lambdas
-                      const std::string & jet_coll_name="jets",
-                      const std::string & output_coll_name="jetlambdas");
+                      const std::string & jet_coll_name,
+                      const std::string & output_coll_name);
   bool process(uhh2::Event & event);
   fastjet::PseudoJet convert_uhh_pfparticle_to_pseudojet(const PFParticle & particle, bool applyPuppiWeight);
   std::vector<PFParticle> get_jet_pfparticles(const Jet & jet, uhh2::Event & event, bool applyPuppiWeight);
@@ -288,8 +291,8 @@ public:
                          int nJetsMax,
                          bool doGrooming,
                          const GenParticleId & genId, // applied to all lambdas
-                         const std::string & jet_coll_name="genjets",
-                         const std::string & output_coll_name="genjetlambdas");
+                         const std::string & jet_coll_name,
+                         const std::string & output_coll_name);
   bool process(uhh2::Event & event);
   fastjet::PseudoJet convert_uhh_genparticle_to_pseudojet(const GenParticle & particle);
   std::vector<GenParticle> get_jet_genparticles(const GenJetWithParts & genjet, uhh2::Event & event);
@@ -324,6 +327,21 @@ public:
     return p.charge() != 0;
   }
 
+};
+
+
+/**
+ * Do reco-genjet matching
+ */
+class JetMatcher : public uhh2::AnalysisModule {
+public:
+  JetMatcher(uhh2::Context & ctx, const std::string & jet_coll_name, const std::string & genjet_coll_name, float matchRadius, bool uniqueMatch);
+  bool process(uhh2::Event & event);
+private:
+  uhh2::Event::Handle<std::vector<Jet>> recojet_handle_;
+  uhh2::Event::Handle<std::vector<GenJetWithParts>> genjet_handle_;
+  float matchRadius_;
+  bool uniqueMatch_;
 };
 
 

@@ -500,6 +500,10 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     vector<PseudoJet> wtaJets = sorted_by_pt(cs.inclusive_jets());
     if (wtaJets.size() > 1) {
       cout << " >1 WTA jets" << endl;
+      cout << "Original jet: " << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
+      for (const auto & subjet : wtaJets) {
+        cout << "WTA jet: " << subjet.pt() << " : " << subjet.eta() << " : " << subjet.phi() << endl;
+      }
     } else if (wtaJets.size() == 0) {
       cout << pjconstits.size() << " constits" << endl;
       throw std::runtime_error("WTA reclustering failed - no jets");
@@ -675,7 +679,11 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     ClusterSequence cs(pjconstits, ca_wta_cluster_);
     vector<PseudoJet> wtaJets = sorted_by_pt(cs.inclusive_jets());
     if (wtaJets.size() > 1) {
-      cout << " >1 WTA jets" << endl;
+      cout << " >1 WTA genjets" << endl;
+      cout << "Original genjet: " << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
+      for (const auto & subjet : wtaJets) {
+        cout << "WTA genjet: " << subjet.pt() << " : " << subjet.eta() << " : " << subjet.phi() << endl;
+      }
     } else if (wtaJets.size() == 0) {
       cout << jet.genparticles_indices().size() << " genjet gp indices" << endl;
       cout << pjconstits.size() << " gen pseudo constits" << endl;
@@ -732,6 +740,7 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     outputs.push_back(thisBundle);
     nJetCounter++;
   }
+
   event.set(output_handle_, std::move(outputs));
   return true;
 }
@@ -768,6 +777,42 @@ std::vector<GenParticle> QGAnalysisGenJetLambda::get_jet_genparticles(const GenJ
 //     }
 //   }
 // }
+
+
+JetMatcher::JetMatcher(uhh2::Context & ctx, const std::string & jet_coll_name, const std::string & genjet_coll_name, float matchRadius, bool uniqueMatch):
+  recojet_handle_(ctx.get_handle<std::vector<Jet>>(jet_coll_name)),
+  genjet_handle_(ctx.get_handle<std::vector<GenJetWithParts>>(genjet_coll_name)),
+  matchRadius_(matchRadius),
+  uniqueMatch_(uniqueMatch)
+{}
+
+bool JetMatcher::process(uhh2::Event & event) {
+  std::vector<uint> matchedIndices;
+  std::vector<Jet> & jets = event.get(recojet_handle_);
+  std::vector<GenJetWithParts> & genjets = event.get(genjet_handle_);
+  // For each reco jet, loop through genjets and find closest that is within matchRadius_
+  // If uniqueMatch is true, then each genjet can only be matched to at most 1 reco jet
+  for (auto & jtr: jets) {
+    float minDR = 9999.;
+    int matchInd = -1; // sensible default - not 0!
+
+    for (uint gjInd=0; gjInd < genjets.size(); gjInd++) {
+      // If we want unique matches and we've already matched then skip this genjet
+      if (uniqueMatch_ && std::find(matchedIndices.begin(), matchedIndices.end(), gjInd) != matchedIndices.end())
+        continue;
+
+      const auto genjtr = genjets.at(gjInd);
+      auto thisDR = deltaR(jtr, genjtr);
+      if (thisDR < matchRadius_ && thisDR < minDR) {
+        matchInd = gjInd;
+        minDR = thisDR;
+      }
+    }
+
+    jtr.set_genjet_index(matchInd);
+  }
+  return true;
+}
 
 
 std::vector<double> Binning::calculate_fine_binning(const std::vector<double> & coarse_bin_edges)

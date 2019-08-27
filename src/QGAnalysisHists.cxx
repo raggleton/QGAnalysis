@@ -18,6 +18,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
                                  const string & reco_jetlambda_handle_name, const string & gen_jetlambda_handle_name
                                  ):
   Hists(ctx, dirname),
+  dirname_(dirname),
   useNJets_(useNJets),
   doGroomed_(doGroomed),
   rsp_midPt_cut_(100.),
@@ -355,7 +356,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   h_genjet_thrust_vs_pt = book<TH2F>("genjet_thrust_vs_pt", ";Thrust (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
 
   if (is_mc_) {
-    genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > ("GoodGenJets");
+    // genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > ("GoodGenJets");
     genJetsLambda_handle = ctx.get_handle< std::vector<GenJetLambdaBundle> > (gen_jetlambda_handle_name);
     pass_gen_handle = ctx.get_handle<bool> (gen_sel_handle_name);
   }
@@ -476,7 +477,14 @@ void QGAnalysisHists::fill(const Event & event){
         float response = -1.;
 
         if (matchedGenJet) { // we don't care about passing the GEN selection, just looking for a match
+          for (int m=0; m<genjetLambdas->size(); m++) {
+            auto thisGJ = genjetLambdas->at(m).jet;
+          }
+
           int thisInd = thisjet.genjet_index();
+          if (thisInd >= genjetLambdas->size()) {
+            cout << "WARNING: wanted genjet_index " << thisInd << " but only have " << genjetLambdas->size() << " in genjetLambdas" << endl;
+          }
           const GenJetWithParts & genjet = genjetLambdas->at(thisInd).jet;
           LambdaCalculator<GenParticle> matchedGenJetCalc = genjetLambdas->at(thisInd).getLambdaCalculator(false, doGroomed_);
           LambdaCalculator<GenParticle> matchedGenJetCalcCharged = genjetLambdas->at(thisInd).getLambdaCalculator(true, doGroomed_);
