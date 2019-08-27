@@ -10,9 +10,14 @@ using namespace std;
 using namespace uhh2;
 using namespace uhh2examples;
 
-QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirname, int useNJets, const string & selection, const string & reco_sel_handle_name, const string & gen_sel_handle_name):
+QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirname,
+                                             int useNJets, bool doGroomed,
+                                             const string & selection,
+                                             const string & reco_sel_handle_name, const string & gen_sel_handle_name,
+                                             const string & reco_jetlambda_handle_name, const string & gen_jetlambda_handle_name):
   Hists(ctx, dirname),
   useNJets_(useNJets),
+  doGroomed_(doGroomed),
   rand_(4357), // random number generator for splitting MC into 2 independent groups for unfold testing
   doMCsplit_(true)
   {
@@ -579,22 +584,17 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_reco_width_charged_fake_gen_binning_split = copy_book_th1f(h_tu_gen_width_charged, "hist_width_charged_reco_fake_gen_binning_split");
 
   if (is_mc_) {
-    genJetsLambda_handle = ctx.get_handle< std::vector<GenJetLambdaBundle> > ("GoodGenJetLambdas");
-    genJetsChargedLambda_handle = ctx.get_handle< std::vector<GenJetLambdaBundle> > ("GoodGenJetChargedLambdas");
+    genJetsLambda_handle = ctx.get_handle< std::vector<GenJetLambdaBundle> > (gen_jetlambda_handle_name);
     pass_gen_handle = ctx.get_handle<bool> (gen_sel_handle_name);
   }
 
-  jetsLambda_handle = ctx.get_handle< std::vector<JetLambdaBundle> > ("JetLambdas");
-  jetsChargedLambda_handle = ctx.get_handle< std::vector<JetLambdaBundle> > ("JetChargedLambdas");
+  jetsLambda_handle = ctx.get_handle< std::vector<JetLambdaBundle> > (reco_jetlambda_handle_name);
 
   pass_reco_handle = ctx.get_handle<bool> (reco_sel_handle_name);
 }
 
 
 void QGAnalysisUnfoldHists::fill(const Event & event){
-  std::vector<Jet>* jets = event.jets;
-  int Njets = jets->size();
-
   // Optionally apply weight to Herwig to ensure spectrum matches Pythia spectrum
   float herwig_weight = 1.;
   // if (doHerwigReweighting && Njets >= 1) {
@@ -623,12 +623,10 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
   const std::vector<GenJetLambdaBundle> * genjetChargedLambdas = nullptr;
   if (is_mc_) {
     genjetLambdas = &event.get(genJetsLambda_handle);
-    genjetChargedLambdas = &event.get(genJetsChargedLambda_handle);
     passGen = event.get(pass_gen_handle);
   }
 
   const std::vector<JetLambdaBundle> jetLambdas = event.get(jetsLambda_handle);
-  const std::vector<JetLambdaBundle> jetChargedLambdas = event.get(jetsChargedLambda_handle);
 
   // cout << "***" << event.event << endl;
 
@@ -636,25 +634,6 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
   // This allows us to split the MC into 2 separate samples for testing
   // Make 80% go into response hist so good stats
   bool onlyFillResponse = (rand_.Rndm() > 0.2);
-
-  // figure out ave pt across N jets
-  // float avePtReco = 0.;
-  // float avePtGen = 0.;
-  // int nGenJets = 0;
-  // for (int i = 0; i < useNJets_; i++) {
-  //   const Jet & thisjet = jets->at(i);
-  //   avePtReco += thisjet.pt();
-  //   if (is_mc_) {
-  //     if (thisjet.genjet_index() > -1) {
-  //       nGenJets++;
-  //       const GenJetWithParts & genjet = genjets->at(thisjet.genjet_index());
-  //       avePtGen += genjet.pt();
-  //     }
-  //   }
-  // }
-
-  // avePtReco /= useNJets_;
-  // avePtGen /= nGenJets;
 
   // Fill reco jet 1D hists
   // ---------------------------------------------------------------------------
@@ -665,7 +644,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       const Jet & thisjet = jetLambdas.at(i).jet;
       LambdaCalculator<PFParticle> recoJetCalc = jetLambdas.at(i).lambda; // can't be const as getLambda() modifies it
       // FIXME check this corresponds to same jet as normal lambdas?
-      LambdaCalculator<PFParticle> recoJetCalcCharged = jetChargedLambdas.at(i).lambda;
+      LambdaCalculator<PFParticle> recoJetCalcCharged = jetLambdas.at(i).chargedLambda;
 
       float lha = recoJetCalc.getLambda(1, 0.5);
       float puppiMult = recoJetCalc.getLambda(0, 0);
@@ -885,7 +864,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       const GenJetWithParts & thisjet = genjetLambdas->at(i).jet;
       LambdaCalculator<GenParticle> genJetCalc = genjetLambdas->at(i).lambda; // can't be const as getLambda() modifies it
       // FIXME check this corresponds to same jet as normal lambdas?
-      LambdaCalculator<GenParticle> genJetCalcCharged = genjetChargedLambdas->at(i).lambda;
+      LambdaCalculator<GenParticle> genJetCalcCharged = genjetLambdas->at(i).chargedLambda;
 
       float gen_lha = genJetCalc.getLambda(1, 0.5);
       float gen_mult = genJetCalc.getLambda(0, 0);
@@ -994,7 +973,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           const Jet & thisjet = jetLambdas.at(recoInd).jet;
           LambdaCalculator<PFParticle> recoJetCalc = jetLambdas.at(recoInd).lambda; // can't be const as getLambda() modifies it
           // FIXME check this corresponds to same jet as normal lambdas?
-          LambdaCalculator<PFParticle> recoJetCalcCharged = jetChargedLambdas.at(recoInd).lambda;
+          LambdaCalculator<PFParticle> recoJetCalcCharged = jetLambdas.at(recoInd).chargedLambda;
 
           float lha = recoJetCalc.getLambda(1, 0.5);
           float puppiMult = recoJetCalc.getLambda(0, 0);

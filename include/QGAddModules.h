@@ -185,6 +185,22 @@ struct JetLambdaBundle {
   LambdaCalculator<PFParticle> chargedLambda;
   LambdaCalculator<PFParticle> groomedLambda;
   LambdaCalculator<PFParticle> groomedChargedLambda;
+
+  LambdaCalculator<PFParticle> getLambdaCalculator(const bool isCharged, const bool isGroomed) const {
+    if (isCharged) {
+      if (isGroomed) {
+        return groomedChargedLambda;
+      } else {
+        return chargedLambda;
+      }
+    } else {
+      if (isGroomed) {
+        return groomedLambda;
+      } else {
+        return lambda;
+      }
+    }
+  }
 };
 
 /**
@@ -201,6 +217,23 @@ struct GenJetLambdaBundle {
   LambdaCalculator<GenParticle> chargedLambda;
   LambdaCalculator<GenParticle> groomedLambda;
   LambdaCalculator<GenParticle> groomedChargedLambda;
+
+  LambdaCalculator<GenParticle> getLambdaCalculator(const bool isCharged, const bool isGroomed) const {
+    if (isCharged) {
+      if (isGroomed) {
+        return groomedChargedLambda;
+      } else {
+        return chargedLambda;
+      }
+    } else {
+      if (isGroomed) {
+        return groomedLambda;
+      } else {
+        return lambda;
+      }
+    }
+  }
+
 };
 
 

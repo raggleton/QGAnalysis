@@ -25,7 +25,11 @@ namespace uhh2examples {
 class QGAnalysisUnfoldHists: public uhh2::Hists {
 public:
     // use the same constructor arguments as Hists for forwarding:
-    QGAnalysisUnfoldHists(uhh2::Context & ctx, const std::string & dirname, int useNJets, const std::string & selection, const std::string & reco_sel_handle_name, const std::string & gen_sel_handle_name);
+    QGAnalysisUnfoldHists(uhh2::Context & ctx, const std::string & dirname,
+                          int useNJets, bool doGroomed,
+                          const std::string & selection,
+                          const std::string & reco_sel_handle_name, const std::string & gen_sel_handle_name,
+                          const std::string & reco_jetlambda_handle_name, const std::string & gen_jetlambda_handle_name);
 
     virtual void fill(const uhh2::Event & ev) override;
     virtual ~QGAnalysisUnfoldHists();
@@ -116,11 +120,12 @@ protected:
     TH1F *h_tu_gen_width_charged, *h_tu_gen_width_charged_split;
 
     int useNJets_;
+    bool doGroomed_;
     bool doHerwigReweighting;
     TH1F * reweightHist;
 
-    uhh2::Event::Handle<std::vector<GenJetLambdaBundle> > genJetsLambda_handle, genJetsChargedLambda_handle;
-    uhh2::Event::Handle<std::vector<JetLambdaBundle> > jetsLambda_handle, jetsChargedLambda_handle;
+    uhh2::Event::Handle<std::vector<GenJetLambdaBundle> > genJetsLambda_handle;
+    uhh2::Event::Handle<std::vector<JetLambdaBundle> > jetsLambda_handle;
     uhh2::Event::Handle<double> gen_weight_handle;
     uhh2::Event::Handle<bool> pass_reco_handle;
     uhh2::Event::Handle<bool> pass_gen_handle;
