@@ -80,9 +80,10 @@ private:
     std::unique_ptr<Hists> dijet_qg_unfold_hists_central_tighter, dijet_qg_unfold_hists_forward_tighter;
     std::unique_ptr<Hists> dijet_qg_unfold_hists_central_tighter_groomed, dijet_qg_unfold_hists_forward_tighter_groomed;
 
-
     std::unique_ptr<EventNumberSelection> event_sel;
     DATASET::Name dataset;
+
+    const bool DO_UNFOLD_HISTS = true;
 
     std::string zLabel;
 
@@ -331,10 +332,12 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
                                                                   NJETS_ZPJ, false, zpj_sel,
                                                                   pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
                                                                   reco_jetlambda_handle_name, gen_jetlambda_handle_name));
-        zplusjets_qg_unfold_hists_groomed.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG_Unfold_groomed",
-                                                                          NJETS_ZPJ, false, zpj_sel,
-                                                                          pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
-                                                                          reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+        if (DO_UNFOLD_HISTS) {
+            zplusjets_qg_unfold_hists_groomed.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG_Unfold_groomed",
+                                                                              NJETS_ZPJ, false, zpj_sel,
+                                                                              pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
+                                                                              reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+        }
     } else {
         std::string binning_method = "ave";
         dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
@@ -362,25 +365,27 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
                                                                          1, true, dj_sel,
                                                                          pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
                                                                          reco_jetlambda_forward_handle_name, gen_jetlambda_forward_handle_name));
-        // unfolding hists
-        // note that each of these does neutral+charged, and charged-only
-        dijet_qg_unfold_hists_central_tighter.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_Unfold_central_tighter",
-                                                                              1, false, dj_sel,
-                                                                              pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
-                                                                              reco_jetlambda_central_handle_name, gen_jetlambda_central_handle_name));
-        dijet_qg_unfold_hists_forward_tighter.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_Unfold_forward_tighter",
-                                                                              1, false, dj_sel,
-                                                                              pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
-                                                                              reco_jetlambda_forward_handle_name, gen_jetlambda_forward_handle_name));
+        if (DO_UNFOLD_HISTS) {
+            // unfolding hists
+            // note that each of these does neutral+charged, and charged-only
+            dijet_qg_unfold_hists_central_tighter.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_Unfold_central_tighter",
+                                                                                  1, false, dj_sel,
+                                                                                  pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
+                                                                                  reco_jetlambda_central_handle_name, gen_jetlambda_central_handle_name));
+            dijet_qg_unfold_hists_forward_tighter.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_Unfold_forward_tighter",
+                                                                                  1, false, dj_sel,
+                                                                                  pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
+                                                                                  reco_jetlambda_forward_handle_name, gen_jetlambda_forward_handle_name));
 
-        dijet_qg_unfold_hists_central_tighter_groomed.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_Unfold_central_tighter_groomed",
-                                                                                      1, true, dj_sel,
-                                                                                      pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
-                                                                                      reco_jetlambda_central_handle_name, gen_jetlambda_central_handle_name));
-        dijet_qg_unfold_hists_forward_tighter_groomed.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_Unfold_forward_tighter_groomed",
-                                                                                      1, true, dj_sel,
-                                                                                      pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
-                                                                                      reco_jetlambda_forward_handle_name, gen_jetlambda_forward_handle_name));
+            dijet_qg_unfold_hists_central_tighter_groomed.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_Unfold_central_tighter_groomed",
+                                                                                          1, true, dj_sel,
+                                                                                          pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
+                                                                                          reco_jetlambda_central_handle_name, gen_jetlambda_central_handle_name));
+            dijet_qg_unfold_hists_forward_tighter_groomed.reset(new QGAnalysisUnfoldHists(ctx, "Dijet_QG_Unfold_forward_tighter_groomed",
+                                                                                          1, true, dj_sel,
+                                                                                          pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
+                                                                                          reco_jetlambda_forward_handle_name, gen_jetlambda_forward_handle_name));
+        }
     }
 
     // event_sel.reset(new EventNumberSelection({111}));
@@ -459,8 +464,10 @@ bool QGAnalysisDataModule::process(Event & event) {
                 zplusjets_hists->fill(event);
                 zplusjets_qg_hists->fill(event);
                 zplusjets_qg_hists_groomed->fill(event);
-                zplusjets_qg_unfold_hists->fill(event);
-                zplusjets_qg_unfold_hists_groomed->fill(event);
+                if (DO_UNFOLD_HISTS) {
+                    zplusjets_qg_unfold_hists->fill(event);
+                    zplusjets_qg_unfold_hists_groomed->fill(event);
+                }
             }
         }
     } else if (dataset == DATASET::JetHT || dataset == DATASET::ZeroBias) {
@@ -495,11 +502,12 @@ bool QGAnalysisDataModule::process(Event & event) {
             dijet_qg_hists_forward_tighter->fill(event);
             dijet_qg_hists_central_tighter_groomed->fill(event);
             dijet_qg_hists_forward_tighter_groomed->fill(event);
-
-            dijet_qg_unfold_hists_central_tighter->fill(event);
-            dijet_qg_unfold_hists_forward_tighter->fill(event);
-            dijet_qg_unfold_hists_central_tighter_groomed->fill(event);
-            dijet_qg_unfold_hists_forward_tighter_groomed->fill(event);
+            if (DO_UNFOLD_HISTS) {
+                dijet_qg_unfold_hists_central_tighter->fill(event);
+                dijet_qg_unfold_hists_forward_tighter->fill(event);
+                dijet_qg_unfold_hists_central_tighter_groomed->fill(event);
+                dijet_qg_unfold_hists_forward_tighter_groomed->fill(event);
+            }
         }
     }
     return selected;

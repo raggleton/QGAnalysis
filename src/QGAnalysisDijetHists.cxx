@@ -126,17 +126,6 @@ void QGAnalysisDijetHists::fill(const Event & event){
 
   // Optionally apply weight to Herwig to ensure spectrum matches Pythia spectrum
   float herwig_weight = 1.;
-  // if (doHerwigReweighting && Njets >= 1) {
-  //   float pt = jets->at(0).pt();
-  //   if (pt >= reweightHist->GetXaxis()->GetXmax()) {
-  //     pt = reweightHist->GetXaxis()->GetXmax() - 0.1;
-  //   }
-  //   int bin_num = reweightHist->GetXaxis()->FindBin(pt);
-  //   herwig_weight = reweightHist->GetBinContent(bin_num);
-  // }
-
-  // fill the histograms. Please note better to
-  // use histogram pointers as members instead of hist("name")
 
   // Don't forget to always use the weight when filling.
   double weight = event.weight * herwig_weight;
