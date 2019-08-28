@@ -477,12 +477,8 @@ void QGAnalysisHists::fill(const Event & event){
         float response = -1.;
 
         if (matchedGenJet) { // we don't care about passing the GEN selection, just looking for a match
-          for (int m=0; m<genjetLambdas->size(); m++) {
-            auto thisGJ = genjetLambdas->at(m).jet;
-          }
-
           int thisInd = thisjet.genjet_index();
-          if (thisInd >= genjetLambdas->size()) {
+          if (thisInd >= (int) genjetLambdas->size()) {
             cout << "WARNING: wanted genjet_index " << thisInd << " but only have " << genjetLambdas->size() << " in genjetLambdas" << endl;
           }
           const GenJetWithParts & genjet = genjetLambdas->at(thisInd).jet;
