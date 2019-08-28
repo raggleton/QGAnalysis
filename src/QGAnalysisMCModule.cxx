@@ -418,7 +418,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
             std::unique_ptr<QGAnalysisHists> zpjg(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d_groomed", puBin.first, puBin.second).Data(),
                                                                       NJETS_ZPJ, true, zpj_sel,
                                                                       pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
-                                                                      reco_jetlambda_forward_handle_name, gen_jetlambda_forward_handle_name));
+                                                                      reco_jetlambda_handle_name, gen_jetlambda_handle_name));
             zplusjets_qg_hists_groomed_pu_binned.push_back(std::move(zpjg));
 
             // ungroomed dijet
