@@ -412,6 +412,11 @@ void QGAnalysisHists::fill(const Event & event){
   // ---------------------------------------------------------------------------
   // At this point, all jet filtering etc should have already been performed
   if (passReco){
+    if (useNJets_ > (int) jetLambdas.size()) {
+      cout << "useNJets_: " << useNJets_ << endl;
+      cout << "jetLambdas: " << jetLambdas.size() << endl;
+      throw runtime_error("useNJets_ > jetLambdas.size()");
+    }
 
     for (int i = 0; i < useNJets_; i++) {
       const Jet & thisjet = jetLambdas.at(i).jet;
@@ -664,6 +669,12 @@ void QGAnalysisHists::fill(const Event & event){
   // Fill GenJet hists
   // ---------------------------------------------------------------------------
   if (is_mc_ && passGen) { // note that there may be an implicit passReco as well from where this is called in the main module
+    if (useNJets_ > (int) genjetLambdas->size()) {
+      cout << "useNJets_: " << useNJets_ << endl;
+      cout << "genjetLambdas: " << genjetLambdas->size() << endl;
+      throw runtime_error("useNJets_ > genjetLambdas.size()");
+    }
+
     for (int i = 0; i < useNJets_; i++) {
       const GenJetWithParts & thisjet = genjetLambdas->at(i).jet;
       LambdaCalculator<GenParticle> genJetCalc = genjetLambdas->at(i).getLambdaCalculator(false, doGroomed_);
