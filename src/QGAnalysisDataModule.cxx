@@ -441,16 +441,16 @@ bool QGAnalysisDataModule::process(Event & event) {
 
     if (PRINTOUT) printJets(*event.jets);
 
+        // Calculate lambda vars for jets for Z+jets
+        // These will be used in various histogram classes
+        // At this point, all objects should have had all necessary corrections, filtering, etc
+        // ---------------------------------------------------------------------
+    jetLambdaCreatorPtSorted->process(event);
 
     if (dataset == DATASET::SingleMu) {
         if (!zFinder->process(event))
             return false;
         if (zplusjets_presel->passes(event)) {
-            // Calculate lambda vars for jets for Z+jets
-            // These will be used in various histogram classes
-            // At this point, all objects should have had all necessary corrections, filtering, etc
-            // -------------------------------------------------------------------------
-            jetLambdaCreatorPtSorted->process(event);
 
             zplusjets_hists_presel->fill(event);
             selected = zplusjets_sel->passes(event);
@@ -486,7 +486,9 @@ bool QGAnalysisDataModule::process(Event & event) {
             jetLambdaCreatorForward->process(event);
             jetLambdaCreatorCentral->process(event);
 
+            // apply prescale factor
             if (dataset == DATASET::JetHT) event.weight *= dj_trig_prescales.at(dj_trig_ind);
+
             dijet_hists->fill(event);
             dijet_qg_hists->fill(event);
             dijet_qg_hists_central_tighter->fill(event);
