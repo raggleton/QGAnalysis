@@ -46,7 +46,7 @@ public:
     std::vector<GenJetWithParts> getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=1.5, float lepton_overlap_dr=0.2);
     std::vector<GenParticle> getGenMuons(std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=2.5);
     std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax=0.8, bool uniqueMatch=true);
-
+    virtual void endInputData() override;
 private:
 
     std::unique_ptr<GeneralEventSetup> common_setup;
@@ -114,7 +114,7 @@ private:
     std::unique_ptr<EventNumberSelection> event_sel;
 
     int NJETS_ZPJ, NJETS_DIJET;
-    uint nOverlapEvents;
+    uint nOverlapEvents, nZPJEvents, nDijetEvents, nPassEvents;
 };
 
 
@@ -450,6 +450,9 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // event_sel.reset(new EventNumberSelection({111}));
 
     nOverlapEvents = 0;
+    nZPJEvents = 0;
+    nDijetEvents = 0;
+    nPassEvents = 0;
 }
 
 
@@ -691,7 +694,6 @@ bool QGAnalysisMCModule::process(Event & event) {
             dijet_gen_sel_passReco->passes(event); // this plots cutflow as well - only if we pass dijet reco selection
             genjet_hists_passDijetReco->fill(event);
         }
-
         if (dijet_sel->passes(event)) {
             dijet_hists->fill(event);
             dijet_qg_hists->fill(event);
@@ -799,10 +801,20 @@ bool QGAnalysisMCModule::process(Event & event) {
     //     if (abs(itr.status()) > 1)
     //     std::cout << itr.pdgId() << " : " << itr.status() << " : " << itr.eta() << " : " << itr.phi() << std::endl;
     // }
-
+    if (pass_zpj_reco || pass_zpj_gen) nZPJEvents++;
+    if (pass_dj_reco || pass_dj_gen) nDijetEvents++;
+    if (pass_zpj_reco || pass_dj_reco || pass_zpj_gen || pass_dj_gen) nPassEvents++;
     return pass_zpj_reco || pass_dj_reco || pass_zpj_gen || pass_dj_gen;
 }
 
+
+void QGAnalysisMCModule::endInputData(){
+    cout << "Summary stats: " << endl;
+    cout << " # dijet reco||gen: " << nDijetEvents << endl;
+    cout << " # z+j reco||gen: " << nZPJEvents << endl;
+    cout << " # dijet||z+j reco||gen: " << nPassEvents << endl;
+    cout << " # dijet && z+j reco: " << nOverlapEvents << endl;
+}
 
 /**
  * Get GenJets, ignoring those that are basically a lepton, and have some minimum pt and maximum eta.
