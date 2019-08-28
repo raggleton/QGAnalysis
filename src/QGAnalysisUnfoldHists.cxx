@@ -620,7 +620,6 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
   // Get (Gen)Jet-Lambda Bundles
   // ptr since then it can be null
   const std::vector<GenJetLambdaBundle> * genjetLambdas = nullptr;
-  const std::vector<GenJetLambdaBundle> * genjetChargedLambdas = nullptr;
   if (is_mc_) {
     genjetLambdas = &event.get(genJetsLambda_handle);
     passGen = event.get(pass_gen_handle);

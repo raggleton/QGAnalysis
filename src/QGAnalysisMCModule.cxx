@@ -401,9 +401,9 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // dijet_hists_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_highPt", binning_method));
     // dijet_qg_hists_highPt.reset(new QGAnalysisHists(ctx, "Dijet_QG_highPt", NJETS_DIJET, "dijet"));
 
-    genjet_hists.reset(new GenJetsHists(ctx, "GenJetsPresel", 3));
-    genjet_hists_passZpJReco.reset(new GenJetsHists(ctx, "GenJetsPassZPlusJetsReco", 3));
-    genjet_hists_passDijetReco.reset(new GenJetsHists(ctx, "GenJetsPassDijetReco", 3));
+    genjet_hists.reset(new GenJetsHists(ctx, "GenJetsPresel", 3, genjet_handle_name));
+    genjet_hists_passZpJReco.reset(new GenJetsHists(ctx, "GenJetsPassZPlusJetsReco", 3, genjet_handle_name));
+    genjet_hists_passDijetReco.reset(new GenJetsHists(ctx, "GenJetsPassDijetReco", 3, genjet_handle_name));
 
     if (DO_PU_BINNED_HISTS) {
         for (auto puBin : pu_bins) {
