@@ -534,8 +534,22 @@ bool QGAnalysisMCModule::process(Event & event) {
     // (e.g. where leading jet actually PU jet)
     // -------------------------------------------------------------------------
     // 1. Cut on pt/genHt to avoid weird events
-    if (genHT > 0 && (hasRecoJets && ((event.jets->at(0).pt() / genHT) > 2.5))) { return false; }
-    if (genHT > 0 && (hasGenJets && ((event.get(genjets_handle)[0].pt() / genHT) > 2.5))) { return false; }
+    if (genHT > 0 && (njet_min_sel->passes(event) && ((event.jets->at(0).pt() / genHT) > 2))) { return false; }
+    if (genHT > 0 && (hasGenJets && ((event.get(genjets_handle)[0].pt() / genHT) > 2))) { return false; }
+
+    float qScale = event.genInfo->qScale();
+    if (njet_min_sel->passes(event) && ((event.jets->at(0).pt() / qScale) > 2)) { return false; }
+
+    float PU_pThat = event.genInfo->PU_pT_hat_max();
+    if (genHT > 0 && njet_min_sel->passes(event) && ((PU_pThat / genHT) > 1)) { return false; }
+
+    // cout << "*** EVENT:" << endl;
+    // cout << "genHT: " << genHT << endl;
+    // cout << "qScale: " << qScale << endl;
+    // cout << "PU_pThat: " << PU_pThat << endl;
+    // cout << "pdf_scalePDF: " << event.genInfo->pdf_scalePDF() << endl;
+    // cout << "weight: " << event.weight << endl;
+    // if (njet_min_sel->passes(event)) cout << "jet1pt: " << event.jets->at(0).pt() << endl;
 
     // 2. Check event weight is sensible based on pthat - but isn't always available
     if (event.genInfo->binningValues().size() > 0) {
