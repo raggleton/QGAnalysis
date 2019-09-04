@@ -64,10 +64,15 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   pt_jet_response_binning = book<TH1F>("pt_jet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt, &pt_bin_edges[0]);
   pt_genjet_response_binning = book<TH1F>("pt_genjet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt, &pt_bin_edges[0]);
 
-  pt_jet_qScale_ratio = book<TH1F>("pt_jet_qScale_ratio", ";p_{T}^{jet 1}/qScale", 250, 0, 25);
-  pt_jet_genHT_ratio = book<TH1F>("pt_jet_genHT_ratio", ";p_{T}^{jet 1}/GenHT", 250, 0, 25);
+  pt_jet_qScale_ratio = book<TH1F>("pt_jet_qScale_ratio", ";p_{T}^{jet 1}/qScale", 300, 0, 15);
+  pt_jet_genHT_ratio = book<TH1F>("pt_jet_genHT_ratio", ";p_{T}^{jet 1}/GenHT", 250, 0, 2.5);
   pt_jet_vs_pdf_scalePDF = book<TH2F>("pt_jet_vs_pdf_scalePDF", ";p_{T}^{jet 1};pdf_scalePDF", nbins_pt_equal, 0, pt_max, nbins_pt_equal, 0, pt_max);
   pt_jet_vs_genHT = book<TH2F>("pt_jet_vs_genHT", ";p_{T}^{jet 1};GenHT", nbins_pt_equal, 0, pt_max, 500, 0, 5000);
+
+  int nWeightBins = 25;
+  double weightBins [nWeightBins+1] = {1E-4, 1E-3, 1E-2, 1E-1, 1, 10, 100, 1000, 1E4, 2E4, 5E4, 7E4, 1E5, 2E5, 5E5, 7E5, 1E6, 2E6, 3E6, 4E6, 5E6, 6E6, 7E6, 8E6, 9E6, 1E7};
+  weight_vs_puHat_genHT_ratio = book<TH2F>("weight_vs_puHat_genHT_ratio", ";Weight;PU #hat{p}_{T} / Gen HT", nWeightBins, weightBins, 100, 0, 2);
+
   // dont' reverse axis direction - it doens't like it
   pt_jet_response_fine = book<TH2F>("pt_jet_response_fine", TString::Format(";%s (GEN);%s (RECO)", binByVarLabel.Data(), binByVarLabel.Data()), nbins_pt_equal, 0, pt_max, nbins_pt_equal, 0, pt_max);
   pt_jet_response = book<TH2F>("pt_jet_response", TString::Format(";%s (GEN);%s (RECO)", binByVarLabel.Data(), binByVarLabel.Data()), nbins_pt, &pt_bin_edges[0], nbins_pt, &pt_bin_edges[0]);
@@ -163,6 +168,7 @@ void QGAnalysisDijetHists::fill(const Event & event){
     pt_jet_genHT_ratio->Fill(jet1_pt / genHT, weight);
     pt_jet_vs_pdf_scalePDF->Fill(jet1_pt, event.genInfo->pdf_scalePDF(), weight);
     pt_jet_vs_genHT->Fill(jet1_pt, genHT, weight);
+    weight_vs_puHat_genHT_ratio->Fill(weight, event.genInfo->PU_pT_hat_max() / genHT);
 
     const std::vector<GenJetWithParts> * genjets = &event.get(genJets_handle);
     int gj_ind1 = jet1.genjet_index();

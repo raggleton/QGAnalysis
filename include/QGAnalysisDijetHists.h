@@ -39,6 +39,7 @@ protected:
     TH1F *pt_jet_genHT_ratio;
     TH2F *pt_jet_vs_pdf_scalePDF;
     TH2F *pt_jet_vs_genHT;
+    TH2F *weight_vs_puHat_genHT_ratio;
 
     TH2F *genjet1_ind_vs_pt_jet1, *genjet2_ind_vs_pt_jet2;
     std::vector<TH2F*> genjet_recojet_ind_binned;

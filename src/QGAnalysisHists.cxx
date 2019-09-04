@@ -55,8 +55,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   gen_weight_handle = ctx.get_handle<double>("gen_weight");
 
   // book all histograms here
-  int nWeightBins = 11;
-  double weightBins [nWeightBins+1] = {1E-10, 1E-9, 1E-8, 1E-7, 1E-6, 1E-5, 1E-4, 1E-3, 1E-2, 1E-1, 1, 10};
+  int nWeightBins = 25;
+  double weightBins [nWeightBins+1] = {1E-4, 1E-3, 1E-2, 1E-1, 1, 10, 100, 1000, 1E4, 2E4, 5E4, 7E4, 1E5, 2E5, 5E5, 7E5, 1E6, 2E6, 3E6, 4E6, 5E6, 6E6, 7E6, 8E6, 9E6, 1E7};
 
   h_weights = book<TH1F>("weights", ";weight;", nWeightBins, weightBins);
   h_weights_vs_pt = book<TH2F>("weights_vs_pt", ";weight;", nWeightBins, weightBins, 200, 0., 2000.);

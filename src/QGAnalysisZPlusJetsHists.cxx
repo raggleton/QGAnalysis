@@ -58,7 +58,7 @@ hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
 
   eta_jet1_vs_pt = book<TH2F>(TString::Format("eta_jet1_vs_%s", binByVar.Data()), TString::Format(";#eta^{jet 1};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
   pt_jet1_z_ratio_vs_pt = book<TH2F>(TString::Format("pt_jet1_z_ratio_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{jet 1}/ p_{T}^{%s};%s", zName.Data(), binByVarLabel.Data()), 50, 0, 5, nbins_pt, 0, pt_max);
-  pt_jet_genHT_ratio = book<TH1F>("pt_jet_genHT_ratio", ";p_{T}^{jet 1}/GenHT", 250, 0, 25);
+  pt_jet_genHT_ratio = book<TH1F>("pt_jet_genHT_ratio", ";p_{T}^{jet 1}/GenHT", 250, 0, 2.5);
   pt_jet_response_fine = book<TH2F>("pt_jet_response_fine", ";p_{T}^{jet 1} (GEN);p_{T}^{jet 1} (RECO)", nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
   pt_jet_response = book<TH2F>("pt_jet_response", ";p_{T}^{jet 1} (GEN);p_{T}^{jet 1} (RECO)", Binning::nbins_pt_zpj_reco_all, &Binning::pt_bin_edges_zpj_reco_all[0], Binning::nbins_pt_zpj_reco_all, &Binning::pt_bin_edges_zpj_reco_all[0]);
   eta_jet_response = book<TH2F>("eta_jet_response", ";#eta^{jet} (GEN);#eta^{jet} (RECO)", nbins_eta, -eta_max, eta_max, nbins_eta, -eta_max, eta_max);
