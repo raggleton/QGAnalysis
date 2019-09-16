@@ -424,7 +424,8 @@ namespace Binning {
   // LHA binning
   // -----------
   const std::vector<double> lha_bin_edges_gen = {
-    0.0, 0.12, 0.25, 0.33, 0.39, 0.45, 0.51, 0.57, 0.62, 0.66, 0.7, 0.76, 1.0
+    // 0.0, 0.12, 0.25, 0.33, 0.39, 0.45, 0.51, 0.57, 0.62, 0.66, 0.7, 0.76, 1.0
+    0.0, 0.16, 0.23, 0.3, 0.36, 0.42, 0.49, 0.56, 0.63, 0.72, 1.0
     // 0.0, 0.35, 0.5, 0.64, 1.0
   };
   const int nbins_lha_gen(lha_bin_edges_gen.size() - 1);
@@ -435,7 +436,8 @@ namespace Binning {
   // Charged LHA binning
   // -----------
   const std::vector<double> lha_charged_bin_edges_gen = {
-    0.0, 0.1, 0.2, 0.26, 0.32, 0.37, 0.42, 0.47, 0.52, 0.57, 0.62, 0.66, 0.7, 0.75, 1.0
+    // 0.0, 0.1, 0.2, 0.26, 0.32, 0.37, 0.42, 0.47, 0.52, 0.57, 0.62, 0.66, 0.7, 0.75, 1.0
+    0.0, 0.09, 0.14, 0.19, 0.24, 0.3, 0.36, 0.43, 0.51, 0.6, 0.71, 1.0
   // 0.0, 0.29, 0.41, 0.53, 0.66, 1.0
   };
   const int nbins_lha_charged_gen(lha_charged_bin_edges_gen.size() - 1);
@@ -490,7 +492,8 @@ namespace Binning {
   // thrust binning
   // --------------------
   const std::vector<double> thrust_bin_edges_gen = {
-    0.0, 0.03, 0.06, 0.1, 0.15, 0.2, 0.25, 0.31, 0.47, 1.0
+    // 0.0, 0.03, 0.06, 0.1, 0.15, 0.2, 0.25, 0.31, 0.47, 1.0
+    0.0, 0.04, 0.07, 0.12, 0.19, 0.27, 0.37, 0.52, 1.0
     // 0.0, 0.06, 0.17, 0.31, 1.0
   };
   const int nbins_thrust_gen(thrust_bin_edges_gen.size() - 1);
@@ -501,7 +504,8 @@ namespace Binning {
   // Charged thrust binning
   // --------------------
   const std::vector<double> thrust_charged_bin_edges_gen = {
-    0.0, 0.02, 0.04, 0.07, 0.11, 0.16, 0.22, 0.28, 0.37, 1.0
+    // 0.0, 0.02, 0.04, 0.07, 0.11, 0.16, 0.22, 0.28, 0.37, 1.0
+    0.0, 0.02, 0.04, 0.07, 0.11, 0.17, 0.25, 0.36, 0.52, 1.0
     // 0.0, 0.05, 0.15, 0.45, 1.0
   };
   const int nbins_thrust_charged_gen(thrust_charged_bin_edges_gen.size() - 1);
@@ -512,7 +516,8 @@ namespace Binning {
   // width binning
   // --------------------
   const std::vector<double> width_bin_edges_gen = {
-    0.0, 0.09, 0.14, 0.19, 0.25, 0.31, 0.37, 0.43, 0.48, 0.54, 1.0
+    // 0.0, 0.09, 0.14, 0.19, 0.25, 0.31, 0.37, 0.43, 0.48, 0.54, 1.0
+    0.0, 0.08, 0.13, 0.18, 0.24, 0.31, 0.39, 0.47, 0.58, 1.0
   // 0.0, 0.16, 0.3, 0.45, 1.0
   };
   const int nbins_width_gen(width_bin_edges_gen.size() - 1);
@@ -523,7 +528,8 @@ namespace Binning {
   // Charged width binning
   // --------------------
   const std::vector<double> width_charged_bin_edges_gen = {
-    0.0, 0.06, 0.09, 0.13, 0.17, 0.21, 0.26, 0.31, 0.36, 0.41, 0.46, 0.52, 0.6, 1.0
+    // 0.0, 0.06, 0.09, 0.13, 0.17, 0.21, 0.26, 0.31, 0.36, 0.41, 0.46, 0.52, 0.6, 1.0
+    0.0, 0.04, 0.07, 0.1, 0.14, 0.18, 0.23, 0.29, 0.37, 0.46, 0.58, 0.99, 1.0
     // 0.0, 0.11, 0.2, 0.33, 0.49, 1.0
   };
   const int nbins_width_charged_gen(width_charged_bin_edges_gen.size() - 1);
