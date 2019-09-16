@@ -115,13 +115,15 @@ private:
 
     int NJETS_ZPJ, NJETS_DIJET;
     uint nOverlapEvents, nZPJEvents, nDijetEvents, nPassEvents;
+
+    bool isZPlusJets;
 };
 
 
 QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     cout << "Running analysis module" << endl;
 
-    htMax =  boost::lexical_cast<float>(ctx.get("maxHT", "-1"));
+    htMax = boost::lexical_cast<float>(ctx.get("maxHT", "-1"));
 
     string jet_cone = ctx.get("JetCone", "AK4");
     string pu_removal = ctx.get("PURemoval", "CHS");
@@ -130,8 +132,13 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     }
     jetRadius = get_jet_radius(jet_cone);
 
+    const std::string & datasetVersion = ctx.get("dataset_version");
+    isZPlusJets = (isSubstring(datasetVersion, "DYJetsToLL", true) || isSubstring(datasetVersion, "SingleMu", true));
+    ctx.set("isZPlusJets", bool2string(isZPlusJets));
+
     cout << "Running with jet cone: " << jet_cone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
+    cout << "Is Z+jets: " << isZPlusJets << endl;
 
     // FIXME: get everything from ctx not extra args
     float jet_pt_min = 30.;
@@ -253,29 +260,32 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     }
 
     std::string zLabel = "zMuonCand";
-    zFinder.reset(new ZFinder(ctx, "muons", zLabel, ctx.get("z_reweight_file", "")));
 
     // For gen selection, do as per reco selection but looser by this factor
     float mcSelFactor = 1.25;
 
-    // Z+JETS selection
-    float mu1_pt = 26.; // muon pt cut comes from the cleaner in GeneralEventSetup
-    float mu2_pt = 26.;
-    float mZ_window = 20.;
-    float dphi_jet_z_min = 2.0;
-    float second_jet_frac_max_zpj = 0.3;
-    zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
+    if (isZPlusJets) {
+        zFinder.reset(new ZFinder(ctx, "muons", zLabel, ctx.get("z_reweight_file", "")));
 
-    zplusjets_gen_sel.reset(new ZplusJetsGenSelection(ctx, mu1_pt/mcSelFactor, mu2_pt/mcSelFactor, mZ_window*mcSelFactor, dphi_jet_z_min/mcSelFactor, second_jet_frac_max_zpj*mcSelFactor,
-                                                      "ZPlusJetsGenSelCutFlow", genjet_handle_name, genmuon_handle_name));
-    // just to plot cutflow only when passReco==true
-    zplusjets_gen_sel_passReco.reset(new ZplusJetsGenSelection(ctx, mu1_pt/mcSelFactor, mu2_pt/mcSelFactor, mZ_window*mcSelFactor, dphi_jet_z_min/mcSelFactor, second_jet_frac_max_zpj*mcSelFactor,
-                                                               "ZPlusJetsGenSelPassRecoCutFlow", genjet_handle_name, genmuon_handle_name));
+        // Z+JETS selection
+        float mu1_pt = 26.; // muon pt cut comes from the cleaner in GeneralEventSetup
+        float mu2_pt = 26.;
+        float mZ_window = 20.;
+        float dphi_jet_z_min = 2.0;
+        float second_jet_frac_max_zpj = 0.3;
+        zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
 
-    // Preselection for Z+J - only 2 muons to reco Z
-    dphi_jet_z_min = 0.;
-    second_jet_frac_max_zpj = 999.;
-    zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
+        zplusjets_gen_sel.reset(new ZplusJetsGenSelection(ctx, mu1_pt/mcSelFactor, mu2_pt/mcSelFactor, mZ_window*mcSelFactor, dphi_jet_z_min/mcSelFactor, second_jet_frac_max_zpj*mcSelFactor,
+                                                          "ZPlusJetsGenSelCutFlow", genjet_handle_name, genmuon_handle_name));
+        // just to plot cutflow only when passReco==true
+        zplusjets_gen_sel_passReco.reset(new ZplusJetsGenSelection(ctx, mu1_pt/mcSelFactor, mu2_pt/mcSelFactor, mZ_window*mcSelFactor, dphi_jet_z_min/mcSelFactor, second_jet_frac_max_zpj*mcSelFactor,
+                                                                   "ZPlusJetsGenSelPassRecoCutFlow", genjet_handle_name, genmuon_handle_name));
+
+        // Preselection for Z+J - only 2 muons to reco Z
+        dphi_jet_z_min = 0.;
+        second_jet_frac_max_zpj = 999.;
+        zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
+    }
 
     // DIJET selection
     float dphi_min = 2.;
@@ -295,35 +305,37 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     // Hists
     // -------------------------------------------------------------------------
-    // Z+JETS hists
-    zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLabel));
-    // preselection hists, if jet is quark, or gluon
-    zplusjets_hists_presel_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_q", zLabel));
-    zplusjets_hists_presel_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_g", zLabel));
-    zplusjets_hists_presel_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown", zLabel));
-    zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
-
-    // note that each of these does neutral+charged, and charged-only
     std::string zpj_sel = "zplusjets";
-    zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG",
-                                                 NJETS_ZPJ, false, zpj_sel,
-                                                 pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
-                                                 reco_jetlambda_handle_name, gen_jetlambda_handle_name));
-    zplusjets_qg_hists_groomed.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG_groomed",
-                                                         NJETS_ZPJ, true, zpj_sel,
-                                                         pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
-                                                         reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+    if (isZPlusJets) {
+        // Z+JETS hists
+        zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLabel));
+        // preselection hists, if jet is quark, or gluon
+        zplusjets_hists_presel_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_q", zLabel));
+        zplusjets_hists_presel_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_g", zLabel));
+        zplusjets_hists_presel_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown", zLabel));
+        zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
 
-    if (DO_UNFOLD_HISTS) {
-        zplusjets_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG_Unfold",
-                                                                  NJETS_ZPJ, false, zpj_sel,
-                                                                  pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
-                                                                  reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+        // note that each of these does neutral+charged, and charged-only
+        zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG",
+                                                     NJETS_ZPJ, false, zpj_sel,
+                                                     pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
+                                                     reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+        zplusjets_qg_hists_groomed.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG_groomed",
+                                                             NJETS_ZPJ, true, zpj_sel,
+                                                             pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
+                                                             reco_jetlambda_handle_name, gen_jetlambda_handle_name));
 
-        zplusjets_qg_unfold_hists_groomed.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG_Unfold_groomed",
-                                                                          NJETS_ZPJ, true, zpj_sel,
-                                                                          pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
-                                                                          reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+        if (DO_UNFOLD_HISTS) {
+            zplusjets_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG_Unfold",
+                                                                      NJETS_ZPJ, false, zpj_sel,
+                                                                      pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
+                                                                      reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+
+            zplusjets_qg_unfold_hists_groomed.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG_Unfold_groomed",
+                                                                              NJETS_ZPJ, true, zpj_sel,
+                                                                              pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
+                                                                              reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+        }
     }
 
     // DIJET hists
@@ -409,17 +421,20 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         for (auto puBin : pu_bins) {
             std::unique_ptr<Selection> pu_sel(new NPVSelection(puBin.first, puBin.second));
             sel_pu_binned.push_back(std::move(pu_sel));
-            // ungroomed & groomed z+j
-            std::unique_ptr<QGAnalysisHists> zpj(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(),
-                                                                     NJETS_ZPJ, false, zpj_sel,
-                                                                     pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
-                                                                     reco_jetlambda_handle_name, gen_jetlambda_handle_name));
-            zplusjets_qg_hists_pu_binned.push_back(std::move(zpj));
-            std::unique_ptr<QGAnalysisHists> zpjg(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d_groomed", puBin.first, puBin.second).Data(),
-                                                                      NJETS_ZPJ, true, zpj_sel,
-                                                                      pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
-                                                                      reco_jetlambda_handle_name, gen_jetlambda_handle_name));
-            zplusjets_qg_hists_groomed_pu_binned.push_back(std::move(zpjg));
+
+            if (isZPlusJets) {
+                // ungroomed & groomed z+j
+                std::unique_ptr<QGAnalysisHists> zpj(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d", puBin.first, puBin.second).Data(),
+                                                                         NJETS_ZPJ, false, zpj_sel,
+                                                                         pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
+                                                                         reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+                zplusjets_qg_hists_pu_binned.push_back(std::move(zpj));
+                std::unique_ptr<QGAnalysisHists> zpjg(new QGAnalysisHists(ctx, TString::Format("ZPlusJets_QG_PU_%d_to_%d_groomed", puBin.first, puBin.second).Data(),
+                                                                          NJETS_ZPJ, true, zpj_sel,
+                                                                          pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
+                                                                          reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+                zplusjets_qg_hists_groomed_pu_binned.push_back(std::move(zpjg));
+            }
 
             // ungroomed dijet
             std::unique_ptr<QGAnalysisHists> djc(new QGAnalysisHists(ctx, TString::Format("Dijet_QG_central_tighter_PU_%d_to_%d", puBin.first, puBin.second).Data(),
@@ -580,38 +595,40 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // Do Z+Jet hists & selection
     // -------------------------------------------------------------------------
-    if (hasRecoJets) {
-        // flav-specific preselection hists, useful for optimising selection
-        uint flav1 = event.jets->at(0).flavor();
-        if (zFinder->process(event)) {
-            zplusjets_hists_presel->fill(event);
-            if (zplusjets_presel->passes(event)) {
-                if (flav1 == PDGID::GLUON) {
-                    zplusjets_hists_presel_g->fill(event);
-                } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
-                    zplusjets_hists_presel_q->fill(event);
-                } else if (flav1 == PDGID::UNKNOWN) {
-                    zplusjets_hists_presel_unknown->fill(event);
-                }
+    if (isZPlusJets) {
+        if (hasRecoJets) {
+            // flav-specific preselection hists, useful for optimising selection
+            uint flav1 = event.jets->at(0).flavor();
+            if (zFinder->process(event)) {
+                zplusjets_hists_presel->fill(event);
+                if (zplusjets_presel->passes(event)) {
+                    if (flav1 == PDGID::GLUON) {
+                        zplusjets_hists_presel_g->fill(event);
+                    } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
+                        zplusjets_hists_presel_q->fill(event);
+                    } else if (flav1 == PDGID::UNKNOWN) {
+                        zplusjets_hists_presel_unknown->fill(event);
+                    }
 
-                pass_zpj_reco = zplusjets_sel->passes(event);
-                event.set(pass_zpj_sel_handle, pass_zpj_reco);
-                if (pass_zpj_reco) {
-                    zplusjets_hists->fill(event);
-                    zplusjets_qg_hists->fill(event);
-                    zplusjets_qg_hists_groomed->fill(event);
-                    zplusjets_gen_sel_passReco->passes(event); // this plots cutflow as well
-                    genjet_hists_passZpJReco->fill(event);
+                    pass_zpj_reco = zplusjets_sel->passes(event);
+                    event.set(pass_zpj_sel_handle, pass_zpj_reco);
+                    if (pass_zpj_reco) {
+                        zplusjets_hists->fill(event);
+                        zplusjets_qg_hists->fill(event);
+                        zplusjets_qg_hists_groomed->fill(event);
+                        zplusjets_gen_sel_passReco->passes(event); // this plots cutflow as well
+                        genjet_hists_passZpJReco->fill(event);
+                    }
                 }
             }
         }
-    }
-    pass_zpj_gen = zplusjets_gen_sel->passes(event);
-    event.set(pass_zpj_gen_sel_handle, pass_zpj_gen);
+        pass_zpj_gen = zplusjets_gen_sel->passes(event);
+        event.set(pass_zpj_gen_sel_handle, pass_zpj_gen);
 
-    if (DO_UNFOLD_HISTS && (pass_zpj_reco || pass_zpj_gen)) {
-        zplusjets_qg_unfold_hists->fill(event);
-        zplusjets_qg_unfold_hists_groomed->fill(event);
+        if (DO_UNFOLD_HISTS && (pass_zpj_reco || pass_zpj_gen)) {
+            zplusjets_qg_unfold_hists->fill(event);
+            zplusjets_qg_unfold_hists_groomed->fill(event);
+        }
     }
 
     // Do DiJet hists & selection
@@ -737,7 +754,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     if (DO_PU_BINNED_HISTS) {
         for (uint i=0; i<sel_pu_binned.size(); i++) {
             if (sel_pu_binned.at(i)->passes(event)) {
-                if (pass_zpj_reco) {
+                if (isZPlusJets && pass_zpj_reco) {
                     zplusjets_qg_hists_pu_binned.at(i)->fill(event);
                     zplusjets_qg_hists_groomed_pu_binned.at(i)->fill(event);
                 }

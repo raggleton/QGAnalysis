@@ -108,6 +108,7 @@ private:
   std::unique_ptr<MCPileupReweight> pileup_reweighter;
   std::unique_ptr<MCMuonScaleFactor> muon_id_reweighter_pt_eta, muon_id_reweighter_vtx, muon_trg_reweighter;
   std::unique_ptr<MCMuonTrkScaleFactor> muon_trk_reweighter;
+  bool doMuons;
 };
 
 /**
