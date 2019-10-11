@@ -85,16 +85,19 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   eta_jet2_vs_pt_jet = book<TH2F>("eta_jet2_vs_pt_jet", TString::Format(";#eta^{jet 2};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt_equal, 0, pt_max);
   phi_jet2_vs_pt_jet = book<TH2F>("phi_jet2_vs_pt_jet", TString::Format(";#phi^{jet 2};%s", binByVarLabel.Data()), nbins_phi, -phi_max, phi_max, nbins_pt_equal, 0, pt_max);
 
-  int nbins_jet_ind = 5;
-  // -1 on each axis = no match
-  genjet1_ind_vs_pt_jet1 = book<TH2F>("genjet1_ind_vs_pt_jet1", ";GenJet index;p_{T}^{jet 1} [GeV]", nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_pt_equal, 0, pt_max);
-  genjet2_ind_vs_pt_jet2 = book<TH2F>("genjet2_ind_vs_pt_jet2", ";GenJet index;p_{T}^{jet 2} [GeV]", nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_pt_equal, 0, pt_max);
+  DO_MATCHING_INDS = false;
+  if (DO_MATCHING_INDS) {
+    int nbins_jet_ind = 5;
+    // -1 on each axis = no match
+    genjet1_ind_vs_pt_jet1 = book<TH2F>("genjet1_ind_vs_pt_jet1", ";GenJet index;p_{T}^{jet 1} [GeV]", nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_pt_equal, 0, pt_max);
+    genjet2_ind_vs_pt_jet2 = book<TH2F>("genjet2_ind_vs_pt_jet2", ";GenJet index;p_{T}^{jet 2} [GeV]", nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_pt_equal, 0, pt_max);
 
-  for (int i=0; i < nbins_pt; i++) {
-    TH2F * tmp = book<TH2F>(TString::Format("genjet_ind_recojet_ind_pt_%g_%g", pt_bin_edges.at(i), pt_bin_edges.at(i+1)),
-                            TString::Format("%g < p_{T}^{Gen} < %g GeV;GenJet index; RecoJet index", pt_bin_edges.at(i), pt_bin_edges.at(i+1)),
-                            nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5);
-    genjet_recojet_ind_binned.push_back(tmp);
+    for (int i=0; i < nbins_pt; i++) {
+      TH2F * tmp = book<TH2F>(TString::Format("genjet_ind_recojet_ind_pt_%g_%g", pt_bin_edges.at(i), pt_bin_edges.at(i+1)),
+                              TString::Format("%g < p_{T}^{Gen} < %g GeV;GenJet index; RecoJet index", pt_bin_edges.at(i), pt_bin_edges.at(i+1)),
+                              nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5, nbins_jet_ind+1, 0-1.5, nbins_jet_ind-0.5);
+      genjet_recojet_ind_binned.push_back(tmp);
+    }
   }
 
   flav_jet1_jet2 = book<TH2F>("flav_jet1_jet2", ";jet 1 flav;jet 2 flav;", 23, -0.5, 22.5, 23, -0.5, 22.5);
@@ -198,124 +201,125 @@ void QGAnalysisDijetHists::fill(const Event & event){
     // printJets(*jets, "reco jets for matching");
     // printGenJets(*genjets, "gen jets for matching");
 
-    // plot indices of matching genjets/recojets
-    int genjet_ind = 0;
-    std::vector<int> matches;
-    for (const auto & gjItr : *genjets) {
-      if (genjet_ind > 5) break;
+    if (DO_MATCHING_INDS) {
+      // plot indices of matching genjets/recojets
+      int genjet_ind = 0;
+      std::vector<int> matches;
+      for (const auto & gjItr : *genjets) {
+        if (genjet_ind > 5) break;
 
-      // find matching recojet for this genjet
-      float dr_min = 9999;
-      int reco_ind = -1;
-      for (uint rj_ind=0; rj_ind < jets->size(); rj_ind++) {
-        // skip if already matched reco jet
-        if (std::find(matches.begin(), matches.end(), rj_ind) != matches.end()) continue;
-        float this_dr = deltaR(jets->at(rj_ind), gjItr);
-        if (this_dr < dr_min && this_dr < (jetRadius/2.)) {
-          reco_ind = rj_ind;
+        // find matching recojet for this genjet
+        float dr_min = 9999;
+        int reco_ind = -1;
+        for (uint rj_ind=0; rj_ind < jets->size(); rj_ind++) {
+          // skip if already matched reco jet
+          if (std::find(matches.begin(), matches.end(), rj_ind) != matches.end()) continue;
+          float this_dr = deltaR(jets->at(rj_ind), gjItr);
+          if (this_dr < dr_min && this_dr < (jetRadius/2.)) {
+            reco_ind = rj_ind;
+          }
         }
-      }
-      if (reco_ind >= 0) {
-        matches.push_back(reco_ind);
-        // cout << "GenJet-reco match: " << endl;
-        // cout << "  Gen: " << genjet_ind << " : " << gjItr.pt() << " : " << gjItr.eta() << " : " << gjItr.phi() << endl;
-        // cout << "  Reco: " << reco_ind << " : " << jets->at(reco_ind).pt() << " : " << jets->at(reco_ind).eta() << " : " << jets->at(reco_ind).phi() << endl;
-      }
-
-      //  find which pt bin is suitable for this genjet
-      auto pos = std::lower_bound(pt_bin_edges.begin(), pt_bin_edges.end(), gjItr.pt()) - pt_bin_edges.begin();
-      if (pos > (int) genjet_recojet_ind_binned.size()+1) {
-        cout << "pos: " << pos << endl;
-        cout << "genjet pt: " << gjItr.pt() << endl;
-        cout << "bins: " << endl;
-        for (auto b : pt_bin_edges) {
-          cout << b << " ";
+        if (reco_ind >= 0) {
+          matches.push_back(reco_ind);
+          // cout << "GenJet-reco match: " << endl;
+          // cout << "  Gen: " << genjet_ind << " : " << gjItr.pt() << " : " << gjItr.eta() << " : " << gjItr.phi() << endl;
+          // cout << "  Reco: " << reco_ind << " : " << jets->at(reco_ind).pt() << " : " << jets->at(reco_ind).eta() << " : " << jets->at(reco_ind).phi() << endl;
         }
-        cout << endl;
-        throw std::runtime_error("Invalid pos");
+
+        //  find which pt bin is suitable for this genjet
+        auto pos = std::lower_bound(pt_bin_edges.begin(), pt_bin_edges.end(), gjItr.pt()) - pt_bin_edges.begin();
+        if (pos > (int) genjet_recojet_ind_binned.size()+1) {
+          cout << "pos: " << pos << endl;
+          cout << "genjet pt: " << gjItr.pt() << endl;
+          cout << "bins: " << endl;
+          for (auto b : pt_bin_edges) {
+            cout << b << " ";
+          }
+          cout << endl;
+          throw std::runtime_error("Invalid pos");
+        }
+        if (pos == 0) {
+          for (auto & ptv : pt_bin_edges) { cout << ptv << ", " ;}
+          cout << endl;
+          cout << "pos = 0, genJet pt: " << gjItr.pt() << endl;
+          throw std::runtime_error("pos=0, this will fail to find a gen-reco bin; decrease the first bin edge");
+        }
+        if (pos == (int) genjet_recojet_ind_binned.size()+1) {
+          for (auto & ptv : pt_bin_edges) { cout << ptv << ", " ;}
+          cout << endl;
+          cout << "pos = " << genjet_recojet_ind_binned.size() << ", genJet pt: " << gjItr.pt() << endl;
+          throw std::runtime_error("pos=genjet_recojet_ind_binned.size(), this will fail to find a gen-reco bin; increase the last bin edge");
+        }
+        // need -1 as it will find the upper edge
+        genjet_recojet_ind_binned.at(pos-1)->Fill(genjet_ind, reco_ind, weight);
+
+        genjet_ind++;
       }
-      if (pos == 0) {
-        for (auto & ptv : pt_bin_edges) { cout << ptv << ", " ;}
-        cout << endl;
-        cout << "pos = 0, genJet pt: " << gjItr.pt() << endl;
-        throw std::runtime_error("pos=0, this will fail to find a gen-reco bin; decrease the first bin edge");
-      }
-      if (pos == (int) genjet_recojet_ind_binned.size()+1) {
-        for (auto & ptv : pt_bin_edges) { cout << ptv << ", " ;}
-        cout << endl;
-        cout << "pos = " << genjet_recojet_ind_binned.size() << ", genJet pt: " << gjItr.pt() << endl;
-        throw std::runtime_error("pos=genjet_recojet_ind_binned.size(), this will fail to find a gen-reco bin; increase the last bin edge");
-      }
-      // need -1 as it will find the upper edge
-      genjet_recojet_ind_binned.at(pos-1)->Fill(genjet_ind, reco_ind, weight);
-
-      genjet_ind++;
-    }
 
 
-    // now go through the recojets and see if there are any missing matches
-    int recojet_ind = 0;
-    for (const auto & rjItr : *event.jets) {
-      auto match = std::find(matches.begin(), matches.end(), recojet_ind);
+      // now go through the recojets and see if there are any missing matches
+      int recojet_ind = 0;
+      for (const auto & rjItr : *event.jets) {
+        auto match = std::find(matches.begin(), matches.end(), recojet_ind);
 
-      if (rjItr.genjet_index() < 0) {
-        if (match != matches.end()) {
-          cout << "Found match for recojet " << recojet_ind << " with genjet " << match - matches.begin() << " but there wasn't a match earlier" << endl;
-          printJets(*event.jets, "BadMatching");
-          printGenJets(*genjets, "BadMatching");
-          // throw std::runtime_error("recojet.genjet_index indicates no match, but genjet match found");
-        } else {
-          // here we have reco jet with no matching genjet
-          // find which bin is suitable
-          // not really correct as we're using reco pt, but there's no genjet anyway
-          auto pos = std::lower_bound(pt_bin_edges.begin(), pt_bin_edges.end(), rjItr.pt()) - pt_bin_edges.begin();
-          if (pos > (int) genjet_recojet_ind_binned.size()+1) {
-            cout << pos << endl;
-            cout << rjItr.pt() << endl;
-            for (auto b : pt_bin_edges) {
-              cout << b << " ";
+        if (rjItr.genjet_index() < 0) {
+          if (match != matches.end()) {
+            cout << "Found match for recojet " << recojet_ind << " with genjet " << match - matches.begin() << " but there wasn't a match earlier" << endl;
+            printJets(*event.jets, "BadMatching");
+            printGenJets(*genjets, "BadMatching");
+            // throw std::runtime_error("recojet.genjet_index indicates no match, but genjet match found");
+          } else {
+            // here we have reco jet with no matching genjet
+            // find which bin is suitable
+            // not really correct as we're using reco pt, but there's no genjet anyway
+            auto pos = std::lower_bound(pt_bin_edges.begin(), pt_bin_edges.end(), rjItr.pt()) - pt_bin_edges.begin();
+            if (pos > (int) genjet_recojet_ind_binned.size()+1) {
+              cout << pos << endl;
+              cout << rjItr.pt() << endl;
+              for (auto b : pt_bin_edges) {
+                cout << b << " ";
+              }
+              cout << endl;
+              throw std::runtime_error("Invalid pos");
             }
-            cout << endl;
-            throw std::runtime_error("Invalid pos");
+            if (pos == 0) {
+              for (auto & ptv : pt_bin_edges) { cout << ptv << ", " ;}
+              cout << endl;
+              cout << "pos = 0, recojet pt: " << rjItr.pt() << endl;
+              throw std::runtime_error("pos=0, this will fail to find a gen-reco bin; decrease the first bin edge");
+            }
+            // need -1 as it will find the upper edge
+            genjet_recojet_ind_binned.at(pos-1)->Fill(-1, recojet_ind, weight);
           }
-          if (pos == 0) {
-            for (auto & ptv : pt_bin_edges) { cout << ptv << ", " ;}
-            cout << endl;
-            cout << "pos = 0, recojet pt: " << rjItr.pt() << endl;
-            throw std::runtime_error("pos=0, this will fail to find a gen-reco bin; decrease the first bin edge");
-          }
-          // need -1 as it will find the upper edge
-          genjet_recojet_ind_binned.at(pos-1)->Fill(-1, recojet_ind, weight);
         }
+
+        // here we have a recojet with a matching genjet, but it wasn't used earlier?
+        // if (match == matches.end()) {
+        //   // what are we doing here?
+        //   // find which bin is suitable
+        //   // not really correct as we're using reco pt, but there's no genjet anyway
+        //   auto pos = std::lower_bound(pt_bin_edges.begin(), pt_bin_edges.end(), rjItr.pt()) - pt_bin_edges.begin();
+        //   if (pos > (int) genjet_recojet_ind_binned.size()+1) {
+        //     cout << pos << endl;
+        //     cout << rjItr.pt() << endl;
+        //     for (auto b : pt_bin_edges) {
+        //       cout << b << " ";
+        //     }
+        //     cout << endl;
+        //     throw std::runtime_error("Invalid pos");
+        //   }
+        //   if (pos == 0) {
+        //     for (auto & ptv : pt_bin_edges) { cout << ptv << ", " ;}
+        //     cout << endl;
+        //     cout << "pos = 0, recojet pt: " << rjItr.pt() << endl;
+        //     throw std::runtime_error("pos=0, this will fail to find a gen-reco bin; decrease the first bin edge");
+        //   }
+        //   // need -1 as it will find the upper edge
+        //   genjet_recojet_ind_binned.at(pos-1)->Fill(-1, recojet_ind, weight);
+        // }
+        recojet_ind++;
       }
-
-      // here we have a recojet with a matching genjet, but it wasn't used earlier?
-      // if (match == matches.end()) {
-      //   // what are we doing here?
-      //   // find which bin is suitable
-      //   // not really correct as we're using reco pt, but there's no genjet anyway
-      //   auto pos = std::lower_bound(pt_bin_edges.begin(), pt_bin_edges.end(), rjItr.pt()) - pt_bin_edges.begin();
-      //   if (pos > (int) genjet_recojet_ind_binned.size()+1) {
-      //     cout << pos << endl;
-      //     cout << rjItr.pt() << endl;
-      //     for (auto b : pt_bin_edges) {
-      //       cout << b << " ";
-      //     }
-      //     cout << endl;
-      //     throw std::runtime_error("Invalid pos");
-      //   }
-      //   if (pos == 0) {
-      //     for (auto & ptv : pt_bin_edges) { cout << ptv << ", " ;}
-      //     cout << endl;
-      //     cout << "pos = 0, recojet pt: " << rjItr.pt() << endl;
-      //     throw std::runtime_error("pos=0, this will fail to find a gen-reco bin; decrease the first bin edge");
-      //   }
-      //   // need -1 as it will find the upper edge
-      //   genjet_recojet_ind_binned.at(pos-1)->Fill(-1, recojet_ind, weight);
-      // }
-      recojet_ind++;
     }
-
   }
 
   n_jets_vs_pt_jet->Fill(Njets, binByVal, weight);

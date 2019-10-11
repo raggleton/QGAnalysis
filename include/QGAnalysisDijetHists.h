@@ -52,7 +52,7 @@ protected:
     int nbins_pt;
 
     std::string binning;
-
+    bool DO_MATCHING_INDS;
     float jetRadius;
 };
 
