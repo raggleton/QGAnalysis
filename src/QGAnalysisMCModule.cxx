@@ -556,7 +556,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     if (njet_min_sel->passes(event) && ((event.jets->at(0).pt() / qScale) > 2)) { return false; }
 
     float PU_pThat = event.genInfo->PU_pT_hat_max();
-    if (genHT > 0 && njet_min_sel->passes(event) && ((PU_pThat / genHT) > 1)) { return false; }
+    if (genHT > 0 && njet_min_sel->passes(event) && ((PU_pThat / genHT) > 2)) { return false; }
 
     // cout << "*** EVENT:" << endl;
     // cout << "genHT: " << genHT << endl;
@@ -568,9 +568,10 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // 2. Check event weight is sensible based on pthat - but isn't always available
     if (event.genInfo->binningValues().size() > 0) {
-        double ptHat = event.genInfo->binningValues().at(0); // yes this is correct. no idea why
-        if (hasRecoJets && (event.jets->at(0).pt() / ptHat > 2)) return false;
-        if (hasGenJets && (event.get(genjets_handle)[0].pt() / ptHat > 2)) return false;
+        // double ptHat = event.genInfo->binningValues().at(0); // yes this is correct. no idea why
+        // cout << "ptHAt: " << ptHat << endl;
+        // if (hasRecoJets && (event.jets->at(0).pt() / ptHat > 2)) return false;
+        // if (hasGenJets && (event.get(genjets_handle)[0].pt() / ptHat > 2)) return false;
     }
 
     genjet_hists->fill(event);
