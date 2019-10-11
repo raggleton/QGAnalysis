@@ -170,9 +170,8 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   m_mumu_vs_pt->Fill(z_cand.M(), binPt, weight);
   pt_jet1_vs_pt->Fill(jet1_pt, binPt, weight);
 
-  auto diff = mu1.v4() - mu2.v4();
-  deta_mumu_vs_pt->Fill(fabs(diff.eta()), binPt,  weight);
-  dphi_mumu_vs_pt->Fill(fabs(diff.phi()), binPt, weight);
+  deta_mumu_vs_pt->Fill(fabs(mu1.eta() - mu2.eta()), binPt,  weight);
+  dphi_mumu_vs_pt->Fill(fabs(deltaPhi(mu1.v4(), mu2.v4())), binPt, weight);
 
   // Jets
   n_jets_vs_pt->Fill(Njets, binPt, weight);
@@ -290,11 +289,9 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   met_sig_vs_pt->Fill(event.met->mEtSig(), binPt, weight);
 
   pt_jet1_z_ratio_vs_pt->Fill(jet1_pt / z_pt, binPt, weight);
-  diff = z_cand - jet1.v4();
-  deta_mumu_jet1_vs_pt->Fill(fabs(diff.eta()), binPt, weight);
-  dphi_mumu_jet1_vs_pt->Fill(fabs(diff.phi()), binPt, weight);
+  deta_mumu_jet1_vs_pt->Fill(fabs(z_cand.eta() - jet1.eta()), binPt, weight);
+  dphi_mumu_jet1_vs_pt->Fill(fabs(deltaPhi(jet1, z_cand)), binPt, weight);
 
-  dphi_j_z_vs_pt->Fill(deltaPhi(z_cand, jet1), binPt, weight);
 
   if (Njets >= 2) {
     Jet jet2 = jets->at(1);
