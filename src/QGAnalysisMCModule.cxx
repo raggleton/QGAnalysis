@@ -21,6 +21,7 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisUnfoldHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisZPlusJetsHists.h"
+#include "UHH2/QGAnalysis/include/QGAnalysisZPlusJetsGenHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisDijetHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisTheoryHists.h"
 #include "UHH2/QGAnalysis/include/QGAddModules.h"
@@ -69,6 +70,7 @@ private:
     std::unique_ptr<Selection> njet_min_sel, njet_two_sel, ngenjet_min_sel, ngenjet_two_sel, ngenjet_good_sel, ngenjet_good_two_sel;
     std::unique_ptr<Selection> zplusjets_sel, zplusjets_presel, dijet_sel, dijet_sel_tighter;
 
+    std::unique_ptr<Hists> zplusjets_gen_hists;
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists;
     std::unique_ptr<Hists> zplusjets_hists_presel_q, zplusjets_hists_presel_g, zplusjets_hists_presel_unknown;
     std::unique_ptr<Hists> zplusjets_qg_hists, zplusjets_qg_hists_groomed;
@@ -307,6 +309,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // -------------------------------------------------------------------------
     std::string zpj_sel = "zplusjets";
     if (isZPlusJets) {
+        zplusjets_gen_hists.reset(new QGAnalysisZPlusJetsGenHists(ctx, "ZPlusJets_gen"));
         // Z+JETS hists
         zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLabel));
         // preselection hists, if jet is quark, or gluon
@@ -597,6 +600,8 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Do Z+Jet hists & selection
     // -------------------------------------------------------------------------
     if (isZPlusJets) {
+        zplusjets_gen_hists->fill(event);
+
         if (hasRecoJets) {
             // flav-specific preselection hists, useful for optimising selection
             uint flav1 = event.jets->at(0).flavor();
