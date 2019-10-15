@@ -18,6 +18,7 @@ public:
 
     virtual void fill(const uhh2::Event & ev) override;
     virtual ~QGAnalysisZPlusJetsGenHists();
+    const GenParticle & findGenZ(std::vector<GenParticle> & gps);
 
 protected:
     TH1F *deta_mumu;
@@ -29,6 +30,7 @@ protected:
     TH1F *eta_mu1;
     TH1F *eta_mu2;
     TH1F *eta_mumu;
+    TH1F *eta_z;
     TH1F *gen_ht;
     TH1F *m_mumu;
     TH1F *n_jets;
@@ -40,9 +42,11 @@ protected:
     TH1F *pt_jet2;
     TH1F *pt_jet2_z_ratio;
     TH1F *pt_jet_genHT_ratio;
+    TH1F *pt_hat_pt_jet_ratio;
     TH1F *pt_mu1;
     TH1F *pt_mu2;
     TH1F *pt_mumu;
+    TH1F *pt_z;
     TH1F *q_scale;
 
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;

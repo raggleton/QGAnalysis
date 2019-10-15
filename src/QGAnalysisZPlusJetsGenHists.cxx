@@ -34,7 +34,6 @@ Hists(ctx, dirname)
 
     // TString zName = "Z";
     TString zName = "#mu#mu";
-    TString binByVarLabel = TString::Format("p_{T}^{%s} [GeV]", zName.Data());
     TString binByVar = "pt_z";
 
     deta_mumu = book<TH1F>("deta_mumu", TString::Format(";|#Delta#eta_{%s}|;", zName.Data()), nbins_eta, 0, 2*eta_max);
@@ -46,6 +45,7 @@ Hists(ctx, dirname)
     eta_mu1 = book<TH1F>("eta_mu1", ";#eta^{#mu1};", nbins_eta, -eta_max, eta_max);
     eta_mu2 = book<TH1F>("eta_mu2", ";#eta^{#mu2};", nbins_eta, -eta_max, eta_max);
     eta_mumu = book<TH1F>("eta_mumu", TString::Format(";#eta^{%s};", zName.Data()), nbins_eta, -eta_max, eta_max);
+    eta_z = book<TH1F>("eta_z", ";#eta^{Z};", nbins_eta, -eta_max, eta_max);
     gen_ht = book<TH1F>("gen_ht", ";H_{T}^{Gen} [GeV];", 500, 0, 5000);
     pt_hat = book<TH1F>("ptHat", ";#hat{p}_{T} [GeV];", 2500, 0, 5000);
     m_mumu = book<TH1F>("m_mumu", TString::Format(";m_{%s} [GeV];", zName.Data()), 80, 90-40, 90+40);
@@ -57,9 +57,11 @@ Hists(ctx, dirname)
     pt_jet2 = book<TH1F>("pt_jet2", ";p_{T}^{genjet 2} [GeV];", nbins_pt, 0, pt_max);
     pt_jet2_z_ratio = book<TH1F>("pt_jet2_z_ratio", TString::Format(";p_{T}^{genjet 2} / p_{T}^{%s};", zName.Data()), 60, 0, 3);
     pt_jet_genHT_ratio = book<TH1F>("pt_jet_genHT_ratio", ";p_{T}^{genjet 1}/GenHT;", 250, 0, 2.5);
+    pt_hat_pt_jet_ratio = book<TH1F>("pt_hat_pt_jet_ratio", ";p_{T}^{genjet 1}/#hat{p}_{T};", 250, 0, 2.5);
     pt_mu1 = book<TH1F>("pt_mu1", ";p_{T}^{#mu1};", nbins_pt, 0, mu_pt_max);
     pt_mu2 = book<TH1F>("pt_mu2", ";p_{T}^{#mu2};", nbins_pt, 0, mu_pt_max);
     pt_mumu = book<TH1F>("pt_mumu", TString::Format(";p_{T}^{%s} [GeV];", zName.Data()), nbins_pt, 0, mu_pt_max);
+    pt_z = book<TH1F>("pt_z", ";p_{T}^{Z} [GeV];", nbins_pt, 0, mu_pt_max);
     q_scale = book<TH1F>("q_scale", ";q scale [GeV];", 250, 0, 500);
   }
 
@@ -78,10 +80,15 @@ void QGAnalysisZPlusJetsGenHists::fill(const Event & event){
   int Nmuons = genmuons->size();
   n_mu->Fill(Nmuons, weight);
 
+  const GenParticle & genZ = findGenZ(*event.genparticles);
+  pt_z->Fill(genZ.pt(), weight);
+  eta_z->Fill(genZ.eta(), weight);
+
   if (event.genInfo->binningValues().size() > 0) {
-    double ptHat = event.genInfo->binningValues().at(0); // yes this is correct. no idea why
+    double ptHat = event.genInfo->binningValues().at(0); // sometimes this is pthat, sometimes it means the hardest outgoing partoneg in H++
     pt_hat->Fill(ptHat, weight);
   }
+
   float qScale = event.genInfo->qScale();
   q_scale->Fill(qScale, weight);
 
@@ -111,6 +118,10 @@ void QGAnalysisZPlusJetsGenHists::fill(const Event & event){
   float jet1_pt = jet1.pt();
   pt_jet1->Fill(jet1_pt, weight);
   eta_jet1->Fill(jet1.eta(), weight);
+  if (event.genInfo->binningValues().size() > 0) {
+    double ptHat = event.genInfo->binningValues().at(0);
+    pt_hat_pt_jet_ratio->Fill(jet1_pt / ptHat, weight);
+  }
 
   float genHT = calcGenHT(*(event.genparticles));
   gen_ht->Fill(genHT, weight);
@@ -128,6 +139,17 @@ void QGAnalysisZPlusJetsGenHists::fill(const Event & event){
     pt_jet1_pt_jet2_ratio->Fill(jet1_pt / jet2.pt(), weight);
   }
 
+}
+
+// this should probably be in the main MC module and set a handle
+const GenParticle & QGAnalysisZPlusJetsGenHists::findGenZ(std::vector<GenParticle> & gps) {
+  for (const auto & itr : gps) {
+    if (itr.pdgId() == 23) {
+      // stop @ first?
+      return itr;
+    }
+  }
+  throw runtime_error("Couldn't find gen Z");
 }
 
 QGAnalysisZPlusJetsGenHists::~QGAnalysisZPlusJetsGenHists(){}
