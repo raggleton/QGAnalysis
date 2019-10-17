@@ -191,8 +191,6 @@ void QGAnalysisDijetHists::fill(const Event & event){
 
       pt_genjet_response_binning->Fill(genVal, weight);
     }
-    genjet1_ind_vs_pt_jet1->Fill(gj_ind1, jet1_pt, weight);
-    genjet2_ind_vs_pt_jet2->Fill(gj_ind2, jet2_pt, weight);
 
     pt_jet_response_fine->Fill(genVal, binByVal, weight);
     pt_jet_response->Fill(genVal, binByVal, weight);
@@ -203,6 +201,9 @@ void QGAnalysisDijetHists::fill(const Event & event){
 
     if (DO_MATCHING_INDS) {
       // plot indices of matching genjets/recojets
+      genjet1_ind_vs_pt_jet1->Fill(gj_ind1, jet1_pt, weight);
+      genjet2_ind_vs_pt_jet2->Fill(gj_ind2, jet2_pt, weight);
+
       int genjet_ind = 0;
       std::vector<int> matches;
       for (const auto & gjItr : *genjets) {

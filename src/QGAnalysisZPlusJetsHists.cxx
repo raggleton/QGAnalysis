@@ -194,7 +194,6 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
     // if (gj_ind1 < 0) throw std::runtime_error("gj_ind1 is < 0");
     if (gj_ind1 >= int(genjets->size())) throw std::runtime_error("gj_ind1 is larger than genjet collection");
 
-    genjet1_ind_vs_pt_jet1->Fill(gj_ind1, jet1_pt);
 
     if (gj_ind1 >=0 ) {
       auto genjet1 = genjets->at(gj_ind1);
@@ -206,6 +205,8 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
     }
 
     if (DO_MATCHING_INDS) {
+      genjet1_ind_vs_pt_jet1->Fill(gj_ind1, jet1_pt);
+
       // plot indices of matching genjets/recojets
       int genjet_ind = 0;
       std::vector<int> matches;
