@@ -1,4 +1,5 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisPrinters.h"
+#include "UHH2/core/include/Utils.h"
 
 using namespace std;
 using namespace uhh2;
@@ -12,13 +13,15 @@ std::ostream& Color::operator<<(std::ostream& os, Code code) {
 
 
 void uhh2examples::printGenParticles(const std::vector<GenParticle> & gps, const std::string & label, Color::Code color) {
+  int counter = 0;
   for (auto & itr: gps) {
     // if (itr.status() != 1) continue;
-    cout << color << "GP";
+    cout << color << "GP" << std::to_string(counter);
     if (label != "") {
       cout << " [" << label << "]";
     }
     cout << ": " << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << Color::FG_DEFAULT << std::endl;
+    counter++;
   }
 }
 
