@@ -8,3 +8,6 @@ config/workdir*
 Selection
 *.txt
 jobTempOutput*
+*_up.xml
+*_down.xml
+QG*PUPPI.xml
