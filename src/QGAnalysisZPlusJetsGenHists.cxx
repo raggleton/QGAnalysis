@@ -45,7 +45,7 @@ Hists(ctx, dirname)
     eta_mu1 = book<TH1F>("eta_mu1", ";#eta^{#mu1};", nbins_eta, -eta_max, eta_max);
     eta_mu2 = book<TH1F>("eta_mu2", ";#eta^{#mu2};", nbins_eta, -eta_max, eta_max);
     eta_mumu = book<TH1F>("eta_mumu", TString::Format(";#eta^{%s};", zName.Data()), nbins_eta, -eta_max, eta_max);
-    eta_z = book<TH1F>("eta_z", ";#eta^{Z};", nbins_eta, -eta_max, eta_max);
+    // eta_z = book<TH1F>("eta_z", ";#eta^{Z};", nbins_eta, -eta_max, eta_max);
     gen_ht = book<TH1F>("gen_ht", ";H_{T}^{Gen} [GeV];", 500, 0, 5000);
     pt_hat = book<TH1F>("ptHat", ";#hat{p}_{T} [GeV];", 2500, 0, 5000);
     m_mumu = book<TH1F>("m_mumu", TString::Format(";m_{%s} [GeV];", zName.Data()), 80, 90-40, 90+40);
@@ -61,7 +61,7 @@ Hists(ctx, dirname)
     pt_mu1 = book<TH1F>("pt_mu1", ";p_{T}^{#mu1};", nbins_pt, 0, mu_pt_max);
     pt_mu2 = book<TH1F>("pt_mu2", ";p_{T}^{#mu2};", nbins_pt, 0, mu_pt_max);
     pt_mumu = book<TH1F>("pt_mumu", TString::Format(";p_{T}^{%s} [GeV];", zName.Data()), nbins_pt, 0, mu_pt_max);
-    pt_z = book<TH1F>("pt_z", ";p_{T}^{Z} [GeV];", nbins_pt, 0, mu_pt_max);
+    // pt_z = book<TH1F>("pt_z", ";p_{T}^{Z} [GeV];", nbins_pt, 0, mu_pt_max);
     q_scale = book<TH1F>("q_scale", ";q scale [GeV];", 250, 0, 500);
   }
 
@@ -80,9 +80,10 @@ void QGAnalysisZPlusJetsGenHists::fill(const Event & event){
   int Nmuons = genmuons->size();
   n_mu->Fill(Nmuons, weight);
 
-  const GenParticle & genZ = findGenZ(*event.genparticles);
-  pt_z->Fill(genZ.pt(), weight);
-  eta_z->Fill(genZ.eta(), weight);
+  // Don't use - Z probably doesn't exist in list of GPs
+  // const GenParticle & genZ = findGenZ(*event.genparticles);
+  // pt_z->Fill(genZ.pt(), weight);
+  // eta_z->Fill(genZ.eta(), weight);
 
   if (event.genInfo->binningValues().size() > 0) {
     double ptHat = event.genInfo->binningValues().at(0); // sometimes this is pthat, sometimes it means the hardest outgoing partoneg in H++
@@ -142,14 +143,17 @@ void QGAnalysisZPlusJetsGenHists::fill(const Event & event){
 }
 
 // this should probably be in the main MC module and set a handle
-const GenParticle & QGAnalysisZPlusJetsGenHists::findGenZ(std::vector<GenParticle> & gps) {
-  for (const auto & itr : gps) {
-    if (itr.pdgId() == 23) {
-      // stop @ first?
-      return itr;
-    }
-  }
-  throw runtime_error("Couldn't find gen Z");
-}
+// const GenParticle & QGAnalysisZPlusJetsGenHists::findGenZ(std::vector<GenParticle> & gps) {
+//   for (const auto & itr : gps) {
+//     if (itr.pdgId() == 23) {
+//       // stop @ first?
+//       return itr;
+//     }
+//   }
+//   for (const auto & itr : gps) {
+//     cout << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << endl;
+//   }
+//   throw runtime_error("Couldn't find gen Z");
+// }
 
 QGAnalysisZPlusJetsGenHists::~QGAnalysisZPlusJetsGenHists(){}
