@@ -544,6 +544,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Get Gen muons
     // -------------------------------------------------------------------------
     std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, 5., 2.4+(jetRadius/2.));
+    // printGenParticles(goodGenMuons);
     event.set(genmuons_handle, std::move(goodGenMuons));
 
     // Get good GenJets, store in event
