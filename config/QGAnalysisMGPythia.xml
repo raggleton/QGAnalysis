@@ -39,7 +39,7 @@
 <!-- MUST run SFrameBatch inside QGAnalyis/config! -->
 <!--
    <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="55" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_mgpythia_newFlav_jetAsymCut_chargedVars_pt1RecoConstituents_V11JEC_JER_tUnfoldBetter_target0p5_noZReweight"/>
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_mgpythia_newFlav_jetAsymCut_chargedVars_pt1RecoConstituents_V11JEC_JER_tUnfoldBetter_target0p5_noZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto"/>
 -->
 
 
@@ -135,6 +135,7 @@
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
+
         <!-- TEST FILES -->
 
         <!-- <InputData Lumi="1" NEventsMax="100000" NEventsSkip="0" Type="MC" Version="MC_Test" Cacheable="False"> -->
@@ -209,7 +210,7 @@
             <Item Name="herwig_reweight_file" Value="" />
             <!-- <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/> -->
 
-
+            <!--@SYST-->
 
             <Item Name="neutralHadronShift" Value="nominal"/>
             <!-- <Item Name="neutralHadronShift" Value="down"/> -->

@@ -28,7 +28,7 @@
 <!-- 300 for singlemu -->
 <!--
    <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="100" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_data_singlemu_trigBinningBetter2_jetAsymCut_pt1RecoConstituents_V11JEC_JER_tUnfoldBetter_target0p5"/>
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_data_singlemu_trigBinningBetter2_jetAsymCut_pt1RecoConstituents_V11JEC_JER_tUnfoldBetter_target0p5_wta_groomed_fwdcenDijet"/>
 -->
 
 <!-- OutputLevel controls which messages are printed; set to VERBOSE or DEBUG for more verbosity, to WARNING or ERROR for less -->
@@ -63,6 +63,12 @@
             <!-- &AK8PUPPI; -->
 
             <Item Name="Dataset" Value="SingleMu" />
+
+            <!--@SYST-->
+
+            <Item Name="neutralHadronShift" Value="nominal"/>
+            <!-- <Item Name="neutralHadronShift" Value="down"/> -->
+            <!-- <Item Name="neutralHadronShift" Value="up"/> -->
 
             <Item Name="jecsmear_direction" Value="nominal"/>
             <!-- <Item Name="jecsmear_direction" Value="down"/> -->

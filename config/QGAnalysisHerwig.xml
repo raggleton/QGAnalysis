@@ -28,8 +28,8 @@
 <!-- split 3 for mgpythia -->
 
 <!--
-   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="25" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_herwig_newFlav_withAllResponses_jetAsymCut_chargedResp_pt1RecoConstituents_V11JEC_JER_tUnfold"/>
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="50" />
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_herwig_newFlav_jetAsymCut_chargedVars_pt1RecoConstituents_V11JEC_JER_tUnfoldBetter_target0p5_noZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto_noPtHatCut"/>
 -->
 
 
@@ -41,12 +41,13 @@
     <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-HERWIG;/" PostFix="" TargetLumi="1" >
 
         <!-- HERWIG -->
-
+<!--
         <InputData Lumi="1" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_QCD" Cacheable="False">
         &HERWIG-QCD;
         <InputTree Name="AnalysisTree"/>
         </InputData>
-
+-->
+<!--
         <InputData Lumi="1" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_DYJetsToLL" Cacheable="False">
         &HERWIG-DY;
         <InputTree Name="AnalysisTree"/>
@@ -56,13 +57,15 @@
         &MG-HERWIG-DY;
         <InputTree Name="AnalysisTree"/>
         </InputData>
+-->
 
-<!--         <InputData Lumi="1" NEventsMax="10000" Type="MC" Version="MC_HERWIG_DY_TEST" Cacheable="False">
-        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp/crab_QCD_Pt-15to7000_herwig_10_Feb_18_newRecoJetFlav_fixPuppi/180210_102451/0000/Ntuple_1.root" Lumi="0.0"/>
+        <InputData Lumi="1" NEventsMax="10000" Type="MC" Version="MC_MG_HERWIG_DYJetsToLL_Test" Cacheable="False">
+        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp/crab_QCD_Pt-15to7000_herwig_10_Feb_18_newRecoJetFlav_fixPuppi/180210_102451/0000/Ntuple_1.root" Lumi="0.0"/> -->
+        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/DYJetsToLL_M-50_TuneCUETHS1_13TeV-madgraphMLM-herwigpp/crab_DYJetsToLL_M-50_mg-herwig_10_Feb_18_newRecoJetFlav_fixPuppi/180210_102303/0000/Ntuple_1.root" Lumi="0.0"/>
         <InputTree Name="AnalysisTree"/>
-        <OutputTree Name="AnalysisTree"/>
+        <!-- <OutputTree Name="AnalysisTree"/> -->
         </InputData>
- -->
+
         <UserConfig>
             &COMMON;
 
@@ -80,10 +83,12 @@
             <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/pythiaOnlyFlat_weights_ak4chs.root" /> -->
             <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_newflav_weights_ak4chs.root" /> -->
             <Item Name="herwig_reweight_file" Value="" />
-            <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
+            <!-- <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/> -->
+
             <Item Name="neutralHadronShift" Value="nominal"/>
             <!-- <Item Name="neutralHadronShift" Value="down"/> -->
             <!-- <Item Name="neutralHadronShift" Value="up"/> -->
+
             <Item Name="photonShift" Value="nominal"/>
             <!-- <Item Name="photonShift" Value="down"/> -->
             <!-- <Item Name="photonShift" Value="up"/> -->
