@@ -113,6 +113,7 @@ private:
     const bool DO_PU_BINNED_HISTS = false;
     const bool DO_UNFOLD_HISTS = true;
     const bool DO_FLAVOUR_HISTS = true;
+    const bool DO_STANDARD_HISTS = true; // basically none of the above
 
     std::unique_ptr<EventNumberSelection> event_sel;
 
@@ -319,27 +320,34 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // -------------------------------------------------------------------------
     std::string zpj_sel = "zplusjets";
     if (isZPlusJets) {
-        zplusjets_gen_hists.reset(new QGAnalysisZPlusJetsGenHists(ctx, "ZPlusJets_gen"));
         // Z+JETS hists
-        zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLabel));
+        if (DO_STANDARD_HISTS) {
+            zplusjets_gen_hists.reset(new QGAnalysisZPlusJetsGenHists(ctx, "ZPlusJets_gen"));
+            zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLabel));
+            zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
+        }
+
         if (DO_FLAVOUR_HISTS) {
             // preselection hists, if jet is quark, or gluon
             zplusjets_hists_presel_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_q", zLabel));
             zplusjets_hists_presel_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_g", zLabel));
             zplusjets_hists_presel_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown", zLabel));
         }
-        zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
 
-        // note that each of these does neutral+charged, and charged-only
-        zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG",
-                                                     NJETS_ZPJ, false, zpj_sel,
-                                                     pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
-                                                     reco_jetlambda_handle_name, gen_jetlambda_handle_name));
-        zplusjets_qg_hists_groomed.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG_groomed",
-                                                             NJETS_ZPJ, true, zpj_sel,
-                                                             pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
-                                                             reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+        // Lambda variables, used for e.g. response, determine binning
+        if (DO_STANDARD_HISTS) {
+            // note that each of these does neutral+charged, and charged-only
+            zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG",
+                                                         NJETS_ZPJ, false, zpj_sel,
+                                                         pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
+                                                         reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+            zplusjets_qg_hists_groomed.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG_groomed",
+                                                                 NJETS_ZPJ, true, zpj_sel,
+                                                                 pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
+                                                                 reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+        }
 
+        // With special binning for unfolding
         if (DO_UNFOLD_HISTS) {
             zplusjets_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG_Unfold",
                                                                       NJETS_ZPJ, false, zpj_sel,
@@ -375,7 +383,12 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
         // DIJET hists
         std::string binning_method = "ave";
-        dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
+        if (DO_STANDARD_HISTS) {
+            dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
+            dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet", binning_method));
+            dijet_hists_tighter.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
+        }
+
         if (DO_FLAVOUR_HISTS) {
             // preselection hiss, if both gluon jets, one gluon, or both quark, or one or both unknown
             dijet_hists_presel_gg.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gg", binning_method));
@@ -388,32 +401,33 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
             dijet_hists_presel_q_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_q_unknown", binning_method));
             dijet_hists_presel_g_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_g_unknown", binning_method));
         }
-        dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet", binning_method));
-        dijet_hists_tighter.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
 
         // note that each of these does neutral+charged, and charged-only
         std::string dj_sel = "dijet";
-        dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG",
-                                                 NJETS_DIJET, false, dj_sel,
-                                                 pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
-                                                 reco_jetlambda_handle_name, gen_jetlambda_handle_name));
-        dijet_qg_hists_central_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_central_tighter",
-                                                                 1, false, dj_sel,
-                                                                 pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
-                                                                 reco_jetlambda_central_handle_name, gen_jetlambda_central_handle_name));
-        dijet_qg_hists_forward_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_forward_tighter",
-                                                                 1, false, dj_sel,
-                                                                 pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
-                                                                 reco_jetlambda_forward_handle_name, gen_jetlambda_forward_handle_name));
+        if (DO_STANDARD_HISTS) {
+            dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG",
+                                                     NJETS_DIJET, false, dj_sel,
+                                                     pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
+                                                     reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+            dijet_qg_hists_central_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_central_tighter",
+                                                                     1, false, dj_sel,
+                                                                     pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
+                                                                     reco_jetlambda_central_handle_name, gen_jetlambda_central_handle_name));
+            dijet_qg_hists_forward_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_forward_tighter",
+                                                                     1, false, dj_sel,
+                                                                     pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
+                                                                     reco_jetlambda_forward_handle_name, gen_jetlambda_forward_handle_name));
 
-        dijet_qg_hists_central_tighter_groomed.reset(new QGAnalysisHists(ctx, "Dijet_QG_central_tighter_groomed",
-                                                                         1, true, dj_sel,
-                                                                         pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
-                                                                         reco_jetlambda_central_handle_name, gen_jetlambda_central_handle_name));
-        dijet_qg_hists_forward_tighter_groomed.reset(new QGAnalysisHists(ctx, "Dijet_QG_forward_tighter_groomed",
-                                                                         1, true, dj_sel,
-                                                                         pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
-                                                                         reco_jetlambda_forward_handle_name, gen_jetlambda_forward_handle_name));
+            dijet_qg_hists_central_tighter_groomed.reset(new QGAnalysisHists(ctx, "Dijet_QG_central_tighter_groomed",
+                                                                             1, true, dj_sel,
+                                                                             pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
+                                                                             reco_jetlambda_central_handle_name, gen_jetlambda_central_handle_name));
+            dijet_qg_hists_forward_tighter_groomed.reset(new QGAnalysisHists(ctx, "Dijet_QG_forward_tighter_groomed",
+                                                                             1, true, dj_sel,
+                                                                             pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
+                                                                             reco_jetlambda_forward_handle_name, gen_jetlambda_forward_handle_name));
+        }
+
         if (DO_UNFOLD_HISTS) {
             // unfolding hists
             // note that each of these does neutral+charged, and charged-only
@@ -640,11 +654,13 @@ bool QGAnalysisMCModule::process(Event & event) {
                     pass_zpj_reco = zplusjets_sel->passes(event);
                     event.set(pass_zpj_sel_handle, pass_zpj_reco);
                     if (pass_zpj_reco) {
-                        zplusjets_hists->fill(event);
-                        zplusjets_qg_hists->fill(event);
-                        zplusjets_qg_hists_groomed->fill(event);
-                        zplusjets_gen_sel_passReco->passes(event); // this plots cutflow as well
                         genjet_hists_passZpJReco->fill(event);
+                        if (DO_STANDARD_HISTS) {
+                            zplusjets_gen_sel_passReco->passes(event); // this plots cutflow as well
+                            zplusjets_hists->fill(event);
+                            zplusjets_qg_hists->fill(event);
+                            zplusjets_qg_hists_groomed->fill(event);
+                        }
                     }
                 }
             }
@@ -768,16 +784,18 @@ bool QGAnalysisMCModule::process(Event & event) {
                 dijet_gen_sel_passReco->passes(event); // this plots cutflow as well - only if we pass dijet reco selection
                 genjet_hists_passDijetReco->fill(event);
             }
-            if (dijet_sel->passes(event)) {
-                dijet_hists->fill(event);
-                dijet_qg_hists->fill(event);
-            }
-            if (dijet_sel_tighter->passes(event)) {
-                dijet_hists_tighter->fill(event);
-                dijet_qg_hists_central_tighter->fill(event);
-                dijet_qg_hists_forward_tighter->fill(event);
-                dijet_qg_hists_central_tighter_groomed->fill(event);
-                dijet_qg_hists_forward_tighter_groomed->fill(event);
+            if (DO_STANDARD_HISTS) {
+                if (dijet_sel->passes(event)) {
+                    dijet_hists->fill(event);
+                    dijet_qg_hists->fill(event);
+                }
+                if (dijet_sel_tighter->passes(event)) {
+                    dijet_hists_tighter->fill(event);
+                    dijet_qg_hists_central_tighter->fill(event);
+                    dijet_qg_hists_forward_tighter->fill(event);
+                    dijet_qg_hists_central_tighter_groomed->fill(event);
+                    dijet_qg_hists_forward_tighter_groomed->fill(event);
+                }
             }
         }
 
