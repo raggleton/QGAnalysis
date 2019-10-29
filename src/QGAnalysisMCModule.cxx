@@ -110,8 +110,9 @@ private:
     float jetRadius;
     float htMax;
 
-    const bool DO_PU_BINNED_HISTS = true;
+    const bool DO_PU_BINNED_HISTS = false;
     const bool DO_UNFOLD_HISTS = true;
+    const bool DO_FLAVOUR_HISTS = true;
 
     std::unique_ptr<EventNumberSelection> event_sel;
 
@@ -321,10 +322,12 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         zplusjets_gen_hists.reset(new QGAnalysisZPlusJetsGenHists(ctx, "ZPlusJets_gen"));
         // Z+JETS hists
         zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLabel));
-        // preselection hists, if jet is quark, or gluon
-        zplusjets_hists_presel_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_q", zLabel));
-        zplusjets_hists_presel_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_g", zLabel));
-        zplusjets_hists_presel_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown", zLabel));
+        if (DO_FLAVOUR_HISTS) {
+            // preselection hists, if jet is quark, or gluon
+            zplusjets_hists_presel_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_q", zLabel));
+            zplusjets_hists_presel_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_g", zLabel));
+            zplusjets_hists_presel_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown", zLabel));
+        }
         zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
 
         // note that each of these does neutral+charged, and charged-only
@@ -373,16 +376,18 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         // DIJET hists
         std::string binning_method = "ave";
         dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
-        // preselection hiss, if both gluon jets, one gluon, or both quark, or one or both unknown
-        dijet_hists_presel_gg.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gg", binning_method));
-        dijet_hists_presel_qg.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qg", binning_method));
-        dijet_hists_presel_gq.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gq", binning_method));
-        dijet_hists_presel_qq.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qq", binning_method));
-        dijet_hists_presel_unknown_q.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_q", binning_method));
-        dijet_hists_presel_unknown_g.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_g", binning_method));
-        dijet_hists_presel_unknown_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_unknown", binning_method));
-        dijet_hists_presel_q_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_q_unknown", binning_method));
-        dijet_hists_presel_g_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_g_unknown", binning_method));
+        if (DO_FLAVOUR_HISTS) {
+            // preselection hiss, if both gluon jets, one gluon, or both quark, or one or both unknown
+            dijet_hists_presel_gg.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gg", binning_method));
+            dijet_hists_presel_qg.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qg", binning_method));
+            dijet_hists_presel_gq.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gq", binning_method));
+            dijet_hists_presel_qq.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qq", binning_method));
+            dijet_hists_presel_unknown_q.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_q", binning_method));
+            dijet_hists_presel_unknown_g.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_g", binning_method));
+            dijet_hists_presel_unknown_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_unknown", binning_method));
+            dijet_hists_presel_q_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_q_unknown", binning_method));
+            dijet_hists_presel_g_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_g_unknown", binning_method));
+        }
         dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet", binning_method));
         dijet_hists_tighter.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
 
@@ -622,12 +627,14 @@ bool QGAnalysisMCModule::process(Event & event) {
             if (zFinder->process(event)) {
                 zplusjets_hists_presel->fill(event);
                 if (zplusjets_presel->passes(event)) {
-                    if (flav1 == PDGID::GLUON) {
-                        zplusjets_hists_presel_g->fill(event);
-                    } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
-                        zplusjets_hists_presel_q->fill(event);
-                    } else if (flav1 == PDGID::UNKNOWN) {
-                        zplusjets_hists_presel_unknown->fill(event);
+                    if (DO_FLAVOUR_HISTS) {
+                        if (flav1 == PDGID::GLUON) {
+                            zplusjets_hists_presel_g->fill(event);
+                        } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
+                            zplusjets_hists_presel_q->fill(event);
+                        } else if (flav1 == PDGID::UNKNOWN) {
+                            zplusjets_hists_presel_unknown->fill(event);
+                        }
                     }
 
                     pass_zpj_reco = zplusjets_sel->passes(event);
@@ -726,29 +733,31 @@ bool QGAnalysisMCModule::process(Event & event) {
 
             // Fill hists
             dijet_hists_presel->fill(event);
-            if (flav1 == PDGID::GLUON) {
-                if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-                    dijet_hists_presel_gq->fill(event);
-                } else if (flav2 == PDGID::GLUON) {
-                    dijet_hists_presel_gg->fill(event);
-                } else if (flav2 == PDGID::UNKNOWN) {
-                    dijet_hists_presel_g_unknown->fill(event);
-                }
-            } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
-                if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-                    dijet_hists_presel_qq->fill(event);
-                } else if (flav2 == PDGID::GLUON) {
-                    dijet_hists_presel_qg->fill(event);
-                } else if (flav2 == PDGID::UNKNOWN) {
-                    dijet_hists_presel_q_unknown->fill(event);
-                }
-            } else if (flav1 == PDGID::UNKNOWN) {
-                if (flav2 == PDGID::GLUON) {
-                    dijet_hists_presel_unknown_g->fill(event);
-                } else if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-                    dijet_hists_presel_unknown_q->fill(event);
-                } else if (flav2 == PDGID::UNKNOWN) {
-                    dijet_hists_presel_unknown_unknown->fill(event);
+            if (DO_FLAVOUR_HISTS) {
+                if (flav1 == PDGID::GLUON) {
+                    if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                        dijet_hists_presel_gq->fill(event);
+                    } else if (flav2 == PDGID::GLUON) {
+                        dijet_hists_presel_gg->fill(event);
+                    } else if (flav2 == PDGID::UNKNOWN) {
+                        dijet_hists_presel_g_unknown->fill(event);
+                    }
+                } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
+                    if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                        dijet_hists_presel_qq->fill(event);
+                    } else if (flav2 == PDGID::GLUON) {
+                        dijet_hists_presel_qg->fill(event);
+                    } else if (flav2 == PDGID::UNKNOWN) {
+                        dijet_hists_presel_q_unknown->fill(event);
+                    }
+                } else if (flav1 == PDGID::UNKNOWN) {
+                    if (flav2 == PDGID::GLUON) {
+                        dijet_hists_presel_unknown_g->fill(event);
+                    } else if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                        dijet_hists_presel_unknown_q->fill(event);
+                    } else if (flav2 == PDGID::UNKNOWN) {
+                        dijet_hists_presel_unknown_unknown->fill(event);
+                    }
                 }
             }
 
