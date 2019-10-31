@@ -54,6 +54,7 @@ protected:
     TH1F *h_tu_reco_LHA, *h_tu_reco_LHA_fake, *h_tu_reco_LHA_split, *h_tu_reco_LHA_fake_split;  // detector quantities with reco binning
     TH1F *h_tu_reco_LHA_gen_binning, *h_tu_reco_LHA_fake_gen_binning, *h_tu_reco_LHA_gen_binning_split, *h_tu_reco_LHA_fake_gen_binning_split; // detector quantities with gen binning
     TH1F *h_tu_gen_LHA, *h_tu_gen_LHA_split; // truth histograms
+    std::vector<TH1F*> h_tu_reco_LHA_PDF_variations, h_tu_gen_LHA_PDF_variations;
 
     TUnfoldBinning *detector_tu_binning_puppiMultiplicity, *detector_distribution_puppiMultiplicity, *detector_distribution_underflow_puppiMultiplicity;
     TUnfoldBinning *generator_tu_binning_puppiMultiplicity, *generator_distribution_puppiMultiplicity, *generator_distribution_underflow_puppiMultiplicity;
@@ -61,6 +62,7 @@ protected:
     TH1F *h_tu_reco_puppiMultiplicity, *h_tu_reco_puppiMultiplicity_fake, *h_tu_reco_puppiMultiplicity_split, *h_tu_reco_puppiMultiplicity_fake_split;
     TH1F *h_tu_reco_puppiMultiplicity_gen_binning, *h_tu_reco_puppiMultiplicity_fake_gen_binning, *h_tu_reco_puppiMultiplicity_gen_binning_split, *h_tu_reco_puppiMultiplicity_fake_gen_binning_split;
     TH1F *h_tu_gen_puppiMultiplicity, *h_tu_gen_puppiMultiplicity_split;
+    std::vector<TH1F*> h_tu_reco_puppiMultiplicity_PDF_variations, h_tu_gen_puppiMultiplicity_PDF_variations;
 
     TUnfoldBinning *detector_tu_binning_pTD, *detector_distribution_pTD, *detector_distribution_underflow_pTD;
     TUnfoldBinning *generator_tu_binning_pTD, *generator_distribution_pTD, *generator_distribution_underflow_pTD;
@@ -68,6 +70,7 @@ protected:
     TH1F *h_tu_reco_pTD, *h_tu_reco_pTD_fake, *h_tu_reco_pTD_split, *h_tu_reco_pTD_fake_split;
     TH1F *h_tu_reco_pTD_gen_binning, *h_tu_reco_pTD_fake_gen_binning, *h_tu_reco_pTD_gen_binning_split, *h_tu_reco_pTD_fake_gen_binning_split;
     TH1F *h_tu_gen_pTD, *h_tu_gen_pTD_split;
+    std::vector<TH1F* > h_tu_reco_pTD_PDF_variations, h_tu_gen_pTD_PDF_variations;
 
     TUnfoldBinning *detector_tu_binning_thrust, *detector_distribution_thrust, *detector_distribution_underflow_thrust;
     TUnfoldBinning *generator_tu_binning_thrust, *generator_distribution_thrust, *generator_distribution_underflow_thrust;
@@ -75,6 +78,7 @@ protected:
     TH1F *h_tu_reco_thrust, *h_tu_reco_thrust_fake, *h_tu_reco_thrust_split, *h_tu_reco_thrust_fake_split;
     TH1F *h_tu_reco_thrust_gen_binning, *h_tu_reco_thrust_fake_gen_binning, *h_tu_reco_thrust_gen_binning_split, *h_tu_reco_thrust_fake_gen_binning_split;
     TH1F *h_tu_gen_thrust, *h_tu_gen_thrust_split;
+    std::vector<TH1F* > h_tu_reco_thrust_PDF_variations, h_tu_gen_thrust_PDF_variations;
 
     TUnfoldBinning *detector_tu_binning_width, *detector_distribution_width, *detector_distribution_underflow_width;
     TUnfoldBinning *generator_tu_binning_width, *generator_distribution_width, *generator_distribution_underflow_width;
@@ -82,6 +86,7 @@ protected:
     TH1F *h_tu_reco_width, *h_tu_reco_width_fake, *h_tu_reco_width_split, *h_tu_reco_width_fake_split;
     TH1F *h_tu_reco_width_gen_binning, *h_tu_reco_width_fake_gen_binning, *h_tu_reco_width_gen_binning_split, *h_tu_reco_width_fake_gen_binning_split;
     TH1F *h_tu_gen_width, *h_tu_gen_width_split;
+    std::vector<TH1F* > h_tu_reco_width_PDF_variations, h_tu_gen_width_PDF_variations;
 
     // charged-only versions:
     TUnfoldBinning *detector_tu_binning_LHA_charged, *detector_distribution_LHA_charged, *detector_distribution_underflow_LHA_charged;
@@ -90,6 +95,7 @@ protected:
     TH1F *h_tu_reco_LHA_charged, *h_tu_reco_LHA_charged_fake, *h_tu_reco_LHA_charged_split, *h_tu_reco_LHA_charged_fake_split;
     TH1F *h_tu_reco_LHA_charged_gen_binning, *h_tu_reco_LHA_charged_fake_gen_binning, *h_tu_reco_LHA_charged_gen_binning_split, *h_tu_reco_LHA_charged_fake_gen_binning_split;
     TH1F *h_tu_gen_LHA_charged, *h_tu_gen_LHA_charged_split;
+    std::vector<TH1F* > h_tu_reco_LHA_charged_PDF_variations, h_tu_gen_LHA_charged_PDF_variations;
 
     TUnfoldBinning *detector_tu_binning_puppiMultiplicity_charged, *detector_distribution_puppiMultiplicity_charged, *detector_distribution_underflow_puppiMultiplicity_charged;
     TUnfoldBinning *generator_tu_binning_puppiMultiplicity_charged, *generator_distribution_puppiMultiplicity_charged, *generator_distribution_underflow_puppiMultiplicity_charged;
@@ -97,6 +103,7 @@ protected:
     TH1F *h_tu_reco_puppiMultiplicity_charged, *h_tu_reco_puppiMultiplicity_charged_fake, *h_tu_reco_puppiMultiplicity_charged_split, *h_tu_reco_puppiMultiplicity_charged_fake_split;
     TH1F *h_tu_reco_puppiMultiplicity_charged_gen_binning, *h_tu_reco_puppiMultiplicity_charged_fake_gen_binning, *h_tu_reco_puppiMultiplicity_charged_gen_binning_split, *h_tu_reco_puppiMultiplicity_charged_fake_gen_binning_split;
     TH1F *h_tu_gen_puppiMultiplicity_charged, *h_tu_gen_puppiMultiplicity_charged_split;
+    std::vector<TH1F*> h_tu_reco_puppiMultiplicity_charged_PDF_variations, h_tu_gen_puppiMultiplicity_charged_PDF_variations;
 
     TUnfoldBinning *detector_tu_binning_pTD_charged, *detector_distribution_pTD_charged, *detector_distribution_underflow_pTD_charged;
     TUnfoldBinning *generator_tu_binning_pTD_charged, *generator_distribution_pTD_charged, *generator_distribution_underflow_pTD_charged;
@@ -104,6 +111,7 @@ protected:
     TH1F *h_tu_reco_pTD_charged, *h_tu_reco_pTD_charged_fake, *h_tu_reco_pTD_charged_split, *h_tu_reco_pTD_charged_fake_split;
     TH1F *h_tu_reco_pTD_charged_gen_binning, *h_tu_reco_pTD_charged_fake_gen_binning, *h_tu_reco_pTD_charged_gen_binning_split, *h_tu_reco_pTD_charged_fake_gen_binning_split;
     TH1F *h_tu_gen_pTD_charged, *h_tu_gen_pTD_charged_split;
+    std::vector<TH1F* > h_tu_reco_pTD_charged_PDF_variations, h_tu_gen_pTD_charged_PDF_variations;
 
     TUnfoldBinning *detector_tu_binning_thrust_charged, *detector_distribution_thrust_charged, *detector_distribution_underflow_thrust_charged;
     TUnfoldBinning *generator_tu_binning_thrust_charged, *generator_distribution_thrust_charged, *generator_distribution_underflow_thrust_charged;
@@ -111,6 +119,7 @@ protected:
     TH1F *h_tu_reco_thrust_charged, *h_tu_reco_thrust_charged_fake, *h_tu_reco_thrust_charged_split, *h_tu_reco_thrust_charged_fake_split;
     TH1F *h_tu_reco_thrust_charged_gen_binning, *h_tu_reco_thrust_charged_fake_gen_binning, *h_tu_reco_thrust_charged_gen_binning_split, *h_tu_reco_thrust_charged_fake_gen_binning_split;
     TH1F *h_tu_gen_thrust_charged, *h_tu_gen_thrust_charged_split;
+    std::vector<TH1F* > h_tu_reco_thrust_charged_PDF_variations, h_tu_gen_thrust_charged_PDF_variations;
 
     TUnfoldBinning *detector_tu_binning_width_charged, *detector_distribution_width_charged, *detector_distribution_underflow_width_charged;
     TUnfoldBinning *generator_tu_binning_width_charged, *generator_distribution_width_charged, *generator_distribution_underflow_width_charged;
@@ -118,6 +127,7 @@ protected:
     TH1F *h_tu_reco_width_charged, *h_tu_reco_width_charged_fake, *h_tu_reco_width_charged_split, *h_tu_reco_width_charged_fake_split;
     TH1F *h_tu_reco_width_charged_gen_binning, *h_tu_reco_width_charged_fake_gen_binning, *h_tu_reco_width_charged_gen_binning_split, *h_tu_reco_width_charged_fake_gen_binning_split;
     TH1F *h_tu_gen_width_charged, *h_tu_gen_width_charged_split;
+    std::vector<TH1F* > h_tu_reco_width_charged_PDF_variations, h_tu_gen_width_charged_PDF_variations;
 
     int useNJets_;
     bool doGroomed_;
@@ -133,6 +143,8 @@ protected:
 
     TRandom3 rand_;
     bool doMCsplit_;
+    bool doPDFvariations_;
+    const int N_PDF_VARIATIONS;
 };
 
 }

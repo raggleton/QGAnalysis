@@ -1,5 +1,6 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisUnfoldHists.h"
 #include "UHH2/core/include/Event.h"
+#include "UHH2/core/include/Utils.h"
 
 #include "TFile.h"
 #include "TH1F.h"
@@ -19,11 +20,16 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   useNJets_(useNJets),
   doGroomed_(doGroomed),
   rand_(4357), // random number generator for splitting MC into 2 independent groups for unfold testing
-  doMCsplit_(true)
+  doMCsplit_(true),
+  N_PDF_VARIATIONS(100)
   {
 
   is_mc_ = ctx.get("dataset_type") == "MC";
   doMCsplit_ = is_mc_;
+  doPDFvariations_ = (string2bool(ctx.get("PDFvariations", "false")) && is_mc_);
+  if (doPDFvariations_) {
+    cout << "Doing PDF variations" << endl;
+  }
 
   if (useNJets_ < 0) useNJets_ = 99999; // Do them all
   else if (useNJets_ == 0) throw runtime_error("useNJets should be > 0, or < 0 to use all jets in the event");
@@ -183,6 +189,14 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_LHA_split = copy_book_th1f(h_tu_gen_LHA_tmp, "hist_LHA_truth_split");
   delete h_tu_gen_LHA_tmp;
 
+  // PDF variations
+  if (doPDFvariations_) {
+    for (int i=0; i < N_PDF_VARIATIONS; i++) {
+      h_tu_reco_LHA_PDF_variations.push_back(copy_book_th1f(h_tu_reco_LHA, TString::Format("hist_LHA_reco_all_PDF_%d", i).Data()));
+      h_tu_gen_LHA_PDF_variations.push_back(copy_book_th1f(h_tu_gen_LHA, TString::Format("hist_LHA_gen_all_PDF_%d", i).Data()));
+    }
+  }
+
   // detector variable, but using gen binning for comparison later
   h_tu_reco_LHA_gen_binning = copy_book_th1f(h_tu_gen_LHA, "hist_LHA_reco_gen_binning");
   h_tu_reco_LHA_gen_binning_split = copy_book_th1f(h_tu_gen_LHA, "hist_LHA_reco_gen_binning_split");
@@ -202,7 +216,6 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   detector_distribution_LHA_charged->AddAxis("LHA_charged", Binning::nbins_lha_charged_reco, Binning::lha_charged_bin_edges_reco.data(), var_uf, var_of);
   detector_distribution_LHA_charged->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), pt_uf, pt_of);
 
-
   generator_tu_binning_LHA_charged = new TUnfoldBinning("generator");
   generator_distribution_underflow_LHA_charged = generator_tu_binning_LHA_charged->AddBinning("signal_underflow");
   generator_distribution_underflow_LHA_charged->AddAxis("LHA_charged", Binning::nbins_lha_charged_gen, Binning::lha_charged_bin_edges_gen.data(), var_uf, var_of);
@@ -211,7 +224,6 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   generator_distribution_LHA_charged = generator_tu_binning_LHA_charged->AddBinning("signal");
   generator_distribution_LHA_charged->AddAxis("LHA_charged", Binning::nbins_lha_charged_gen, Binning::lha_charged_bin_edges_gen.data(), var_uf, var_of);
   generator_distribution_LHA_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), pt_uf, pt_of);
-
 
   TH2 * h_tu_response_LHA_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_LHA_charged, detector_tu_binning_LHA_charged, "tu_LHA_charged_GenReco");
   h_tu_response_LHA_charged = copy_book_th2f(h_tu_response_LHA_charged_tmp, "tu_LHA_charged_GenReco_all");
@@ -230,6 +242,13 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_LHA_charged_split = copy_book_th1f(h_tu_gen_LHA_charged_tmp, "hist_LHA_charged_truth_split");
   delete h_tu_gen_LHA_charged_tmp;
 
+  if (doPDFvariations_) {
+    for (int i=0; i < N_PDF_VARIATIONS; i++) {
+      h_tu_reco_LHA_charged_PDF_variations.push_back(copy_book_th1f(h_tu_reco_LHA_charged, TString::Format("hist_LHA_charged_reco_all_PDF_%d", i).Data()));
+      h_tu_gen_LHA_charged_PDF_variations.push_back(copy_book_th1f(h_tu_gen_LHA_charged, TString::Format("hist_LHA_charged_gen_all_PDF_%d", i).Data()));
+    }
+  }
+
   h_tu_reco_LHA_charged_gen_binning = copy_book_th1f(h_tu_gen_LHA_charged, "hist_LHA_charged_reco_gen_binning");
   h_tu_reco_LHA_charged_gen_binning_split = copy_book_th1f(h_tu_gen_LHA_charged, "hist_LHA_charged_reco_gen_binning_split");
   h_tu_reco_LHA_charged_fake_gen_binning = copy_book_th1f(h_tu_gen_LHA_charged, "hist_LHA_charged_reco_fake_gen_binning");
@@ -238,7 +257,6 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   // puppi multiplicity
   // -------------------------------------
   detector_tu_binning_puppiMultiplicity = new TUnfoldBinning("detector");
-
   detector_distribution_underflow_puppiMultiplicity = detector_tu_binning_puppiMultiplicity->AddBinning("detector_underflow");
   detector_distribution_underflow_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_puppiMultiplicity_reco, Binning::puppiMultiplicity_bin_edges_reco.data(), var_uf, var_of);
   detector_distribution_underflow_puppiMultiplicity->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow.data(), pt_uf, pt_of);
@@ -248,7 +266,6 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   detector_distribution_puppiMultiplicity->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), pt_uf, pt_of);
 
   generator_tu_binning_puppiMultiplicity = new TUnfoldBinning("generator");
-
   generator_distribution_underflow_puppiMultiplicity = generator_tu_binning_puppiMultiplicity->AddBinning("signal_underflow");
   generator_distribution_underflow_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_puppiMultiplicity_gen, Binning::puppiMultiplicity_bin_edges_gen.data(), var_uf, var_of);
   generator_distribution_underflow_puppiMultiplicity->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, pt_of);
@@ -274,6 +291,13 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_puppiMultiplicity_split = copy_book_th1f(h_tu_gen_puppiMultiplicity_tmp, "hist_puppiMultiplicity_truth_split");
   delete h_tu_gen_puppiMultiplicity_tmp;
 
+  if (doPDFvariations_) {
+    for (int i=0; i < N_PDF_VARIATIONS; i++) {
+      h_tu_reco_puppiMultiplicity_PDF_variations.push_back(copy_book_th1f(h_tu_reco_puppiMultiplicity, TString::Format("hist_puppiMultiplicity_reco_all_PDF_%d", i).Data()));
+      h_tu_gen_puppiMultiplicity_PDF_variations.push_back(copy_book_th1f(h_tu_gen_puppiMultiplicity, TString::Format("hist_puppiMultiplicity_gen_all_PDF_%d", i).Data()));
+    }
+  }
+
   h_tu_reco_puppiMultiplicity_gen_binning = copy_book_th1f(h_tu_gen_puppiMultiplicity, "hist_puppiMultiplicity_reco_gen_binning");
   h_tu_reco_puppiMultiplicity_gen_binning_split = copy_book_th1f(h_tu_gen_puppiMultiplicity, "hist_puppiMultiplicity_reco_gen_binning_split");
 
@@ -283,7 +307,6 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   // Charged PUPPI multiplicity
   // -------------------------------------
   detector_tu_binning_puppiMultiplicity_charged = new TUnfoldBinning("detector");
-
   detector_distribution_underflow_puppiMultiplicity_charged = detector_tu_binning_puppiMultiplicity_charged->AddBinning("detector_underflow");
   detector_distribution_underflow_puppiMultiplicity_charged->AddAxis("puppiMultiplicity_charged", Binning::nbins_puppiMultiplicity_charged_reco, Binning::puppiMultiplicity_charged_bin_edges_reco.data(), var_uf, var_of);
   detector_distribution_underflow_puppiMultiplicity_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow.data(), pt_uf, pt_of);
@@ -293,7 +316,6 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   detector_distribution_puppiMultiplicity_charged->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), pt_uf, pt_of);
 
   generator_tu_binning_puppiMultiplicity_charged = new TUnfoldBinning("generator");
-
   generator_distribution_underflow_puppiMultiplicity_charged = generator_tu_binning_puppiMultiplicity_charged->AddBinning("signal_underflow");
   generator_distribution_underflow_puppiMultiplicity_charged->AddAxis("puppiMultiplicity_charged", Binning::nbins_puppiMultiplicity_charged_gen, Binning::puppiMultiplicity_charged_bin_edges_gen.data(), var_uf, var_of);
   generator_distribution_underflow_puppiMultiplicity_charged->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, pt_of);
@@ -318,6 +340,13 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_puppiMultiplicity_charged = copy_book_th1f(h_tu_gen_puppiMultiplicity_charged_tmp, "hist_puppiMultiplicity_charged_truth_all");
   h_tu_gen_puppiMultiplicity_charged_split = copy_book_th1f(h_tu_gen_puppiMultiplicity_charged_tmp, "hist_puppiMultiplicity_charged_truth_split");
   delete h_tu_gen_puppiMultiplicity_charged_tmp;
+
+  if (doPDFvariations_) {
+    for (int i=0; i < N_PDF_VARIATIONS; i++) {
+      h_tu_reco_puppiMultiplicity_charged_PDF_variations.push_back(copy_book_th1f(h_tu_reco_puppiMultiplicity_charged, TString::Format("hist_puppiMultiplicity_charged_reco_all_PDF_%d", i).Data()));
+      h_tu_gen_puppiMultiplicity_charged_PDF_variations.push_back(copy_book_th1f(h_tu_gen_puppiMultiplicity_charged, TString::Format("hist_puppiMultiplicity_charged_gen_all_PDF_%d", i).Data()));
+    }
+  }
 
   h_tu_reco_puppiMultiplicity_charged_gen_binning = copy_book_th1f(h_tu_gen_puppiMultiplicity_charged, "hist_puppiMultiplicity_charged_reco_gen_binning");
   h_tu_reco_puppiMultiplicity_charged_gen_binning_split = copy_book_th1f(h_tu_gen_puppiMultiplicity_charged, "hist_puppiMultiplicity_charged_reco_gen_binning_split");
@@ -362,6 +391,13 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_pTD_split = copy_book_th1f(h_tu_gen_pTD_tmp, "hist_pTD_truth_split");
   delete h_tu_gen_pTD_tmp;
 
+  if (doPDFvariations_) {
+    for (int i=0; i < N_PDF_VARIATIONS; i++) {
+      h_tu_reco_pTD_PDF_variations.push_back(copy_book_th1f(h_tu_reco_pTD, TString::Format("hist_pTD_reco_all_PDF_%d", i).Data()));
+      h_tu_gen_pTD_PDF_variations.push_back(copy_book_th1f(h_tu_gen_pTD, TString::Format("hist_pTD_gen_all_PDF_%d", i).Data()));
+    }
+  }
+
   h_tu_reco_pTD_gen_binning = copy_book_th1f(h_tu_gen_pTD, "hist_pTD_reco_gen_binning");
   h_tu_reco_pTD_gen_binning_split = copy_book_th1f(h_tu_gen_pTD, "hist_pTD_reco_gen_binning_split");
 
@@ -404,6 +440,13 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_pTD_charged = copy_book_th1f(h_tu_gen_pTD_charged_tmp, "hist_pTD_charged_truth_all");
   h_tu_gen_pTD_charged_split = copy_book_th1f(h_tu_gen_pTD_charged_tmp, "hist_pTD_charged_truth_split");
   delete h_tu_gen_pTD_charged_tmp;
+
+  if (doPDFvariations_) {
+    for (int i=0; i < N_PDF_VARIATIONS; i++) {
+      h_tu_reco_pTD_charged_PDF_variations.push_back(copy_book_th1f(h_tu_reco_pTD_charged, TString::Format("hist_pTD_charged_reco_all_PDF_%d", i).Data()));
+      h_tu_gen_pTD_charged_PDF_variations.push_back(copy_book_th1f(h_tu_gen_pTD_charged, TString::Format("hist_pTD_charged_gen_all_PDF_%d", i).Data()));
+    }
+  }
 
   h_tu_reco_pTD_charged_gen_binning = copy_book_th1f(h_tu_gen_pTD_charged, "hist_pTD_charged_reco_gen_binning");
   h_tu_reco_pTD_charged_gen_binning_split = copy_book_th1f(h_tu_gen_pTD_charged, "hist_pTD_charged_reco_gen_binning_split");
@@ -448,6 +491,13 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_thrust_split = copy_book_th1f(h_tu_gen_thrust_tmp, "hist_thrust_truth_split");
   delete h_tu_gen_thrust_tmp;
 
+  if (doPDFvariations_) {
+    for (int i=0; i < N_PDF_VARIATIONS; i++) {
+      h_tu_reco_thrust_PDF_variations.push_back(copy_book_th1f(h_tu_reco_thrust, TString::Format("hist_thrust_reco_all_PDF_%d", i).Data()));
+      h_tu_gen_thrust_PDF_variations.push_back(copy_book_th1f(h_tu_gen_thrust, TString::Format("hist_thrust_gen_all_PDF_%d", i).Data()));
+    }
+  }
+
   h_tu_reco_thrust_gen_binning = copy_book_th1f(h_tu_gen_thrust, "hist_thrust_reco_gen_binning");
   h_tu_reco_thrust_gen_binning_split = copy_book_th1f(h_tu_gen_thrust, "hist_thrust_reco_gen_binning_split");
 
@@ -490,6 +540,13 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_thrust_charged = copy_book_th1f(h_tu_gen_thrust_charged_tmp, "hist_thrust_charged_truth_all");
   h_tu_gen_thrust_charged_split = copy_book_th1f(h_tu_gen_thrust_charged_tmp, "hist_thrust_charged_truth_split");
   delete h_tu_gen_thrust_charged_tmp;
+
+  if (doPDFvariations_) {
+    for (int i=0; i < N_PDF_VARIATIONS; i++) {
+      h_tu_reco_thrust_charged_PDF_variations.push_back(copy_book_th1f(h_tu_reco_thrust_charged, TString::Format("hist_thrust_charged_reco_all_PDF_%d", i).Data()));
+      h_tu_gen_thrust_charged_PDF_variations.push_back(copy_book_th1f(h_tu_gen_thrust_charged, TString::Format("hist_thrust_charged_gen_all_PDF_%d", i).Data()));
+    }
+  }
 
   h_tu_reco_thrust_charged_gen_binning = copy_book_th1f(h_tu_gen_thrust_charged, "hist_thrust_charged_reco_gen_binning");
   h_tu_reco_thrust_charged_gen_binning_split = copy_book_th1f(h_tu_gen_thrust_charged, "hist_thrust_charged_reco_gen_binning_split");
@@ -534,6 +591,13 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_width_split = copy_book_th1f(h_tu_gen_width_tmp, "hist_width_truth_split");
   delete h_tu_gen_width_tmp;
 
+  if (doPDFvariations_) {
+    for (int i=0; i < N_PDF_VARIATIONS; i++) {
+      h_tu_reco_width_PDF_variations.push_back(copy_book_th1f(h_tu_reco_width, TString::Format("hist_width_reco_all_PDF_%d", i).Data()));
+      h_tu_gen_width_PDF_variations.push_back(copy_book_th1f(h_tu_gen_width, TString::Format("hist_width_gen_all_PDF_%d", i).Data()));
+    }
+  }
+
   h_tu_reco_width_gen_binning = copy_book_th1f(h_tu_gen_width, "hist_width_reco_gen_binning");
   h_tu_reco_width_gen_binning_split = copy_book_th1f(h_tu_gen_width, "hist_width_reco_gen_binning_split");
 
@@ -576,6 +640,13 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_width_charged = copy_book_th1f(h_tu_gen_width_charged_tmp, "hist_width_charged_truth_all");
   h_tu_gen_width_charged_split = copy_book_th1f(h_tu_gen_width_charged_tmp, "hist_width_charged_truth_split");
   delete h_tu_gen_width_charged_tmp;
+
+  if (doPDFvariations_) {
+    for (int i=0; i < N_PDF_VARIATIONS; i++) {
+      h_tu_reco_width_charged_PDF_variations.push_back(copy_book_th1f(h_tu_reco_width_charged, TString::Format("hist_width_charged_reco_all_PDF_%d", i).Data()));
+      h_tu_gen_width_charged_PDF_variations.push_back(copy_book_th1f(h_tu_gen_width_charged, TString::Format("hist_width_charged_gen_all_PDF_%d", i).Data()));
+    }
+  }
 
   h_tu_reco_width_charged_gen_binning = copy_book_th1f(h_tu_gen_width_charged, "hist_width_charged_reco_gen_binning");
   h_tu_reco_width_charged_gen_binning_split = copy_book_th1f(h_tu_gen_width_charged, "hist_width_charged_reco_gen_binning_split");
@@ -776,6 +847,24 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         h_tu_reco_width_charged_gen_binning_split->Fill(genBinWidthCharged, weight);
       }
 
+      // Fill PDF variations by varying weight
+      if (doPDFvariations_ && event.genInfo->systweights().size() > 0) {
+        for (int i=0; i<N_PDF_VARIATIONS; i++) {
+          double pdf_weight = event.genInfo->systweights().at(i+9) / event.genInfo->originalXWGTUP(); // +9 as first 9 are scale variations
+          double this_weight = weight * pdf_weight;
+          h_tu_reco_LHA_PDF_variations.at(i)->Fill(recBinLHA, this_weight);
+          h_tu_reco_LHA_charged_PDF_variations.at(i)->Fill(recBinLHACharged, this_weight);
+          h_tu_reco_puppiMultiplicity_PDF_variations.at(i)->Fill(recBinPuppiMult, this_weight);
+          h_tu_reco_puppiMultiplicity_charged_PDF_variations.at(i)->Fill(recBinPuppiMultCharged, this_weight);
+          h_tu_reco_pTD_PDF_variations.at(i)->Fill(recBinpTD, this_weight);
+          h_tu_reco_pTD_charged_PDF_variations.at(i)->Fill(recBinpTDCharged, this_weight);
+          h_tu_reco_thrust_PDF_variations.at(i)->Fill(recBinThrust, this_weight);
+          h_tu_reco_thrust_charged_PDF_variations.at(i)->Fill(recBinThrustCharged, this_weight);
+          h_tu_reco_width_PDF_variations.at(i)->Fill(recBinWidth, this_weight);
+          h_tu_reco_width_charged_PDF_variations.at(i)->Fill(recBinWidthCharged, this_weight);
+        }
+      }
+
       // Fill fakes, both in detector & truth binnings
       // Fake = not pass Gen, or pass Gen but matching genjet not one of the
       // selection ones (i.e. doesn't count as a match)
@@ -947,6 +1036,24 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         h_tu_gen_pTD_charged_split->Fill(genBinpTDCharged, gen_weight);
         h_tu_gen_width_charged_split->Fill(genBinWidthCharged, gen_weight);
         h_tu_gen_thrust_charged_split->Fill(genBinThrustCharged, gen_weight);
+      }
+
+      // Fill PDF variations by varying weight
+      if (doPDFvariations_ && event.genInfo->systweights().size() > 0) {
+        for (int i=0; i<N_PDF_VARIATIONS; i++) {
+          double pdf_weight = event.genInfo->systweights().at(i+9) / event.genInfo->originalXWGTUP(); // +9 as first 9 are scale variations
+          double this_weight = gen_weight * pdf_weight;
+          h_tu_gen_LHA_PDF_variations.at(i)->Fill(genBinLHA, this_weight);
+          h_tu_gen_LHA_charged_PDF_variations.at(i)->Fill(genBinLHACharged, this_weight);
+          h_tu_gen_puppiMultiplicity_PDF_variations.at(i)->Fill(genBinPuppiMult, this_weight);
+          h_tu_gen_puppiMultiplicity_charged_PDF_variations.at(i)->Fill(genBinPuppiMultCharged, this_weight);
+          h_tu_gen_pTD_PDF_variations.at(i)->Fill(genBinpTD, this_weight);
+          h_tu_gen_pTD_charged_PDF_variations.at(i)->Fill(genBinpTDCharged, this_weight);
+          h_tu_gen_thrust_PDF_variations.at(i)->Fill(genBinThrust, this_weight);
+          h_tu_gen_thrust_charged_PDF_variations.at(i)->Fill(genBinThrustCharged, this_weight);
+          h_tu_gen_width_PDF_variations.at(i)->Fill(genBinWidth, this_weight);
+          h_tu_gen_width_charged_PDF_variations.at(i)->Fill(genBinWidthCharged, this_weight);
+        }
       }
 
       // Now fill response matrices
