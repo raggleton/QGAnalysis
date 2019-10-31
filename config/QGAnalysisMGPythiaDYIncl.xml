@@ -90,6 +90,10 @@
             <Item Name="ScaleVariationMuF" Value="nominal"/>
             <!-- <Item Name="ScaleVariationMuF" Value="down"/> -->
             <!-- <Item Name="ScaleVariationMuF" Value="up"/> -->
+
+            <Item Name="PDFvariations" Value="false"/>
+            <!-- <Item Name="PDFvariations" Value="true"/> -->
+
         </UserConfig>
     </Cycle>
 </JobConfiguration>
