@@ -21,7 +21,7 @@ def get_workdir(line):
     return match.group(1)
 
 
-def write_updated_file(contents, new_xml_filename, jet_config, systematic_names=None, systematic_values=None, workdir_append=None):
+def write_updated_file(contents, new_xml_filename, radius, systematic_names=None, systematic_values=None, workdir_append=""):
     # Should really generalise this
     with open(new_xml_filename, 'w') as f:
         for line in contents:
@@ -29,10 +29,15 @@ def write_updated_file(contents, new_xml_filename, jet_config, systematic_names=
                 # update workdir
                 orig_workdir = get_workdir(line)
                 new_workdir = orig_workdir.replace("_ak4puppi_", "_%s_" % (radius.lower()))
-                if systematic_names and workdir_append is None:
-                    # auto generate workdir append
-                    workdir_append = "_".join(["%s%s" % (n, v.capitalize()) for n, v in zip(systematic_names, systematic_values)])
-                new_workdir += "_" + workdir_append
+                if systematic_names:
+                    if workdir_append is "":
+                        # auto generate workdir append
+                        workdir_append = "_".join(["%s%s" % (n, v.capitalize()) for n, v in zip(systematic_names, systematic_values)])
+                    new_workdir += "_" + workdir_append
+                else:
+                    if workdir_append:
+                        new_workdir += "_" + workdir_append
+
                 new_line = line.replace(orig_workdir, new_workdir)
                 f.write(new_line)
 
@@ -61,10 +66,11 @@ def submit_xml(xml_filename):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--submit", action='store_true', help='submit on sframe_batch')
+    parser.add_argument("--onlySubmitSystematics", action='store_true', help='Only submit systematic variation jobs, not nominal')
     args = parser.parse_args()
 
     base_files = [
-        # 'QGAnalysisHerwig.xml',
+        'QGAnalysisHerwig.xml',
         # 'QGAnalysisPythia.xml',
         'QGAnalysisMGPythia.xml',
         'QGAnalysisMGPythiaDYIncl.xml',
@@ -90,14 +96,14 @@ if __name__ == "__main__":
         #            values=[('up'), ('down')]),
         # Systematic(names=['photonShift'], onMC=True, onData=False,
         #            values=[('up'), ('down')]),
-        # Systematic(names=['jecsmear_direction'], onMC=True, onData=False,
-        #            values=[('up'), ('down')]),
+        Systematic(names=['jecsmear_direction'], onMC=True, onData=False,
+                   values=[('up'), ('down')]),
         # Systematic(names=['jersmear_direction'], onMC=True, onData=False,
         #            values=[('up'), ('down')]),
         # Systematic(names=['pileup_direction'], onMC=True, onData=False,
         #            values=[('up'), ('down')]),
-        Systematic(names=['PDFvariations'], onMC=True, onData=False,
-                   values=[ ('true') ]),
+        # Systematic(names=['PDFvariations'], onMC=True, onData=False,
+        #            values=[ ('true') ]),
         # Systematic(names=['ScaleVariationMuR', 'ScaleVariationMuF'], onMC=True, onData=False,
         #            values=[('up', 'up'),
         #                    ('nominal', 'up'),
@@ -118,11 +124,11 @@ if __name__ == "__main__":
             # no systematics
             new_xml_filename = xml_stem + '_' + radius + '.xml'
 
-            if radius is not "AK4PUPPI":
-                write_updated_file(contents, new_xml_filename, radius, None, None)
-                if args.submit:
-                    print "Submitting", new_xml_filename
-                    # submit_xml(new_xml_filename)
+            # if radius is not "AK4PUPPI":
+            write_updated_file(contents, new_xml_filename, radius)
+            if args.submit and not args.onlySubmitSystematics:
+                print "Submitting", new_xml_filename
+                submit_xml(new_xml_filename)
 
             # For now, do one systematic shift at a time
             for syst in systematics:
