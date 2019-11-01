@@ -54,7 +54,7 @@ public:
 private:
 
     std::unique_ptr<GeneralEventSetup> common_setup;
-    Event::Handle<double> gen_weight_handle;
+    Event::Handle<double> gen_weight_handle, pt_binning_reco_handle, pt_binning_gen_handle;;
 
     // Reco selections/hists
     std::unique_ptr<ZFinder> zFinder;
@@ -110,6 +110,8 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
 
     common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jetRadius));
     gen_weight_handle = ctx.get_handle<double>("gen_weight");
+    pt_binning_reco_handle = ctx.get_handle<double>("pt_binning_reco_value"); // the value to use for reco pt bin e.g dijet average
+    pt_binning_gen_handle = ctx.get_handle<double>("pt_binning_gen_value"); // the value to use for gen pt bin e.g dijet average
 
     // Save explicitly the forward/central jets
     std::string dijet_forward_handle_name("DijetForwardJet"), dijet_central_handle_name("DijetCentralJet");
@@ -401,6 +403,8 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
 bool QGAnalysisDataModule::process(Event & event) {
     double orig_weight = 1.;
     event.set(gen_weight_handle, orig_weight); // need to set this at the start
+    event.set(pt_binning_reco_handle, 0); // need to set this at the start
+    event.set(pt_binning_gen_handle, 0); // need to set this at the start
 
     // Setup selection handles
     // will be overwritten below
@@ -461,6 +465,8 @@ bool QGAnalysisDataModule::process(Event & event) {
     if (dataset == DATASET::SingleMu) {
         if (!zFinder->process(event))
             return false;
+
+        event.set(pt_binning_reco_handle, event.jets->at(0).pt());
         if (zplusjets_presel->passes(event)) {
 
             zplusjets_hists_presel->fill(event);
@@ -489,6 +495,8 @@ bool QGAnalysisDataModule::process(Event & event) {
             if (leadingJets.size() != 2) {
                 throw std::runtime_error("Slicing jets gone wrong!");
             }
+            double ave_pt = 0.5*(leadingJets[0].pt() + leadingJets[1].pt());
+            event.set(pt_binning_reco_handle, ave_pt);
             sort_by_eta(leadingJets);
             std::vector<Jet> forwardJet = {leadingJets[0]};
             std::vector<Jet> centralJet = {leadingJets[1]};

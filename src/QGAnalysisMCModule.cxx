@@ -104,7 +104,7 @@ private:
     // Gen selection
     std::unique_ptr<Selection> zplusjets_gen_sel, zplusjets_gen_sel_passReco, dijet_gen_sel, dijet_gen_sel_passReco;
 
-    Event::Handle<double> gen_weight_handle;
+    Event::Handle<double> gen_weight_handle, pt_binning_reco_handle, pt_binning_gen_handle;
     Event::Handle<bool> pass_zpj_sel_handle, pass_zpj_gen_sel_handle, pass_dj_sel_handle, pass_dj_gen_sel_handle;
 
     float jetRadius;
@@ -156,6 +156,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     genmuons_handle = ctx.get_handle< std::vector<GenParticle> > (genmuon_handle_name);
 
     gen_weight_handle = ctx.get_handle<double>("gen_weight");
+    pt_binning_reco_handle = ctx.get_handle<double>("pt_binning_reco_value"); // the value to use for reco pt bin e.g dijet average
+    pt_binning_gen_handle = ctx.get_handle<double>("pt_binning_gen_value"); // the value to use for gen pt bin e.g dijet average
 
     // Save explicitly the forward/central (gen) jets
     std::string dijet_forward_handle_name("DijetForwardJet"), dijet_central_handle_name("DijetCentralJet");
@@ -510,6 +512,8 @@ bool QGAnalysisMCModule::process(Event & event) {
     // if (!event_sel->passes(event)) return false;
 
     event.set(gen_weight_handle, event.weight); // need to set this at the start
+    event.set(pt_binning_reco_handle, 0); // need to set this at the start
+    event.set(pt_binning_gen_handle, 0); // need to set this at the start
 
     // Save selection flags incase they don't get set later
     // -------------------------------------------------------------------------
@@ -636,6 +640,7 @@ bool QGAnalysisMCModule::process(Event & event) {
         zplusjets_gen_hists->fill(event);
 
         if (hasRecoJets) {
+            event.set(pt_binning_reco_handle, event.jets->at(0).pt());
             // flav-specific preselection hists, useful for optimising selection
             uint flav1 = event.jets->at(0).flavor();
             if (zFinder->process(event)) {
@@ -665,8 +670,12 @@ bool QGAnalysisMCModule::process(Event & event) {
                 }
             }
         }
+
         pass_zpj_gen = zplusjets_gen_sel->passes(event);
         event.set(pass_zpj_gen_sel_handle, pass_zpj_gen);
+        if (pass_zpj_gen) {
+            event.set(pt_binning_gen_handle, event.get(genjets_handle)[0].pt());
+        }
 
         // Do unfolding hists
         // ---------------------------------------------------------------------
@@ -707,6 +716,8 @@ bool QGAnalysisMCModule::process(Event & event) {
             if (leadingJets.size() != 2) {
                 throw std::runtime_error("Slicing jets gone wrong!");
             }
+            double ave_pt = 0.5*(leadingJets[0].pt() + leadingJets[1].pt());
+            event.set(pt_binning_reco_handle, ave_pt);
             sort_by_eta(leadingJets);
             std::vector<Jet> forwardJet = {leadingJets[0]};
             std::vector<Jet> centralJet = {leadingJets[1]};
@@ -720,6 +731,8 @@ bool QGAnalysisMCModule::process(Event & event) {
             if (leadingGenJets.size() != 2) {
                 throw std::runtime_error("Slicing genjets gone wrong!");
             }
+            double ave_pt = 0.5*(leadingGenJets[0].pt() + leadingGenJets[1].pt());
+            event.set(pt_binning_gen_handle, ave_pt);
             sort_by_eta(leadingGenJets);
             std::vector<GenJetWithParts> forwardGenJet = {leadingGenJets[0]};
             std::vector<GenJetWithParts> centralGenJet = {leadingGenJets[1]};

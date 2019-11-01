@@ -136,7 +136,7 @@ protected:
 
     uhh2::Event::Handle<std::vector<GenJetLambdaBundle> > genJetsLambda_handle;
     uhh2::Event::Handle<std::vector<JetLambdaBundle> > jetsLambda_handle;
-    uhh2::Event::Handle<double> gen_weight_handle;
+    uhh2::Event::Handle<double> gen_weight_handle, pt_binning_reco_handle, pt_binning_gen_handle;
     uhh2::Event::Handle<bool> pass_reco_handle;
     uhh2::Event::Handle<bool> pass_gen_handle;
     bool is_mc_;

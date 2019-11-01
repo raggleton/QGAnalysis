@@ -55,6 +55,8 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   // }
 
   gen_weight_handle = ctx.get_handle<double>("gen_weight");
+  pt_binning_reco_handle = ctx.get_handle<double>("pt_binning_reco_value");
+  pt_binning_gen_handle = ctx.get_handle<double>("pt_binning_gen_value");
 
   // setup TUnfold binning for reco & gen
   // ------------------------------------
@@ -728,7 +730,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       float width_charged = recoJetCalcCharged.getLambda(1, 1);
       float thrust_charged = recoJetCalcCharged.getLambda(1, 2);
 
-      float jet_pt = thisjet.pt();
+      // float jet_pt = thisjet.pt();
+      float jet_pt = event.get(pt_binning_reco_handle);
 
       // default to 0 for underflow
       int recBinPt(0);
@@ -945,7 +948,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
     }
   }
 
-  // Fill gen jet 1D hists
+  // Fill gen jet 1D hists & response matrices
   // ---------------------------------------------------------------------------
   if (is_mc_ && passGen) {
     for (int i = 0; i < useNJets_; i++) {
@@ -966,7 +969,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       float gen_width_charged = genJetCalcCharged.getLambda(1, 1);
       float gen_thrust_charged = genJetCalcCharged.getLambda(1, 2);
 
-      float genjet_pt = thisjet.pt();
+      // float genjet_pt = thisjet.pt();
+      float genjet_pt = event.get(pt_binning_gen_handle);
 
       // Get TUnfold gen bins
       // default to 0 for underflow
@@ -1093,7 +1097,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           float width_charged = recoJetCalcCharged.getLambda(1, 1);
           float thrust_charged = recoJetCalcCharged.getLambda(1, 2);
 
-          float jet_pt = thisjet.pt();
+          // float jet_pt = thisjet.pt();
+          float jet_pt = event.get(pt_binning_reco_handle);
 
           bool isUnderflow = (jet_pt < Binning::pt_bin_edges_reco[0]);
           // here we get bin number based on if underflow or not
