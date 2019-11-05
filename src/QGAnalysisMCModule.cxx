@@ -233,6 +233,22 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     // Setup for systematics
     // FIXME put all this inside the ctor as it has ctx!
+    std::string chargedHadronShift = ctx.get("chargedHadronShift", "nominal");
+    float chargedHadronShiftAmount = 0.03;
+    if (chargedHadronShift == "nominal") {
+        // pass
+    } else if (chargedHadronShift == "up") {
+        jetLambdaCreatorPtSorted->set_charged_hadron_shift(1, chargedHadronShiftAmount);
+        jetLambdaCreatorCentral->set_charged_hadron_shift(1, chargedHadronShiftAmount);
+        jetLambdaCreatorForward->set_charged_hadron_shift(1, chargedHadronShiftAmount);
+    } else if (chargedHadronShift == "down") {
+        jetLambdaCreatorPtSorted->set_charged_hadron_shift(-1, chargedHadronShiftAmount);
+        jetLambdaCreatorCentral->set_charged_hadron_shift(-1, chargedHadronShiftAmount);
+        jetLambdaCreatorForward->set_charged_hadron_shift(-1, chargedHadronShiftAmount);
+    } else {
+        throw runtime_error("chargedHadronShift must be nominal, up, or down");
+    }
+
     std::string neutralHadronShift = ctx.get("neutralHadronShift", "nominal");
     float neutralHadronShiftAmount = 0.1;
     if (neutralHadronShift == "nominal") {

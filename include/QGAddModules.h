@@ -263,6 +263,9 @@ public:
   fastjet::PseudoJet convert_uhh_pfparticle_to_pseudojet(const PFParticle & particle, bool applyPuppiWeight);
   std::vector<PFParticle> get_jet_pfparticles(const Jet & jet, uhh2::Event & event, bool applyPuppiWeight);
 
+  void set_charged_hadron_shift(int direction, float rel_shift);
+  void shift_charged_hadron_pfparticles(std::vector<PFParticle> & pfparticles, float shift);
+
   void set_neutral_hadron_shift(int direction, float rel_shift);
   void shift_neutral_hadron_pfparticles(std::vector<PFParticle> & pfparticles, float shift);
 
@@ -277,7 +280,7 @@ private:
   bool doPuppi_;
   bool doGrooming_;
   PFParticleId pfId_;
-  float neutralHadronShift_, photonShift_;
+  float chargedHadronShift_, neutralHadronShift_, photonShift_;
   uhh2::Event::Handle<std::vector<Jet>> jet_handle_;
   uhh2::Event::Handle<std::vector<JetLambdaBundle>> output_handle_;
 };

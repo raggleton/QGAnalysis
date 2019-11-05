@@ -459,6 +459,7 @@ QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx,
   doPuppi_(doPuppi),
   doGrooming_(doGrooming),
   pfId_(pfId),
+  chargedHadronShift_(0), // these are the fractional shift, e.g. 0.2 for 20%
   neutralHadronShift_(0), // these are the fractional shift, e.g. 0.2 for 20%
   photonShift_(0), // must init to 0 otherwise bad things will happen, will go haywire!
   jet_handle_(ctx.get_handle<std::vector<Jet>>(jet_coll_name)),
@@ -495,6 +496,7 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     // don't apply puppi weight here, since we already account for it in the LambdaCalculator
     std::vector<PFParticle> constits = get_jet_pfparticles(jet, event, false);
     // Shift energies if appropriate
+    if (fabs(chargedHadronShift_) > 1E-6) { shift_charged_hadron_pfparticles(constits, chargedHadronShift_); }
     if (fabs(neutralHadronShift_) > 1E-6) { shift_neutral_hadron_pfparticles(constits, neutralHadronShift_); }
     if (fabs(photonShift_) > 1E-6) { shift_photon_pfparticles(constits, photonShift_); }
 
@@ -586,6 +588,24 @@ std::vector<PFParticle> QGAnalysisJetLambda::get_jet_pfparticles(const Jet & jet
     pfCopy.push_back(newPf);
   }
   return pfCopy;
+}
+
+void QGAnalysisJetLambda::set_charged_hadron_shift(int direction, float rel_shift) {
+  chargedHadronShift_ = (direction * rel_shift);
+}
+
+void QGAnalysisJetLambda::shift_charged_hadron_pfparticles(std::vector<PFParticle> & pfparticles, float shift) {
+  for (auto & itr : pfparticles) {
+    if (itr.particleID() == PFParticle::eH) {
+      LorentzVectorXYZE lv = toXYZ(itr.v4());
+      lv *= (1+shift);
+      LorentzVector newLv = toPtEtaPhi(lv);
+      itr.set_pt(newLv.pt());
+      itr.set_eta(newLv.eta());
+      itr.set_phi(newLv.phi());
+      itr.set_energy(newLv.energy());
+    }
+  }
 }
 
 void QGAnalysisJetLambda::set_neutral_hadron_shift(int direction, float rel_shift) {

@@ -92,6 +92,8 @@ if __name__ == "__main__":
     # The values are the possible settings for the names,
     # and each entry in values should match the length of the names
     systematics = [
+        Systematic(names=['chargedHadronShift'], onMC=True, onData=False,
+                   values=[('up'), ('down')]),
         # Systematic(names=['neutralHadronShift'], onMC=True, onData=False,
         #            values=[('up'), ('down')]),
         # Systematic(names=['photonShift'], onMC=True, onData=False,
