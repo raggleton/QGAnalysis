@@ -144,6 +144,7 @@ protected:
     TRandom3 rand_;
     bool doMCsplit_;
     bool doPDFvariations_;
+    bool useBinningValue_;
     const int N_PDF_VARIATIONS;
 };
 
