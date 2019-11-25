@@ -96,22 +96,6 @@ private:
 
 
 /**
- * Apply weights/SF specifically for MC
- */
-class MCReweighting : public uhh2::AnalysisModule {
-public:
-  MCReweighting(uhh2::Context & ctx);
-  virtual bool process(uhh2::Event & event) override;
-private:
-  Event::Handle<double> gen_weight_handle;
-  std::unique_ptr<MCLumiWeight> lumi_weighter;
-  std::unique_ptr<MCPileupReweight> pileup_reweighter;
-  std::unique_ptr<MCMuonScaleFactor> muon_id_reweighter_pt_eta, muon_id_reweighter_vtx, muon_trg_reweighter;
-  std::unique_ptr<MCMuonTrkScaleFactor> muon_trk_reweighter;
-  bool doMuons;
-};
-
-/**
  * Get k factor for Z(ll)+jets
  */
 class ZllKFactor {
@@ -125,16 +109,44 @@ private:
 };
 
 /**
+ * Analysis module to actually apply k factor weight
+ */
+class ZkFactorReweight : public uhh2::AnalysisModule {
+public:
+  ZkFactorReweight(uhh2::Context & ctx, const std::string & weightFilename_="", const std::string & genMuonName="");
+  virtual bool process(uhh2::Event & event) override;
+private:
+  uhh2::Event::Handle<double> z_weight_handle;
+  uhh2::Event::Handle<std::vector<GenParticle>> gen_muon_handle;
+  std::unique_ptr<ZllKFactor> zReweight;
+};
+
+/**
+ * Apply weights/SF specifically for MC
+ */
+class MCReweighting : public uhh2::AnalysisModule {
+public:
+  MCReweighting(uhh2::Context & ctx, const std::string & genmuon_name="");
+  virtual bool process(uhh2::Event & event) override;
+private:
+  Event::Handle<double> gen_weight_handle;
+  std::unique_ptr<MCLumiWeight> lumi_weighter;
+  std::unique_ptr<MCPileupReweight> pileup_reweighter;
+  std::unique_ptr<MCMuonScaleFactor> muon_id_reweighter_pt_eta, muon_id_reweighter_vtx, muon_trg_reweighter;
+  std::unique_ptr<MCMuonTrkScaleFactor> muon_trk_reweighter;
+  std::unique_ptr<ZkFactorReweight> z_reweighter;
+  bool doMuons, is_DY;
+};
+
+/**
  * find the Z->mumu
  */
 class ZFinder : public uhh2::AnalysisModule {
 public:
-  ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std::string & outputLabel_, const std::string & weightFilename_="");
+  ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std::string & outputLabel_);
   virtual bool process(uhh2::Event & event) override;
 private:
   uhh2::Event::Handle<std::vector<Muon>> hndlInput, hndlZ;
-  uhh2::Event::Handle<double> z_weight_handle;
-  std::unique_ptr<ZllKFactor> zReweight;
 };
 
 /**

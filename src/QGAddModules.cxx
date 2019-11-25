@@ -168,7 +168,54 @@ bool GeneralEventSetup::process(uhh2::Event & event) {
 }
 
 
-MCReweighting::MCReweighting(uhh2::Context & ctx) {
+ZkFactorReweight::ZkFactorReweight(uhh2::Context & ctx, const std::string & weightFilename_, const std::string & genmuon_name):
+  z_weight_handle(ctx.get_handle<double>("z_weight"))
+{
+  if (weightFilename_ != "") {
+    zReweight.reset(new ZllKFactor(weightFilename_));
+  }
+  if (genmuon_name != "") {
+    gen_muon_handle = ctx.get_handle<vector<GenParticle>>(genmuon_name);
+  }
+}
+
+bool ZkFactorReweight::process(uhh2::Event & event) {
+  if (zReweight) {
+    double realZPt = 0;
+    // the k factor uses the Z as reconstructed by muons
+    // TODO: dress them with photons?
+    vector<GenParticle> genMuons = event.get(gen_muon_handle);
+    if (genMuons.size() >= 2) {
+      const auto & muon1 = genMuons.at(0);
+      const auto & muon2 = genMuons.at(1);
+      cout << "muon1 mum1: " << muon1.mother1() << endl;
+      cout << "muon1 mum2: " << muon1.mother2() << endl;
+      cout << "muon2 mum1: " << muon2.mother1() << endl;
+      cout << "muon2 mum2: " << muon2.mother2() << endl;
+      // TODO: some way to check if these are actually from the Z?
+      const auto z_cand = muon1.v4() + muon2.v4();
+      float z_pt = z_cand.pt();
+      float z_mass = z_cand.M();
+      // cout << "Z pt: " << z_pt << " Z mass: " << z_mass << endl;
+      // z_mass and z_pt cuts are as per in paper, to avoid phase space with
+      // large Sudakov contributions
+      if (muon1.charge() != muon2.charge() && z_mass > 30 && z_pt > 30) {
+        realZPt = z_pt;
+      }
+    }
+
+    double zWeight = 1;
+    if (realZPt > 0) zWeight = zReweight->getKFactor(realZPt);
+    // event.set(z_weight_handle, zWeight);
+    // cout << "z k factor: " << zWeight << endl;
+    event.weight *= zWeight;
+    return true;
+  }
+  return false;
+}
+
+
+MCReweighting::MCReweighting(uhh2::Context & ctx, const std::string & genmuon_name) {
   gen_weight_handle = ctx.get_handle<double>("gen_weight");
 
   lumi_weighter.reset(new MCLumiWeight(ctx));
@@ -177,9 +224,9 @@ MCReweighting::MCReweighting(uhh2::Context & ctx) {
 
   std::string datasetVersion = ctx.get("dataset_version");
 
-  doMuons = string2bool(ctx.get("isZPlusJets"));
+  is_DY = isSubstring(datasetVersion, "DYJetsToLL", true);
+  doMuons = string2bool(ctx.get("isZPlusJets")); // this is set in MCModule
   cout << "doMuons: " << doMuons << endl;
-  // doMuons = (isSubstring(datasetVersion, "DYJetsToLL", true) || isSubstring(datasetVersion, "SingleMu", true));
 
   if (doMuons) {
     std::string sf_path_name = locate_file("common/data/MuonID_EfficienciesAndSF_average_RunBtoH.root");
@@ -197,6 +244,8 @@ MCReweighting::MCReweighting(uhh2::Context & ctx) {
     std::string trk_path_name = locate_file("common/data/general_eff_aeta_dr030e030_corr_ratio.txt");
     muon_trk_reweighter.reset(new MCMuonTrkScaleFactor(ctx, trk_path_name, 100));
   }
+
+  z_reweighter.reset(new ZkFactorReweight(ctx, ctx.get("z_reweight_file", ""), genmuon_name));
 }
 
 
@@ -207,6 +256,9 @@ bool MCReweighting::process(uhh2::Event & event) {
   double old_weight = event.weight;
   if (!event.isRealData){
     lumi_weighter->process(event);
+    if (is_DY) {
+      z_reweighter->process(event);
+    }
     old_gen_weight *= (event.weight / old_weight);
 
     pileup_reweighter->process(event);
@@ -238,37 +290,14 @@ float get_jet_radius(const std::string & jet_cone) {
 }
 
 
-ZFinder::ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std::string & outputLabel_, const std::string & weightFilename_):
+ZFinder::ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std::string & outputLabel_):
   // Would like more generic FlavourParticle handle, but may need to do additional declare_event_input?
   hndlInput(ctx.get_handle<vector<Muon>>(inputLabel_)),
-  hndlZ(ctx.get_handle<vector<Muon>>(outputLabel_)),
-  z_weight_handle(ctx.get_handle<double>("z_weight"))
-
-{
-  if (weightFilename_ != "")
-    zReweight.reset(new ZllKFactor(weightFilename_));
-}
+  hndlZ(ctx.get_handle<vector<Muon>>(outputLabel_))
+{}
 
 bool ZFinder::process(uhh2::Event & event) {
   // Reweight to higher order cross-section using gen level Z pT
-  if (zReweight) {
-    // double realZPt = zCand.pt();
-    double realZPt = 0;
-    for (const auto & itr : *event.genparticles) {
-      if (itr.pdgId() == 23) {
-        realZPt = itr.pt();
-        // cout << "Found Gen Z with pT " << realZPt << " with status " << itr.status() << endl;
-        break;
-        // use 1st Z occurence in GenParticles (should be status 22)
-        // later Z is evolved (status 44) and then finalised (status 62),
-        // but I guess we want to use the 1st occurence?
-      }
-    }
-    double zWeight = 1;
-    if (realZPt > 0) zWeight = zReweight->getKFactor(realZPt);
-    event.set(z_weight_handle, zWeight);
-  }
-
   // Now look for a reconstructed Z using inputs
   auto inputs = event.get(hndlInput);
   if (inputs.size() < 2) return false;

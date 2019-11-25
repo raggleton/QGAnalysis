@@ -135,9 +135,6 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   //   herwig_weight = reweightHist->GetBinContent(bin_num);
   // }
 
-  // fill the histograms. Please note better to
-  // use histogram pointers as members instead of hist("name")
-
   // Don't forget to always use the weight when filling.
   double weight = event.weight * herwig_weight;
 

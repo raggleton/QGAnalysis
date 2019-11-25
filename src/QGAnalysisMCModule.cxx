@@ -137,7 +137,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     jetRadius = get_jet_radius(jet_cone);
 
     const std::string & datasetVersion = ctx.get("dataset_version");
-    isZPlusJets = (isSubstring(datasetVersion, "DYJetsToLL", true) || isSubstring(datasetVersion, "SingleMu", true));
+    isZPlusJets = (isSubstring(datasetVersion, "DYJetsToLL", true) || isSubstring(datasetVersion, "SingleMu", true) || isSubstring(datasetVersion, "ZPJ", true));
     ctx.set("isZPlusJets", bool2string(isZPlusJets));
 
     cout << "Running with jet cone: " << jet_cone << endl;
@@ -147,13 +147,14 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // FIXME: get everything from ctx not extra args
     float jet_pt_min = 30.;
     common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jetRadius, jet_pt_min));
-    mc_reweight.reset(new MCReweighting(ctx));
-    mc_scalevar.reset(new MCScaleVariation(ctx));
 
     std::string genjet_handle_name = "GoodGenJets";
     std::string genmuon_handle_name = "GoodGenMuons";
     genjets_handle = ctx.get_handle< std::vector<GenJetWithParts> > (genjet_handle_name);
     genmuons_handle = ctx.get_handle< std::vector<GenParticle> > (genmuon_handle_name);
+
+    mc_reweight.reset(new MCReweighting(ctx, genmuon_handle_name));
+    mc_scalevar.reset(new MCScaleVariation(ctx));
 
     gen_weight_handle = ctx.get_handle<double>("gen_weight");
     pt_binning_reco_handle = ctx.get_handle<double>("pt_binning_reco_value"); // the value to use for reco pt bin e.g dijet average
@@ -287,7 +288,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     float mcSelFactor = 1.25;
 
     if (isZPlusJets) {
-        zFinder.reset(new ZFinder(ctx, "muons", zLabel, ctx.get("z_reweight_file", "")));
+        zFinder.reset(new ZFinder(ctx, "muons", zLabel));
 
         // Z+JETS selection
         float mu1_pt = 26.; // muon pt cut comes from the cleaner in GeneralEventSetup
@@ -572,9 +573,6 @@ bool QGAnalysisMCModule::process(Event & event) {
     // not gen-specific (only false if fails MET filters)
     bool passCommonRecoSetup = common_setup->process(event);
     if (!(njet_min_sel->passes(event) || ngenjet_min_sel->passes(event))) return false;
-    // MC-specific parts like reweighting for SF, for muR/F scale, etc
-    mc_reweight->process(event);
-    mc_scalevar->process(event);
 
     if (PRINTOUT) printMuons(*event.muons);
     if (PRINTOUT) printElectrons(*event.electrons);
@@ -593,6 +591,10 @@ bool QGAnalysisMCModule::process(Event & event) {
     std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, &event.get(genmuons_handle), genjet_pt_cut, genjet_eta_cut, jetRadius);
     // std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, nullptr, genjet_pt_cut, genjet_eta_cut, jetRadius);
     event.set(genjets_handle, std::move(goodGenJets));
+
+    // MC-specific parts like reweighting for SF, for muR/F scale, etc
+    mc_reweight->process(event);
+    mc_scalevar->process(event);
 
     // Need these as loosest possible requirement to run reco- or gen-specific bits
     bool hasRecoJets = njet_min_sel->passes(event) && passCommonRecoSetup; // commonReco bit here as common for all reco parts
