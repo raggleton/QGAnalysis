@@ -593,8 +593,8 @@ bool QGAnalysisMCModule::process(Event & event) {
     event.set(genjets_handle, std::move(goodGenJets));
 
     // MC-specific parts like reweighting for SF, for muR/F scale, etc
-    mc_reweight->process(event);
     mc_scalevar->process(event);
+    mc_reweight->process(event); // also responsible for setting gen weight, so do after scale variations
 
     // Need these as loosest possible requirement to run reco- or gen-specific bits
     bool hasRecoJets = njet_min_sel->passes(event) && passCommonRecoSetup; // commonReco bit here as common for all reco parts
@@ -714,7 +714,6 @@ bool QGAnalysisMCModule::process(Event & event) {
         }
 
     } else {
-
         // Do DiJet hists & selection
         // ---------------------------------------------------------------------
         // For dijet, we sort our leading 2 jets by eta, and use the largest and
