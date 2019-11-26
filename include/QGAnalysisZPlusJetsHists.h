@@ -37,8 +37,6 @@ protected:
     TH1F *pt_jet_genHT_ratio;
     std::vector<TH2F*> genjet_recojet_ind_binned;
 
-    bool doHerwigReweighting;
-    TH1F * reweightHist;
     TH1F * n_pv;
 
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;

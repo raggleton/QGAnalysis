@@ -131,8 +131,6 @@ protected:
 
     int useNJets_;
     bool doGroomed_;
-    bool doHerwigReweighting;
-    TH1F * reweightHist;
 
     uhh2::Event::Handle<std::vector<GenJetLambdaBundle> > genJetsLambda_handle;
     uhh2::Event::Handle<std::vector<JetLambdaBundle> > jetsLambda_handle;

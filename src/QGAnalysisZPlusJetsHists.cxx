@@ -18,18 +18,6 @@ QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string &
 Hists(ctx, dirname),
 hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
 {
-  doHerwigReweighting = ctx.get("herwig_reweight_file", "") != "";
-  // if (doHerwigReweighting) {
-  //   TFile f_weight(ctx.get("herwig_reweight_file", "").c_str());
-  //   reweightHist = (TH1F*) f_weight.Get("zpj_reco");
-  //   if (reweightHist == nullptr) {
-  //     doHerwigReweighting = false;
-  //     cout << "WARNING: could not find zpj_reco reweight hist - not reweighting ZPlusJetsHists!" << endl;
-  //   } else {
-  //     reweightHist->SetDirectory(0);
-  //   }
-  // }
-
   string jet_cone = ctx.get("JetCone", "AK4");
   jetRadius = get_jet_radius(jet_cone);
 
@@ -124,19 +112,8 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   std::vector<Jet> * jets = event.jets;
   int Njets = jets->size();
 
-  // Optionally apply weight to Herwig to ensure spectrum matches Pythia spectrum
-  float herwig_weight = 1.;
-  // if (doHerwigReweighting && Njets >= 1) {
-  //   float pt = jets->at(0).pt();
-  //   if (pt >= reweightHist->GetXaxis()->GetXmax()) {
-  //     pt = reweightHist->GetXaxis()->GetXmax() - 0.1;
-  //   }
-  //   int bin_num = reweightHist->GetXaxis()->FindBin(pt);
-  //   herwig_weight = reweightHist->GetBinContent(bin_num);
-  // }
-
   // Don't forget to always use the weight when filling.
-  double weight = event.weight * herwig_weight;
+  double weight = event.weight;
 
   float jet1_pt = 0;
   if (Njets >= 1) {

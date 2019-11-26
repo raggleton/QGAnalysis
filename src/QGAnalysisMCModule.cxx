@@ -153,7 +153,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     genjets_handle = ctx.get_handle< std::vector<GenJetWithParts> > (genjet_handle_name);
     genmuons_handle = ctx.get_handle< std::vector<GenParticle> > (genmuon_handle_name);
 
-    mc_reweight.reset(new MCReweighting(ctx, genmuon_handle_name));
+    mc_reweight.reset(new MCReweighting(ctx, genjet_handle_name, genmuon_handle_name));
     mc_scalevar.reset(new MCScaleVariation(ctx));
 
     gen_weight_handle = ctx.get_handle<double>("gen_weight");

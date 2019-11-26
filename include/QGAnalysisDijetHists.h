@@ -44,8 +44,7 @@ protected:
     TH2F *genjet1_ind_vs_pt_jet1, *genjet2_ind_vs_pt_jet2;
     std::vector<TH2F*> genjet_recojet_ind_binned;
 
-    bool doHerwigReweighting, is_mc_;
-    TH1F * reweightHist;
+    bool is_mc_;
     TH1F * n_pv;
 
     std::vector<double> pt_bin_edges;

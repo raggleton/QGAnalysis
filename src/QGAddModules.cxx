@@ -188,10 +188,10 @@ bool ZkFactorReweight::process(uhh2::Event & event) {
     if (genMuons.size() >= 2) {
       const auto & muon1 = genMuons.at(0);
       const auto & muon2 = genMuons.at(1);
-      cout << "muon1 mum1: " << muon1.mother1() << endl;
-      cout << "muon1 mum2: " << muon1.mother2() << endl;
-      cout << "muon2 mum1: " << muon2.mother1() << endl;
-      cout << "muon2 mum2: " << muon2.mother2() << endl;
+      // cout << "muon1 mum1: " << muon1.mother1() << endl;
+      // cout << "muon1 mum2: " << muon1.mother2() << endl;
+      // cout << "muon2 mum1: " << muon2.mother1() << endl;
+      // cout << "muon2 mum2: " << muon2.mother2() << endl;
       // TODO: some way to check if these are actually from the Z?
       const auto z_cand = muon1.v4() + muon2.v4();
       float z_pt = z_cand.pt();
@@ -215,7 +215,52 @@ bool ZkFactorReweight::process(uhh2::Event & event) {
 }
 
 
-MCReweighting::MCReweighting(uhh2::Context & ctx, const std::string & genmuon_name) {
+PtReweight::PtReweight(uhh2::Context & ctx, const std::string & genjets_name, const std::string & weightFilename_, const std::string & region_):
+genjets_handle(ctx.get_handle<std::vector<GenJetWithParts>>(genjets_name))
+{
+  if (weightFilename_ != "" && region_ != "") {
+    TFile f_weight(weightFilename_.c_str());
+    if (region_ == "dijet") {
+      reweightHist.reset((TH1F*) f_weight.Get("dijet"));
+      method = "dijet";
+    } else if (region_ == "zplusjets") {
+      reweightHist.reset((TH1F*) f_weight.Get("zplusjets"));
+      method = "jet";
+    } else {
+      throw std::runtime_error("PtReweight: region_ argument not valid");
+    }
+    if (reweightHist) {
+      reweightHist->SetDirectory(0);
+    }
+  }
+}
+
+bool PtReweight::process(uhh2::Event & event) {
+  if (reweightHist) {
+    double val = -1;
+    std::vector<GenJetWithParts> genjets = event.get(genjets_handle);
+    if (method == "jet" && genjets.size() >= 1) {
+      val = genjets.at(0).pt();
+    } else if (method == "dijet" && genjets.size() >=2 ) {
+      val = 0.5*(genjets.at(0).pt() + genjets.at(1).pt());
+    }
+    if (val > reweightHist->GetXaxis()->GetXmax()) {
+      // overflow protection
+      val = reweightHist->GetXaxis()->GetXmax() - 0.1;
+    }
+    double weight = 1.;
+    if (val > 0) {
+      int bin_num = reweightHist->GetXaxis()->FindBin(val);
+      weight = reweightHist->GetBinContent(bin_num);
+    }
+    event.weight *= weight;
+    return true;
+  }
+  return false;
+}
+
+
+MCReweighting::MCReweighting(uhh2::Context & ctx, const std::string & genjet_name, const std::string & genmuon_name) {
   gen_weight_handle = ctx.get_handle<double>("gen_weight");
 
   lumi_weighter.reset(new MCLumiWeight(ctx));
@@ -246,6 +291,14 @@ MCReweighting::MCReweighting(uhh2::Context & ctx, const std::string & genmuon_na
   }
 
   z_reweighter.reset(new ZkFactorReweight(ctx, ctx.get("z_reweight_file", ""), genmuon_name));
+
+  std::string pt_filename = ctx.get("pt_reweight_file", "");
+  if (doMuons && ! is_DY) {
+    // don't apply to non-DY Z+Jets MC (e.g. ttbar)
+    pt_filename = "";
+  }
+  std::string region = is_DY ? "zplusjets" : "dijet";
+  pt_reweighter.reset(new PtReweight(ctx, genjet_name, pt_filename, region));
 }
 
 
@@ -259,6 +312,7 @@ bool MCReweighting::process(uhh2::Event & event) {
     if (is_DY) {
       z_reweighter->process(event);
     }
+    // ONLY DO THIS AFTER ALL GEN-SPECIFIC REWEIGHTING
     old_gen_weight *= (event.weight / old_weight);
 
     pileup_reweighter->process(event);
@@ -345,33 +399,33 @@ float ZllKFactor::getKFactor(float zPt) {
 
 
 
-PtReweight::PtReweight(uhh2::Context & ctx, const std::string & selection, const std::string & weightFilename):
-  gen_weight_handle(ctx.get_handle<double>("gen_weight"))
-{
-  f_weight.reset(TFile::Open(weightFilename.c_str()));
-  if (selection == "dijet")
-    reweightHist.reset((TH1F*) f_weight->Get("dijet_reco"));
-  else if (selection == "zplusjets")
-    reweightHist.reset((TH1F*) f_weight->Get("zpj_reco"));
-  if (reweightHist) reweightHist->SetDirectory(0);
-}
+// PtReweight::PtReweight(uhh2::Context & ctx, const std::string & selection, const std::string & weightFilename):
+//   gen_weight_handle(ctx.get_handle<double>("gen_weight"))
+// {
+//   f_weight.reset(TFile::Open(weightFilename.c_str()));
+//   if (selection == "dijet")
+//     reweightHist.reset((TH1F*) f_weight->Get("dijet_reco"));
+//   else if (selection == "zplusjets")
+//     reweightHist.reset((TH1F*) f_weight->Get("zpj_reco"));
+//   if (reweightHist) reweightHist->SetDirectory(0);
+// }
 
 
-bool PtReweight::process(uhh2::Event & event, float value) {
-  (void) event;
-  if (value >= reweightHist->GetXaxis()->GetXmax()) {
-    value = reweightHist->GetXaxis()->GetXmax() - 0.1;
-  }
-  int bin_num = reweightHist->GetXaxis()->FindBin(value);
-  double new_weight = reweightHist->GetBinContent(bin_num);
+// bool PtReweight::process(uhh2::Event & event, float value) {
+//   (void) event;
+//   if (value >= reweightHist->GetXaxis()->GetXmax()) {
+//     value = reweightHist->GetXaxis()->GetXmax() - 0.1;
+//   }
+//   int bin_num = reweightHist->GetXaxis()->FindBin(value);
+//   double new_weight = reweightHist->GetBinContent(bin_num);
 
-  // Update the event weight & gen_weight stored in the event
-  double gen_weight = event.get(gen_weight_handle);
-  event.weight *= new_weight;
-  event.set(gen_weight_handle, gen_weight*new_weight);
+//   // Update the event weight & gen_weight stored in the event
+//   double gen_weight = event.get(gen_weight_handle);
+//   event.weight *= new_weight;
+//   event.set(gen_weight_handle, gen_weight*new_weight);
 
-  return true;
-}
+//   return true;
+// }
 
 // namespace uhh2examples {
 

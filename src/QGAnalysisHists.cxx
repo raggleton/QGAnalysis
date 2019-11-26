@@ -36,22 +36,6 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
     throw runtime_error("selection must be dijet or zplusjets");
   }
 
-  doHerwigReweighting = ctx.get("herwig_reweight_file", "") != "";
-  // if (doHerwigReweighting) {
-  //   TFile f_weight(ctx.get("herwig_reweight_file", "").c_str());
-  //   if (selection == "dijet")
-  //     reweightHist = (TH1F*) f_weight.Get("dijet_reco");
-  //   else if (selection == "zplusjets")
-  //     reweightHist = (TH1F*) f_weight.Get("zpj_reco");
-
-  //   if (reweightHist == nullptr) {
-  //     doHerwigReweighting = false;
-  //     cout << "WARNING: could not find reweight hist - not reweighting AnalysisHists!" << endl;
-  //   } else {
-  //     reweightHist->SetDirectory(0);
-  //   }
-  // }
-
   gen_weight_handle = ctx.get_handle<double>("gen_weight");
 
   // book all histograms here
@@ -370,22 +354,10 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
 
 
 void QGAnalysisHists::fill(const Event & event){
-  // Optionally apply weight to Herwig to ensure spectrum matches Pythia spectrum
-  float herwig_weight = 1.;
-  // if (doHerwigReweighting && Njets >= 1) {
-  //   float pt = jets->at(0).pt();
-  //   if (pt >= reweightHist->GetXaxis()->GetXmax()) {
-  //     pt = reweightHist->GetXaxis()->GetXmax() - 0.1;
-  //   }
-  //   int bin_num = reweightHist->GetXaxis()->FindBin(pt);
-  //   herwig_weight = reweightHist->GetBinContent(bin_num);
-  // }
-
-  double weight = event.weight * herwig_weight;
+  double weight = event.weight;
 
   // extract the separate gen & reco weight components, needed for TUnfold
   double gen_weight = event.get(gen_weight_handle);
-  gen_weight *= herwig_weight;
   double reco_weight = weight / gen_weight;
 
   h_weights->Fill(weight);

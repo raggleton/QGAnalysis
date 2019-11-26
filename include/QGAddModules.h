@@ -121,12 +121,26 @@ private:
   std::unique_ptr<ZllKFactor> zReweight;
 };
 
+
+/**
+ * Analysis module to reweight using pt spectrum, e.g. to make Herwig++ match Pythia8
+ */
+class PtReweight : public uhh2::AnalysisModule {
+public:
+  PtReweight(uhh2::Context & ctx, const std::string & genjets_name, const std::string & weightFilename_="", const std::string & region_="");
+  virtual bool process(uhh2::Event & event) override;
+private:
+  std::unique_ptr<TH1F> reweightHist;
+  std::string method;
+  Event::Handle<std::vector<GenJetWithParts>> genjets_handle;
+};
+
 /**
  * Apply weights/SF specifically for MC
  */
 class MCReweighting : public uhh2::AnalysisModule {
 public:
-  MCReweighting(uhh2::Context & ctx, const std::string & genmuon_name="");
+  MCReweighting(uhh2::Context & ctx, const std::string & genjet_name="", const std::string & genmuon_name="");
   virtual bool process(uhh2::Event & event) override;
 private:
   Event::Handle<double> gen_weight_handle;
@@ -135,6 +149,7 @@ private:
   std::unique_ptr<MCMuonScaleFactor> muon_id_reweighter_pt_eta, muon_id_reweighter_vtx, muon_trg_reweighter;
   std::unique_ptr<MCMuonTrkScaleFactor> muon_trk_reweighter;
   std::unique_ptr<ZkFactorReweight> z_reweighter;
+  std::unique_ptr<PtReweight> pt_reweighter;
   bool doMuons, is_DY;
 };
 
@@ -153,15 +168,15 @@ private:
  * reweight event based on jet pt
  * useful for e.g. reweighting herwig to match pythia
  */
-class PtReweight : public uhh2::AnalysisModule {
-public:
-  PtReweight(uhh2::Context & ctx, const std::string & selection, const std::string & weightFilename);
-  bool process(uhh2::Event & event, float value);
-private:
-  std::unique_ptr<TFile> f_weight;
-  std::unique_ptr<TH1F> reweightHist;
-  uhh2::Event::Handle<double> gen_weight_handle;
-};
+// class PtReweight : public uhh2::AnalysisModule {
+// public:
+//   PtReweight(uhh2::Context & ctx, const std::string & selection, const std::string & weightFilename);
+//   bool process(uhh2::Event & event, float value);
+// private:
+//   std::unique_ptr<TFile> f_weight;
+//   std::unique_ptr<TH1F> reweightHist;
+//   uhh2::Event::Handle<double> gen_weight_handle;
+// };
 
 /**
  * Calculate any LesHouches variable from jet constituents
