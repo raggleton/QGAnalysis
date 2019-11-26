@@ -206,7 +206,7 @@ bool ZkFactorReweight::process(uhh2::Event & event) {
 
     double zWeight = 1;
     if (realZPt > 0) zWeight = zReweight->getKFactor(realZPt);
-    // event.set(z_weight_handle, zWeight);
+    event.set(z_weight_handle, zWeight);
     // cout << "z k factor: " << zWeight << endl;
     event.weight *= zWeight;
     return true;
