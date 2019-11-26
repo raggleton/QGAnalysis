@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE JobConfiguration PUBLIC "" "JobConfig.dtd" [
+
+    <!ENTITY NEVT "-1">
+
+    <!-- Output directories -->
+    <!ENTITY ODIR-BKG "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/ZPJBackground">
+
+    <!-- Full datasets -->
+    <!ENTITY PYTHIA-WW SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/PythiaOnly/MC_WW_Pythia8.xml">
+    <!ENTITY PYTHIA-WZ SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/PythiaOnly/MC_WZ_Pythia8.xml">
+    <!ENTITY PYTHIA-ZZ SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/PythiaOnly/MC_ZZ_Pythia8.xml">
+    <!ENTITY TTBAR SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/Powheg-Pythia/MC_TT_Powheg_Pythia.xml">
+    
+    <!ENTITY ST-S SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/amcatnlo/MC_SingleTop_s.xml">
+    <!ENTITY ST-T-top SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/Powheg-Pythia/MC_SingleTop_t_top.xml">
+    <!ENTITY ST-T-antitop SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/Powheg-Pythia/MC_SingleTop_t_antitop.xml">
+    <!ENTITY ST-TW-top SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/Powheg-Pythia/MC_SingleTop_tW_top.xml">
+    <!ENTITY ST-TW-antitop SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/Powheg-Pythia/MC_SingleTop_tW_antitop.xml">
+
+    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/commonMC.xml">
+
+    <!-- Jet config snippets -->
+    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
+    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
+    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
+    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
+]>
+
+
+<!-- MUST run SFrameBatch inside QGAnalyis/config! -->
+<!-- split 150 for herwig -->
+<!-- split 3 for mgpythia -->
+
+<!--
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="25" />
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_pythia_newFlav_jetAsymCut_chargedVars_pt1RecoConstituents_V11JEC_JER_target0p5_noZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto"/>
+-->
+
+
+<!-- OutputLevel controls which messages are printed; set to VERBOSE or DEBUG for more verbosity, to WARNING or ERROR for less -->
+<JobConfiguration JobName="ExampleCycleJob" OutputLevel="INFO">
+    <Library Name="libSUHH2QGAnalysis"/>
+    <Package Name="SUHH2QGAnalysis.par" />
+
+    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-BKG;/" PostFix="" TargetLumi="35918" >
+
+
+<!--
+        <InputData Lumi="92669.757" NEventsMax="&NEVT;" Type="MC" Version="MC_TTBAR_ZPJ" Cacheable="False">
+        &TTBAR;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+-->
+<!--
+        <InputData Lumi="67236.849" NEventsMax="&NEVT;" Type="MC" Version="MC_WW_ZPJ" Cacheable="False">
+        &PYTHIA-WW;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="63564.248" NEventsMax="&NEVT;" Type="MC" Version="MC_WZ_ZPJ" Cacheable="False">
+        &PYTHIA-WZ;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="120321.310" NEventsMax="&NEVT;" Type="MC" Version="MC_ZZ_ZPJ" Cacheable="False">
+        &PYTHIA-ZZ;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+-->
+
+        <InputData Lumi="2935009.552" NEventsMax="&NEVT;" Type="MC" Version="MC_ST_S_ZPJ" Cacheable="False">
+        &ST-S;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+<!--
+        <InputData Lumi="43694.743" NEventsMax="&NEVT;" Type="MC" Version="MC_ST_T_top_ZPJ" Cacheable="False">
+        &ST-T-top;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="48523.533" NEventsMax="&NEVT;" Type="MC" Version="MC_ST_T_antitop_ZPJ" Cacheable="False">
+        &ST-T-antitop;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="195298.764" NEventsMax="&NEVT;" Type="MC" Version="MC_ST_TW_top_ZPJ" Cacheable="False">
+        &ST-TW-top;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="194744.466" NEventsMax="&NEVT;" Type="MC" Version="MC_ST_TW_antitop_ZPJ" Cacheable="False">
+        &ST-TW-antitop;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+-->
+<!--
+        <InputData Lumi="1" NEventsMax="-1" Type="MC" Version="MC_TT-ZPJ-TEST" Cacheable="False">
+        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/crab_TT_powheg-pythia_11_Nov_19_v3_newRecoJetFlav_fixPuppi_v4/191111_134329/0000/Ntuple_1.root" Lumi="0.0"/>
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+-->
+
+        <UserConfig>
+            &COMMON;
+
+            <!-- Choose your jet configuration -->
+            <!-- &AK4CHS; -->
+            &AK4PUPPI;
+            <!-- &AK8CHS; -->
+            <!-- &AK8PUPPI; -->
+
+            <!-- If you want to reweight herwig pT spectrum to match Pythia -->
+            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_weights_ak4chs.root" /> -->
+            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_weights_ak4puppi.root" /> -->
+            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_weights_ak8chs.root" /> -->
+            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_weights_ak8puppi.root" /> -->
+            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/pythiaOnlyFlat_weights_ak4chs.root" /> -->
+            <!-- <Item Name="herwig_reweight_file" Value="/nfs/dust/cms/user/aggleton/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/pythiaOnlyFlat_newflav_weights_ak4chs.root" /> -->
+            <Item Name="herwig_reweight_file" Value="" />
+            <Item Name="z_reweight_file" Value=""/>
+
+            <!--@SYST-->
+
+            <Item Name="chargedHadronShift" Value="nominal"/>
+            <!-- <Item Name="chargedHadronShift" Value="down"/> -->
+            <!-- <Item Name="chargedHadronShift" Value="up"/> -->
+
+            <Item Name="neutralHadronShift" Value="nominal"/>
+            <!-- <Item Name="neutralHadronShift" Value="down"/> -->
+            <!-- <Item Name="neutralHadronShift" Value="up"/> -->
+
+            <Item Name="photonShift" Value="nominal"/>
+            <!-- <Item Name="photonShift" Value="down"/> -->
+            <!-- <Item Name="photonShift" Value="up"/> -->
+
+            <Item Name="jecsmear_direction" Value="nominal"/>
+            <!-- <Item Name="jecsmear_direction" Value="down"/> -->
+            <!-- <Item Name="jecsmear_direction" Value="up"/> -->
+
+            <Item Name="jersmear_direction" Value="nominal"/>
+            <!-- <Item Name="jersmear_direction" Value="down"/> -->
+            <!-- <Item Name="jersmear_direction" Value="up"/> -->
+
+            <Item Name="pileup_direction" Value="nominal"/>
+            <!-- <Item Name="pileup_direction" Value="down"/> -->
+            <!-- <Item Name="pileup_direction" Value="up"/> -->
+
+            <Item Name="ScaleVariationMuR" Value="nominal"/>
+            <!-- <Item Name="ScaleVariationMuR" Value="down"/> -->
+            <!-- <Item Name="ScaleVariationMuR" Value="up"/> -->
+            
+            <Item Name="ScaleVariationMuF" Value="nominal"/>
+            <!-- <Item Name="ScaleVariationMuF" Value="down"/> -->
+            <!-- <Item Name="ScaleVariationMuF" Value="up"/> -->
+
+            <Item Name="PDFvariations" Value="false"/>
+            <!-- <Item Name="PDFvariations" Value="true"/> -->
+
+        </UserConfig>
+    </Cycle>
+</JobConfiguration>
