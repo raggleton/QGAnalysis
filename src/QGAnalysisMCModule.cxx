@@ -22,6 +22,7 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisUnfoldHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisZPlusJetsHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisZPlusJetsGenHists.h"
+#include "UHH2/QGAnalysis/include/QGAnalysisDijetGenHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisDijetHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisTheoryHists.h"
 #include "UHH2/QGAnalysis/include/QGAddModules.h"
@@ -76,6 +77,7 @@ private:
     std::unique_ptr<Hists> zplusjets_qg_hists, zplusjets_qg_hists_groomed;
     std::unique_ptr<Hists> zplusjets_qg_unfold_hists, zplusjets_qg_unfold_hists_groomed;
 
+    std::unique_ptr<Hists> dijet_gen_hists;
     std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_hists_tighter;
     std::unique_ptr<Hists> dijet_hists_presel_gg, dijet_hists_presel_qg, dijet_hists_presel_gq, dijet_hists_presel_qq;
     std::unique_ptr<Hists> dijet_hists_presel_q_unknown, dijet_hists_presel_g_unknown, dijet_hists_presel_unknown_unknown, dijet_hists_presel_unknown_q, dijet_hists_presel_unknown_g;
@@ -403,6 +405,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         // DIJET hists
         std::string binning_method = "ave";
         if (DO_STANDARD_HISTS) {
+            dijet_gen_hists.reset(new QGAnalysisDijetGenHists(ctx, "Dijet_gen"));
             dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
             dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet", binning_method));
             dijet_hists_tighter.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
@@ -725,6 +728,8 @@ bool QGAnalysisMCModule::process(Event & event) {
         //
         // So we do eta sorting, and jet lambda, then do all the hist filling,
         // since they might use these handles.
+
+        dijet_gen_hists->fill(event);
 
         if (hasRecoJets && njet_two_sel->passes(event)) {
             // Sort by eta & assign to handles
