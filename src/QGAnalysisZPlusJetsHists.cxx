@@ -14,14 +14,14 @@ using namespace std;
 using namespace uhh2;
 using namespace uhh2examples;
 
-QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string & dirname, const std::string & zLabel_):
+QGAnalysisZPlusJetsHists::QGAnalysisZPlusJetsHists(Context & ctx, const string & dirname, const string & zLabel_, const string & genjets_name):
 Hists(ctx, dirname),
 hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
 {
   string jet_cone = ctx.get("JetCone", "AK4");
   jetRadius = get_jet_radius(jet_cone);
 
-  if (ctx.get("dataset_type") == "MC") genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > ("GoodGenJets");
+  if (ctx.get("dataset_type") == "MC") genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > (genjets_name);
 
   // book all histograms here
   // jets
