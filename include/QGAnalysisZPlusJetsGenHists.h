@@ -51,6 +51,7 @@ protected:
 
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
     uhh2::Event::Handle<std::vector<GenParticle>> genMuons_handle;
+    uhh2::Event::Handle<double> gen_weight_handle;
 };
 
 }
