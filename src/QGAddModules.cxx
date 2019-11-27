@@ -302,6 +302,8 @@ MCReweighting::MCReweighting(uhh2::Context & ctx, const std::string & genjet_nam
   }
   std::string region = is_DY ? "zplusjets" : "dijet";
   pt_reweighter.reset(new PtReweight(ctx, genjet_name, pt_filename, region));
+
+  mc_scalevar.reset(new MCScaleVariation(ctx));
 }
 
 
@@ -316,11 +318,14 @@ bool MCReweighting::process(uhh2::Event & event) {
       z_reweighter->process(event);
     }
     pt_reweighter->process(event);
+    mc_scalevar->process(event);
 
     // ONLY DO THIS AFTER ALL GEN-SPECIFIC REWEIGHTING
+    // Take the existing gen_weight, and update it with the gen bits we just did
     old_gen_weight *= (event.weight / old_weight);
 
     pileup_reweighter->process(event);
+
 
     if (doMuons) {
       muon_id_reweighter_pt_eta->process(event);

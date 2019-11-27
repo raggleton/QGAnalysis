@@ -150,6 +150,7 @@ private:
   std::unique_ptr<MCMuonTrkScaleFactor> muon_trk_reweighter;
   std::unique_ptr<ZkFactorReweight> z_reweighter;
   std::unique_ptr<PtReweight> pt_reweighter;
+  std::unique_ptr<MCScaleVariation> mc_scalevar;
   bool doMuons, is_DY;
 };
 

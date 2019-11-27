@@ -53,7 +53,6 @@ private:
 
     std::unique_ptr<GeneralEventSetup> common_setup;
     std::unique_ptr<MCReweighting> mc_reweight;
-    std::unique_ptr<MCScaleVariation> mc_scalevar;
 
     std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreatorPtSorted, jetLambdaCreatorForward, jetLambdaCreatorCentral;
     std::unique_ptr<QGAnalysisGenJetLambda> genjetLambdaCreatorPtSorted, genjetLambdaCreatorForward, genjetLambdaCreatorCentral;
@@ -156,7 +155,6 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     genmuons_handle = ctx.get_handle< std::vector<GenParticle> > (genmuon_handle_name);
 
     mc_reweight.reset(new MCReweighting(ctx, genjet_handle_name, genmuon_handle_name));
-    mc_scalevar.reset(new MCScaleVariation(ctx));
 
     gen_weight_handle = ctx.get_handle<double>("gen_weight");
     pt_binning_reco_handle = ctx.get_handle<double>("pt_binning_reco_value"); // the value to use for reco pt bin e.g dijet average
@@ -596,7 +594,6 @@ bool QGAnalysisMCModule::process(Event & event) {
     event.set(genjets_handle, std::move(goodGenJets));
 
     // MC-specific parts like reweighting for SF, for muR/F scale, etc
-    mc_scalevar->process(event);
     mc_reweight->process(event); // also responsible for setting gen weight, so do after scale variations
 
     // Need these as loosest possible requirement to run reco- or gen-specific bits
