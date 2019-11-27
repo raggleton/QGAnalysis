@@ -220,6 +220,9 @@ genjets_handle(ctx.get_handle<std::vector<GenJetWithParts>>(genjets_name))
 {
   if (weightFilename_ != "" && region_ != "") {
     TFile f_weight(weightFilename_.c_str());
+    if (f_weight.IsZombie()) {
+      throw std::runtime_error("Cannot open " + weightFilename_);
+    }
     if (region_ == "dijet") {
       reweightHist.reset((TH1F*) f_weight.Get("dijet"));
       method = "dijet";
@@ -312,6 +315,8 @@ bool MCReweighting::process(uhh2::Event & event) {
     if (is_DY) {
       z_reweighter->process(event);
     }
+    pt_reweighter->process(event);
+
     // ONLY DO THIS AFTER ALL GEN-SPECIFIC REWEIGHTING
     old_gen_weight *= (event.weight / old_weight);
 
