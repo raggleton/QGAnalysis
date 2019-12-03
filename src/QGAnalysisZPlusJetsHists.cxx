@@ -97,10 +97,10 @@ hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
   pt_mumu = book<TH1F>("pt_mumu", TString::Format(";p_{T}^{%s} [GeV];", zName.Data()), nbins_pt, 0, pt_max);
 
 
-  deta_mumu_vs_pt = book<TH2F>(TString::Format("deta_mumu_vs_%s", binByVar.Data()), TString::Format(";|#Delta#eta_{%s}|;%s", zName.Data(), binByVarLabel.Data()), nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
-  dphi_mumu_vs_pt = book<TH2F>(TString::Format("dphi_mumu_vs_%s", binByVar.Data()), TString::Format(";|#Delta#phi_{%s}|;%s", zName.Data(), binByVarLabel.Data()), nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
-  deta_mumu_jet1_vs_pt = book<TH2F>(TString::Format("deta_mumu_jet1_vs_%s", binByVar.Data()), TString::Format(";|#Delta#eta_{%s, jet 1}|;%s", zName.Data(), binByVarLabel.Data()), nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
-  dphi_mumu_jet1_vs_pt = book<TH2F>(TString::Format("dphi_mumu_jet1_vs_%s", binByVar.Data()), TString::Format(";|#Delta#phi_{%s, jet 1}|;%s", zName.Data(), binByVarLabel.Data()), nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
+  deta_mumu_vs_pt = book<TH2F>(TString::Format("deta_mumu_vs_%s", binByVar.Data()), TString::Format(";|#Delta#eta(#mu, #mu)|;%s", binByVarLabel.Data()), nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
+  dphi_mumu_vs_pt = book<TH2F>(TString::Format("dphi_mumu_vs_%s", binByVar.Data()), TString::Format(";|#Delta#phi(#mu, #mu)|;%s",binByVarLabel.Data()), nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
+  deta_mumu_jet1_vs_pt = book<TH2F>(TString::Format("deta_mumu_jet1_vs_%s", binByVar.Data()), TString::Format(";|#Delta#eta(%s, jet 1)|;%s", zName.Data(), binByVarLabel.Data()), nbins_eta, 0, 2*eta_max, nbins_pt, 0, pt_max);
+  dphi_mumu_jet1_vs_pt = book<TH2F>(TString::Format("dphi_mumu_jet1_vs_%s", binByVar.Data()), TString::Format(";|#Delta#phi(%s, jet 1)|;%s", zName.Data(), binByVarLabel.Data()), nbins_phi, 0, phi_max, nbins_pt, 0, pt_max);
 
   // primary vertices
   n_pv = book<TH1F>("N_pv", ";N_{PV};", 50, 0, 50);

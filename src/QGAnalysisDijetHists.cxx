@@ -95,9 +95,9 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
 
   m_jj_vs_pt_jet = book<TH2F>("m_jj_vs_pt_jet", TString::Format(";m_{jj} [GeV];%s", binByVarLabel.Data()), 200, 0, 4000, nbins_pt_equal, 0, pt_max);
 
-  deta_jj_vs_pt_jet = book<TH2F>("deta_jj_vs_pt_jet", TString::Format(";|#Delta#eta_{jj}|;%s", binByVarLabel.Data()), nbins_eta, 0, 2*eta_max, nbins_pt_equal, 0, pt_max);
-  dphi_jj_vs_pt_jet = book<TH2F>("dphi_jj_vs_pt_jet", TString::Format(";|#Delta#phi_{jj}|;%s", binByVarLabel.Data()), nbins_phi, 0, phi_max, nbins_pt_equal, 0, pt_max);
-  sumeta_jj_vs_pt_jet = book<TH2F>("sumeta_jj_vs_pt_jet", TString::Format(";#sum#eta_{jj};%s", binByVarLabel.Data()), 2*nbins_eta, -2*eta_max, 2*eta_max, nbins_pt_equal, 0, pt_max);
+  deta_jj_vs_pt_jet = book<TH2F>("deta_jj_vs_pt_jet", TString::Format(";|#Delta#eta(jet1, jet2)|;%s", binByVarLabel.Data()), nbins_eta, 0, 2*eta_max, nbins_pt_equal, 0, pt_max);
+  dphi_jj_vs_pt_jet = book<TH2F>("dphi_jj_vs_pt_jet", TString::Format(";|#Delta#phi(jet1, jet2)|;%s", binByVarLabel.Data()), nbins_phi, 0, phi_max, nbins_pt_equal, 0, pt_max);
+  sumeta_jj_vs_pt_jet = book<TH2F>("sumeta_jj_vs_pt_jet", TString::Format(";#sum#eta(jet1, jet2)};%s", binByVarLabel.Data()), 2*nbins_eta, -2*eta_max, 2*eta_max, nbins_pt_equal, 0, pt_max);
 
   // Possible 3rd jet in the event
   pt_jet3_vs_pt_jet = book<TH2F>("pt_jet3_vs_pt_jet", TString::Format(";p_{T}^{jet 3};%s", binByVarLabel.Data()), nbins_pt_equal, 0, 500, nbins_pt_equal, 0, pt_max);
