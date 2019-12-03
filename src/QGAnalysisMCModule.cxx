@@ -235,7 +235,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // Setup for systematics
     // FIXME put all this inside the ctor as it has ctx!
     std::string chargedHadronShift = ctx.get("chargedHadronShift", "nominal");
-    float chargedHadronShiftAmount = 0.03;
+    float chargedHadronShiftAmount = 0.01;
     if (chargedHadronShift == "nominal") {
         // pass
     } else if (chargedHadronShift == "up") {
@@ -251,7 +251,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     }
 
     std::string neutralHadronShift = ctx.get("neutralHadronShift", "nominal");
-    float neutralHadronShiftAmount = 0.1;
+    float neutralHadronShiftAmount = 0.03;
     if (neutralHadronShift == "nominal") {
         // pass
     } else if (neutralHadronShift == "up") {
