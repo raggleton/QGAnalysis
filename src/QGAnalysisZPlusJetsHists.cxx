@@ -45,7 +45,17 @@ hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
   pt_genjet_response_binning = book<TH1F>("pt_genjet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), Binning::nbins_pt_zpj_reco_all, &Binning::pt_bin_edges_zpj_reco_all[0]);
 
   eta_jet1_vs_pt = book<TH2F>(TString::Format("eta_jet1_vs_%s", binByVar.Data()), TString::Format(";#eta^{jet 1};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
-  pt_jet1_z_ratio_vs_pt = book<TH2F>(TString::Format("pt_jet1_z_ratio_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{jet 1}/ p_{T}^{%s};%s", zName.Data(), binByVarLabel.Data()), 50, 0, 5, nbins_pt, 0, pt_max);
+
+  float ratio_lim = 8.;
+  int nbins_ratio = ratio_lim*20;
+  pt_jet1_z_ratio_vs_pt = book<TH2F>(TString::Format("pt_jet1_z_ratio_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{jet 1} / p_{T}^{%s};%s", zName.Data(), binByVarLabel.Data()), nbins_ratio, 0, ratio_lim, nbins_pt, 0, pt_max);
+  pt_jet1_z_ratio_vs_pt_jet1 = book<TH2F>("pt_jet1_z_ratio_vs_pt_jet1", TString::Format(";p_{T}^{jet 1} / p_{T}^{%s};p_{T}^{jet 1} [GeV]", zName.Data()), nbins_ratio, 0, ratio_lim, nbins_pt, 0, pt_max);
+
+  float asym_lim = 1.; // maximum is ±1 by construction
+  int nbins_asym = 2*asym_lim*20;
+  jet1_z_asym_vs_pt = book<TH2F>(TString::Format("jet1_z_asym_vs_%s", binByVar.Data()), TString::Format(";(p_{T}^{jet 1} - p_{T}^{%s}) /(p_{T}^{jet 1} + p_{T}^{%s});%s", zName.Data(), zName.Data(), binByVarLabel.Data()), nbins_asym, -asym_lim, asym_lim, nbins_pt, 0, pt_max);
+  jet1_z_asym_vs_pt_jet1 = book<TH2F>("jet1_z_asym_vs_pt_jet1", TString::Format(";(p_{T}^{jet 1} - p_{T}^{%s}) /(p_{T}^{jet 1} + p_{T}^{%s});p_{T}^{jet 1} [GeV]", zName.Data(), zName.Data()), nbins_asym, -asym_lim, asym_lim, nbins_pt, 0, pt_max);
+
   pt_jet_genHT_ratio = book<TH1F>("pt_jet_genHT_ratio", ";p_{T}^{jet 1}/GenHT", 250, 0, 2.5);
   pt_jet_response_fine = book<TH2F>("pt_jet_response_fine", ";p_{T}^{jet 1} (GEN);p_{T}^{jet 1} (RECO)", nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
   pt_jet_response = book<TH2F>("pt_jet_response", ";p_{T}^{jet 1} (GEN);p_{T}^{jet 1} (RECO)", Binning::nbins_pt_zpj_reco_all, &Binning::pt_bin_edges_zpj_reco_all[0], Binning::nbins_pt_zpj_reco_all, &Binning::pt_bin_edges_zpj_reco_all[0]);
@@ -264,6 +274,11 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   met_sig_vs_pt->Fill(event.met->mEtSig(), binPt, weight);
 
   pt_jet1_z_ratio_vs_pt->Fill(jet1_pt / z_pt, binPt, weight);
+  pt_jet1_z_ratio_vs_pt_jet1->Fill(jet1_pt / z_pt, jet1_pt, weight);
+
+  jet1_z_asym_vs_pt->Fill((jet1_pt - z_pt) / (jet1_pt + z_pt), binPt, weight);
+  jet1_z_asym_vs_pt_jet1->Fill((jet1_pt - z_pt) / (jet1_pt + z_pt), jet1_pt, weight);
+
   deta_mumu_jet1_vs_pt->Fill(fabs(z_cand.eta() - jet1.eta()), binPt, weight);
   dphi_mumu_jet1_vs_pt->Fill(fabs(deltaPhi(jet1, z_cand)), binPt, weight);
 
