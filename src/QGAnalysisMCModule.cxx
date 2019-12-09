@@ -73,12 +73,14 @@ private:
     std::unique_ptr<Hists> zplusjets_gen_hists;
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists;
     std::unique_ptr<Hists> zplusjets_hists_presel_q, zplusjets_hists_presel_g, zplusjets_hists_presel_unknown;
+    std::unique_ptr<Hists> zplusjets_hists_q, zplusjets_hists_g, zplusjets_hists_unknown;
     std::unique_ptr<Hists> zplusjets_qg_hists, zplusjets_qg_hists_groomed;
     std::unique_ptr<Hists> zplusjets_qg_unfold_hists, zplusjets_qg_unfold_hists_groomed;
 
     std::unique_ptr<Hists> dijet_gen_hists;
     std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_hists_eta_ordered, dijet_hists_tighter;
     std::unique_ptr<Hists> dijet_hists_presel_gg, dijet_hists_presel_qg, dijet_hists_presel_gq, dijet_hists_presel_qq;
+    std::unique_ptr<Hists> dijet_hists_eta_ordered_gg, dijet_hists_eta_ordered_qg, dijet_hists_eta_ordered_gq, dijet_hists_eta_ordered_qq;
     std::unique_ptr<Hists> dijet_hists_presel_q_unknown, dijet_hists_presel_g_unknown, dijet_hists_presel_unknown_unknown, dijet_hists_presel_unknown_q, dijet_hists_presel_unknown_g;
     std::unique_ptr<Hists> dijet_qg_hists, dijet_qg_hists_central_tighter, dijet_qg_hists_forward_tighter, dijet_qg_hists_central_tighter_groomed, dijet_qg_hists_forward_tighter_groomed;
     std::unique_ptr<Hists> dijet_qg_unfold_hists_central_tighter, dijet_qg_unfold_hists_forward_tighter;
@@ -349,9 +351,13 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
         if (DO_FLAVOUR_HISTS) {
             // preselection hists, if jet is quark, or gluon
-            zplusjets_hists_presel_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_q", zLabel));
-            zplusjets_hists_presel_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_g", zLabel));
-            zplusjets_hists_presel_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown", zLabel));
+            // zplusjets_hists_presel_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_q", zLabel));
+            // zplusjets_hists_presel_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_g", zLabel));
+            // zplusjets_hists_presel_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown", zLabel));
+
+            zplusjets_hists_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_q", zLabel));
+            zplusjets_hists_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_g", zLabel));
+            zplusjets_hists_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_unknown", zLabel));
         }
 
         // Lambda variables, used for e.g. response, determine binning
@@ -413,15 +419,21 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
         if (DO_FLAVOUR_HISTS) {
             // preselection hiss, if both gluon jets, one gluon, or both quark, or one or both unknown
-            dijet_hists_presel_gg.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gg", binning_method));
-            dijet_hists_presel_qg.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qg", binning_method));
-            dijet_hists_presel_gq.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gq", binning_method));
-            dijet_hists_presel_qq.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qq", binning_method));
-            dijet_hists_presel_unknown_q.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_q", binning_method));
-            dijet_hists_presel_unknown_g.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_g", binning_method));
-            dijet_hists_presel_unknown_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_unknown", binning_method));
-            dijet_hists_presel_q_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_q_unknown", binning_method));
-            dijet_hists_presel_g_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_g_unknown", binning_method));
+            // dijet_hists_presel_gg.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gg", binning_method));
+            // dijet_hists_presel_qg.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qg", binning_method));
+            // dijet_hists_presel_gq.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_gq", binning_method));
+            // dijet_hists_presel_qq.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_qq", binning_method));
+            // dijet_hists_presel_unknown_q.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_q", binning_method));
+            // dijet_hists_presel_unknown_g.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_g", binning_method));
+            // dijet_hists_presel_unknown_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_unknown_unknown", binning_method));
+            // dijet_hists_presel_q_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_q_unknown", binning_method));
+            // dijet_hists_presel_g_unknown.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel_g_unknown", binning_method));
+
+            // eta-ordered flavour-specific hists
+            dijet_hists_eta_ordered_gg.reset(new QGAnalysisDijetHists(ctx, "Dijet_eta_ordered_gg", binning_method));
+            dijet_hists_eta_ordered_qg.reset(new QGAnalysisDijetHists(ctx, "Dijet_eta_ordered_qg", binning_method));
+            dijet_hists_eta_ordered_gq.reset(new QGAnalysisDijetHists(ctx, "Dijet_eta_ordered_gq", binning_method));
+            dijet_hists_eta_ordered_qq.reset(new QGAnalysisDijetHists(ctx, "Dijet_eta_ordered_qq", binning_method));
         }
 
         // note that each of these does neutral+charged, and charged-only
@@ -666,15 +678,15 @@ bool QGAnalysisMCModule::process(Event & event) {
             if (zFinder->process(event)) {
                 zplusjets_hists_presel->fill(event);
                 if (zplusjets_presel->passes(event)) {
-                    if (DO_FLAVOUR_HISTS) {
-                        if (flav1 == PDGID::GLUON) {
-                            zplusjets_hists_presel_g->fill(event);
-                        } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
-                            zplusjets_hists_presel_q->fill(event);
-                        } else if (flav1 == PDGID::UNKNOWN) {
-                            zplusjets_hists_presel_unknown->fill(event);
-                        }
-                    }
+                    // if (DO_FLAVOUR_HISTS) {
+                    //     if (flav1 == PDGID::GLUON) {
+                    //         zplusjets_hists_presel_g->fill(event);
+                    //     } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
+                    //         zplusjets_hists_presel_q->fill(event);
+                    //     } else if (flav1 == PDGID::UNKNOWN) {
+                    //         zplusjets_hists_presel_unknown->fill(event);
+                    //     }
+                    // }
 
                     pass_zpj_reco = zplusjets_sel->passes(event);
                     event.set(pass_zpj_sel_handle, pass_zpj_reco);
@@ -685,6 +697,16 @@ bool QGAnalysisMCModule::process(Event & event) {
                             zplusjets_hists->fill(event);
                             zplusjets_qg_hists->fill(event);
                             zplusjets_qg_hists_groomed->fill(event);
+                        }
+
+                        if (DO_FLAVOUR_HISTS) {
+                            if (flav1 == PDGID::GLUON) {
+                                zplusjets_hists_g->fill(event);
+                            } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
+                                zplusjets_hists_q->fill(event);
+                            } else if (flav1 == PDGID::UNKNOWN) {
+                                zplusjets_hists_unknown->fill(event);
+                            }
                         }
                     }
                 }
@@ -783,33 +805,33 @@ bool QGAnalysisMCModule::process(Event & event) {
 
             // Fill hists
             dijet_hists_presel->fill(event);
-            if (DO_FLAVOUR_HISTS) {
-                if (flav1 == PDGID::GLUON) {
-                    if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-                        dijet_hists_presel_gq->fill(event);
-                    } else if (flav2 == PDGID::GLUON) {
-                        dijet_hists_presel_gg->fill(event);
-                    } else if (flav2 == PDGID::UNKNOWN) {
-                        dijet_hists_presel_g_unknown->fill(event);
-                    }
-                } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
-                    if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-                        dijet_hists_presel_qq->fill(event);
-                    } else if (flav2 == PDGID::GLUON) {
-                        dijet_hists_presel_qg->fill(event);
-                    } else if (flav2 == PDGID::UNKNOWN) {
-                        dijet_hists_presel_q_unknown->fill(event);
-                    }
-                } else if (flav1 == PDGID::UNKNOWN) {
-                    if (flav2 == PDGID::GLUON) {
-                        dijet_hists_presel_unknown_g->fill(event);
-                    } else if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
-                        dijet_hists_presel_unknown_q->fill(event);
-                    } else if (flav2 == PDGID::UNKNOWN) {
-                        dijet_hists_presel_unknown_unknown->fill(event);
-                    }
-                }
-            }
+            // if (DO_FLAVOUR_HISTS) {
+            //     if (flav1 == PDGID::GLUON) {
+            //         if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+            //             dijet_hists_presel_gq->fill(event);
+            //         } else if (flav2 == PDGID::GLUON) {
+            //             dijet_hists_presel_gg->fill(event);
+            //         } else if (flav2 == PDGID::UNKNOWN) {
+            //             dijet_hists_presel_g_unknown->fill(event);
+            //         }
+            //     } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
+            //         if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+            //             dijet_hists_presel_qq->fill(event);
+            //         } else if (flav2 == PDGID::GLUON) {
+            //             dijet_hists_presel_qg->fill(event);
+            //         } else if (flav2 == PDGID::UNKNOWN) {
+            //             dijet_hists_presel_q_unknown->fill(event);
+            //         }
+            //     } else if (flav1 == PDGID::UNKNOWN) {
+            //         if (flav2 == PDGID::GLUON) {
+            //             dijet_hists_presel_unknown_g->fill(event);
+            //         } else if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+            //             dijet_hists_presel_unknown_q->fill(event);
+            //         } else if (flav2 == PDGID::UNKNOWN) {
+            //             dijet_hists_presel_unknown_unknown->fill(event);
+            //         }
+            //     }
+            // }
 
             // pass_dj_reco = dijet_sel->passes(event);
             pass_dj_reco = dijet_sel_tighter->passes(event);
@@ -833,13 +855,44 @@ bool QGAnalysisMCModule::process(Event & event) {
                 }
             }
 
+            // do eta-sorted dijet hists (where we need both jets)
+
+
             if (DO_STANDARD_HISTS && standard_sel) {
                 // do dijet hists but sorted by eta (only one that matters about eta-ordering)
-                Jet & centralJet = event.get(dijet_central_handle)[0];
-                Jet & forwardJet = event.get(dijet_forward_handle)[0];
-                std::vector<Jet> eta_ordered_vec = {centralJet, forwardJet};
-                std::swap(*event.jets, eta_ordered_vec);
+                // get them from event.jets and not the central/forward handles,
+                // since event.jets has correct genjet_index
+                std::vector<Jet> leadingJets(event.jets->begin(), event.jets->begin()+2);
+                if (leadingJets.size() != 2) {
+                    throw std::runtime_error("Slicing jets gone wrong!");
+                }
+                sort_by_eta(leadingJets);  // by descending eta, so jets[0] = fwd, jets[1] = cen
+                std::swap(*event.jets, leadingJets);
                 dijet_hists_eta_ordered->fill(event);
+
+                // flav-specific eta-orderd hists, useful for optimising selection
+                flav1 = event.jets->at(0).flavor();
+                flav2 = event.jets->at(1).flavor();
+
+                // cout << "eta order plots: " << endl;
+                // if (event.jets->size() > 0) cout << "jet[0].genjet_index: " << event.jets->at(0).genjet_index() << endl;
+                // if (event.jets->size() > 1) cout << "jet[1].genjet_index: " << event.jets->at(1).genjet_index() << endl;
+
+                if (DO_FLAVOUR_HISTS) {
+                    if (flav1 == PDGID::GLUON) {
+                        if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                            dijet_hists_eta_ordered_gq->fill(event);
+                        } else if (flav2 == PDGID::GLUON) {
+                            dijet_hists_eta_ordered_gg->fill(event);
+                        }
+                    } else if (flav1 > PDGID::UNKNOWN && flav1 < PDGID::CHARM_QUARK) {
+                        if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
+                            dijet_hists_eta_ordered_qq->fill(event);
+                        } else if (flav2 == PDGID::GLUON) {
+                            dijet_hists_eta_ordered_qg->fill(event);
+                        }
+                    }
+                }
             }
         }
 

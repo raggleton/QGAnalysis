@@ -46,6 +46,8 @@ hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
 
   eta_jet1_vs_pt = book<TH2F>(TString::Format("eta_jet1_vs_%s", binByVar.Data()), TString::Format(";#eta^{jet 1};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
 
+  flav_jet1_vs_pt_jet1 = book<TH2F>("flav_jet1_vs_pt_jet1", ";jet 1 flav;p_{T}^{jet1};", 23, -0.5, 22.5, nbins_pt, 0, pt_max);
+
   float ratio_lim = 8.;
   int nbins_ratio = ratio_lim*20;
   pt_jet1_z_ratio_vs_pt = book<TH2F>(TString::Format("pt_jet1_z_ratio_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{jet 1} / p_{T}^{%s};%s", zName.Data(), binByVarLabel.Data()), nbins_ratio, 0, ratio_lim, nbins_pt, 0, pt_max);
@@ -166,6 +168,7 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   pt_jet1->Fill(jet1_pt, weight);
   pt_jet_response_binning->Fill(jet1_pt, weight);
   eta_jet1_vs_pt->Fill(jet1.eta(), binPt, weight);
+  flav_jet1_vs_pt_jet1->Fill(abs(jet1.flavor()), jet1_pt, weight);
 
   if (!event.isRealData) {
     float genHT = calcGenHT(*(event.genparticles));
