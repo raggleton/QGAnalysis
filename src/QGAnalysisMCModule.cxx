@@ -77,7 +77,7 @@ private:
     std::unique_ptr<Hists> zplusjets_qg_unfold_hists, zplusjets_qg_unfold_hists_groomed;
 
     std::unique_ptr<Hists> dijet_gen_hists;
-    std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_hists_tighter;
+    std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_hists_eta_ordered, dijet_hists_tighter;
     std::unique_ptr<Hists> dijet_hists_presel_gg, dijet_hists_presel_qg, dijet_hists_presel_gq, dijet_hists_presel_qq;
     std::unique_ptr<Hists> dijet_hists_presel_q_unknown, dijet_hists_presel_g_unknown, dijet_hists_presel_unknown_unknown, dijet_hists_presel_unknown_q, dijet_hists_presel_unknown_g;
     std::unique_ptr<Hists> dijet_qg_hists, dijet_qg_hists_central_tighter, dijet_qg_hists_forward_tighter, dijet_qg_hists_central_tighter_groomed, dijet_qg_hists_forward_tighter_groomed;
@@ -319,7 +319,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         bool ss_eta = false;
         float deta = 12;
         float sumEta = 10.;
-        dijet_sel.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, 1000, ss_eta, deta, sumEta));
+        dijet_sel.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, 1000, ss_eta, deta, sumEta)); // this is without any asymmetry cut
         dijet_sel_tighter.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta));
 
         dijet_gen_sel.reset(new DijetGenSelection(ctx, dphi_min/mcSelFactor, second_jet_frac_max_dj*mcSelFactor, jet_asym_max*mcSelFactor, ss_eta, deta*mcSelFactor, sumEta*mcSelFactor,
@@ -407,6 +407,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
             dijet_gen_hists.reset(new QGAnalysisDijetGenHists(ctx, "Dijet_gen"));
             dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
             dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet", binning_method));
+            dijet_hists_eta_ordered.reset(new QGAnalysisDijetHists(ctx, "Dijet_eta_ordered", binning_method));
             dijet_hists_tighter.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
         }
 
@@ -817,8 +818,9 @@ bool QGAnalysisMCModule::process(Event & event) {
                 dijet_gen_sel_passReco->passes(event); // this plots cutflow as well - only if we pass dijet reco selection
                 genjet_hists_passDijetReco->fill(event);
             }
+            bool standard_sel = dijet_sel->passes(event);
             if (DO_STANDARD_HISTS) {
-                if (dijet_sel->passes(event)) {
+                if (standard_sel) {
                     dijet_hists->fill(event);
                     dijet_qg_hists->fill(event);
                 }
@@ -829,6 +831,15 @@ bool QGAnalysisMCModule::process(Event & event) {
                     dijet_qg_hists_central_tighter_groomed->fill(event);
                     dijet_qg_hists_forward_tighter_groomed->fill(event);
                 }
+            }
+
+            if (DO_STANDARD_HISTS && standard_sel) {
+                // do dijet hists but sorted by eta (only one that matters about eta-ordering)
+                Jet & centralJet = event.get(dijet_central_handle)[0];
+                Jet & forwardJet = event.get(dijet_forward_handle)[0];
+                std::vector<Jet> eta_ordered_vec = {centralJet, forwardJet};
+                std::swap(*event.jets, eta_ordered_vec);
+                dijet_hists_eta_ordered->fill(event);
             }
         }
 

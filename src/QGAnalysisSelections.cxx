@@ -179,7 +179,8 @@ bool DijetSelection::passes(const Event & event){
     const auto & jet1 = event.jets->at(0);
     const auto & jet2 = event.jets->at(1);
 
-    if ((jet2.pt() / jet1.pt()) > second_jet_frac_max_) return false;
+    float ratio = (jet1.pt() > jet2.pt()) ? jet2.pt() / jet1.pt() : jet1.pt() / jet2.pt();
+    if (ratio > second_jet_frac_max_) return false;
 
     auto dphi = fabs(deltaPhi(jet1, jet2));
     if (dphi < dphi_min_) return false;
@@ -191,7 +192,7 @@ bool DijetSelection::passes(const Event & event){
 
     if (fabs(eta1 - eta2) > deta_max_) return false;
 
-    if (((jet1.pt() - jet2.pt())/(jet1.pt() + jet2.pt())) > jet_asym_max_) return false;
+    if ((fabs(jet1.pt() - jet2.pt())/(jet1.pt() + jet2.pt())) > jet_asym_max_) return false;
 
     return true;
 }
@@ -248,7 +249,8 @@ bool DijetGenSelection::passes(const Event & event){
     const auto & jet1 = jets.at(0);
     const auto & jet2 = jets.at(1);
 
-    if ((jet2.pt() / jet1.pt()) > second_jet_frac_max_) return false;
+    float ratio = (jet1.pt() > jet2.pt()) ? jet2.pt() / jet1.pt() : jet1.pt() / jet2.pt();
+    if (ratio > second_jet_frac_max_) return false;
     i++;
     cutflow_raw->Fill(i);
     cutflow_weighted->Fill(i, event.weight);
@@ -272,7 +274,7 @@ bool DijetGenSelection::passes(const Event & event){
     cutflow_raw->Fill(i);
     cutflow_weighted->Fill(i, event.weight);
 
-    if (((jet1.pt() - jet2.pt())/(jet1.pt() + jet2.pt())) > jet_asym_max_) return false;
+    if ((fabs(jet1.pt() - jet2.pt())/(jet1.pt() + jet2.pt())) > jet_asym_max_) return false;
     i++;
     cutflow_raw->Fill(i);
     cutflow_weighted->Fill(i, event.weight);

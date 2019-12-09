@@ -131,10 +131,11 @@ void QGAnalysisDijetHists::fill(const Event & event){
   double jet2_pt = jet2.pt();
 
   double binByVal = 0.;
+  double largest_jet_pt = max(jet1_pt, jet2_pt);
   if (binning == "ave") {
     binByVal = (jet1_pt + jet2_pt)/2.;
   } else if (binning == "leading") {
-    binByVal = jet1_pt;
+    binByVal = largest_jet_pt;
   }
 
 
@@ -154,10 +155,10 @@ void QGAnalysisDijetHists::fill(const Event & event){
 
   if (is_mc_) {
     float genHT = calcGenHT(*event.genparticles);
-    pt_jet_qScale_ratio->Fill(jet1_pt / event.genInfo->pdf_scalePDF(), weight);
-    pt_jet_genHT_ratio->Fill(jet1_pt / genHT, weight);
-    pt_jet_vs_pdf_scalePDF->Fill(jet1_pt, event.genInfo->pdf_scalePDF(), weight);
-    pt_jet_vs_genHT->Fill(jet1_pt, genHT, weight);
+    pt_jet_qScale_ratio->Fill(largest_jet_pt / event.genInfo->pdf_scalePDF(), weight);
+    pt_jet_genHT_ratio->Fill(largest_jet_pt / genHT, weight);
+    pt_jet_vs_pdf_scalePDF->Fill(largest_jet_pt, event.genInfo->pdf_scalePDF(), weight);
+    pt_jet_vs_genHT->Fill(largest_jet_pt, genHT, weight);
     weight_vs_puHat_genHT_ratio->Fill(weight, event.genInfo->PU_pT_hat_max() / genHT);
 
     const std::vector<GenJetWithParts> * genjets = &event.get(genJets_handle);
@@ -321,8 +322,10 @@ void QGAnalysisDijetHists::fill(const Event & event){
   eta_jet2_vs_pt_jet->Fill(jet2.eta(), binByVal, weight);
   phi_jet2_vs_pt_jet->Fill(jet2.phi(), binByVal, weight);
 
-  pt_jet1_jet2_ratio_vs_pt_jet->Fill(jet2_pt / jet1_pt, binByVal, weight);
-  jet1_jet2_asym_vs_pt_jet->Fill((jet1_pt - jet2_pt) / (jet1_pt + jet2_pt), binByVal, weight);
+  // ensure it's always smaller / bigger
+  float ratio = (jet1_pt > jet2_pt) ? jet2_pt / jet1_pt : jet1_pt / jet2_pt;
+  pt_jet1_jet2_ratio_vs_pt_jet->Fill(ratio, binByVal, weight);
+  jet1_jet2_asym_vs_pt_jet->Fill(fabs(jet1_pt - jet2_pt) / (jet1_pt + jet2_pt), binByVal, weight);
 
   flav_jet1_jet2->Fill(abs(jet1.flavor()), abs(jet2.flavor()), weight);
   flav_jet1_vs_pt_jet->Fill(abs(jet1.flavor()), weight);
