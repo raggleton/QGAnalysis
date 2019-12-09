@@ -25,7 +25,7 @@ hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
 
   // book all histograms here
   // jets
-  int nbins_pt = 200;
+  int nbins_pt = 2000;
   float pt_max = 2000;
 
   int nbins_eta = 200;
