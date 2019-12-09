@@ -295,19 +295,20 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         float mu2_pt = 26.;
         float mZ_window = 20.;
         float dphi_jet_z_min = 2.0;
-        float second_jet_frac_max_zpj = 0.3;
-        zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
+        float second_jet_frac_max_zpj = 1000.3;
+        float z_pt_min = 30.; // actually the gen level cut, but resolution good so no need to scale it
+        zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min));
 
-        zplusjets_gen_sel.reset(new ZplusJetsGenSelection(ctx, mu1_pt/mcSelFactor, mu2_pt/mcSelFactor, mZ_window*mcSelFactor, dphi_jet_z_min/mcSelFactor, second_jet_frac_max_zpj*mcSelFactor,
+        zplusjets_gen_sel.reset(new ZplusJetsGenSelection(ctx, mu1_pt/mcSelFactor, mu2_pt/mcSelFactor, mZ_window*mcSelFactor, dphi_jet_z_min/mcSelFactor, second_jet_frac_max_zpj*mcSelFactor, z_pt_min,
                                                           "ZPlusJetsGenSelCutFlow", genjet_handle_name, genmuon_handle_name));
         // just to plot cutflow only when passReco==true
-        zplusjets_gen_sel_passReco.reset(new ZplusJetsGenSelection(ctx, mu1_pt/mcSelFactor, mu2_pt/mcSelFactor, mZ_window*mcSelFactor, dphi_jet_z_min/mcSelFactor, second_jet_frac_max_zpj*mcSelFactor,
+        zplusjets_gen_sel_passReco.reset(new ZplusJetsGenSelection(ctx, mu1_pt/mcSelFactor, mu2_pt/mcSelFactor, mZ_window*mcSelFactor, dphi_jet_z_min/mcSelFactor, second_jet_frac_max_zpj*mcSelFactor, z_pt_min,
                                                                    "ZPlusJetsGenSelPassRecoCutFlow", genjet_handle_name, genmuon_handle_name));
 
         // Preselection for Z+J - only 2 muons to reco Z
         dphi_jet_z_min = 0.;
         second_jet_frac_max_zpj = 999.;
-        zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj));
+        zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min));
 
     } else {
 

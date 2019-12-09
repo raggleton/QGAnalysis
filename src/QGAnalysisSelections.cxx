@@ -8,13 +8,14 @@ using namespace uhh2examples;
 using namespace uhh2;
 
 
-ZplusJetsSelection::ZplusJetsSelection(uhh2::Context & ctx, const std::string & zLabel_, float mu1_pt, float mu2_pt, float mZ_window, float dphi_jet_z_min, float second_jet_frac_max):
+ZplusJetsSelection::ZplusJetsSelection(uhh2::Context & ctx, const std::string & zLabel_, float mu1_pt, float mu2_pt, float mZ_window, float dphi_jet_z_min, float second_jet_frac_max, float z_pt_min):
     hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_)),
     mu1_pt_(mu1_pt),
     mu2_pt_(mu2_pt),
     mZ_window_(mZ_window),
     dphi_jet_z_min_(dphi_jet_z_min),
-    second_jet_frac_max_(second_jet_frac_max)
+    second_jet_frac_max_(second_jet_frac_max),
+    z_pt_min_(z_pt_min)
     {}
 
 bool ZplusJetsSelection::passes(const Event & event){
@@ -33,6 +34,8 @@ bool ZplusJetsSelection::passes(const Event & event){
     if (muon1.charge() == muon2.charge()) return false;
 
     const auto z_cand = muon1.v4() + muon2.v4();
+
+    if (z_cand.pt() < z_pt_min_) return false;
 
     float m_mumu = z_cand.M();
     if (fabs(m_mumu - 90) > mZ_window_) return false;
@@ -56,6 +59,7 @@ ZplusJetsGenSelection::ZplusJetsGenSelection(uhh2::Context & ctx,
                                              float mZ_window,
                                              float dphi_jet_z_min,
                                              float second_jet_frac_max,
+                                             float z_pt_min,
                                              const std::string & cutflow_hname,
                                              const std::string & genjet_name,
                                              const std::string & genmuon_name):
@@ -65,7 +69,8 @@ ZplusJetsGenSelection::ZplusJetsGenSelection(uhh2::Context & ctx,
     mu2_pt_(mu2_pt),
     mZ_window_(mZ_window),
     dphi_jet_z_min_(dphi_jet_z_min),
-    second_jet_frac_max_(second_jet_frac_max)
+    second_jet_frac_max_(second_jet_frac_max),
+    z_pt_min_(z_pt_min)
     {
         // Remember to update when you update passes() ! Yes is horrible
         std::vector<std::string> descriptions = {
@@ -74,9 +79,10 @@ ZplusJetsGenSelection::ZplusJetsGenSelection(uhh2::Context & ctx,
             "muon1_pt",
             "muon2_pt",
             "muon_os",
+            "z_pt_min"
             "m_mumu",
             "dphi_jet_z_min",
-            "second_jet_frac_max"
+            "second_jet_frac_max",
         };
         cutflow_raw = new TH1D(("cf_" + cutflow_hname + "_raw").c_str(), ("Cutflow '" + cutflow_hname + "' unweighted").c_str(), descriptions.size()+1, -1, descriptions.size());
         cutflow_weighted = new TH1D(("cf_" + cutflow_hname).c_str(), ("Cutflow '" + cutflow_hname + "' using weights").c_str(), descriptions.size()+1, -1, descriptions.size());
@@ -128,6 +134,11 @@ bool ZplusJetsGenSelection::passes(const Event & event){
     cutflow_weighted->Fill(i, event.weight);
 
     const auto z_cand = muon1.v4() + muon2.v4();
+
+    if (z_cand.pt() < z_pt_min_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i);
 
     float m_mumu = z_cand.M();
     if (fabs(m_mumu - 90) > mZ_window_) return false;

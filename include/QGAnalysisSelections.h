@@ -25,11 +25,12 @@ public:
                        float mu2_pt=20.,
                        float mZ_window=20., // NB also in conjunction with ZFinder cuts
                        float dphi_jet_z_min=2.0,
-                       float second_jet_frac_max=0.3);
+                       float second_jet_frac_max=0.3,
+                       float z_pt_min=0.);
     virtual bool passes(const uhh2::Event & event) override;
 private:
     uhh2::Event::Handle<std::vector<Muon>> hndlZ;
-    float mu1_pt_, mu2_pt_, mZ_window_, dphi_jet_z_min_, second_jet_frac_max_;
+    float mu1_pt_, mu2_pt_, mZ_window_, dphi_jet_z_min_, second_jet_frac_max_, z_pt_min_;
 };
 
 
@@ -44,6 +45,7 @@ public:
                           float mZ_window=20.,
                           float dphi_jet_z_min=2.0,
                           float second_jet_frac_max=0.3,
+                          float z_pt_min=0.,
                           const std::string & cutflow_hname = "_ZplusJetsGen",
                           const std::string & genjet_name="GoodGenJets",
                           const std::string & genmuon_name="GoodGenMuons");
@@ -51,7 +53,7 @@ public:
 private:
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
     uhh2::Event::Handle<std::vector<GenParticle>> zMuons_handle;
-    float mu1_pt_, mu2_pt_, mZ_window_, dphi_jet_z_min_, second_jet_frac_max_;
+    float mu1_pt_, mu2_pt_, mZ_window_, dphi_jet_z_min_, second_jet_frac_max_, z_pt_min_;
     TH1D * cutflow_raw, * cutflow_weighted; // owned by Context
 };
 
