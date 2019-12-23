@@ -82,7 +82,7 @@ private:
     std::unique_ptr<Hists> dijet_hists_presel_gg, dijet_hists_presel_qg, dijet_hists_presel_gq, dijet_hists_presel_qq;
     std::unique_ptr<Hists> dijet_hists_eta_ordered_gg, dijet_hists_eta_ordered_qg, dijet_hists_eta_ordered_gq, dijet_hists_eta_ordered_qq;
     std::unique_ptr<Hists> dijet_hists_presel_q_unknown, dijet_hists_presel_g_unknown, dijet_hists_presel_unknown_unknown, dijet_hists_presel_unknown_q, dijet_hists_presel_unknown_g;
-    std::unique_ptr<Hists> dijet_qg_hists, dijet_qg_hists_central_tighter, dijet_qg_hists_forward_tighter, dijet_qg_hists_central_tighter_groomed, dijet_qg_hists_forward_tighter_groomed;
+    std::unique_ptr<Hists> dijet_qg_hists, dijet_qg_hists_tighter, dijet_qg_hists_central_tighter, dijet_qg_hists_forward_tighter, dijet_qg_hists_central_tighter_groomed, dijet_qg_hists_forward_tighter_groomed;
     std::unique_ptr<Hists> dijet_qg_unfold_hists_central_tighter, dijet_qg_unfold_hists_forward_tighter;
     std::unique_ptr<Hists> dijet_qg_unfold_hists_central_tighter_groomed, dijet_qg_unfold_hists_forward_tighter_groomed;
 
@@ -445,6 +445,10 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
                                                      NJETS_DIJET, false, dj_sel,
                                                      pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
                                                      reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+            dijet_qg_hists_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter",
+                                                             NJETS_DIJET, false, dj_sel,
+                                                             pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
+                                                             reco_jetlambda_handle_name, gen_jetlambda_handle_name));
             dijet_qg_hists_central_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_central_tighter",
                                                                      1, false, dj_sel,
                                                                      pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
@@ -850,6 +854,7 @@ bool QGAnalysisMCModule::process(Event & event) {
                 }
                 if (dijet_sel_tighter->passes(event)) {
                     dijet_hists_tighter->fill(event);
+                    dijet_qg_hists_tighter->fill(event);
                     dijet_qg_hists_central_tighter->fill(event);
                     dijet_qg_hists_forward_tighter->fill(event);
                     dijet_qg_hists_central_tighter_groomed->fill(event);
