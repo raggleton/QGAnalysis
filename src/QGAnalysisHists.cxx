@@ -21,6 +21,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   dirname_(dirname),
   useNJets_(useNJets),
   doGroomed_(doGroomed),
+  rsp_lowPt_cut_(30.),
   rsp_midPt_cut_(100.),
   rsp_highPt_cut_(250.),
   recoDauPtCut_(1.)
@@ -716,7 +717,7 @@ void QGAnalysisHists::fill_lambda_rsp_hists(float reco_val, float gen_val, float
       response_highPt->Fill(gen_val, reco_val, weight);
     } else if (jet_pt > rsp_midPt_cut_) {
       response_midPt->Fill(gen_val, reco_val, weight);
-    } else {
+    } else if (jet_pt > rsp_lowPt_cut_) {
       response_lowPt->Fill(gen_val, reco_val, weight);
     }
   }
@@ -725,7 +726,7 @@ void QGAnalysisHists::fill_lambda_rsp_hists(float reco_val, float gen_val, float
       rel_response_highPt->Fill(gen_val, rsp, weight);
     } else if (jet_pt > rsp_midPt_cut_) {
       rel_response_midPt->Fill(gen_val, rsp, weight);
-    } else {
+    } else if (jet_pt > rsp_lowPt_cut_){
       rel_response_lowPt->Fill(gen_val, rsp, weight);
     }
   }

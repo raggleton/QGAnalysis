@@ -115,7 +115,7 @@ protected:
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
 
     bool is_mc_;
-    float rsp_midPt_cut_, rsp_highPt_cut_;
+    float rsp_lowPt_cut_, rsp_midPt_cut_, rsp_highPt_cut_;
     float recoDauPtCut_;
 };
 
