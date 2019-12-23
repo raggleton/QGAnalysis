@@ -49,6 +49,10 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   n_jets_vs_pt_jet = book<TH2F>("n_jets_vs_pt_jet", TString::Format(";N_{jets};%s", binByVarLabel.Data()), 10, 0, 10, nbins_pt_equal, 0, pt_max);
 
   pt_jet = book<TH1F>("pt_jet", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt_equal, 0, pt_max);
+  pt_jet1 = book<TH1F>("pt_jet1", ";p_{T}^{jet 1} [GeV];", nbins_pt_equal, 0, pt_max);
+  pt_jet2 = book<TH1F>("pt_jet2", ";p_{T}^{jet 2} [GeV];", nbins_pt_equal, 0, pt_max);
+  pt_jet_unweighted = book<TH1F>("pt_jet_unweighted", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt_equal, 0, pt_max);
+  pt_jet1_unweighted = book<TH1F>("pt_jet1_unweighted", ";p_{T}^{jet 1} [GeV];", nbins_pt_equal, 0, pt_max);
   pt_jet_response_binning = book<TH1F>("pt_jet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt, &pt_bin_edges[0]);
   pt_genjet_response_binning = book<TH1F>("pt_genjet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), nbins_pt, &pt_bin_edges[0]);
 
@@ -127,8 +131,12 @@ void QGAnalysisDijetHists::fill(const Event & event){
 
   Jet jet1 = jets->at(0);
   double jet1_pt = jet1.pt();
+  pt_jet1->Fill(jet1_pt, weight);
+  pt_jet1_unweighted->Fill(jet1_pt);
+
   Jet jet2 = jets->at(1);
   double jet2_pt = jet2.pt();
+  pt_jet2->Fill(jet2_pt, weight);
 
   double binByVal = 0.;
   double largest_jet_pt = max(jet1_pt, jet2_pt);
@@ -317,6 +325,7 @@ void QGAnalysisDijetHists::fill(const Event & event){
 
   n_jets_vs_pt_jet->Fill(Njets, binByVal, weight);
   pt_jet->Fill(binByVal, weight);
+  pt_jet_unweighted->Fill(binByVal);
   pt_jet_response_binning->Fill(binByVal, weight);
   eta_jet1_vs_pt_jet->Fill(jet1.eta(), binByVal, weight);
   phi_jet1_vs_pt_jet->Fill(jet1.phi(), binByVal, weight);

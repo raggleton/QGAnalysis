@@ -21,7 +21,7 @@ public:
 
 protected:
     TH2F *n_jets_vs_pt;
-    TH1F *pt_jet1, *pt_jet_response_binning, *pt_genjet_response_binning;
+    TH1F *pt_jet1, *pt_jet1_unweighted, *pt_jet_response_binning, *pt_genjet_response_binning;
     TH1F *pt_mumu;
     TH1F *gen_ht;
     TH2F *eta_jet1_vs_pt;

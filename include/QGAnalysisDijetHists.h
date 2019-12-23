@@ -23,7 +23,7 @@ protected:
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
 
     TH2F *n_jets_vs_pt_jet;
-    TH1F *pt_jet, *pt_jet_response_binning, *pt_genjet_response_binning;
+    TH1F *pt_jet, *pt_jet1, *pt_jet2, *pt_jet_unweighted, *pt_jet1_unweighted, *pt_jet_response_binning, *pt_genjet_response_binning;
     TH2F *eta_jet1_vs_pt_jet, *phi_jet1_vs_pt_jet;
     TH2F *eta_jet1_vs_eta_jet2;
     TH2F *pt_jet2_vs_pt_jet, *eta_jet2_vs_pt_jet, *phi_jet2_vs_pt_jet;

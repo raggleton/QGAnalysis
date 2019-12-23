@@ -41,6 +41,7 @@ hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
 
   n_jets_vs_pt = book<TH2F>(TString::Format("n_jets_vs_%s", binByVar.Data()), TString::Format(";N_{jets};%s", binByVarLabel.Data()), 10, 0, 10, nbins_pt, 0, pt_max);
   pt_jet1 = book<TH1F>("pt_jet1", ";p_{T}^{jet 1} [GeV];", nbins_pt, 0, pt_max);
+  pt_jet1_unweighted = book<TH1F>("pt_jet1_unweighted", ";p_{T}^{jet 1} [GeV];", nbins_pt, 0, pt_max);
   pt_jet_response_binning = book<TH1F>("pt_jet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), Binning::nbins_pt_zpj_reco_all, &Binning::pt_bin_edges_zpj_reco_all[0]);
   pt_genjet_response_binning = book<TH1F>("pt_genjet_response_binning", TString::Format(";%s;", binByVarLabel.Data()), Binning::nbins_pt_zpj_reco_all, &Binning::pt_bin_edges_zpj_reco_all[0]);
 
@@ -166,6 +167,7 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
 
   Jet & jet1 = jets->at(0);
   pt_jet1->Fill(jet1_pt, weight);
+  pt_jet1_unweighted->Fill(jet1_pt);
   pt_jet_response_binning->Fill(jet1_pt, weight);
   eta_jet1_vs_pt->Fill(jet1.eta(), binPt, weight);
   flav_jet1_vs_pt_jet1->Fill(abs(jet1.flavor()), jet1_pt, weight);
