@@ -394,7 +394,7 @@ namespace Binning {
   // separate "underflow" bin edges for underflow binning region
   // see comments in QGAnalysisHists.cxx
   const std::vector<double> pt_bin_edges_gen_underflow = {
-    30, 38, 50
+    15, 30, 38, 50
   };
   const int nbins_pt_gen_underflow(pt_bin_edges_gen_underflow.size() - 1);
 
@@ -429,7 +429,7 @@ namespace Binning {
   const int nbins_pt_zpj_gen(pt_bin_edges_zpj_gen.size() - 1);
 
   const std::vector<double> pt_bin_edges_zpj_gen_underflow = {
-    30, 38, 50
+    15, 30, 38, 50
   };
   const int nbins_pt_zpj_gen_underflow(pt_bin_edges_zpj_gen_underflow.size() - 1);
 
