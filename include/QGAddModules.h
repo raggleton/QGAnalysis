@@ -455,8 +455,9 @@ namespace Binning {
   // LHA binning
   // -----------
   const std::vector<double> lha_bin_edges_gen = {
-    0.0, 0.16, 0.23, 0.3, 0.36, 0.42, 0.49, 0.56, 0.63, 0.72, 1.0 // target 0.5, across both dijets
+    // 0.0, 0.16, 0.23, 0.3, 0.36, 0.42, 0.49, 0.56, 0.63, 0.72, 1.0 // target 0.5, across both dijets
     // 0.0, 0.19, 0.29, 0.38, 0.49, 0.6, 0.75, 1.0 // target 0.6, forward
+    0.0, 0.14, 0.22, 0.29, 0.35, 0.42, 0.49, 0.56, 0.64, 0.75, 1.0 //target 0.5, cen+fwd
   };
   const int nbins_lha_gen(lha_bin_edges_gen.size() - 1);
 
@@ -466,8 +467,9 @@ namespace Binning {
   // Charged LHA binning
   // -----------
   const std::vector<double> lha_charged_bin_edges_gen = {
-    0.0, 0.09, 0.14, 0.19, 0.24, 0.3, 0.36, 0.43, 0.51, 0.6, 0.71, 1.0 // target 0.5, across both dijets
+    // 0.0, 0.09, 0.14, 0.19, 0.24, 0.3, 0.36, 0.43, 0.51, 0.6, 0.71, 1.0 // target 0.5, across both dijets
     // 0.0, 0.11, 0.17, 0.24, 0.32, 0.42, 0.54, 0.69, 1.0 // target 0.6, forward
+    0.0, 0.05, 0.09, 0.12, 0.15, 0.18, 0.22, 0.26, 0.31, 0.36, 0.42, 0.49, 0.56, 0.64, 0.75, 1.0 // target 0.5, cen+fwd
   };
   const int nbins_lha_charged_gen(lha_charged_bin_edges_gen.size() - 1);
 
@@ -477,8 +479,9 @@ namespace Binning {
   // Multiplicity binning
   // --------------------
   const std::vector<double> puppiMultiplicity_bin_edges_gen = {
-    0, 9, 15, 22, 35, 50, 75, 100, 150 // target 0.5, across both dijets
+    // 0, 9, 15, 22, 35, 50, 75, 100, 150 // target 0.5, across both dijets
     // 0.0, 11.0, 18.0, 25.0, 150.0 // target 0.6, central
+    0.0, 10, 15, 20, 27, 50, 75, 100, 150 // target 0.5, cen+fwd
   };
   const int nbins_puppiMultiplicity_gen(puppiMultiplicity_bin_edges_gen.size() - 1);
 
@@ -488,8 +491,9 @@ namespace Binning {
   // Charged Multiplicity binning
   // --------------------
   const std::vector<double> puppiMultiplicity_charged_bin_edges_gen = {
-    0, 9, 15, 22, 35, 50, 75, 100, 150 // target 0.5, across both dijets
+    // 0, 9, 15, 22, 35, 50, 75, 100, 150 // target 0.5, across both dijets
     // 0.0, 4.0, 6.0, 9.0, 12.0, 16.0, 23.0, 150.0 // target 0.6, forward
+    0.0, 2.0, 3.0, 4.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0, 18.0, 21.0, 25.0, 32.0, 91, 150.0 // target 0.5, cen+fwd, 91 added as halfway between 32 and 150
   };
   const int nbins_puppiMultiplicity_charged_gen(puppiMultiplicity_charged_bin_edges_gen.size() - 1);
 
@@ -499,8 +503,9 @@ namespace Binning {
   // pTD binning
   // --------------------
   const std::vector<double> pTD_bin_edges_gen = {
-    0.0, 0.09, 0.14, 0.25, 1.0 // target 0.5, across both dijets
+    // 0.0, 0.09, 0.14, 0.25, 1.0 // target 0.5, across both dijets
     // 0.0, 0.1, 0.17, 0.4, 1.0 // target 0.6, forward
+    0.0, 0.07, 0.1, 0.15, 0.24, 0.45, 1.0 // target 0.5, cen+fwd
   };
   const int nbins_pTD_gen(pTD_bin_edges_gen.size() - 1);
 
@@ -510,8 +515,9 @@ namespace Binning {
   // Charged pTD binning
   // --------------------
   const std::vector<double> pTD_charged_bin_edges_gen = {
-    0.0, 0.09, 0.12, 0.15, 0.19, 0.24, 0.31, 0.4, 0.53, 0.73, 1.0 // target 0.5, across both dijets
+    // 0.0, 0.09, 0.12, 0.15, 0.19, 0.24, 0.31, 0.4, 0.53, 0.73, 1.0 // target 0.5, across both dijets
     // 0.0, 0.09, 0.12, 0.16, 0.21, 0.29, 0.41, 0.6, 1.0 // target 0.6, forward
+    0.0, 0.06, 0.08, 0.1, 0.12, 0.14, 0.17, 0.2, 0.24, 0.29, 0.34, 0.4, 0.47, 0.55, 0.65, 0.76, 0.89, 1.0 // target 0.5, cen+fwd
   };
   const int nbins_pTD_charged_gen(pTD_charged_bin_edges_gen.size() - 1);
 
@@ -521,8 +527,9 @@ namespace Binning {
   // thrust binning
   // --------------------
   const std::vector<double> thrust_bin_edges_gen = {
-    0.0, 0.04, 0.07, 0.12, 0.19, 0.27, 0.37, 0.52, 1.0 // target 0.5, across both dijets
+    // 0.0, 0.04, 0.07, 0.12, 0.19, 0.27, 0.37, 0.52, 1.0 // target 0.5, across both dijets
     // 0.0, 0.06, 0.16, 0.3, 0.51, 1.0 // target 0.6, forward
+    0.0, 0.04, 0.08, 0.145, 0.225, 0.32, 0.445, 0.795, 1.0 // target 0.5, cen+fwd
   };
   const int nbins_thrust_gen(thrust_bin_edges_gen.size() - 1);
 
@@ -532,8 +539,9 @@ namespace Binning {
   // Charged thrust binning
   // --------------------
   const std::vector<double> thrust_charged_bin_edges_gen = {
-    0.0, 0.02, 0.04, 0.07, 0.11, 0.17, 0.25, 0.36, 0.52, 1.0 // target 0.5, across both dijets
+    // 0.0, 0.02, 0.04, 0.07, 0.11, 0.17, 0.25, 0.36, 0.52, 1.0 // target 0.5, across both dijets
     // 0.0, 0.01, 0.02, 0.04, 0.07, 0.11, 0.18, 0.29, 0.48, 1.0 // target 0.6, forward
+    0.0, 0.005, 0.01, 0.015, 0.025, 0.035, 0.05, 0.065, 0.085, 0.115, 0.15, 0.2, 0.265, 0.355, 0.48, 0.725, 1.0 // target 0.5, cen+fwd
   };
   const int nbins_thrust_charged_gen(thrust_charged_bin_edges_gen.size() - 1);
 
@@ -543,8 +551,9 @@ namespace Binning {
   // width binning
   // --------------------
   const std::vector<double> width_bin_edges_gen = {
-    0.0, 0.08, 0.13, 0.18, 0.24, 0.31, 0.39, 0.47, 0.58, 1.0 // target 0.5, across both dijets
+    // 0.0, 0.08, 0.13, 0.18, 0.24, 0.31, 0.39, 0.47, 0.58, 1.0 // target 0.5, across both dijets
     // 0.0, 0.12, 0.2, 0.32, 0.45, 0.64, 1.0 // target 0.6, forward
+    0.0, 0.09, 0.145, 0.205, 0.28, 0.36, 0.445, 0.545, 1.0 // target 0.5, cen+fwd
   };
   const int nbins_width_gen(width_bin_edges_gen.size() - 1);
 
@@ -554,8 +563,9 @@ namespace Binning {
   // Charged width binning
   // --------------------
   const std::vector<double> width_charged_bin_edges_gen = {
-    0.0, 0.04, 0.07, 0.1, 0.14, 0.18, 0.23, 0.29, 0.37, 0.46, 0.58, 0.99, 1.0 // target 0.5, across both dijets
+    // 0.0, 0.04, 0.07, 0.1, 0.14, 0.18, 0.23, 0.29, 0.37, 0.46, 0.58, 0.99, 1.0 // target 0.5, across both dijets
     // 0.0, 0.04, 0.07, 0.11, 0.16, 0.22, 0.3, 0.41, 0.57, 1.0 // target 0.6, forward
+    0.0, 0.015, 0.025, 0.035, 0.05, 0.065, 0.085, 0.105, 0.13, 0.16, 0.195, 0.235, 0.28, 0.335, 0.4, 0.48, 0.585, 0.805, 1.0 // target 0.5, cen+fwd
   };
   const int nbins_width_charged_gen(width_charged_bin_edges_gen.size() - 1);
 
