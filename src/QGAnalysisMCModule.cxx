@@ -675,14 +675,14 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Do Z+Jet hists & selection
     // -------------------------------------------------------------------------
     if (isZPlusJets) {
-        zplusjets_gen_hists->fill(event);
+        if (DO_STANDARD_HISTS) zplusjets_gen_hists->fill(event);
 
         if (hasRecoJets) {
             event.set(pt_binning_reco_handle, event.jets->at(0).pt());
             // flav-specific preselection hists, useful for optimising selection
             uint flav1 = event.jets->at(0).flavor();
             if (zFinder->process(event)) {
-                zplusjets_hists_presel->fill(event);
+                if (DO_STANDARD_HISTS) zplusjets_hists_presel->fill(event);
                 if (zplusjets_presel->passes(event)) {
                     // if (DO_FLAVOUR_HISTS) {
                     //     if (flav1 == PDGID::GLUON) {
@@ -756,7 +756,7 @@ bool QGAnalysisMCModule::process(Event & event) {
         // So we do eta sorting, and jet lambda, then do all the hist filling,
         // since they might use these handles.
 
-        dijet_gen_hists->fill(event);
+        if (DO_STANDARD_HISTS) dijet_gen_hists->fill(event);
 
         if (hasRecoJets && njet_two_sel->passes(event)) {
             // Sort by eta & assign to handles
@@ -810,7 +810,7 @@ bool QGAnalysisMCModule::process(Event & event) {
             uint flav2 = event.jets->at(1).flavor();
 
             // Fill hists
-            dijet_hists_presel->fill(event);
+            if (DO_STANDARD_HISTS) dijet_hists_presel->fill(event);
             // if (DO_FLAVOUR_HISTS) {
             //     if (flav1 == PDGID::GLUON) {
             //         if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
