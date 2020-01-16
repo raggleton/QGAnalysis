@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE JobConfiguration PUBLIC "" "JobConfig.dtd" [
+
+    <!ENTITY NEVT "-1">
+
+    <!-- Output directories -->
+    <!ENTITY ODIR-AMCATNLO "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/aMCatNLO">
+
+    <!ENTITY AMCATNLO-DY SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/amcatnlo/DYJetsToLL.xml">
+
+    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/commonMC.xml">
+
+    <!-- Jet config snippets -->
+    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
+    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
+    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
+    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
+]>
+
+
+<!-- MUST run SFrameBatch inside QGAnalyis/config! -->
+<!-- split 75 for herwig -->
+<!-- split 3 for mgpythia -->
+
+<!--
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="50" />
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_amcatnlo_newFlav_jetAsymCut_chargedVars_pt1RecoConstituents_V11JEC_JER_target0p5_noZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto_noPtHatCut_noPtReweight_noZjet2Cut_zPt30"/>
+-->
+
+
+<!-- OutputLevel controls which messages are printed; set to VERBOSE or DEBUG for more verbosity, to WARNING or ERROR for less -->
+<JobConfiguration JobName="ExampleCycleJob" OutputLevel="INFO">
+    <Library Name="libSUHH2QGAnalysis"/>
+    <Package Name="SUHH2QGAnalysis.par" />
+
+    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-AMCATNLO;/" PostFix="" TargetLumi="1" >
+
+
+        <InputData Lumi="319474364.440" NEventsMax="&NEVT;" Type="MC" Version="MC_AMCATNLO_DYJetsToLL" Cacheable="False">
+        &AMCATNLO-DY;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <!-- <InputData Lumi="1" NEventsMax="10000" Type="MC" Version="MC_MG_HERWIG_DYJetsToLL_Test" Cacheable="False"> -->
+        <!-- <InputData Lumi="1.5" NEventsMax="10000" Type="MC" Version="MC_QCD_Test_reweight" Cacheable="False"> -->
+        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp/crab_QCD_Pt-15to7000_herwig_10_Feb_18_newRecoJetFlav_fixPuppi/180210_102451/0000/Ntuple_1.root" Lumi="0.0"/> -->
+        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/DYJetsToLL_M-50_TuneCUETHS1_13TeV-madgraphMLM-herwigpp/crab_DYJetsToLL_M-50_mg-herwig_10_Feb_18_newRecoJetFlav_fixPuppi/180210_102303/0000/Ntuple_1.root" Lumi="0.0"/> -->
+        <!-- <InputTree Name="AnalysisTree"/> -->
+        <!-- <OutputTree Name="AnalysisTree"/> -->
+        <!-- </InputData> -->
+
+        <UserConfig>
+            &COMMON;
+
+            <!-- Choose your jet configuration -->
+            <!-- &AK4CHS; -->
+            &AK4PUPPI;
+            <!-- &AK8CHS; -->
+            <!-- &AK8PUPPI; -->
+
+            <!-- If you want to reweight herwig pT spectrum to match Pythia -->
+            <Item Name="pt_reweight_file" Value="" />
+            <!-- <Item Name="pt_reweight_file" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_dijet_only_weights_ak4puppi.root" /> -->
+
+            <!-- <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/> -->
+            <Item Name="z_reweight_file" Value=""/>
+
+            <Item Name="neutralHadronShift" Value="nominal"/>
+            <!-- <Item Name="neutralHadronShift" Value="down"/> -->
+            <!-- <Item Name="neutralHadronShift" Value="up"/> -->
+
+            <Item Name="photonShift" Value="nominal"/>
+            <!-- <Item Name="photonShift" Value="down"/> -->
+            <!-- <Item Name="photonShift" Value="up"/> -->
+
+            <!-- <Item Name="ScaleVariationMuR" Value="up"/> -->
+            <!-- <Item Name="ScaleVariationMuF" Value="down"/> -->
+
+        </UserConfig>
+    </Cycle>
+</JobConfiguration>
