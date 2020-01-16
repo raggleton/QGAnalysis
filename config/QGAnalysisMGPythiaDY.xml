@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE JobConfiguration PUBLIC "" "JobConfig.dtd" [
+
+    <!ENTITY NEVT "-1">
+
+    <!-- Output directories -->
+    <!ENTITY ODIR-MG-PYTHIA "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/MGPythia">
+
+    <!-- Full datasets -->
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT70to100 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL_HT70to100.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT100to200 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL_HT100to200.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT200to400 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL_HT200to400.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT400to600 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL_HT400to600.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT600to800 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL_HT600to800.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT800to1200 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL_HT800to1200.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT1200to2500 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL_HT1200to2500.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT2500toInf SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL_HT2500toInf.xml">
+
+    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/commonMC.xml">
+
+    <!-- Jet config snippets -->
+    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
+    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
+    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
+    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
+]>
+
+
+<!-- MUST run SFrameBatch inside QGAnalyis/config! -->
+<!--
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="75" />
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_mgpythia_newFlav_jetAsymCut_chargedVars_pt1RecoConstituents_V11JEC_JER_target0p5_ZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto_noZjet2Cut_zPt30_newBinningFixed"/>
+-->
+
+
+<!-- OutputLevel controls which messages are printed; set to VERBOSE or DEBUG for more verbosity, to WARNING or ERROR for less -->
+<JobConfiguration JobName="ExampleCycleJob" OutputLevel="INFO">
+    <Library Name="libSUHH2QGAnalysis"/>
+    <Package Name="SUHH2QGAnalysis.par" />
+
+   <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-MG-PYTHIA;/" PostFix="" TargetLumi="35918" >
+
+
+        <InputData Lumi="56498.120" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-70to100" Cacheable="False">
+        &MG-PYTHIA-DYJetsToLL_HT70to100;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="71960.149" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-100to200" Cacheable="False">
+        &MG-PYTHIA-DYJetsToLL_HT100to200;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="235218.324" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-200to400" Cacheable="False">
+        &MG-PYTHIA-DYJetsToLL_HT200to400;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="188578.224" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-400to600" Cacheable="False">
+        &MG-PYTHIA-DYJetsToLL_HT400to600;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="6097176.471" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-600to800" Cacheable="False">
+        &MG-PYTHIA-DYJetsToLL_HT600to800;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="4283690.801" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-800to1200" Cacheable="False">
+        &MG-PYTHIA-DYJetsToLL_HT800to1200;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="3941177.249" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-1200to2500" Cacheable="False">
+        &MG-PYTHIA-DYJetsToLL_HT1200to2500;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="109086362.394" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-2500toInf" Cacheable="False">
+        &MG-PYTHIA-DYJetsToLL_HT2500toInf;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+
+
+        <!-- TEST FILES -->
+
+        <!-- <InputData Lumi="1" NEventsMax="-1" Type="MC" Version="MC_Test_DYJetsToLL" Cacheable="False"> -->
+        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/DYJetsToLL_M-50_HT-70to100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/crab_DYJetsToLL_M-50_HT-70to100_mg-pythia_10_Feb_18_newRecoJetFlav_fixPuppi/180210_094713/0000/Ntuple_1.root" Lumi="0.0"/> -->
+        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/DYJetsToLL_M-50_HT-1200to2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/crab_DYJetsToLL_M-50_HT-1200to2500_mg-pythia_10_Feb_18_newRecoJetFlav_fixPuppi/180210_095727/0000/Ntuple_1.root" Lumi="0.0"/> -->
+        <!-- <InputTree Name="AnalysisTree"/> -->
+        <!-- </InputData> -->
+
+
+        <UserConfig>
+            &COMMON;
+
+            <!-- Choose your jet configuration -->
+
+            <!-- &AK4CHS; -->
+            &AK4PUPPI;
+            <!-- &AK8CHS; -->
+            <!-- &AK8PUPPI; -->
+
+            <!-- <Item Name="pt_reweight_file" Value="" /> -->
+            <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
+            <!-- <Item Name="z_reweight_file" Value=""/> -->
+
+            <!--@SYST-->
+
+            <Item Name="chargedHadronShift" Value="nominal"/>
+            <!-- <Item Name="chargedHadronShift" Value="down"/> -->
+            <!-- <Item Name="chargedHadronShift" Value="up"/> -->
+
+            <Item Name="neutralHadronShift" Value="nominal"/>
+            <!-- <Item Name="neutralHadronShift" Value="down"/> -->
+            <!-- <Item Name="neutralHadronShift" Value="up"/> -->
+
+            <Item Name="photonShift" Value="nominal"/>
+            <!-- <Item Name="photonShift" Value="down"/> -->
+            <!-- <Item Name="photonShift" Value="up"/> -->
+
+            <Item Name="jecsmear_direction" Value="nominal"/>
+            <!-- <Item Name="jecsmear_direction" Value="down"/> -->
+            <!-- <Item Name="jecsmear_direction" Value="up"/> -->
+
+            <Item Name="jersmear_direction" Value="nominal"/>
+            <!-- <Item Name="jersmear_direction" Value="down"/> -->
+            <!-- <Item Name="jersmear_direction" Value="up"/> -->
+
+            <Item Name="pileup_direction" Value="nominal"/>
+            <!-- <Item Name="pileup_direction" Value="down"/> -->
+            <!-- <Item Name="pileup_direction" Value="up"/> -->
+
+            <!-- Need to set BOTH MuR and MuF otherwise fail -->
+            <Item Name="ScaleVariationMuR" Value="nominal"/>
+            <!-- <Item Name="ScaleVariationMuR" Value="down"/> -->
+            <!-- <Item Name="ScaleVariationMuR" Value="up"/> -->
+
+            <Item Name="ScaleVariationMuF" Value="nominal"/>
+            <!-- <Item Name="ScaleVariationMuF" Value="down"/> -->
+            <!-- <Item Name="ScaleVariationMuF" Value="up"/> -->
+
+            <Item Name="PDFvariations" Value="false"/>
+            <!-- <Item Name="PDFvariations" Value="true"/> -->
+
+        </UserConfig>
+    </Cycle>
+</JobConfiguration>

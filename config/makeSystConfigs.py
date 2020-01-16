@@ -79,14 +79,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     base_files = [
-        'QGAnalysisHerwig.xml',
+        # 'QGAnalysisHerwig.xml',
         # 'QGAnalysisPythia.xml',
-        'QGAnalysisMGPythia.xml',
+        # 'QGAnalysisMGPythiaQCD.xml',
+        'QGAnalysisMGPythiaDY.xml',
         'QGAnalysisMGPythiaDYIncl.xml',
 
-        'QGAnalysisDataJetHT.xml',
-        'QGAnalysisDataZeroBias.xml',
-        'QGAnalysisDataSingleMu.xml',
+        # 'QGAnalysisDataJetHT.xml',
+        # 'QGAnalysisDataZeroBias.xml',
+        # 'QGAnalysisDataSingleMu.xml',
     ]
 
     # These are entities that are used
