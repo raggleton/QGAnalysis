@@ -7,7 +7,7 @@
     <!ENTITY ODIR-HERWIG "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/Herwig">
 
     <!-- Full datasets -->
-    <!ENTITY HERWIG-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/HerwigOnly/QCD_Pt15to7000_Flat.xml">
+    <!ENTITY HERWIG-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/HerwigOnly/QCD_Pt15to7000_Flat_withExt.xml">
     <!-- is actually herwig only, despite its CMS dataset name -->
     <!ENTITY HERWIG-DY SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/HerwigOnly/DYJetsToLL.xml">
 
@@ -41,8 +41,9 @@
     <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-HERWIG;/" PostFix="" TargetLumi="1" >
 
         <!-- HERWIG -->
-<!--
-        <InputData Lumi="1" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_QCD" Cacheable="False">
+
+
+        <InputData Lumi="0.006692918686" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_QCD" Cacheable="False">
         &HERWIG-QCD;
         <InputTree Name="AnalysisTree"/>
         </InputData>
