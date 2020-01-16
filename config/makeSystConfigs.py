@@ -58,15 +58,24 @@ def write_updated_file(contents, new_xml_filename, radius, systematic_names=None
                 f.write(line)
 
 
-def submit_xml(xml_filename):
-    cmd = 'sframe_batch.py -s %s' % (xml_filename)
-    subprocess.check_output(cmd.split())
+def submit_xml(xml_filename, local=False):
+    local_opt = "--local" if local else ""
+    cmd = 'sframe_batch.py -s %s %s' % (local_opt, xml_filename)
+    subprocess.check_output(cmd, shell=True)
+
+def resubmit_xml(xml_filename, local=False):
+    local_opt = "--local" if local else ""
+    cmd = 'sframe_batch.py -r %s %s' % (local_opt, xml_filename)
+    subprocess.Popen(cmd, shell=True)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--submit", action='store_true', help='submit on sframe_batch')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--submit", action='store_true', help='submit on sframe_batch')
+    group.add_argument("--resubmit", action='store_true', help='resubmit on sframe_batch')
     parser.add_argument("--onlySubmitSystematics", action='store_true', help='Only submit systematic variation jobs, not nominal')
+    parser.add_argument("--local", action='store_true', help='Run locally')
     args = parser.parse_args()
 
     base_files = [
@@ -128,9 +137,13 @@ if __name__ == "__main__":
 
             # if radius is not "AK4PUPPI":
             write_updated_file(contents, new_xml_filename, radius)
-            if args.submit and not args.onlySubmitSystematics:
-                print "Submitting", new_xml_filename
-                submit_xml(new_xml_filename)
+            if not args.onlySubmitSystematics:
+                if args.submit:
+                    print "Submitting", new_xml_filename
+                    submit_xml(new_xml_filename, local=args.local)
+                elif args.resubmit:
+                    print "Re-Submitting", new_xml_filename
+                    resubmit_xml(new_xml_filename, local=args.local)
 
             # For now, do one systematic shift at a time
             for syst in systematics:
@@ -151,4 +164,7 @@ if __name__ == "__main__":
                     write_updated_file(contents, new_xml_filename, radius, syst.names, syst_values, append)
                     if args.submit:
                         print "Submitting", new_xml_filename
-                        submit_xml(new_xml_filename)
+                        submit_xml(new_xml_filename, local=args.local)
+                    elif args.resubmit:
+                        print "Re-Submitting", new_xml_filename
+                        resubmit_xml(new_xml_filename, local=args.local)
