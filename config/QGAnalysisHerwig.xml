@@ -47,18 +47,16 @@
         &HERWIG-QCD;
         <InputTree Name="AnalysisTree"/>
         </InputData>
--->
-<!--
-        <InputData Lumi="1" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_DYJetsToLL" Cacheable="False">
+
+        <InputData Lumi="44627.089" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_DYJetsToLL" Cacheable="False">
         &HERWIG-DY;
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
-        <InputData Lumi="1" NEventsMax="&NEVT;" Type="MC" Version="MC_MG_HERWIG_DYJetsToLL" Cacheable="False">
+        <InputData Lumi="2093.612" NEventsMax="&NEVT;" Type="MC" Version="MC_MG_HERWIG_DYJetsToLL" Cacheable="False">
         &MG-HERWIG-DY;
         <InputTree Name="AnalysisTree"/>
         </InputData>
--->
 
         <InputData Lumi="1" NEventsMax="10000" Type="MC" Version="MC_MG_HERWIG_DYJetsToLL_Test" Cacheable="False">
         <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp/crab_QCD_Pt-15to7000_herwig_10_Feb_18_newRecoJetFlav_fixPuppi/180210_102451/0000/Ntuple_1.root" Lumi="0.0"/> -->
