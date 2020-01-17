@@ -69,6 +69,10 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
     nbins_pt_gen_underflow = Binning::nbins_pt_zpj_gen_underflow;
   }
 
+  // remove the first 2 bins (15, 22) since we have no entries there in reco
+  std::vector<double> pt_bin_edges_reco_underflow_unfold(pt_bin_edges_reco_underflow.begin()+2, pt_bin_edges_reco_underflow.end());
+  nbins_pt_reco_underflow = pt_bin_edges_reco_underflow_unfold.size()-1;
+
   // Remember to update
   std::vector<std::string> descriptions = {
       "!passGen",
@@ -96,7 +100,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   // so that we can also use it to constrain the unfolding
   // (like simultaneously fitting to sideband regions)
   detector_distribution_underflow_pt = detector_tu_binning_pt->AddBinning("detector_underflow");
-  detector_distribution_underflow_pt->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow.data(), false, false); // reco jets guaranteed to be above lowest bin, so now uflow
+  detector_distribution_underflow_pt->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false); // reco jets guaranteed to be above lowest bin, so no uflow
 
   detector_distribution_pt = detector_tu_binning_pt->AddBinning("detector");
   detector_distribution_pt->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, false); // no uflow
@@ -139,7 +143,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   // (like simultaneously fitting to sideband regions)
   detector_distribution_underflow_LHA = detector_tu_binning_LHA->AddBinning("detector_underflow");
   detector_distribution_underflow_LHA->AddAxis("LHA", Binning::nbins_lha_reco, Binning::lha_bin_edges_reco.data(), var_uf, var_of);
-  detector_distribution_underflow_LHA->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow.data(), false, false);
+  detector_distribution_underflow_LHA->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
 
   detector_distribution_LHA = detector_tu_binning_LHA->AddBinning("detector");
   detector_distribution_LHA->AddAxis("LHA", Binning::nbins_lha_reco, Binning::lha_bin_edges_reco.data(), var_uf, var_of);
@@ -197,7 +201,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   detector_tu_binning_LHA_charged = new TUnfoldBinning("detector");
   detector_distribution_underflow_LHA_charged = detector_tu_binning_LHA_charged->AddBinning("detector_underflow");
   detector_distribution_underflow_LHA_charged->AddAxis("LHA_charged", Binning::nbins_lha_charged_reco, Binning::lha_charged_bin_edges_reco.data(), var_uf, var_of);
-  detector_distribution_underflow_LHA_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow.data(), false, false);
+  detector_distribution_underflow_LHA_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
 
   detector_distribution_LHA_charged = detector_tu_binning_LHA_charged->AddBinning("detector");
   detector_distribution_LHA_charged->AddAxis("LHA_charged", Binning::nbins_lha_charged_reco, Binning::lha_charged_bin_edges_reco.data(), var_uf, var_of);
@@ -246,7 +250,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   detector_tu_binning_puppiMultiplicity = new TUnfoldBinning("detector");
   detector_distribution_underflow_puppiMultiplicity = detector_tu_binning_puppiMultiplicity->AddBinning("detector_underflow");
   detector_distribution_underflow_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_puppiMultiplicity_reco, Binning::puppiMultiplicity_bin_edges_reco.data(), var_uf, var_of);
-  detector_distribution_underflow_puppiMultiplicity->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow.data(), false, false);
+  detector_distribution_underflow_puppiMultiplicity->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
 
   detector_distribution_puppiMultiplicity = detector_tu_binning_puppiMultiplicity->AddBinning("detector");
   detector_distribution_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_puppiMultiplicity_reco, Binning::puppiMultiplicity_bin_edges_reco.data(), var_uf, var_of);
@@ -296,7 +300,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   detector_tu_binning_puppiMultiplicity_charged = new TUnfoldBinning("detector");
   detector_distribution_underflow_puppiMultiplicity_charged = detector_tu_binning_puppiMultiplicity_charged->AddBinning("detector_underflow");
   detector_distribution_underflow_puppiMultiplicity_charged->AddAxis("puppiMultiplicity_charged", Binning::nbins_puppiMultiplicity_charged_reco, Binning::puppiMultiplicity_charged_bin_edges_reco.data(), var_uf, var_of);
-  detector_distribution_underflow_puppiMultiplicity_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow.data(), false, false);
+  detector_distribution_underflow_puppiMultiplicity_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
 
   detector_distribution_puppiMultiplicity_charged = detector_tu_binning_puppiMultiplicity_charged->AddBinning("detector");
   detector_distribution_puppiMultiplicity_charged->AddAxis("puppiMultiplicity_charged", Binning::nbins_puppiMultiplicity_charged_reco, Binning::puppiMultiplicity_charged_bin_edges_reco.data(), var_uf, var_of);
@@ -346,7 +350,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   detector_tu_binning_pTD = new TUnfoldBinning("detector");
   detector_distribution_underflow_pTD = detector_tu_binning_pTD->AddBinning("detector_underflow");
   detector_distribution_underflow_pTD->AddAxis("pTD", Binning::nbins_pTD_reco, Binning::pTD_bin_edges_reco.data(), var_uf, var_of);
-  detector_distribution_underflow_pTD->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow.data(), false, false);
+  detector_distribution_underflow_pTD->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
 
   detector_distribution_pTD = detector_tu_binning_pTD->AddBinning("detector");
   detector_distribution_pTD->AddAxis("pTD", Binning::nbins_pTD_reco, Binning::pTD_bin_edges_reco.data(), var_uf, var_of);
@@ -396,7 +400,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   detector_tu_binning_pTD_charged = new TUnfoldBinning("detector");
   detector_distribution_underflow_pTD_charged = detector_tu_binning_pTD_charged->AddBinning("detector_underflow");
   detector_distribution_underflow_pTD_charged->AddAxis("pTD_charged", Binning::nbins_pTD_charged_reco, Binning::pTD_charged_bin_edges_reco.data(), var_uf, var_of);
-  detector_distribution_underflow_pTD_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow.data(), false, false);
+  detector_distribution_underflow_pTD_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
 
   detector_distribution_pTD_charged = detector_tu_binning_pTD_charged->AddBinning("detector");
   detector_distribution_pTD_charged->AddAxis("pTD_charged", Binning::nbins_pTD_charged_reco, Binning::pTD_charged_bin_edges_reco.data(), var_uf, var_of);
@@ -446,7 +450,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   detector_tu_binning_thrust = new TUnfoldBinning("detector");
   detector_distribution_underflow_thrust = detector_tu_binning_thrust->AddBinning("detector_underflow");
   detector_distribution_underflow_thrust->AddAxis("thrust", Binning::nbins_thrust_reco, Binning::thrust_bin_edges_reco.data(), var_uf, var_of);
-  detector_distribution_underflow_thrust->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow.data(), false, false);
+  detector_distribution_underflow_thrust->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
 
   detector_distribution_thrust = detector_tu_binning_thrust->AddBinning("detector");
   detector_distribution_thrust->AddAxis("thrust", Binning::nbins_thrust_reco, Binning::thrust_bin_edges_reco.data(), var_uf, var_of);
@@ -496,7 +500,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   detector_tu_binning_thrust_charged = new TUnfoldBinning("detector");
   detector_distribution_underflow_thrust_charged = detector_tu_binning_thrust_charged->AddBinning("detector_underflow");
   detector_distribution_underflow_thrust_charged->AddAxis("thrust_charged", Binning::nbins_thrust_charged_reco, Binning::thrust_charged_bin_edges_reco.data(), var_uf, var_of);
-  detector_distribution_underflow_thrust_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow.data(), false, false);
+  detector_distribution_underflow_thrust_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
 
   detector_distribution_thrust_charged = detector_tu_binning_thrust_charged->AddBinning("detector");
   detector_distribution_thrust_charged->AddAxis("thrust_charged", Binning::nbins_thrust_charged_reco, Binning::thrust_charged_bin_edges_reco.data(), var_uf, var_of);
@@ -546,7 +550,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   detector_tu_binning_width = new TUnfoldBinning("detector");
   detector_distribution_underflow_width = detector_tu_binning_width->AddBinning("detector_underflow");
   detector_distribution_underflow_width->AddAxis("width", Binning::nbins_width_reco, Binning::width_bin_edges_reco.data(), var_uf, var_of);
-  detector_distribution_underflow_width->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow.data(), false, false);
+  detector_distribution_underflow_width->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
 
   detector_distribution_width = detector_tu_binning_width->AddBinning("detector");
   detector_distribution_width->AddAxis("width", Binning::nbins_width_reco, Binning::width_bin_edges_reco.data(), var_uf, var_of);
@@ -596,7 +600,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   detector_tu_binning_width_charged = new TUnfoldBinning("detector");
   detector_distribution_underflow_width_charged = detector_tu_binning_width_charged->AddBinning("detector_underflow");
   detector_distribution_underflow_width_charged->AddAxis("width_charged", Binning::nbins_width_charged_reco, Binning::width_charged_bin_edges_reco.data(), var_uf, var_of);
-  detector_distribution_underflow_width_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow.data(), false, false);
+  detector_distribution_underflow_width_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
 
   detector_distribution_width_charged = detector_tu_binning_width_charged->AddBinning("detector");
   detector_distribution_width_charged->AddAxis("width_charged", Binning::nbins_width_charged_reco, Binning::width_charged_bin_edges_reco.data(), var_uf, var_of);
