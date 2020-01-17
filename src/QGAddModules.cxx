@@ -619,11 +619,13 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     LorentzVectorXYZE wtaJetAxis(wtaJet.px(), wtaJet.py(), wtaJet.pz(), wtaJet.E());
 
     std::vector<PFParticle> groomedConstits;
+    PseudoJet mmdtJet;
+    LorentzVectorXYZE wtaGroomedJetAxis(wtaJet.px(), wtaJet.py(), wtaJet.pz(), wtaJet.E());
     // Optionally apply grooming to jet, update axis and constits left after grooming
     if (doGrooming_) {
-      PseudoJet mmdtJet = mmdt_(wtaJet);
+      mmdtJet = mmdt_(wtaJet);
       // Update jet axis with that of the groomed jet
-      wtaJetAxis.SetPxPyPzE(mmdtJet.px(), mmdtJet.py(), mmdtJet.pz(), mmdtJet.E());
+      wtaGroomedJetAxis.SetPxPyPzE(mmdtJet.px(), mmdtJet.py(), mmdtJet.pz(), mmdtJet.E());
       // create collection with only those in groomed jet
       for (const auto & dItr : mmdtJet.constituents()) {
         groomedConstits.push_back(constits.at(dItr.user_index()));
@@ -650,11 +652,12 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     }
 
     auto jetAxis = toPtEtaPhi(wtaJetAxis);
+    auto jetAxisGroomed = toPtEtaPhi(wtaGroomedJetAxis);
     LambdaCalculator<PFParticle> recoJetCalc(constits, jetRadius_, jetAxis, doPuppi_);
     LambdaCalculator<PFParticle> recoJetCalcCharged(chargedConstits, jetRadius_, jetAxis, doPuppi_);
-    LambdaCalculator<PFParticle> recoJetCalcGroomed(groomedConstits, jetRadius_, jetAxis, doPuppi_);
-    LambdaCalculator<PFParticle> recoJetCalcGroomedCharged(groomedChargedConstits, jetRadius_, jetAxis, doPuppi_);
-    JetLambdaBundle thisBundle{jet, recoJetCalc, recoJetCalcCharged, recoJetCalcGroomed, recoJetCalcGroomedCharged};
+    LambdaCalculator<PFParticle> recoJetCalcGroomed(groomedConstits, jetRadius_, jetAxisGroomed, doPuppi_);
+    LambdaCalculator<PFParticle> recoJetCalcGroomedCharged(groomedChargedConstits, jetRadius_, jetAxisGroomed, doPuppi_);
+    JetLambdaBundle thisBundle{jet, wtaJet, mmdtJet, recoJetCalc, recoJetCalcCharged, recoJetCalcGroomed, recoJetCalcGroomedCharged};
     outputs.push_back(thisBundle);
     nJetCounter++;
   }
@@ -827,10 +830,11 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
 
     // Optionally apply grooming to jet, update axis and constits left after grooming
     std::vector<GenParticle> groomedConstits;
+    PseudoJet mmdtJet;
+    LorentzVectorXYZE wtaGroomedJetAxis(wtaJet.px(), wtaJet.py(), wtaJet.pz(), wtaJet.E());
     if (doGrooming_) {
-      PseudoJet mmdtJet = mmdt_(wtaJet);
-      // Update jet axis with that of the groomed jet
-      wtaJetAxis.SetPxPyPzE(mmdtJet.px(), mmdtJet.py(), mmdtJet.pz(), mmdtJet.E());
+      mmdtJet = mmdt_(wtaJet);
+      wtaGroomedJetAxis.SetPxPyPzE(mmdtJet.px(), mmdtJet.py(), mmdtJet.pz(), mmdtJet.E());
       // create collection with only those in groomed jet
       for (const auto & dItr : mmdtJet.constituents()) {
         groomedConstits.push_back(constits.at(dItr.user_index()));
@@ -857,11 +861,12 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     }
 
     auto jetAxis = toPtEtaPhi(wtaJetAxis);
+    auto jetAxisGroomed = toPtEtaPhi(wtaGroomedJetAxis);
     LambdaCalculator<GenParticle> genJetCalc(constits, jetRadius_, jetAxis, false);
     LambdaCalculator<GenParticle> genJetCalcCharged(chargedConstits, jetRadius_, jetAxis, false);
-    LambdaCalculator<GenParticle> genJetCalcGroomed(groomedConstits, jetRadius_, jetAxis, false);
-    LambdaCalculator<GenParticle> genJetCalcGroomedCharged(groomedChargedConstits, jetRadius_, jetAxis, false);
-    GenJetLambdaBundle thisBundle{jet, genJetCalc, genJetCalcCharged, genJetCalcGroomed, genJetCalcGroomedCharged};
+    LambdaCalculator<GenParticle> genJetCalcGroomed(groomedConstits, jetRadius_, jetAxisGroomed, false);
+    LambdaCalculator<GenParticle> genJetCalcGroomedCharged(groomedChargedConstits, jetRadius_, jetAxisGroomed, false);
+    GenJetLambdaBundle thisBundle{jet, wtaJet, mmdtJet, genJetCalc, genJetCalcCharged, genJetCalcGroomed, genJetCalcGroomedCharged};
     outputs.push_back(thisBundle);
     nJetCounter++;
   }

@@ -210,6 +210,8 @@ template class LambdaCalculator<GenParticle>;
  */
 struct JetLambdaBundle {
   Jet jet;
+  fastjet::PseudoJet wtaJet;
+  fastjet::PseudoJet wtaGroomedJet;
   LambdaCalculator<PFParticle> lambda;
   LambdaCalculator<PFParticle> chargedLambda;
   LambdaCalculator<PFParticle> groomedLambda;
@@ -244,7 +246,9 @@ struct JetLambdaBundle {
  * because then we only need to run fastjet once per jet for e.g. WTA axis
  */
 struct GenJetLambdaBundle {
-  GenJetWithParts jet;
+  GenJetWithParts jet; // original AKx jet
+  fastjet::PseudoJet wtaJet; // Jet recalculated with WTA
+  fastjet::PseudoJet wtaGroomedJet; // Jet recalculated with WTA + grooming
   LambdaCalculator<GenParticle> lambda;
   LambdaCalculator<GenParticle> chargedLambda;
   LambdaCalculator<GenParticle> groomedLambda;
