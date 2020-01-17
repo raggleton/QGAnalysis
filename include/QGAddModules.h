@@ -428,7 +428,7 @@ namespace Binning {
   // ------------------------------
   // lower last big bin for Z+jets - dont want many empty bins for tunfold
   const std::vector<double> pt_bin_edges_zpj_gen = {
-    50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 6500 // maximum should be 13 TeV / 2
+    50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 2000 // maximum should be 13 TeV / 2, but no events in the last reco bin once split into 2, so go for 2TeV
   };
   const int nbins_pt_zpj_gen(pt_bin_edges_zpj_gen.size() - 1);
 
