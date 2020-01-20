@@ -541,7 +541,6 @@ QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx,
                                          float jetRadius,
                                          int nJetsMax,
                                          bool doPuppi,
-                                         bool doGrooming,
                                          const PFParticleId & pfId,
                                          const std::string & jet_coll_name,
                                          const std::string & output_coll_name):
@@ -550,7 +549,6 @@ QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx,
   jetRadius_(jetRadius),
   nJetsMax_(nJetsMax),
   doPuppi_(doPuppi),
-  doGrooming_(doGrooming),
   pfId_(pfId),
   chargedHadronShift_(0), // these are the fractional shift, e.g. 0.2 for 20%
   neutralHadronShift_(0), // these are the fractional shift, e.g. 0.2 for 20%
@@ -630,17 +628,12 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     }
 
     std::vector<PFParticle> groomedConstits;
-    PseudoJet mmdtJet;
-    LorentzVectorXYZE wtaGroomedJetAxis(wtaJet.px(), wtaJet.py(), wtaJet.pz(), wtaJet.E());
-    // Optionally apply grooming to jet, update axis and constits left after grooming
-    if (doGrooming_) {
-      mmdtJet = mmdt_(wtaJet);
-      // Update jet axis with that of the groomed jet
-      wtaGroomedJetAxis.SetPxPyPzE(mmdtJet.px(), mmdtJet.py(), mmdtJet.pz(), mmdtJet.E());
-      // create collection with only those in groomed jet
-      for (const auto & dItr : mmdtJet.constituents()) {
-        groomedConstits.push_back(constits.at(dItr.user_index()));
-      }
+    // Apply grooming to jet, save axis and constits left after grooming
+    PseudoJet mmdtJet = mmdt_(wtaJet);
+    LorentzVectorXYZE  wtaGroomedJetAxis(mmdtJet.px(), mmdtJet.py(), mmdtJet.pz(), mmdtJet.E());
+    // create collection with only those in groomed jet
+    for (const auto & dItr : mmdtJet.constituents()) {
+      groomedConstits.push_back(constits.at(dItr.user_index()));
     }
 
     // create charged-only subset of constits
@@ -755,7 +748,6 @@ void QGAnalysisJetLambda::shift_photon_pfparticles(std::vector<PFParticle> & pfp
 QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx,
                                                float jetRadius,
                                                int nJetsMax,
-                                               bool doGrooming,
                                                const GenParticleId & genId,
                                                const std::string & jet_coll_name,
                                                const std::string & output_coll_name):
@@ -763,7 +755,6 @@ QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx,
   mmdt_(contrib::ModifiedMassDropTagger(0.1)),
   jetRadius_(jetRadius),
   nJetsMax_(nJetsMax),
-  doGrooming_(doGrooming),
   genId_(genId),
   neutralHadronShift_(0), // these are the fractional shift, e.g. 0.2 for 20%
   photonShift_(0),
@@ -845,17 +836,13 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
 
     LorentzVectorXYZE wtaJetAxis(wtaJet.px(), wtaJet.py(), wtaJet.pz(), wtaJet.E());
 
-    // Optionally apply grooming to jet, update axis and constits left after grooming
+    // Apply grooming to jet, save new axis and constits left after grooming
     std::vector<GenParticle> groomedConstits;
-    PseudoJet mmdtJet;
-    LorentzVectorXYZE wtaGroomedJetAxis(wtaJet.px(), wtaJet.py(), wtaJet.pz(), wtaJet.E());
-    if (doGrooming_) {
-      mmdtJet = mmdt_(wtaJet);
-      wtaGroomedJetAxis.SetPxPyPzE(mmdtJet.px(), mmdtJet.py(), mmdtJet.pz(), mmdtJet.E());
-      // create collection with only those in groomed jet
-      for (const auto & dItr : mmdtJet.constituents()) {
-        groomedConstits.push_back(constits.at(dItr.user_index()));
-      }
+    PseudoJet mmdtJet = mmdt_(wtaJet);
+    LorentzVectorXYZE wtaGroomedJetAxis(mmdtJet.px(), mmdtJet.py(), mmdtJet.pz(), mmdtJet.E());
+    // create collection with only those in groomed jet
+    for (const auto & dItr : mmdtJet.constituents()) {
+      groomedConstits.push_back(constits.at(dItr.user_index()));
     }
 
     // create charged-only subset of constits
@@ -864,12 +851,7 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     clean_collection<GenParticle>(chargedConstits, event, ChargedCut());
     clean_collection<GenParticle>(groomedChargedConstits, event, ChargedCut());
 
-    // cout << "Original jet axis: " << jet.v4().px() << " : " << jet.v4().py() << " : " << jet.v4().pz() << endl;
-    // cout << "Original jet axis: " << jet.eta() << " : " << jet.phi() << endl;
-    // cout << "WTA jet axis: " << wtaJetAxis.px() << " : " << wtaJetAxis.py() << " : " << wtaJetAxis.pz() << endl;
-    // cout << "WTA jet axis: " << wtaJetAxis.eta() << " : " << wtaJetAxis.phi() << endl;
-
-      // Finally apply any pt cuts etc
+    // Finally apply any pt cuts etc
     if (genId_) {
       clean_collection<GenParticle>(constits, event, genId_);
       clean_collection<GenParticle>(chargedConstits, event, genId_);

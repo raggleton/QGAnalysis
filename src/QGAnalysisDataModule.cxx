@@ -166,21 +166,20 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     float recoConstitPtMin = 1.;
     float recoConstitEtaMax = 5.;
     // FIXME: get stuff from ctx not extra args?
-    bool alsoDoGroomed = true;
     std::string reco_jetlambda_handle_name = "JetLambdas";
-    jetLambdaCreatorPtSorted.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, alsoDoGroomed,
+    jetLambdaCreatorPtSorted.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi,
                                                            PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
                                                            "jets", reco_jetlambda_handle_name));
 
 
     std::string reco_jetlambda_forward_handle_name = "JetLambdasForward";
-    jetLambdaCreatorForward.reset(new QGAnalysisJetLambda(ctx, jetRadius, 1, doPuppi, alsoDoGroomed,
+    jetLambdaCreatorForward.reset(new QGAnalysisJetLambda(ctx, jetRadius, 1, doPuppi,
                                                           PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
                                                           dijet_forward_handle_name, reco_jetlambda_forward_handle_name));
 
 
     std::string reco_jetlambda_central_handle_name = "JetLambdasCentral";
-    jetLambdaCreatorCentral.reset(new QGAnalysisJetLambda(ctx, jetRadius, 1, doPuppi, alsoDoGroomed,
+    jetLambdaCreatorCentral.reset(new QGAnalysisJetLambda(ctx, jetRadius, 1, doPuppi,
                                                           PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
                                                           dijet_central_handle_name, reco_jetlambda_central_handle_name));
 

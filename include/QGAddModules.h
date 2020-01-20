@@ -288,7 +288,6 @@ public:
                       float jetRadius,
                       int nJetsMax,
                       bool doPuppi,
-                      bool doGrooming,
                       const PFParticleId & pfId, // applied to all lambdas
                       const std::string & jet_coll_name,
                       const std::string & output_coll_name);
@@ -311,7 +310,6 @@ private:
   float jetRadius_;
   int nJetsMax_;
   bool doPuppi_;
-  bool doGrooming_;
   PFParticleId pfId_;
   float chargedHadronShift_, neutralHadronShift_, photonShift_;
   uhh2::Event::Handle<std::vector<Jet>> jet_handle_;
@@ -326,7 +324,6 @@ public:
   QGAnalysisGenJetLambda(uhh2::Context & ctx,
                          float jetRadius,
                          int nJetsMax,
-                         bool doGrooming,
                          const GenParticleId & genId, // applied to all lambdas
                          const std::string & jet_coll_name,
                          const std::string & output_coll_name);
@@ -346,7 +343,6 @@ private:
   fastjet::contrib::ModifiedMassDropTagger mmdt_;
   float jetRadius_;
   int nJetsMax_;
-  bool doGrooming_;
   GenParticleId genId_;
   float neutralHadronShift_, photonShift_;
   uhh2::Event::Handle<std::vector<GenJetWithParts>> genjet_handle_;

@@ -201,36 +201,35 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     float recoConstitPtMin = 1.;
     float recoConstitEtaMax = 5.;
     // FIXME: get stuff from ctx not extra args?
-    bool alsoDoGroomed = true;
     std::string reco_jetlambda_handle_name = "JetLambdas";
-    jetLambdaCreatorPtSorted.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi, alsoDoGroomed,
+    jetLambdaCreatorPtSorted.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi,
                                                            PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
                                                            "jets", reco_jetlambda_handle_name));
 
-    float genConstitPtMin = 1.;
+    float genConstitPtMin = 0.;
     float genConstitEtaMax = 5.;
     std::string gen_jetlambda_handle_name = "GoodGenJetLambdas";
-    genjetLambdaCreatorPtSorted.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 5, alsoDoGroomed, // allow more jets for possible reco/gen matching outside of top 2
+    genjetLambdaCreatorPtSorted.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 5, // allow more jets for possible reco/gen matching outside of top 2
                                                                  PtEtaCut(genConstitPtMin, genConstitEtaMax),
                                                                  genjet_handle_name, gen_jetlambda_handle_name));
 
     std::string reco_jetlambda_forward_handle_name = "JetLambdasForward";
-    jetLambdaCreatorForward.reset(new QGAnalysisJetLambda(ctx, jetRadius, 1, doPuppi, alsoDoGroomed,
+    jetLambdaCreatorForward.reset(new QGAnalysisJetLambda(ctx, jetRadius, 1, doPuppi,
                                                           PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
                                                           dijet_forward_handle_name, reco_jetlambda_forward_handle_name));
 
     std::string gen_jetlambda_forward_handle_name = "GoodGenJetLambdasForward";
-    genjetLambdaCreatorForward.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 1, alsoDoGroomed,
+    genjetLambdaCreatorForward.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 1,
                                                                 PtEtaCut(genConstitPtMin, genConstitEtaMax),
                                                                 dijet_gen_forward_handle_name, gen_jetlambda_forward_handle_name));
 
     std::string reco_jetlambda_central_handle_name = "JetLambdasCentral";
-    jetLambdaCreatorCentral.reset(new QGAnalysisJetLambda(ctx, jetRadius, 1, doPuppi, alsoDoGroomed,
+    jetLambdaCreatorCentral.reset(new QGAnalysisJetLambda(ctx, jetRadius, 1, doPuppi,
                                                           PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
                                                           dijet_central_handle_name, reco_jetlambda_central_handle_name));
 
     std::string gen_jetlambda_central_handle_name = "GoodGenJetLambdasCentral";
-    genjetLambdaCreatorCentral.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 1, alsoDoGroomed,
+    genjetLambdaCreatorCentral.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 1,
                                                                 PtEtaCut(genConstitPtMin, genConstitEtaMax),
                                                                 dijet_gen_central_handle_name, gen_jetlambda_central_handle_name));
 
