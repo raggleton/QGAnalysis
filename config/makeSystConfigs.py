@@ -8,6 +8,7 @@ import argparse
 import re
 from collections import namedtuple
 import subprocess
+from itertools import product
 
 
 # structure to hold info about a given systematic
@@ -101,29 +102,84 @@ if __name__ == "__main__":
     # - here are just the variations
     # The values are the possible settings for the names,
     # and each entry in values should match the length of the names
+    # - they get done zip-qise, not product-wise
     systematics = [
         Systematic(names=['chargedHadronShift'], onMC=True, onData=False,
                    values=[('up'), ('down')]),
-        # Systematic(names=['neutralHadronShift'], onMC=True, onData=False,
-        #            values=[('up'), ('down')]),
-        # Systematic(names=['photonShift'], onMC=True, onData=False,
-        #            values=[('up'), ('down')]),
+        Systematic(names=['neutralHadronShift'], onMC=True, onData=False,
+                   values=[('up'), ('down')]),
+        Systematic(names=['photonShift'], onMC=True, onData=False,
+                   values=[('up'), ('down')]),
         Systematic(names=['jecsmear_direction'], onMC=True, onData=False,
                    values=[('up'), ('down')]),
-        # Systematic(names=['jersmear_direction'], onMC=True, onData=False,
-        #            values=[('up'), ('down')]),
-        # Systematic(names=['pileup_direction'], onMC=True, onData=False,
-        #            values=[('up'), ('down')]),
-        # Systematic(names=['PDFvariations'], onMC=True, onData=False,
-        #            values=[ ('true') ]),
-        # Systematic(names=['ScaleVariationMuR', 'ScaleVariationMuF'], onMC=True, onData=False,
-        #            values=[('up', 'up'),
-        #                    ('nominal', 'up'),
-        #                    ('up', 'nominal'),
-        #                    ('down', 'down'),
-        #                    ('down', 'nominal'),
-        #                    ('nominal', 'down'),
-                           # ]),
+        Systematic(names=['jersmear_direction'], onMC=True, onData=False,
+                   values=[('up'), ('down')]),
+        Systematic(names=['pileup_direction'], onMC=True, onData=False,
+                   values=[('up'), ('down')]),
+        Systematic(names=['PDFvariations'], onMC=True, onData=False,
+                   values=[ ('true') ]),
+        Systematic(names=['ScaleVariationMuR', 'ScaleVariationMuF'], onMC=True, onData=False,
+                   values=[('up', 'up'),
+                           ('nominal', 'up'),
+                           ('up', 'nominal'),
+                           ('down', 'down'),
+                           ('down', 'nominal'),
+                           ('nominal', 'down'),
+                           ]),
+    ]
+
+    # JEC individual source systematic
+    directions = ['up', 'down']
+    jec_sources = [
+        "AbsoluteStat",
+        "AbsoluteScale",
+        "AbsoluteFlavMap",
+        "AbsoluteMPFBias",
+        "Fragmentation",
+        "SinglePionECAL",
+        "SinglePionHCAL",
+        "FlavorQCD",
+        "TimePtEta",
+        "RelativeJEREC1",
+        "RelativeJEREC2",
+        "RelativeJERHF",
+        "RelativePtBB",
+        "RelativePtEC1",
+        "RelativePtEC2",
+        "RelativePtHF",
+        "RelativeBal",
+        "RelativeSample",
+        "RelativeFSR",
+        "RelativeStatFSR",
+        "RelativeStatEC",
+        "RelativeStatHF",
+        "PileUpDataMC",
+        "PileUpPtRef",
+        "PileUpPtBB",
+        "PileUpPtEC1",
+        "PileUpPtEC2",
+        "PileUpPtHF",
+        "PileUpMuZero",
+        "PileUpEnvelope",
+        "FlavorZJet",
+        "FlavorPhotonJet",
+        "FlavorPureGluon",
+        "FlavorPureQuark",
+        "FlavorPureCharm",
+        "FlavorPureBottom",
+        "TimeRunBCD",
+        "TimeRunEF",
+        "TimeRunGH",
+        "CorrelationGroupMPFInSitu",
+        "CorrelationGroupIntercalibration",
+        "CorrelationGroupbJES",
+        "CorrelationGroupFlavor",
+        "CorrelationGroupUncorrelated",
+    ]
+    jec_systematics = [
+        Systematic(names=['jecsmear_direction', 'jecsmear_source'], onMC=True, onData=True,
+                   values=[direction, src_name])
+        for direction, src_name in product(directions, jec_sources)
     ]
 
     for xml_filename in base_files:
