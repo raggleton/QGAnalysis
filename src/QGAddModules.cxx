@@ -13,7 +13,7 @@
 using namespace std;
 using namespace uhh2;
 using namespace fastjet;
-using namespace fastjet::contrib;
+// using namespace fastjet::contrib;
 
 
 DataJetMetCorrector::DataJetMetCorrector(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone){
@@ -545,8 +545,8 @@ QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx,
                                          const PFParticleId & pfId,
                                          const std::string & jet_coll_name,
                                          const std::string & output_coll_name):
-  ca_wta_cluster_(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme)),
-  mmdt_(ModifiedMassDropTagger(0.1)),
+  ca_wta_cluster_(Recluster(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme), false, Recluster::keep_only_hardest)),
+  mmdt_(contrib::ModifiedMassDropTagger(0.1)),
   jetRadius_(jetRadius),
   nJetsMax_(nJetsMax),
   doPuppi_(doPuppi),
@@ -588,13 +588,15 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     // Get constituents
     // don't apply puppi weight here, since we already account for it in the LambdaCalculator
     std::vector<PFParticle> constits = get_jet_pfparticles(jet, event, false);
+    clean_collection<PFParticle>(constits, event, PtEtaCut(1E-8, 5)); // basic cut to remove weird 0 pt constits
+
     // Shift energies if appropriate
     if (fabs(chargedHadronShift_) > 1E-6) { shift_charged_hadron_pfparticles(constits, chargedHadronShift_); }
     if (fabs(neutralHadronShift_) > 1E-6) { shift_neutral_hadron_pfparticles(constits, neutralHadronShift_); }
     if (fabs(photonShift_) > 1E-6) { shift_photon_pfparticles(constits, photonShift_); }
 
     // Calculate the WTA axis
-    // First convert constits to PseudoJets, then pass to clusterer
+    // First convert constits to PseudoJets
     vector<PseudoJet> pjconstits = {};
     int dauCounter = 0;
     for (const auto & dau : constits) {
@@ -603,20 +605,29 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
       pjconstits.push_back(thisDau);
       dauCounter++;
     }
-    ClusterSequence cs(pjconstits, ca_wta_cluster_);
-    vector<PseudoJet> wtaJets = sorted_by_pt(cs.inclusive_jets());
-    if (wtaJets.size() > 1) {
-      cout << " >1 WTA jets" << endl;
+
+    // Cluster using AKx to make pseudojet with right history
+    JetDefinition jet_def(antikt_algorithm, jetRadius_);
+    std::vector<PseudoJet> akJets = jet_def(pjconstits);
+    if (akJets.size() > 1) {
+      cout << " >1 ak jets" << endl;
       cout << "Original jet: " << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
-      for (const auto & subjet : wtaJets) {
-        cout << "WTA jet: " << subjet.pt() << " : " << subjet.eta() << " : " << subjet.phi() << endl;
+      for (const auto & subjet : akJets) {
+        cout << "ak jet: " << subjet.pt() << " : " << subjet.eta() << " : " << subjet.phi() << endl;
       }
-    } else if (wtaJets.size() == 0) {
-      cout << pjconstits.size() << " constits" << endl;
-      throw std::runtime_error("WTA reclustering failed - no jets");
+    } else if (akJets.size() == 0) {
+      throw std::runtime_error("AKx reclustering failed - no jets");
     }
-    PseudoJet wtaJet = wtaJets[0];
+
+    // Now recluster using WTA
+    PseudoJet wtaJet = ca_wta_cluster_(akJets[0]);
+
+    // PseudoJet wtaJet = wtaJets[0];
     LorentzVectorXYZE wtaJetAxis(wtaJet.px(), wtaJet.py(), wtaJet.pz(), wtaJet.E());
+
+    if (wtaJet.constituents().size() != constits.size()) {
+      throw std::runtime_error("WTA constits != genjet constits");
+    }
 
     std::vector<PFParticle> groomedConstits;
     PseudoJet mmdtJet;
@@ -748,8 +759,8 @@ QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx,
                                                const GenParticleId & genId,
                                                const std::string & jet_coll_name,
                                                const std::string & output_coll_name):
-  ca_wta_cluster_(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme)),
-  mmdt_(ModifiedMassDropTagger(0.1)),
+  ca_wta_cluster_(Recluster(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme), false, Recluster::keep_only_hardest)),
+  mmdt_(contrib::ModifiedMassDropTagger(0.1)),
   jetRadius_(jetRadius),
   nJetsMax_(nJetsMax),
   doGrooming_(doGrooming),
@@ -788,6 +799,8 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
 
     // Get constituents
     std::vector<GenParticle> constits = get_jet_genparticles(jet, event);
+    clean_collection<GenParticle>(constits, event, PtEtaCut(1E-8, 5)); // basic cut to remove weird 0 pt constits
+
     // Shift energies if appropriate
     // if (fabs(neutralHadronShift_) > 1E-6) { shift_neutral_hadron_genparticles(constits, neutralHadronShift_); }
     // if (fabs(photonShift_) > 1E-6) { shift_photon_genparticles(constits, photonShift_); }
@@ -795,7 +808,7 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     // FIXME: handle when 0 leftover constituents
 
     // Calculate the WTA axis
-    // First convert constits to PseudoJets, then pass to clusterer
+    // First convert constits to PseudoJets
     vector<PseudoJet> pjconstits = {};
     int dauCounter = 0;
     for (const auto & dau : constits) {
@@ -804,28 +817,32 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
       pjconstits.push_back(thisDau);
       dauCounter++;
     }
-    ClusterSequence cs(pjconstits, ca_wta_cluster_);
-    vector<PseudoJet> wtaJets = sorted_by_pt(cs.inclusive_jets());
-    if (wtaJets.size() > 1) {
-      cout << " >1 WTA genjets" << endl;
-      cout << "Original genjet: " << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
-      for (const auto & subjet : wtaJets) {
-        cout << "WTA genjet: " << subjet.pt() << " : " << subjet.eta() << " : " << subjet.phi() << endl;
+
+    // Cluster using AKx to make pseudojet with right history
+    JetDefinition jet_def(antikt_algorithm, jetRadius_);
+    std::vector<PseudoJet> akJets = jet_def(pjconstits);
+    if (akJets.size() > 1) {
+      cout << " >1 ak jets" << endl;
+      cout << "Original jet: " << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
+      for (const auto & subjet : akJets) {
+        cout << "ak jet: " << subjet.pt() << " : " << subjet.eta() << " : " << subjet.phi() << endl;
       }
-    } else if (wtaJets.size() == 0) {
-      cout << jet.genparticles_indices().size() << " genjet gp indices" << endl;
-      cout << pjconstits.size() << " gen pseudo constits" << endl;
-      std::vector<GenParticle> * genparticles = event.genparticles;
-      for (const uint i : jet.genparticles_indices()) {
-        auto gp = genparticles->at(i);
-        cout << gp.pt() << " : " << gp.eta() << " : " << gp.phi() << " : " << gp.charge() << " : " << gp.pdgId() << " : " << gp.status() << endl;
-        if (genId_ && !genId_(genparticles->at(i), event)) {
-          cout << "FAIL GEN ID" << endl;
-        }
-      }
-      throw std::runtime_error("WTA reclustering failed - no genjets");
+    } else if (akJets.size() == 0) {
+      throw std::runtime_error("AKx reclustering failed - no jets");
     }
-    PseudoJet wtaJet = wtaJets[0];
+
+    // Now recluster using WTA
+    PseudoJet wtaJet = ca_wta_cluster_(akJets[0]);
+
+    // for (const auto itr: wtaJet.constituents()) {
+    //   // cout << " wta constit: " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << endl;
+    //   cout << " wta constit: " << itr.px() << " : " << itr.py() << " : " << itr.pz() << " : " << itr.E() << endl;
+    // }
+
+    if (wtaJet.constituents().size() != constits.size()) {
+      throw std::runtime_error("WTA constits != genjet constits");
+    }
+
     LorentzVectorXYZE wtaJetAxis(wtaJet.px(), wtaJet.py(), wtaJet.pz(), wtaJet.E());
 
     // Optionally apply grooming to jet, update axis and constits left after grooming

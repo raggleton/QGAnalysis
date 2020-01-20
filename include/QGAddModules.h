@@ -17,6 +17,7 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include "fastjet/JetDefinition.hh"
 #include "fastjet/ClusterSequence.hh"
+#include "fastjet/tools/Recluster.hh"
 #include "fastjet/contrib/ModifiedMassDropTagger.hh"
 #pragma GCC diagnostic pop
 
@@ -305,7 +306,7 @@ public:
   void shift_photon_pfparticles(std::vector<PFParticle> & pfparticles, float shift);
 
 private:
-  fastjet::JetDefinition ca_wta_cluster_;
+  fastjet::Recluster ca_wta_cluster_;
   fastjet::contrib::ModifiedMassDropTagger mmdt_;
   float jetRadius_;
   int nJetsMax_;
@@ -341,7 +342,7 @@ public:
   // void shift_photon_genparticles(std::vector<GenParticle*> genparticles, float shift);
 
 private:
-  fastjet::JetDefinition ca_wta_cluster_;
+  fastjet::Recluster ca_wta_cluster_;
   fastjet::contrib::ModifiedMassDropTagger mmdt_;
   float jetRadius_;
   int nJetsMax_;
