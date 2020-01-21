@@ -114,6 +114,8 @@ if __name__ == "__main__":
                    values=[('up'), ('down')]),
         Systematic(names=['jersmear_direction'], onMC=True, onData=False,
                    values=[('up'), ('down')]),
+        Systematic(names=['track_direction'], onMC=True, onData=False,
+                   values=[('up'), ('down')]),
         Systematic(names=['pileup_direction'], onMC=True, onData=False,
                    values=[('up'), ('down')]),
         Systematic(names=['PDFvariations'], onMC=True, onData=False,
