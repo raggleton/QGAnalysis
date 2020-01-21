@@ -834,7 +834,8 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     }
 
     // Cluster using AKx to make pseudojet with right history
-    JetDefinition jet_def(antikt_algorithm, jetRadius_);
+    // JetDefinition jet_def(antikt_algorithm, jetRadius_);
+    JetDefinition jet_def(antikt_algorithm, JetDefinition::max_allowable_R); // don't use jet radius, as it can lead to several jets instead of the original
     std::vector<PseudoJet> akJets = jet_def(pjconstits);
     if (akJets.size() > 1) {
       cout << " >1 ak jets" << endl;
@@ -1021,10 +1022,6 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     std::vector<GenParticle> constits = get_jet_genparticles(jet, event);
     clean_collection<GenParticle>(constits, event, PtEtaCut(1E-8, 5)); // basic cut to remove weird 0 pt constits
 
-    // Shift energies if appropriate
-    // if (fabs(neutralHadronShift_) > 1E-6) { shift_neutral_hadron_genparticles(constits, neutralHadronShift_); }
-    // if (fabs(photonShift_) > 1E-6) { shift_photon_genparticles(constits, photonShift_); }
-
     // FIXME: handle when 0 leftover constituents
 
     // Calculate the WTA axis
@@ -1039,7 +1036,7 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     }
 
     // Cluster using AKx to make pseudojet with right history
-    JetDefinition jet_def(antikt_algorithm, jetRadius_);
+    JetDefinition jet_def(antikt_algorithm, JetDefinition::max_allowable_R); // don't use jet radius, as it can lead to several jets instead of the original
     std::vector<PseudoJet> akJets = jet_def(pjconstits);
     if (akJets.size() > 1) {
       cout << " >1 ak jets" << endl;
