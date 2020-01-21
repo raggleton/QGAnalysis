@@ -52,6 +52,7 @@ public:
 private:
 
     std::unique_ptr<GeneralEventSetup> common_setup;
+    std::unique_ptr<RecoJetSetup> recojet_setup;
     std::unique_ptr<MCReweighting> mc_reweight;
 
     std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreatorPtSorted, jetLambdaCreatorForward, jetLambdaCreatorCentral;
@@ -148,9 +149,9 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     cout << "Is Z+jets: " << isZPlusJets << endl;
 
     // FIXME: get everything from ctx not extra args
+    common_setup.reset(new GeneralEventSetup(ctx));
     float jet_pt_min = 30.;
-    common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jetRadius, jet_pt_min));
-
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jetRadius, jet_pt_min));
     std::string genjet_handle_name = "GoodGenJets";
     std::string genmuon_handle_name = "GoodGenMuons";
     genjets_handle = ctx.get_handle< std::vector<GenJetWithParts> > (genjet_handle_name);
@@ -592,6 +593,8 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Note that we only care about this for reco-specific bits,
     // not gen-specific (only false if fails MET filters)
     bool passCommonRecoSetup = common_setup->process(event);
+    recojet_setup->process(event);
+
     if (!(njet_min_sel->passes(event) || ngenjet_min_sel->passes(event))) return false;
 
     if (PRINTOUT) printMuons(*event.muons);

@@ -42,6 +42,7 @@ public:
 private:
 
     std::unique_ptr<GeneralEventSetup> common_setup;
+    std::unique_ptr<RecoJetSetup> recojet_setup;
 
     // Reco selections/hists
     std::unique_ptr<Selection> njet_sel;
@@ -111,8 +112,8 @@ QGAnalysisJetTrigEffModule::QGAnalysisJetTrigEffModule(Context & ctx){
         throw runtime_error("Only PURemoval == CHS, PUPPI supported for now");
     }
     float jet_radius = get_jet_radius(jet_cone);
-    common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jet_radius, 10.));
-
+    common_setup.reset(new GeneralEventSetup(ctx));
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jet_radius, 10.));
     cout << "Running with jet cone: " << jet_cone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
 
@@ -146,6 +147,7 @@ bool QGAnalysisJetTrigEffModule::process(Event & event) {
         if (PRINTOUT) cout << " failed commonmodules" << endl;
         return false;
     }
+    recojet_setup->process(event);
 
     if (PRINTOUT) {
         auto trigNames = event.get_current_triggernames();

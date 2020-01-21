@@ -55,6 +55,7 @@ public:
 private:
 
     std::unique_ptr<GeneralEventSetup> common_setup;
+    std::unique_ptr<RecoJetSetup> recojet_setup;
     Event::Handle<double> gen_weight_handle, pt_binning_reco_handle, pt_binning_gen_handle;;
 
     // Reco selections/hists
@@ -110,7 +111,9 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     cout << "Running with jet cone: " << jet_cone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
 
-    common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jetRadius));
+    common_setup.reset(new GeneralEventSetup(ctx));
+    float jet_pt_min = 30.;
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jetRadius, jet_pt_min));
     gen_weight_handle = ctx.get_handle<double>("gen_weight");
     pt_binning_reco_handle = ctx.get_handle<double>("pt_binning_reco_value"); // the value to use for reco pt bin e.g dijet average
     pt_binning_gen_handle = ctx.get_handle<double>("pt_binning_gen_value"); // the value to use for gen pt bin e.g dijet average
@@ -455,6 +458,7 @@ bool QGAnalysisDataModule::process(Event & event) {
     if (PRINTOUT) printJets(*event.jets, "Precleaning");
 
     if (!common_setup->process(event)) return false;
+    if (!recojet_setup->process(event)) return false;
 
     if (!njet_sel->passes(event)) return false;
 

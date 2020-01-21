@@ -37,6 +37,7 @@ public:
 private:
 
     std::unique_ptr<GeneralEventSetup> common_setup;
+    std::unique_ptr<RecoJetSetup> recojet_setup;
     std::unique_ptr<MCReweighting> mc_reweight;
 
     // Reco selections/hists
@@ -82,7 +83,8 @@ QGAnalysisFlavModule::QGAnalysisFlavModule(Context & ctx){
     cout << "Running with jet cone: " << jet_cone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
 
-    common_setup.reset(new GeneralEventSetup(ctx, pu_removal, jet_cone, jetRadius));
+    common_setup.reset(new GeneralEventSetup(ctx));
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jetRadius, 30.));
     mc_reweight.reset(new MCReweighting(ctx));
 
     genjets_handle = ctx.declare_event_output< std::vector<GenJetWithParts> > ("GoodGenJets");
@@ -117,6 +119,7 @@ QGAnalysisFlavModule::QGAnalysisFlavModule(Context & ctx){
 bool QGAnalysisFlavModule::process(Event & event) {
     // cout << "event" << endl;
     if (!common_setup->process(event)) {return false;}
+    recojet_setup->process(event);
     mc_reweight->process(event);
 
     if (!njet_sel->passes(event)) return false;

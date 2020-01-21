@@ -23,6 +23,8 @@
 
 #include "TFile.h"
 #include "TGraph.h"
+#include "TRandom3.h"
+#include "TH3.h"
 
 
 // Easy way to refer to PDGIDs
@@ -76,18 +78,29 @@ private:
 
 /**
  * Standardised way of cleaning objects, applying IDs, corrections, etc
+ * But don't do jets, they are done separately
  */
 class GeneralEventSetup : public uhh2::AnalysisModule {
 public:
-  GeneralEventSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min=30);
+  explicit GeneralEventSetup(uhh2::Context & ctx);
   virtual bool process(uhh2::Event & event) override;
 private:
-  bool is_mc;
   std::unique_ptr<Selection> lumi_selection;
   std::unique_ptr<AndSelection> metfilters_selection;
   std::unique_ptr<PrimaryVertexCleaner> pv_cleaner;
   std::unique_ptr<ElectronCleaner> electron_cleaner;
   std::unique_ptr<MuonCleaner> muon_cleaner;
+};
+
+
+/**
+ * RecoJet-specific bits of setup e.g. JEC, JER
+ */
+class RecoJetSetup : public uhh2::AnalysisModule {
+public:
+  RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min);
+  virtual bool process(uhh2::Event & event) override;
+private:
   std::unique_ptr<JetCleaner> jet_pf_id;
   std::unique_ptr<AnalysisModule> jet_met_corrector;
   std::unique_ptr<JetCleaner> jet_cleaner;
@@ -137,6 +150,29 @@ private:
 };
 
 /**
+ * Apply track SFs to MC, with/without uncertianties
+ */
+class MCTrackScaleFactor : public uhh2::AnalysisModule {
+public:
+  MCTrackScaleFactor(uhh2::Context & ctx, const std::string & direction="central");
+  virtual bool process(uhh2::Event & event) override;
+  PFParticle::EParticleID pdgid_to_pfid(int pdgid, int charge);
+private:
+  const std::vector<float> eta_regions;
+  const std::vector<std::vector<float>> SF;
+  const std::vector<std::vector<float>> SF_uncert;
+  float run_BtoF_lumi, run_GtoH_lumi, total_lumi;
+  const std::string direction_;
+  float drMax_;
+  std::unique_ptr<TRandom3> random_;
+  Event::Handle<std::vector<PFParticle>> dropped_pf_handle;
+  Event::Handle<std::vector<PFParticle>> promoted_pf_handle;
+  std::map<int, TH3D*> matching_pf_hists;
+
+};
+
+
+/**
  * Apply weights/SF specifically for MC
  */
 class MCReweighting : public uhh2::AnalysisModule {
@@ -154,6 +190,7 @@ private:
   std::unique_ptr<MCScaleVariation> mc_scalevar;
   bool doMuons, is_DY;
 };
+
 
 /**
  * find the Z->mumu

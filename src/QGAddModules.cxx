@@ -42,6 +42,8 @@ DataJetMetCorrector::DataJetMetCorrector(uhh2::Context & ctx, const std::string 
     } else {
       throw runtime_error("PUPPI must have jet_cone of AK4 or AK8");
     }
+  } else {
+    throw runtime_error("pu_removal must be CHS or PUPPI");
   }
 
   jet_corrector_BCD.reset(new JetCorrector(ctx, JEC_BCD));
@@ -89,6 +91,8 @@ MCJetMetCorrector::MCJetMetCorrector(uhh2::Context & ctx, const std::string & pu
     } else {
       throw runtime_error("PUPPI must have jet_cone of AK4 or AK8");
     }
+  } else {
+    throw runtime_error("pu_removal must be CHS or PUPPI");
   }
   jet_corrector.reset(new JetCorrector(ctx, JEC_MC));
   jet_resolution_smearer.reset(new GenericJetResolutionSmearer(ctx, jet_coll_name, genjet_coll_name, true, JERSmearing::SF_13Tev_Summer16_25nsV1, resolutionFilename));
@@ -102,8 +106,8 @@ bool MCJetMetCorrector::process(uhh2::Event & event) {
 }
 
 
-GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min) {
-  is_mc = ctx.get("dataset_type") == "MC";
+GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx) {
+  bool is_mc = ctx.get("dataset_type") == "MC";
 
   if (!is_mc) lumi_selection.reset(new LumiSelection(ctx));
 
@@ -121,7 +125,27 @@ GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx, const std::string & pu
   electron_cleaner.reset(new ElectronCleaner(AndId<Electron>(ElectronID_Spring16_medium, PtEtaCut(20.0, 2.5))));
 
   muon_cleaner.reset(new MuonCleaner(AndId<Muon>(MuonIDMedium_ICHEP(), PtEtaCut(26.0, 2.4), MuonIso(0.25))));
-  // muon_cleaner.reset(new MuonCleaner(AndId<Muon>(MuonIDMedium_ICHEP(), PtEtaCut(26.0, 2.4))));
+}
+
+bool GeneralEventSetup::process(uhh2::Event & event) {
+
+  if(event.isRealData && !lumi_selection->passes(event)) return false;
+
+  pv_cleaner->process(event);
+
+  electron_cleaner->process(event);
+
+  muon_cleaner->process(event);
+
+  // put this last, so objects are correctly cleaned, etc, for MCWeight afterwards
+  if(!metfilters_selection->passes(event)) return false;
+
+  return true;
+}
+
+
+RecoJetSetup::RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min) {
+  bool is_mc = ctx.get("dataset_type") == "MC";
 
   jet_pf_id.reset(new JetCleaner(ctx, JetPFID(JetPFID::wp::WP_LOOSE)));
 
@@ -139,15 +163,7 @@ GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx, const std::string & pu
   jet_mu_cleaner.reset(new JetMuonOverlapRemoval(jet_radius));
 }
 
-bool GeneralEventSetup::process(uhh2::Event & event) {
-
-  if(event.isRealData && !lumi_selection->passes(event)) return false;
-
-  pv_cleaner->process(event);
-
-  electron_cleaner->process(event);
-
-  muon_cleaner->process(event);
+bool RecoJetSetup::process(uhh2::Event & event) {
 
   jet_pf_id->process(event);
 
@@ -160,9 +176,6 @@ bool GeneralEventSetup::process(uhh2::Event & event) {
   jet_mu_cleaner->process(event);
 
   sort_by_pt(*event.jets);
-
-  // put this last, so objects are correctly cleaned, etc, for MCWeight afterwards
-  if(!metfilters_selection->passes(event)) return false;
 
   return true;
 }
@@ -262,6 +275,142 @@ bool PtReweight::process(uhh2::Event & event) {
   return false;
 }
 
+MCTrackScaleFactor::MCTrackScaleFactor(uhh2::Context & ctx, const std::string & direction):
+  eta_regions{0.00, 0.80, 1.50, 2.5},
+  SF{
+    {1.01, 1.08, 0.93}, // Run B to F
+    {1.04, 1.07, 1.12}  // Run G, H
+  },
+  SF_uncert{
+    {0.03, 0.04, 0.04}, // Run B to F
+    {0.03, 0.06, 0.05}  // Run G, H
+  },
+  run_BtoF_lumi(19691.766856822),  // taken from IsoMu24 trigger lumis
+  run_GtoH_lumi(16226.452636126),
+  direction_(direction),
+  drMax_(0.05),
+  dropped_pf_handle(ctx.get_handle<std::vector<PFParticle>>("dropped_pfparticles")),
+  promoted_pf_handle(ctx.get_handle<std::vector<PFParticle>>("promoted_genparticles"))
+{
+  total_lumi = run_BtoF_lumi + run_GtoH_lumi;
+  random_.reset(new TRandom3(0));
+  if (!(direction == "nominal" || direction == "up" || direction == "down")) {
+    throw std::runtime_error("MCTrackScaleFactor direction should be one of: nominal, up, down");
+  }
+  int nbins_pt = 100;
+  float pt_min = 0;
+  float pt_max = 20;
+  int nbins_dr = 20;
+  for (int i=PFParticle::eX; i<=PFParticle::eH0; i++) {
+    matching_pf_hists[i] = new TH3D(TString::Format("MCTrackScaleFactor_PF_%d", i), TString::Format("GenParticle-PF matching for PF ID %d;GenParticle p_{T} [GeV];PF particle p_{T} [GeV];#DeltaR", i), nbins_pt, pt_min, pt_max, nbins_pt, pt_min, pt_max, nbins_dr, 0, drMax_);;
+    ctx.put("", matching_pf_hists[i]);
+  }
+}
+
+PFParticle::EParticleID MCTrackScaleFactor::pdgid_to_pfid(int pdgid, int charge){
+  int abspdgid = abs(pdgid);
+  if (abspdgid == 11) {
+    return PFParticle::eE;
+  } else if (abspdgid == 13) {
+    return PFParticle::eMu;
+  } else if (abspdgid == 22) {
+    return PFParticle::eGamma;
+  } else if (abspdgid == 15) {
+    return PFParticle::eH;
+  } else if (charge != 0) {
+    return PFParticle::eH;
+  } else if (abspdgid != 12 && abspdgid != 14 && abspdgid != 16) {
+    return PFParticle::eH0;
+  } else {
+    return PFParticle::eX;
+  }
+}
+
+bool MCTrackScaleFactor::process(uhh2::Event & event) {
+  // Decide randomly which run period we're in for this event
+  // Done proportional to total lumi in each run period
+  bool isRunGtoH = (random_->Rndm() < (run_GtoH_lumi / total_lumi));
+  // Go through each eta region, and apply the SF
+  // If SF < 1, then need to drop a track with a certain probability
+  // If SF > 1, then need to promote a gen particle (that doesn't have a matching track)
+  // to become a track, and somehow add it to a jet
+  std::vector<PFParticle> dropped_pfparticles;
+  std::vector<GenParticle> promoted_genparticles;
+  for (uint eta_bin=0; eta_bin<eta_regions.size()-1; eta_bin++) {
+    float eta_min = eta_regions[eta_bin];
+    float eta_max = eta_regions[eta_bin+1];
+    float sf = SF[isRunGtoH][eta_bin];
+    if (direction_ == "up") {
+      sf += SF_uncert[isRunGtoH][eta_bin];
+    } else if (direction_ == "down") {
+      sf -= SF_uncert[isRunGtoH][eta_bin];
+    }
+
+    if (sf < 1) {
+      // Drop track with probability proportional to SF
+      for (uint pf_ind=0; pf_ind<event.pfparticles->size(); pf_ind++) {
+        PFParticle pf = event.pfparticles->at(pf_ind);
+        if (fabs(pf.eta()) > eta_max || fabs(pf.eta()) < eta_min) continue; // ignore if outside this eta bin
+        if (pf.particleID() != PFParticle::eH) continue; //ignore if not charged hadron
+        if (random_->Rndm() > sf) {
+          // reject this particle
+          dropped_pfparticles.push_back(pf);
+        }
+      }
+    } else {
+      // Promote charged genparticle to PF particle with probability proportional to SF,
+      // but only if there's no match to a PF particle already
+      int genCounter = 0;
+      int matchedGenCounter = 0;
+      for (uint gp_ind=0; gp_ind<event.genparticles->size(); gp_ind++) {
+        GenParticle gp = event.genparticles->at(gp_ind);
+        if (gp.status() != 1) continue; // final state only
+        if (fabs(gp.eta()) > eta_max || fabs(gp.eta()) < eta_min) continue; // ignore if outside this eta bin
+        if (abs(gp.pdgId()) < 100) continue;
+        if (gp.charge() == 0) continue;
+        genCounter++;
+        // Look for matching pf particle
+        bool matched = false;
+        float minDR = 99999;
+        int pfMatch = -1;
+        for (uint pf_ind=0; pf_ind<event.pfparticles->size(); pf_ind++) {
+          PFParticle pf = event.pfparticles->at(pf_ind);
+          float dr = deltaR(pf.v4(), gp.v4());
+          if (dr < drMax_ && dr < minDR) {
+            minDR = dr;
+            matched = true;
+            pfMatch = pf_ind;
+            // cout << "Found a gp-pf match: " << dr << endl;
+            // cout << "GP: " << gp.pt() << " : " << gp.eta() << " : " << gp.phi() << " : " << gp.pdgId() << endl;
+            // cout << "PF: " << pf.pt() << " : " << pf.eta() << " : " << pf.phi() << " : " << pf.particleID() << endl;
+            // if (pf.particleID() == 5) { cout << " ************************************************************************************************" << endl;}
+          }
+        }
+        if (matched) {
+          matchedGenCounter++;
+          matching_pf_hists[event.pfparticles->at(pfMatch).particleID()]->Fill(gp.pt(), event.pfparticles->at(pfMatch).pt(), minDR, event.weight);
+          continue;
+        };
+        bool alreadyAdded = (std::find(promoted_genparticles.begin(), promoted_genparticles.end(), gp) != promoted_genparticles.end());
+        if ((random_->Rndm() < (sf-1)) && !alreadyAdded) { promoted_genparticles.push_back(gp); }
+      }
+      // cout << "genCounter: " << genCounter << endl;
+      // cout << "matchedGenCounter: " << matchedGenCounter << endl;
+    }
+
+  }
+  // convert those GPs to PFs
+  std::vector<PFParticle> promoted_genparticles_as_pf;
+  for (const auto & gpItr : promoted_genparticles) {
+    PFParticle pf;
+    pf.set_v4(gpItr.v4());
+    pf.set_particleID(pdgid_to_pfid(gpItr.pdgId(), gpItr.charge()));
+    pf.set_charge(gpItr.charge());
+  }
+  event.set(dropped_pf_handle, dropped_pfparticles);
+  event.set(promoted_pf_handle, promoted_genparticles_as_pf);
+  return true;
+}
 
 MCReweighting::MCReweighting(uhh2::Context & ctx, const std::string & genjet_name, const std::string & genmuon_name) {
   gen_weight_handle = ctx.get_handle<double>("gen_weight");
@@ -325,7 +474,6 @@ bool MCReweighting::process(uhh2::Event & event) {
     old_gen_weight *= (event.weight / old_weight);
 
     pileup_reweighter->process(event);
-
 
     if (doMuons) {
       muon_id_reweighter_pt_eta->process(event);
