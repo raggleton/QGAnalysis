@@ -149,8 +149,9 @@ private:
   Event::Handle<std::vector<GenJetWithParts>> genjets_handle;
 };
 
+
 /**
- * Apply track SFs to MC, with/without uncertianties
+ * Apply track SFs to MC, with/without uncertianties. Adds collections of promoted & dropped PF particles to the event
  */
 class MCTrackScaleFactor : public uhh2::AnalysisModule {
 public:
@@ -169,6 +170,32 @@ private:
   Event::Handle<std::vector<PFParticle>> promoted_pf_handle;
   std::map<int, TH3D*> matching_pf_hists;
 
+};
+
+
+/**
+ * Update event pfparticles and jets with dropped/promoted particles from MCTrackScaleFactor
+ */
+class JetPFUpdater : public uhh2::AnalysisModule {
+public:
+  JetPFUpdater(uhh2::Context & ctx, const std::string & jet_coll_name="jets");
+  virtual bool process(uhh2::Event & event) override;
+private:
+  Event::Handle<std::vector<Jet>> jet_handle;
+  Event::Handle<std::vector<PFParticle>> dropped_pf_handle;
+  Event::Handle<std::vector<PFParticle>> promoted_pf_handle;
+};
+
+
+/**
+ * Correct for tracking efficiency, adding/removing PF particles & updating reco jets
+ */
+class TrackingEfficiency : public uhh2::AnalysisModule {
+public:
+  explicit TrackingEfficiency(uhh2::Context & ctx);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  std::unique_ptr<AnalysisModule> track_sf, jet_updater;
 };
 
 

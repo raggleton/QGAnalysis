@@ -54,6 +54,7 @@ private:
     std::unique_ptr<GeneralEventSetup> common_setup;
     std::unique_ptr<RecoJetSetup> recojet_setup;
     std::unique_ptr<MCReweighting> mc_reweight;
+    std::unique_ptr<TrackingEfficiency> tracking_eff;
 
     std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreatorPtSorted, jetLambdaCreatorForward, jetLambdaCreatorCentral;
     std::unique_ptr<QGAnalysisGenJetLambda> genjetLambdaCreatorPtSorted, genjetLambdaCreatorForward, genjetLambdaCreatorCentral;
@@ -150,6 +151,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     // FIXME: get everything from ctx not extra args
     common_setup.reset(new GeneralEventSetup(ctx));
+    tracking_eff.reset(new TrackingEfficiency(ctx));
     float jet_pt_min = 30.;
     recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jetRadius, jet_pt_min));
     std::string genjet_handle_name = "GoodGenJets";
@@ -593,6 +595,8 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Note that we only care about this for reco-specific bits,
     // not gen-specific (only false if fails MET filters)
     bool passCommonRecoSetup = common_setup->process(event);
+
+    tracking_eff->process(event);
     recojet_setup->process(event);
 
     if (!(njet_min_sel->passes(event) || ngenjet_min_sel->passes(event))) return false;

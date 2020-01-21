@@ -366,8 +366,7 @@ bool MCTrackScaleFactor::process(uhh2::Event & event) {
         GenParticle gp = event.genparticles->at(gp_ind);
         if (gp.status() != 1) continue; // final state only
         if (fabs(gp.eta()) > eta_max || fabs(gp.eta()) < eta_min) continue; // ignore if outside this eta bin
-        if (abs(gp.pdgId()) < 100) continue;
-        if (gp.charge() == 0) continue;
+        if ((abs(gp.pdgId()) < 100) || (gp.charge() == 0)) continue; // only care about charged hadrons
         genCounter++;
         // Look for matching pf particle
         bool matched = false;
@@ -411,6 +410,88 @@ bool MCTrackScaleFactor::process(uhh2::Event & event) {
   event.set(promoted_pf_handle, promoted_genparticles_as_pf);
   return true;
 }
+
+
+JetPFUpdater::JetPFUpdater(uhh2::Context & ctx, const std::string & jet_coll_name):
+  jet_handle(ctx.get_handle<std::vector<Jet>>(jet_coll_name)),
+  dropped_pf_handle(ctx.get_handle<std::vector<PFParticle>>("dropped_pfparticles")),
+  promoted_pf_handle(ctx.get_handle<std::vector<PFParticle>>("promoted_genparticles"))
+{
+}
+
+bool JetPFUpdater::process(uhh2::Event & event) {
+  std::vector<PFParticle> & promoted_pf_particles = event.get(promoted_pf_handle);
+  std::vector<PFParticle> & dropped_pf_particles = event.get(dropped_pf_handle);
+  if (promoted_pf_particles.size() == 0 && dropped_pf_particles.size() == 0) { return true; }
+
+  // add promoted pfparticles to event.pfparticles
+  uint old_pf_size = event.pfparticles->size();
+  event.pfparticles->insert(event.pfparticles->end(), promoted_pf_particles.begin(), promoted_pf_particles.end());
+
+  // cout << "++++++++++++++++++++++++++++= Promoting: " << promoted_pf_particles.size() << endl;
+  // cout << "----------------------------= Dropping: " << dropped_pf_particles.size() << endl;
+  // go through jets, for each remove constituent if in dropped collection, add if in promoted
+
+  for (auto & jet: event.get(jet_handle)) {
+    std::vector<uint> newDauIndices;
+
+    // get un-corrected 4-vector, will be updated with dropped/promoted particles
+    LorentzVectorXYZE jetv4xyz = toXYZ(jet.v4()) * jet.JEC_factor_raw();
+    LorentzVector jetv4 = toPtEtaPhi(jetv4xyz);
+    // cout << "Old v4: " << jetv4.pt() << " : " << jetv4.eta() << " : " << jetv4.phi() << endl;
+
+    // remove dropped
+    if (dropped_pf_particles.size() > 0) {
+      for (const auto dInd : jet.daughterIndices()) {
+        PFParticle dau = event.pfparticles->at(dInd);
+        if (std::find(dropped_pf_particles.begin(), dropped_pf_particles.end(), dau) == dropped_pf_particles.end()) {
+          newDauIndices.push_back(dInd);
+        }
+        else {
+          jetv4 -= dau.v4();
+          // cout << "*************************** removed dau" << endl;
+        }
+      }
+    } else {
+      newDauIndices = jet.daughterIndices();
+    }
+
+    if (promoted_pf_particles.size() > 0) {
+      // add promoted particles, if they fall within jet radius
+      float jetRadius = TMath::Sqrt(jet.jetArea() / TMath::Pi()); // take from user instead?
+      for (uint promInd=0; promInd < promoted_pf_particles.size(); promInd++) {
+        const PFParticle & promoted = promoted_pf_particles.at(promInd);
+        if (deltaR(promoted.v4(), jet.v4()) < jetRadius) {
+          // cout << "*************************** Adding new dau ind " << old_pf_size+promInd << " to jet " << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
+          newDauIndices.push_back(old_pf_size+promInd);
+          jetv4 += promoted.v4();
+        }
+      }
+    }
+    // cout << "New v4: " << jetv4.pt() << " : " << jetv4.eta() << " : " << jetv4.phi() << endl;
+    // TODO: recalc energy fractions as well?
+
+    jet.set_v4(jetv4); // update with uncorrected 4-vector
+    jet.set_daughterIndices(newDauIndices);
+    jet.set_numberOfDaughters(newDauIndices.size());
+  }
+
+  return true;
+}
+
+
+TrackingEfficiency::TrackingEfficiency(uhh2::Context & ctx) {
+  track_sf.reset(new MCTrackScaleFactor(ctx, ctx.get("track_direction", "nominal")));
+  jet_updater.reset(new JetPFUpdater(ctx));
+}
+
+bool TrackingEfficiency::process(uhh2::Event & event) {
+  if (event.isRealData) return true;
+  track_sf->process(event);
+  jet_updater->process(event);
+  return true;
+}
+
 
 MCReweighting::MCReweighting(uhh2::Context & ctx, const std::string & genjet_name, const std::string & genmuon_name) {
   gen_weight_handle = ctx.get_handle<double>("gen_weight");
