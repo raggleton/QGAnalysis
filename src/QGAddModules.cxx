@@ -348,6 +348,7 @@ bool MCTrackScaleFactor::process(uhh2::Event & event) {
 
     if (sf < 1) {
       // Drop track with probability proportional to SF
+      // FIXME: should this only apply to matched PF particles?
       for (uint pf_ind=0; pf_ind<event.pfparticles->size(); pf_ind++) {
         PFParticle pf = event.pfparticles->at(pf_ind);
         if (fabs(pf.eta()) > eta_max || fabs(pf.eta()) < eta_min) continue; // ignore if outside this eta bin
@@ -362,11 +363,20 @@ bool MCTrackScaleFactor::process(uhh2::Event & event) {
       // but only if there's no match to a PF particle already
       int genCounter = 0;
       int matchedGenCounter = 0;
+      std::vector<GenParticle> consideredGP; // needed since there are duplicate genparticles :((
+      std::vector<GenParticle> unmatchedGP;
       for (uint gp_ind=0; gp_ind<event.genparticles->size(); gp_ind++) {
         GenParticle gp = event.genparticles->at(gp_ind);
         if (gp.status() != 1) continue; // final state only
         if (fabs(gp.eta()) > eta_max || fabs(gp.eta()) < eta_min) continue; // ignore if outside this eta bin
         if ((abs(gp.pdgId()) < 100) || (gp.charge() == 0)) continue; // only care about charged hadrons
+        if (std::find(consideredGP.begin(), consideredGP.end(), gp) == consideredGP.end()) {
+          // only count if non-duplicate
+          consideredGP.push_back(gp);
+        } else {
+          continue;
+        }
+
         genCounter++;
         // Look for matching pf particle
         bool matched = false;
@@ -385,18 +395,25 @@ bool MCTrackScaleFactor::process(uhh2::Event & event) {
             // if (pf.particleID() == 5) { cout << " ************************************************************************************************" << endl;}
           }
         }
+
         if (matched) {
           matchedGenCounter++;
           matching_pf_hists[event.pfparticles->at(pfMatch).particleID()]->Fill(gp.pt(), event.pfparticles->at(pfMatch).pt(), minDR, event.weight);
           continue;
-        };
-        bool alreadyAdded = (std::find(promoted_genparticles.begin(), promoted_genparticles.end(), gp) != promoted_genparticles.end());
-        if ((random_->Rndm() < (sf-1)) && !alreadyAdded) { promoted_genparticles.push_back(gp); }
+        }
+        bool alreadyAdded = (std::find(unmatchedGP.begin(), unmatchedGP.end(), gp) != unmatchedGP.end());
+        if (!alreadyAdded) { unmatchedGP.push_back(gp); }
+        // bool alreadyAdded = (std::find(promoted_genparticles.begin(), promoted_genparticles.end(), gp) != promoted_genparticles.end());
+        // if ((random_->Rndm() < (sf-1)) && !alreadyAdded) { promoted_genparticles.push_back(gp); }
       }
       // cout << "genCounter: " << genCounter << endl;
       // cout << "matchedGenCounter: " << matchedGenCounter << endl;
+      // now decide how many to promote.
+      double probability = TMath::Min(1., (sf-1.) * (consideredGP.size() - unmatchedGP.size())/ unmatchedGP.size());
+      for (uint iu=0; iu<unmatchedGP.size(); iu++) {
+        if (random_->Rndm() < probability) { promoted_genparticles.push_back(unmatchedGP.at(iu)); }
+      }
     }
-
   }
   // convert those GPs to PFs
   std::vector<PFParticle> promoted_genparticles_as_pf;
