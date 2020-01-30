@@ -285,8 +285,10 @@ MCTrackScaleFactor::MCTrackScaleFactor(uhh2::Context & ctx, const std::string & 
     {0.03, 0.04, 0.04}, // Run B to F
     {0.03, 0.06, 0.05}  // Run G, H
   },
-  run_BtoF_lumi(19691.766856822),  // taken from IsoMu24 trigger lumis
-  run_GtoH_lumi(16226.452636126),
+  run_BtoF_lumi(19284.990943025),  // taken from IsoMu24 trigger lumis
+  run_GtoH_lumi(16633.228549923), // accounts for the HIP fix partway through Run F
+  // run_BtoF_lumi(19691.766856822),  // taken from IsoMu24 trigger lumis
+  // run_GtoH_lumi(16226.452636126),
   direction_(direction),
   drMax_(0.05),
   dropped_pf_handle(ctx.get_handle<std::vector<PFParticle>>("dropped_pfparticles")),
