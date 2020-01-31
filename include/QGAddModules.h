@@ -246,10 +246,17 @@ private:
 
 /**
  * Calculate any LesHouches variable from jet constituents
+ *
+ * Note that we explicity ask for the constituents, and don't just take a jet
+ * as an argument. This is so we can customise the constituents separately
+ * (e.g. shift constituents' energy, rejecting some).
+ *
+ * We also have 2 jet axes: the standard axis (jet_vector),
+ * and the WTA axis (wta_vector).
  */
 template <class T> class LambdaCalculator {
 public:
-  LambdaCalculator(std::vector<T> & constits, float jet_radius, const LorentzVector & jet_vector, bool usePuppiWeight);
+  LambdaCalculator(std::vector<T> & constits, float jet_radius, const LorentzVector & jet_vector, const LorentzVector & wta_vector, bool usePuppiWeight);
   float getLambda(float kappa, float beta);
   void clearCache();
   std::vector<T> constits() { return constits_; }
@@ -257,6 +264,7 @@ private:
   std::vector<T> constits_;
   float jetRadius_, ptSum_;
   LorentzVector jetVector_;
+  LorentzVector wtaVector_;
   bool usePuppiWeight_;
   std::map<std::pair<float, float>, float> resultsCache_;
 };
@@ -275,8 +283,6 @@ template class LambdaCalculator<GenParticle>;
  */
 struct JetLambdaBundle {
   Jet jet;
-  fastjet::PseudoJet wtaJet;
-  fastjet::PseudoJet wtaGroomedJet;
   LambdaCalculator<PFParticle> lambda;
   LambdaCalculator<PFParticle> chargedLambda;
   LambdaCalculator<PFParticle> groomedLambda;
@@ -312,8 +318,6 @@ struct JetLambdaBundle {
  */
 struct GenJetLambdaBundle {
   GenJetWithParts jet; // original AKx jet
-  fastjet::PseudoJet wtaJet; // Jet recalculated with WTA
-  fastjet::PseudoJet wtaGroomedJet; // Jet recalculated with WTA + grooming
   LambdaCalculator<GenParticle> lambda;
   LambdaCalculator<GenParticle> chargedLambda;
   LambdaCalculator<GenParticle> groomedLambda;
@@ -369,7 +373,8 @@ public:
   void shift_photon_pfparticles(std::vector<PFParticle> & pfparticles, float shift);
 
 private:
-  fastjet::Recluster ca_wta_cluster_;
+  fastjet::Recluster wta_cluster_;
+  fastjet::Recluster ca_cluster_;
   fastjet::contrib::ModifiedMassDropTagger mmdt_;
   float jetRadius_;
   int nJetsMax_;
@@ -395,15 +400,9 @@ public:
   fastjet::PseudoJet convert_uhh_genparticle_to_pseudojet(const GenParticle & particle);
   std::vector<GenParticle> get_jet_genparticles(const GenJetWithParts & genjet, uhh2::Event & event);
 
-  // Is shifting genjet constit energies sensible?
-  // void set_neutral_hadron_shift(float direction, float rel_shift);
-  // void shift_neutral_hadron_genparticles(std::vector<GenParticle*> genparticles, float shift);
-
-  // void set_photon_shift(float direction, float rel_shift);
-  // void shift_photon_genparticles(std::vector<GenParticle*> genparticles, float shift);
-
 private:
-  fastjet::Recluster ca_wta_cluster_;
+  fastjet::Recluster wta_cluster_;
+  fastjet::Recluster ca_cluster_;
   fastjet::contrib::ModifiedMassDropTagger mmdt_;
   float jetRadius_;
   int nJetsMax_;
