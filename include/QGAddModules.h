@@ -260,6 +260,7 @@ public:
   float getLambda(float kappa, float beta);
   void clearCache();
   std::vector<T> constits() { return constits_; }
+  float getPtSum() { return ptSum_; }
 private:
   std::vector<T> constits_;
   float jetRadius_, ptSum_;
