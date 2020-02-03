@@ -599,7 +599,6 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Note that we only care about this for reco-specific bits,
     // not gen-specific (only false if fails MET filters)
     bool passCommonRecoSetup = common_setup->process(event);
-
     tracking_eff->process(event);
     recojet_setup->process(event);
 
@@ -1044,7 +1043,7 @@ std::vector<GenJetWithParts> QGAnalysisMCModule::getGenJets(std::vector<GenJetWi
                 leptonOverlap = leptonOverlap || thisLeptonOverlap;
             }
         }
-        if ((jet.pt() > pt_min) && (fabs(jet.eta()) < eta_max) && !found && !leptonOverlap) genjets_out.push_back(jet);
+        if ((jet.pt() > pt_min) && (fabs(jet.eta()) < eta_max) && !found && !leptonOverlap && (jet.genparticles_indices().size()>1)) genjets_out.push_back(jet);
     }
     sort_by_pt(genjets_out);
     return genjets_out;
