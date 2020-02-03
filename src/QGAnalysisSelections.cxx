@@ -8,7 +8,7 @@ using namespace uhh2examples;
 using namespace uhh2;
 
 
-ZplusJetsSelection::ZplusJetsSelection(uhh2::Context & ctx, const std::string & zLabel_, float mu1_pt, float mu2_pt, float mZ_window, float dphi_jet_z_min, float second_jet_frac_max, float z_pt_min, float z_jet_asym_max):
+ZplusJetsSelection::ZplusJetsSelection(uhh2::Context & ctx, const std::string & zLabel_, float mu1_pt, float mu2_pt, float mZ_window, float dphi_jet_z_min, float second_jet_frac_max, float z_pt_min, float z_jet_asym_max, const std::string & cutflow_hname):
     hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_)),
     mu1_pt_(mu1_pt),
     mu2_pt_(mu2_pt),
@@ -17,41 +17,102 @@ ZplusJetsSelection::ZplusJetsSelection(uhh2::Context & ctx, const std::string & 
     second_jet_frac_max_(second_jet_frac_max),
     z_pt_min_(z_pt_min),
     z_jet_asym_max_(z_jet_asym_max)
-    {}
+    {
+        // Remember to update when you update passes() ! Yes is horrible
+        std::vector<std::string> descriptions = {
+            "nJets>=1",
+            "nZMuons>=2",
+            "muon1_pt",
+            "muon2_pt",
+            "muon_os",
+            "z_pt_min",
+            "m_mumu",
+            "dphi_jet_z_min",
+            "second_jet_frac_max",
+            "z_jet_asym_max"
+        };
+        cutflow_raw = new TH1D(("cf_" + cutflow_hname + "_raw").c_str(), ("Cutflow '" + cutflow_hname + "' unweighted").c_str(), descriptions.size()+1, -1, descriptions.size());
+        cutflow_weighted = new TH1D(("cf_" + cutflow_hname).c_str(), ("Cutflow '" + cutflow_hname + "' using weights").c_str(), descriptions.size()+1, -1, descriptions.size());
+        for(TAxis * ax : {cutflow_raw->GetXaxis(), cutflow_weighted->GetXaxis()}){
+            ax->SetBinLabel(1, "all");
+            for(size_t i=0; i<descriptions.size(); ++i){
+                ax->SetBinLabel(i+2, descriptions[i].c_str());
+            }
+        }
+        ctx.put("", cutflow_raw);
+        ctx.put("", cutflow_weighted);
+
+    }
 
 bool ZplusJetsSelection::passes(const Event & event){
+    int i = -1;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
+
     if (event.jets->size() < 1) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     auto & zMuons = event.get(hndlZ);
     if (zMuons.size() < 2) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     const auto & muon1 = zMuons.at(0);
     const auto & muon2 = zMuons.at(1);
 
-    if (muon1.pt() < mu1_pt_ || muon2.pt() < mu2_pt_) return false;
+    if (muon1.pt() < mu1_pt_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
+
+    if (muon2.pt() < mu2_pt_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     // TODO: what if > 2 muons? how to pick the Z candidate?
 
     if (muon1.charge() == muon2.charge()) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     const auto z_cand = muon1.v4() + muon2.v4();
 
     if (z_cand.pt() < z_pt_min_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     float m_mumu = z_cand.M();
     if (fabs(m_mumu - 90) > mZ_window_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     const auto & jet1 = event.jets->at(0);
     if (fabs(deltaPhi(jet1, z_cand)) < dphi_jet_z_min_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     if (event.jets->size() > 1) {
         const auto & jet2 = event.jets->at(1);
         auto jet_frac = jet2.pt() / z_cand.pt();
         if (jet_frac > second_jet_frac_max_) return false;
     }
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     float asym = (jet1.pt() - z_cand.pt()) / (jet1.pt() + z_cand.pt());
     if (asym > z_jet_asym_max_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     return true;
 }
@@ -178,34 +239,77 @@ bool ZplusJetsGenSelection::passes(const Event & event){
 }
 
 
-DijetSelection::DijetSelection(float dphi_min, float second_jet_frac_max, float jet_asym_max, bool ss_eta, float deta_max, float sum_eta):
+DijetSelection::DijetSelection(uhh2::Context & ctx, float dphi_min, float second_jet_frac_max, float jet_asym_max, bool ss_eta, float deta_max, float sum_eta, const std::string & cutflow_hname):
     dphi_min_(dphi_min),
     second_jet_frac_max_(second_jet_frac_max),
     jet_asym_max_(jet_asym_max),
     ss_eta_(ss_eta),
     deta_max_(deta_max),
     sum_eta_(sum_eta)
-    {}
+    {
+        // Remember to update when you update passes() ! Yes is horrible
+        std::vector<std::string> descriptions = {
+            "nJets>=2",
+            "second_jet_frac_max",
+            "dphi_min",
+            "ss_eta",
+            "deta_max",
+            "jet_asym_max"
+        };
+        cutflow_raw = new TH1D(("cf_" + cutflow_hname + "_raw").c_str(), ("Cutflow '" + cutflow_hname + "' unweighted").c_str(), descriptions.size()+1, -1, descriptions.size());
+        cutflow_weighted = new TH1D(("cf_" + cutflow_hname).c_str(), ("Cutflow '" + cutflow_hname + "' using weights").c_str(), descriptions.size()+1, -1, descriptions.size());
+        for(TAxis * ax : {cutflow_raw->GetXaxis(), cutflow_weighted->GetXaxis()}){
+            ax->SetBinLabel(1, "all");
+            for(size_t i=0; i<descriptions.size(); ++i){
+                ax->SetBinLabel(i+2, descriptions[i].c_str());
+            }
+        }
+        ctx.put("", cutflow_raw);
+        ctx.put("", cutflow_weighted);
+    }
 
 bool DijetSelection::passes(const Event & event){
+    int i = -1;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
+
     if (event.jets->size() < 2) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
+
     const auto & jet1 = event.jets->at(0);
     const auto & jet2 = event.jets->at(1);
 
     float ratio = (jet1.pt() > jet2.pt()) ? jet2.pt() / jet1.pt() : jet1.pt() / jet2.pt();
     if (ratio > second_jet_frac_max_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     auto dphi = fabs(deltaPhi(jet1, jet2));
     if (dphi < dphi_min_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     auto eta1 = jet1.eta();
     auto eta2 = jet2.eta();
 
     if (ss_eta_ && ((eta1 * eta2) < 0)) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     if (fabs(eta1 - eta2) > deta_max_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     if ((fabs(jet1.pt() - jet2.pt())/(jet1.pt() + jet2.pt())) > jet_asym_max_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     return true;
 }

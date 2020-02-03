@@ -98,7 +98,7 @@ QGAnalysisFlavModule::QGAnalysisFlavModule(Context & ctx){
     zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, 20, 20, 20, 2, 1));
     float deta = 1.2;
     float sumEta = 10.;
-    dijet_sel.reset(new DijetSelection(2, 1, 1, false, 100, 100));
+    dijet_sel.reset(new DijetSelection(ctx, 2, 1, 1, false, 100, 100));
 
     // Hists
     for (auto ptBin : pt_bins ) {

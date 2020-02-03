@@ -27,11 +27,13 @@ public:
                        float dphi_jet_z_min=2.0,
                        float second_jet_frac_max=0.3,
                        float z_pt_min=0.,
-                       float z_jet_asym_max=1.);
+                       float z_jet_asym_max=1.,
+                       const std::string & cutflow_hname="_ZplusJets");
     virtual bool passes(const uhh2::Event & event) override;
 private:
     uhh2::Event::Handle<std::vector<Muon>> hndlZ;
     float mu1_pt_, mu2_pt_, mZ_window_, dphi_jet_z_min_, second_jet_frac_max_, z_pt_min_, z_jet_asym_max_;
+    TH1D * cutflow_raw, * cutflow_weighted; // owned by Context
 };
 
 
@@ -65,15 +67,18 @@ private:
  */
 class DijetSelection: public uhh2::Selection {
 public:
-    DijetSelection(float dphi_min=2.0,
+    DijetSelection(uhh2::Context & ctx,
+                   float dphi_min=2.0,
                    float second_jet_frac_max=0.94,
                    float jet_asym_max=0.3,
                    bool ss_eta=false,
                    float deta_max=10,
-                   float sum_eta=10);
+                   float sum_eta=10,
+                   const std::string & cutflow_hname="_Dijet");
     virtual bool passes(const uhh2::Event & event) override;
 private:
     float dphi_min_, second_jet_frac_max_, jet_asym_max_, ss_eta_, deta_max_, sum_eta_;
+    TH1D * cutflow_raw, * cutflow_weighted; // owned by Context
 };
 
 

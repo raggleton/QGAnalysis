@@ -70,7 +70,7 @@ private:
     // Reco selections/hists
     std::unique_ptr<ZFinder> zFinder;
     std::unique_ptr<Selection> njet_min_sel, njet_two_sel, ngenjet_min_sel, ngenjet_two_sel, ngenjet_good_sel, ngenjet_good_two_sel;
-    std::unique_ptr<Selection> zplusjets_sel, zplusjets_presel, dijet_sel, dijet_sel_tighter;
+    std::unique_ptr<Selection> zplusjets_sel, zplusjets_sel_passGen, zplusjets_presel, dijet_sel, dijet_sel_tighter, dijet_sel_tighter_passGen;
 
     std::unique_ptr<Hists> zplusjets_gen_hists;
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists;
@@ -302,11 +302,13 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         float second_jet_frac_max_zpj = 1000.3;
         float z_pt_min = 30.; // actually the gen level cut, but resolution good so no need to scale it
         float z_jet_asym_max = 100.4;
-        zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max));
+        zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max, "ZPlusJetsSelCutFlow"));
+        // just to plot cutflow only when passGen==true
+        zplusjets_sel_passGen.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max, "ZPlusJetsSelPassGenCutFlow"));
 
         zplusjets_gen_sel.reset(new ZplusJetsGenSelection(ctx, mu1_pt/mcSelFactor, mu2_pt/mcSelFactor, mZ_window*mcSelFactor, dphi_jet_z_min/mcSelFactor, second_jet_frac_max_zpj*mcSelFactor, z_pt_min, z_jet_asym_max*mcSelFactor,
                                                           "ZPlusJetsGenSelCutFlow", genjet_handle_name, genmuon_handle_name));
-        // just to plot cutflow only when passReco==true
+        // just to plot gen cutflow only when passReco==true
         zplusjets_gen_sel_passReco.reset(new ZplusJetsGenSelection(ctx, mu1_pt/mcSelFactor, mu2_pt/mcSelFactor, mZ_window*mcSelFactor, dphi_jet_z_min/mcSelFactor, second_jet_frac_max_zpj*mcSelFactor, z_pt_min, z_jet_asym_max*mcSelFactor,
                                                                    "ZPlusJetsGenSelPassRecoCutFlow", genjet_handle_name, genmuon_handle_name));
 
@@ -325,12 +327,14 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         bool ss_eta = false;
         float deta = 12;
         float sumEta = 10.;
-        dijet_sel.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, 1000, ss_eta, deta, sumEta)); // this is without any asymmetry cut
-        dijet_sel_tighter.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta));
+        dijet_sel.reset(new DijetSelection(ctx, dphi_min, second_jet_frac_max_dj, 1000, ss_eta, deta, sumEta, "DijetSelCutFlow")); // this is without any asymmetry cut
+        dijet_sel_tighter.reset(new DijetSelection(ctx, dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta, "DijetSelTighterCutFlow"));
+        // just to plot cutflow only when passGen == true
+        dijet_sel_tighter_passGen.reset(new DijetSelection(ctx, dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta, "DijetSelTighterPassGenCutFlow"));
 
         dijet_gen_sel.reset(new DijetGenSelection(ctx, dphi_min/mcSelFactor, second_jet_frac_max_dj*mcSelFactor, jet_asym_max*mcSelFactor, ss_eta, deta*mcSelFactor, sumEta*mcSelFactor,
                                                   "DijetGenSelCutFlow", genjet_handle_name));
-        // just to plot cutflow only when passReco==true
+        // just to plot gen cutflow only when passReco==true
         dijet_gen_sel_passReco.reset(new DijetGenSelection(ctx, dphi_min/mcSelFactor, second_jet_frac_max_dj*mcSelFactor, jet_asym_max*mcSelFactor, ss_eta, deta*mcSelFactor, sumEta*mcSelFactor,
                                                            "DijetGenSelPassRecoCutFlow", genjet_handle_name));
     }
@@ -683,6 +687,12 @@ bool QGAnalysisMCModule::process(Event & event) {
     if (isZPlusJets) {
         if (DO_STANDARD_HISTS) zplusjets_gen_hists->fill(event);
 
+        pass_zpj_gen = zplusjets_gen_sel->passes(event);
+        event.set(pass_zpj_gen_sel_handle, pass_zpj_gen);
+        if (pass_zpj_gen) {
+            event.set(pt_binning_gen_handle, event.get(genjets_handle)[0].pt());
+        }
+
         if (hasRecoJets) {
             event.set(pt_binning_reco_handle, event.jets->at(0).pt());
             // flav-specific preselection hists, useful for optimising selection
@@ -711,6 +721,10 @@ bool QGAnalysisMCModule::process(Event & event) {
                             zplusjets_qg_hists_groomed->fill(event);
                         }
 
+                        if (pass_zpj_gen) {
+                            zplusjets_sel_passGen->passes(event); // just to plot cutflow
+                        }
+
                         if (DO_FLAVOUR_HISTS) {
                             if (flav1 == PDGID::GLUON) {
                                 zplusjets_hists_g->fill(event);
@@ -723,12 +737,6 @@ bool QGAnalysisMCModule::process(Event & event) {
                     }
                 }
             }
-        }
-
-        pass_zpj_gen = zplusjets_gen_sel->passes(event);
-        event.set(pass_zpj_gen_sel_handle, pass_zpj_gen);
-        if (pass_zpj_gen) {
-            event.set(pt_binning_gen_handle, event.get(genjets_handle)[0].pt());
         }
 
         // Do unfolding hists
@@ -852,6 +860,14 @@ bool QGAnalysisMCModule::process(Event & event) {
                 dijet_gen_sel_passReco->passes(event); // this plots cutflow as well - only if we pass dijet reco selection
                 genjet_hists_passDijetReco->fill(event);
             }
+
+            pass_dj_gen = dijet_gen_sel->passes(event);
+            event.set(pass_dj_gen_sel_handle, pass_dj_gen);
+            if (pass_dj_gen) {
+                // to plot reco cutflow when passGen==true
+                dijet_sel_tighter_passGen->passes(event);
+            }
+
             bool standard_sel = dijet_sel->passes(event);
             if (DO_STANDARD_HISTS) {
                 if (standard_sel) {
@@ -908,9 +924,6 @@ bool QGAnalysisMCModule::process(Event & event) {
                 }
             }
         }
-
-        pass_dj_gen = dijet_gen_sel->passes(event);
-        event.set(pass_dj_gen_sel_handle, pass_dj_gen);
 
         // Do unfolding hists
         // ---------------------------------------------------------------------

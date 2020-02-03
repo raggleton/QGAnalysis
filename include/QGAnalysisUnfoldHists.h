@@ -38,6 +38,7 @@ protected:
     TH2F * copy_book_th2f(TH2 * h, const std::string & newName);
 
     TH1F *h_fake_counter_raw, *h_fake_counter_weighted;
+    TH1F *h_fake_counter_charged_raw, *h_fake_counter_charged_weighted;
 
     // For pt-only unfolding
     TUnfoldBinning *detector_tu_binning_pt, *detector_distribution_pt, *detector_distribution_underflow_pt;

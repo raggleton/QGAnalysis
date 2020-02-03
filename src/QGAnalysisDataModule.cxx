@@ -161,7 +161,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     bool ss_eta = false;
     float deta = 12;
     float sumEta = 10.;
-    dijet_sel.reset(new DijetSelection(dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta));
+    dijet_sel.reset(new DijetSelection(ctx, dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta, "DijetSelCutFlow"));
 
     // Lambda calculators
     bool doPuppi = (pu_removal == "PUPPI");
