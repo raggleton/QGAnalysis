@@ -863,7 +863,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       // Fill PDF variations by varying weight
       if (doPDFvariations_ && event.genInfo->systweights().size() > 0) {
         for (int i=0; i<N_PDF_VARIATIONS; i++) {
-          double pdf_weight = event.genInfo->systweights().at(i+9) / event.genInfo->originalXWGTUP(); // +9 as first 9 are scale variations
+          double pdf_weight = event.genInfo->systweights().at(i+10) / event.genInfo->systweights().at(9); // +10 as first 9 are scale variations, then comes the nominal weight again
           double this_weight = weight * pdf_weight;
           if (thisPassReco) {
             h_tu_reco_LHA_PDF_variations.at(i)->Fill(recBinLHA, this_weight);
@@ -893,7 +893,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           h_fake_counter_weighted->Fill(-1, weight);
 
           bool genConstit = false;
-          if ((thisjet.genjet_index() >= 0) && (thisjet.genjet_index() < genjetLambdas->size())) {
+          if ((thisjet.genjet_index() >= 0) && (thisjet.genjet_index() < (int)genjetLambdas->size())) {
             genConstit = (genjetLambdas->at(thisjet.genjet_index()).getLambdaCalculator(false, doGroomed_).constits().size() > 1);
           }
 
@@ -956,7 +956,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           h_fake_counter_charged_weighted->Fill(-1, weight);
 
           bool genConstit = false;
-          if ((thisjet.genjet_index() >= 0) && (thisjet.genjet_index() < genjetLambdas->size())) {
+          if ((thisjet.genjet_index() >= 0) && (thisjet.genjet_index() < (int)genjetLambdas->size())) {
             genConstit = (genjetLambdas->at(thisjet.genjet_index()).getLambdaCalculator(true, doGroomed_).constits().size() > 1);
           }
           if (!passGen || (thisjet.genjet_index() < 0 || thisjet.genjet_index() >= useNJets_) || !genConstit) {
@@ -1128,7 +1128,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       // Fill PDF variations by varying weight
       if (doPDFvariations_ && event.genInfo->systweights().size() > 0) {
         for (int i=0; i<N_PDF_VARIATIONS; i++) {
-          double pdf_weight = event.genInfo->systweights().at(i+9) / event.genInfo->originalXWGTUP(); // +9 as first 9 are scale variations
+          double pdf_weight = event.genInfo->systweights().at(i+10) / event.genInfo->systweights().at(9); // +10 as first 9 are scale variations + nominal again
           double this_weight = gen_weight * pdf_weight;
           if (thisPassGen) {
             h_tu_gen_LHA_PDF_variations.at(i)->Fill(genBinLHA, this_weight);
@@ -1155,6 +1155,9 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       int recBinLHA(0), recBinPuppiMult(0), recBinpTD(0), recBinThrust(0), recBinWidth(0);
       int recBinLHACharged(0), recBinPuppiMultCharged(0), recBinpTDCharged(0), recBinThrustCharged(0), recBinWidthCharged(0);
       int recoInd = -1;
+      float lha, jet_pt;
+      bool thisPassReco = passReco;
+      bool thisPassRecoCharged = passReco;
       if (passReco) { // only valid match if reco selection also passed
         // First find matching recojet - annoyingly matches are held in the Jet class, not GenJet
         // default to -1 for underflow
