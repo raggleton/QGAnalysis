@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>       // std::numeric_limits
+
 #include "UHH2/core/include/fwd.h"
 #include "UHH2/core/include/Selection.h"
 #include "UHH2/core/include/Event.h"
@@ -439,6 +441,65 @@ private:
   uhh2::Event::Handle<std::vector<GenJetWithParts>> genjet_handle_;
   float matchRadius_;
   bool uniqueMatch_;
+};
+
+
+
+/**
+ * Check object isn't a neutrino
+ */
+class NoNeutrinoCut {
+public:
+  NoNeutrinoCut() {}
+  bool operator()(const GenParticle & p, const uhh2::Event & ) const {
+    int pid = abs(p.pdgId());
+    return ((pid != 12) && (pid != 14) && (pid != 16));
+  }
+};
+
+
+/**
+ * Check object is status = 1
+ */
+class Status1Cut {
+public:
+  Status1Cut() {}
+  bool operator()(const GenParticle & p, const uhh2::Event & ) const {
+    return (p.status() == 1);
+  }
+};
+
+/**
+ * Check object is final state: has status = 1 and has no daughters
+ */
+class FinalStateCut {
+public:
+  FinalStateCut() {}
+  bool operator()(const GenParticle & p, const uhh2::Event & event) const {
+    return (Status1Cut()(p, event) &&
+            // ensure no daughters ie final state
+            // note that daughter1/2 are unsigned shorts, so may be 65535!
+            (p.daughter1() == -1 || p.daughter1() == std::numeric_limits<unsigned short>::max()) &&
+            (p.daughter2() == -1 || p.daughter2() == std::numeric_limits<unsigned short>::max()));
+  }
+};
+
+
+/**
+ * Cluster GenJets with anti-kT
+ */
+class GenJetClusterer : public uhh2::AnalysisModule {
+public:
+  GenJetClusterer(uhh2::Context & ctx, const std::string & genjet_coll_name, float radius, const std::string & genparticles_coll_name="genparticles");
+  virtual bool process(uhh2::Event & event) override;
+  fastjet::PseudoJet convert_uhh_genparticle_to_pseudojet(const GenParticle & particle);
+  GenJetWithParts convert_pseudojet_to_uhh_genjet(const fastjet::PseudoJet & jet);
+  inline bool floatMatch(float a, float b) { return (fabs(a-b) < (1E-6 * std::max(a, b))); }
+private:
+  uhh2::Event::Handle<std::vector<GenJetWithParts>> genjet_handle_;
+  uhh2::Event::Handle<std::vector<GenParticle>> genparticle_handle_;
+  fastjet::JetDefinition jet_def_;
+  GenParticleId gpId_;
 };
 
 

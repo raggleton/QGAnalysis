@@ -1185,6 +1185,71 @@ bool JetMatcher::process(uhh2::Event & event) {
 }
 
 
+GenJetClusterer::GenJetClusterer(uhh2::Context & ctx, const std::string & genjet_coll_name, float radius, const std::string & genparticles_coll_name):
+  genjet_handle_(ctx.get_handle<std::vector<GenJetWithParts>>(genjet_coll_name)),
+  genparticle_handle_(ctx.get_handle<std::vector<GenParticle>>(genparticles_coll_name)),
+  jet_def_(antikt_algorithm, radius)
+{
+  gpId_ = AndId<GenParticle>(NoNeutrinoCut(), FinalStateCut());
+}
+
+PseudoJet GenJetClusterer::convert_uhh_genparticle_to_pseudojet(const GenParticle & particle) {
+  LorentzVectorXYZE lv = toXYZ(particle.v4());
+  PseudoJet outputParticle(lv.px(), lv.py(), lv.pz(), lv.E());
+  return outputParticle;
+}
+
+GenJetWithParts GenJetClusterer::convert_pseudojet_to_uhh_genjet(const PseudoJet & jet) {
+  GenJetWithParts genjet;
+  // use XYZE v4 as safer?
+  genjet.set_v4(toPtEtaPhi(LorentzVectorXYZE(jet.px(), jet.py(), jet.pz(), jet.E())));
+  for (const auto & dItr : jet.constituents()) {
+    genjet.add_genparticles_index(dItr.user_index());
+  }
+  return genjet;
+}
+
+bool GenJetClusterer::process(uhh2::Event & event) {
+  // Get GenParticles, convert to Pseudojets, ready for clustering
+  vector<GenParticle> gps = event.get(genparticle_handle_);
+
+  vector<PseudoJet> pjs;
+  int gpCounter = -1;
+  for (auto gp : gps) {
+    gpCounter++;
+    // Keep status = 1, no neutrinos
+    if (!gpId_(gp, event)) continue;
+    PseudoJet pj = convert_uhh_genparticle_to_pseudojet(gp);
+    pj.set_user_index(gpCounter); // keep link to original GP
+    // ignore duplicates - bug in how I stored genparticles originally
+    // needs custom predicate, since PseudoJet doesn't have ==
+    if (std::find_if(pjs.begin(), pjs.end(), [&pj] (const PseudoJet &arg) {
+        return (fabs(arg.pt()-pj.pt()) < 1E-1 && arg.delta_R(pj)<1E-2);
+      } ) != pjs.end()) continue;
+    pjs.push_back(pj);
+  }
+  // cout << "Had " << gps.size() << " now have " << pjs.size() << endl;
+
+  // run the jet clustering with the above jet definition
+  fastjet::ClusterSequence clust_seq(pjs, jet_def_);
+
+  // get the resulting jets ordered in pt
+  double ptmin = 15.0;
+  vector<fastjet::PseudoJet> akJets = sorted_by_pt(clust_seq.inclusive_jets(ptmin));
+  // TODO: flavour assignment?
+
+  // Convert back to GenJetWithParts
+  vector<GenJetWithParts> genJets;
+  for (auto fjjet : akJets) {
+    GenJetWithParts genjet = convert_pseudojet_to_uhh_genjet(fjjet);
+    genJets.push_back(genjet);
+  }
+  event.set(genjet_handle_, genJets);
+
+  return true;
+}
+
+
 std::vector<double> Binning::calculate_fine_binning(const std::vector<double> & coarse_bin_edges)
 {
   std::vector<double> fine_bin_edges;

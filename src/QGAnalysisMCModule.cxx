@@ -50,7 +50,8 @@ public:
     std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax=0.8, bool uniqueMatch=true);
     virtual void endInputData() override;
 private:
-
+    std::unique_ptr<GenJetClusterer> genjet_cluster; // to cluster genjets - needed for AK8 since MiniAOD starts at 150
+    Event::Handle<std::vector<GenJetWithParts>> new_genjets_handle;
     std::unique_ptr<GeneralEventSetup> common_setup;
     std::unique_ptr<RecoJetSetup> recojet_setup;
     std::unique_ptr<MCReweighting> mc_reweight;
@@ -113,6 +114,7 @@ private:
     Event::Handle<bool> pass_zpj_sel_handle, pass_zpj_gen_sel_handle, pass_dj_sel_handle, pass_dj_gen_sel_handle;
 
     float jetRadius;
+    string jetCone;
     float htMax;
 
     const bool DO_PU_BINNED_HISTS = false;
@@ -134,26 +136,33 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     htMax = boost::lexical_cast<float>(ctx.get("maxHT", "-1"));
 
-    string jet_cone = ctx.get("JetCone", "AK4");
+    jetCone = ctx.get("JetCone", "AK4");
     string pu_removal = ctx.get("PURemoval", "CHS");
     if (pu_removal != "CHS" && pu_removal != "PUPPI") {
         throw runtime_error("Only PURemoval == CHS, PUPPI supported for now");
     }
-    jetRadius = get_jet_radius(jet_cone);
+    jetRadius = get_jet_radius(jetCone);
 
     const std::string & datasetVersion = ctx.get("dataset_version");
     isZPlusJets = (isSubstring(datasetVersion, "DYJetsToLL", true) || isSubstring(datasetVersion, "SingleMu", true) || isSubstring(datasetVersion, "ZPJ", true));
     ctx.set("isZPlusJets", bool2string(isZPlusJets));
 
-    cout << "Running with jet cone: " << jet_cone << endl;
+    cout << "Running with jet cone: " << jetCone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
     cout << "Is Z+jets: " << isZPlusJets << endl;
+    cout << "jetRadius==0.8: " << (bool)(jetRadius == 0.8) << endl;
+    if (jetCone == "AK8") {
+        // FIXME add cut nonu, final state
+        string new_genjet_name = "newgenjets";
+        genjet_cluster.reset(new GenJetClusterer(ctx, new_genjet_name, 0.8, "genparticles"));
+        new_genjets_handle = ctx.get_handle< std::vector<GenJetWithParts> > (new_genjet_name);
+    }
 
     // FIXME: get everything from ctx not extra args
     common_setup.reset(new GeneralEventSetup(ctx));
     tracking_eff.reset(new TrackingEfficiency(ctx));
     float jet_pt_min = 30.;
-    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jetRadius, jet_pt_min));
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, jet_pt_min));
     std::string genjet_handle_name = "GoodGenJets";
     std::string genmuon_handle_name = "GoodGenMuons";
     genjets_handle = ctx.get_handle< std::vector<GenJetWithParts> > (genjet_handle_name);
@@ -579,6 +588,30 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     if (PRINTOUT) { cout << "-- Event: " << event.event << endl; }
     // cout << "-- Event: " << event.event << endl;
+
+    // Redo AK8 genjet clustering
+    // Do before any ngenjet cuts
+    // -------------------------------------------------------------------------
+    if (jetCone == "AK8") {
+        // for (const auto & itr : *(event.genjets)) {
+        //     cout << "Original gj: " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << " : " << itr.genparticles_indices().size() << endl;
+        //     for (const auto & citr : itr.genparticles_indices()) {
+        //         auto constit = event.genparticles->at(citr);
+        //         cout << "    constit: " << constit.pt() << " : " << constit.eta() << " : " << constit.phi() << " : " << constit.pdgId() << " : " << constit.status() << " : " << constit.daughter1() << " : " << constit.daughter2() << endl;
+        //     }
+        // }
+        genjet_cluster->process(event);
+        std::vector<GenJetWithParts> newGenJets = event.get(new_genjets_handle);
+        std::swap(*event.genjets, newGenJets);
+        // for (const auto & itr : *(event.genjets)) {
+        //     cout << "New gj: " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << " : " << itr.genparticles_indices().size() << endl;
+        //     for (const auto & citr : itr.genparticles_indices()) {
+        //         auto constit = event.genparticles->at(citr);
+        //         cout << "    constit: " << constit.pt() << " : " << constit.eta() << " : " << constit.phi() << " : " << constit.pdgId() << " : " << constit.status() << " : " << constit.daughter1() << " : " << constit.daughter2() << endl;
+        //     }
+        // }
+
+    }
 
     if (!(njet_min_sel->passes(event) || ngenjet_min_sel->passes(event))) return false;
 
