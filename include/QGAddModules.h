@@ -597,7 +597,7 @@ namespace Binning {
     // 0.0, 0.09, 0.14, 0.19, 0.24, 0.3, 0.36, 0.43, 0.51, 0.6, 0.71, 1.0 // target 0.5, across both dijets
     // 0.0, 0.11, 0.17, 0.24, 0.32, 0.42, 0.54, 0.69, 1.0 // target 0.6, forward
     // 0.0, 0.05, 0.09, 0.12, 0.15, 0.18, 0.22, 0.26, 0.31, 0.36, 0.42, 0.49, 0.56, 0.64, 1.0 // target 0.5, cen+fwd
-    0.0, 0.05, 0.09, 0.14, 0.19, 0.25, 0.32, 0.39, 0.47, 0.55, 0.63, 0.73, 1.0// target 0.5, cen+fwd groomed (as coarser), AK axis
+    0.0, 0.05, 0.09, 0.14, 0.19, 0.25, 0.32, 0.39, 0.47, 0.55, 0.63, 0.73, 1.0 // target 0.5, cen+fwd groomed (as coarser), AK axis
   };
   const int nbins_lha_charged_gen(lha_charged_bin_edges_gen.size() - 1);
 
@@ -688,7 +688,7 @@ namespace Binning {
     // 0.0, 0.08, 0.13, 0.18, 0.24, 0.31, 0.39, 0.47, 0.58, 1.0 // target 0.5, across both dijets
     // 0.0, 0.12, 0.2, 0.32, 0.45, 0.64, 1.0 // target 0.6, forward
     // 0.0, 0.09, 0.145, 0.205, 0.28, 0.36, 0.445, 0.545, 1.0 // target 0.5, cen+fwd
-    0.0, 0.09, 0.145, 0.205, 0.28, 0.355, 0.43, 0.515, 1.0 // target 0.5, cen+fwd, AK axi
+    0.0, 0.09, 0.145, 0.205, 0.28, 0.355, 0.43, 0.515, 1.0 // target 0.5, cen+fwd, AK axis
   };
   const int nbins_width_gen(width_bin_edges_gen.size() - 1);
 
