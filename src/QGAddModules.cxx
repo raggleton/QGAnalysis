@@ -542,7 +542,7 @@ MCReweighting::MCReweighting(uhh2::Context & ctx, const std::string & genjet_nam
     muon_trk_reweighter.reset(new MCMuonTrkScaleFactor(ctx, trk_path_name, 100));
   }
 
-  z_reweighter.reset(new ZkFactorReweight(ctx, ctx.get("z_reweight_file", ""), genmuon_name));
+  if (is_DY) z_reweighter.reset(new ZkFactorReweight(ctx, ctx.get("z_reweight_file", ""), genmuon_name));
 
   std::string pt_filename = ctx.get("pt_reweight_file", "");
   if (doMuons && ! is_DY) {
