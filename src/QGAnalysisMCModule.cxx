@@ -302,8 +302,10 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     std::string zLabel = "zMuonCand";
 
-    // For gen selection, do as per reco selection but looser by this factor
-    float mcSelFactor = 1.25;
+    // For scaling gen selection realtive to reco selection
+    // Set to 1, to avoid over-reliance on MC to extrapolate to wider gen phase space
+    // A lot of variables are very well-measured anyway
+    float mcSelFactor = 1.;
 
     if (isZPlusJets) {
         zFinder.reset(new ZFinder(ctx, "muons", zLabel));
