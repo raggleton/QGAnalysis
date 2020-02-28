@@ -9,6 +9,7 @@ import re
 from collections import namedtuple
 import subprocess
 from itertools import product
+from time import sleep
 
 
 # structure to hold info about a given systematic
@@ -71,12 +72,16 @@ def write_updated_file(contents, new_xml_filename, radius, systematic_names=None
 def submit_xml(xml_filename, local=False):
     local_opt = "--local" if local else ""
     cmd = 'sframe_batch.py -s %s %s' % (local_opt, xml_filename)
-    subprocess.check_output(cmd, shell=True)
+    result = subprocess.check_output(cmd, shell=True)
+    print(result)
 
 def resubmit_xml(xml_filename, local=False):
     local_opt = "--local" if local else ""
     cmd = 'sframe_batch.py -r %s %s' % (local_opt, xml_filename)
-    subprocess.Popen(cmd, shell=True)
+    # subprocess.Popen(cmd, shell=True)
+    result = subprocess.check_output(cmd, shell=True)
+    print(result)
+    sleep(5)
 
 
 if __name__ == "__main__":
