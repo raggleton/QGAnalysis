@@ -65,7 +65,7 @@ private:
     std::unique_ptr<OrSelection> zplusjets_trigger_sel;
     std::unique_ptr<DataJetSelection> dijet_trigger_sel;
     std::vector<std::string> dj_trig_names, ak4dj_trig_names, ak8dj_trig_names;
-    std::vector<float> dj_trig_prescales, ak4dj_trig_prescales, ak8dj_trig_prescales, dj_trig_thresholds;
+    std::vector<double> dj_trig_prescales, ak4dj_trig_prescales, ak8dj_trig_prescales, dj_trig_thresholds;
     float jetht_zb_pt_boundary;
 
     std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreatorPtSorted, jetLambdaCreatorForward, jetLambdaCreatorCentral;
@@ -91,6 +91,11 @@ private:
 
     std::string zLabel;
 
+    double TOTAL_LUMI = 35918.219492947;
+    double ZB_LUMI = 0.029048362;
+    double zb_prescale = TOTAL_LUMI / ZB_LUMI;
+
+    std::unique_ptr<TriggerSelection> trig320;
 };
 
 
@@ -311,18 +316,31 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
         1.0000,
     };
 
+    // ak8dj_trig_prescales = {
+    //     674753.7,
+    //     102172.0,
+    //     33363.6,
+    //     3316.4,
+    //     390.9,
+    //     64.7,
+    //     22.0,
+    //     7.3,
+    //     1.0,
+    // };
+
     ak8dj_trig_prescales = {
-        674753.7,
-        102172.0,
-        33363.6,
-        3316.4,
-        390.9,
-        64.7,
-        22.0,
-        7.3,
-        1.0,
+        TOTAL_LUMI / 0.04917,
+        TOTAL_LUMI / 0.32476,
+        TOTAL_LUMI / 0.99456,
+        TOTAL_LUMI / 10.00565,
+        TOTAL_LUMI / 84.89303,
+        TOTAL_LUMI / 512.84106,
+        TOTAL_LUMI / 1510.15511,
+        TOTAL_LUMI / 4544.78556,
+        TOTAL_LUMI / 33182.26210,
     };
 
+    trig320.reset(new TriggerSelection("HLT_AK8PFJet320_v*"));
 
     std::vector<std::pair<float, float>> dj_trigger_bins;
     for (uint i=0; i<dj_trig_thresholds.size(); i++) {
@@ -450,6 +468,11 @@ bool QGAnalysisDataModule::process(Event & event) {
     event.set(dijet_central_handle, std::vector<Jet>());
 
     // if (!event_sel->passes(event)) return false;
+    if (event.run < 274954) {
+        if (trig320->passes(event)) {
+            throw std::runtime_error("SHOULDN'T BE PASSING");
+        }
+    }
 
     if (PRINTOUT) {cout << "-- Event: " << event.event << endl; }
 
@@ -543,6 +566,7 @@ bool QGAnalysisDataModule::process(Event & event) {
 
             // apply prescale factor
             if (dataset == DATASET::JetHT) event.weight *= dj_trig_prescales.at(dj_trig_ind);
+            else if (dataset == DATASET::ZeroBias) event.weight *= zb_prescale;
 
             if (DO_STANDARD_HISTS) {
                 dijet_hists->fill(event);
