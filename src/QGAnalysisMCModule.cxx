@@ -117,10 +117,10 @@ private:
     string jetCone;
     float htMax;
 
-    const bool DO_PU_BINNED_HISTS = false;
-    const bool DO_UNFOLD_HISTS = true;
-    const bool DO_FLAVOUR_HISTS = false;
-    const bool DO_STANDARD_HISTS = true; // basically none of the above
+    bool DO_PU_BINNED_HISTS;
+    bool DO_UNFOLD_HISTS;
+    bool DO_FLAVOUR_HISTS;
+    bool DO_STANDARD_HISTS;
 
     std::unique_ptr<EventNumberSelection> event_sel;
 
@@ -146,6 +146,11 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     const std::string & datasetVersion = ctx.get("dataset_version");
     isZPlusJets = (isSubstring(datasetVersion, "DYJetsToLL", true) || isSubstring(datasetVersion, "SingleMu", true) || isSubstring(datasetVersion, "ZPJ", true));
     ctx.set("isZPlusJets", bool2string(isZPlusJets));
+
+    DO_PU_BINNED_HISTS = string2bool(ctx.get("DO_PU_BINNED_HISTS", "false"));
+    DO_UNFOLD_HISTS = string2bool(ctx.get("DO_UNFOLD_HISTS", "true"));
+    DO_FLAVOUR_HISTS = string2bool(ctx.get("DO_FLAVOUR_HISTS", "false"));
+    DO_STANDARD_HISTS = string2bool(ctx.get("DO_STANDARD_HISTS", "true"));
 
     cout << "Running with jet cone: " << jetCone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
