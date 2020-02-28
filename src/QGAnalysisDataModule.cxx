@@ -151,13 +151,13 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     float second_jet_frac_max_zpj = 1000.3;
     float z_pt_min = 30.; // actually the gen level cut, but resolution good so no need to scale it
     float z_jet_asym_max = 100.4;
-    zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max));
+    zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max, "ZPlusJetsSel"));
 
     // Preselection for Z+J - only 2 muons to reco Z
     dphi_jet_z_min = 0.;
     second_jet_frac_max_zpj = 999.;
     z_jet_asym_max = 1.;
-    zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max));
+    zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max, "ZPlusJetsSel_presel"));
 
     // DIJET selection
     float dphi_min = 2.;
