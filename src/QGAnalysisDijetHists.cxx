@@ -98,6 +98,9 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
 
   pt_jet1_jet2_ratio_vs_pt_jet = book<TH2F>("pt_jet1_jet2_ratio_vs_pt_jet", TString::Format(";p_{T}^{jet 2} / p_{T}^{jet 1};%s", binByVarLabel.Data()), 50, 0, 1, nbins_pt_equal, 0, pt_max);
   jet1_jet2_asym_vs_pt_jet = book<TH2F>("jet1_jet2_asym_vs_pt_jet", TString::Format(";|p_{T}^{jet 1} - p_{T}^{jet 2}|/p_{T}^{jet 1} + p_{T}^{jet 2};%s", binByVarLabel.Data()), 50, 0, 1, nbins_pt_equal, 0, pt_max);
+  // for studying cuts
+  jet1_jet2_asym_vs_pt_jet1 = book<TH2F>("jet1_jet2_asym_vs_pt_jet1", ";|p_{T}^{jet 1} - p_{T}^{jet 2}|/p_{T}^{jet 1} + p_{T}^{jet 2};p_{T}^{jet 1} [GeV]", 50, 0, 1, nbins_pt_equal, 0, pt_max);
+  jet1_jet2_asym_vs_pt_jet2 = book<TH2F>("jet1_jet2_asym_vs_pt_jet2", ";|p_{T}^{jet 1} - p_{T}^{jet 2}|/p_{T}^{jet 1} + p_{T}^{jet 2};p_{T}^{jet 2} [GeV]", 50, 0, 1, nbins_pt_equal, 0, pt_max);
 
   m_jj_vs_pt_jet = book<TH2F>("m_jj_vs_pt_jet", TString::Format(";m_{jj} [GeV];%s", binByVarLabel.Data()), 200, 0, 4000, nbins_pt_equal, 0, pt_max);
 
@@ -338,7 +341,10 @@ void QGAnalysisDijetHists::fill(const Event & event){
   // ensure it's always smaller / bigger
   float ratio = (jet1_pt > jet2_pt) ? jet2_pt / jet1_pt : jet1_pt / jet2_pt;
   pt_jet1_jet2_ratio_vs_pt_jet->Fill(ratio, binByVal, weight);
-  jet1_jet2_asym_vs_pt_jet->Fill(fabs(jet1_pt - jet2_pt) / (jet1_pt + jet2_pt), binByVal, weight);
+  float jetAsym = fabs(jet1_pt - jet2_pt) / (jet1_pt + jet2_pt);
+  jet1_jet2_asym_vs_pt_jet->Fill(jetAsym, binByVal, weight);
+  jet1_jet2_asym_vs_pt_jet1->Fill(jetAsym, jet1_pt, weight);
+  jet1_jet2_asym_vs_pt_jet2->Fill(jetAsym, jet2_pt, weight);
 
   flav_jet1_jet2->Fill(abs(jet1.flavor()), abs(jet2.flavor()), weight);
   flav_jet1_vs_pt_jet->Fill(abs(jet1.flavor()), weight);
