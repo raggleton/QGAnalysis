@@ -120,7 +120,8 @@ private:
     bool DO_PU_BINNED_HISTS;
     bool DO_UNFOLD_HISTS;
     bool DO_FLAVOUR_HISTS;
-    bool DO_STANDARD_HISTS;
+    bool DO_KINEMATIC_HISTS;
+    bool DO_LAMBDA_HISTS;
 
     std::unique_ptr<EventNumberSelection> event_sel;
 
@@ -150,7 +151,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     DO_PU_BINNED_HISTS = string2bool(ctx.get("DO_PU_BINNED_HISTS", "false"));
     DO_UNFOLD_HISTS = string2bool(ctx.get("DO_UNFOLD_HISTS", "true"));
     DO_FLAVOUR_HISTS = string2bool(ctx.get("DO_FLAVOUR_HISTS", "false"));
-    DO_STANDARD_HISTS = string2bool(ctx.get("DO_STANDARD_HISTS", "true"));
+    DO_KINEMATIC_HISTS = string2bool(ctx.get("DO_KINEMATIC_HISTS", "true"));
+    DO_LAMBDA_HISTS = string2bool(ctx.get("DO_LAMBDA_HISTS", "true"));
 
     cout << "Running with jet cone: " << jetCone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
@@ -367,7 +369,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     std::string zpj_sel = "zplusjets";
     if (isZPlusJets) {
         // Z+JETS hists
-        if (DO_STANDARD_HISTS) {
+        if (DO_KINEMATIC_HISTS) {
             zplusjets_gen_hists.reset(new QGAnalysisZPlusJetsGenHists(ctx, "ZPlusJets_gen"));
             zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLabel));
             zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
@@ -385,7 +387,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         }
 
         // Lambda variables, used for e.g. response, determine binning
-        if (DO_STANDARD_HISTS) {
+        if (DO_LAMBDA_HISTS) {
             // note that each of these does neutral+charged, and charged-only
             zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG",
                                                          NJETS_ZPJ, false, zpj_sel,
@@ -433,7 +435,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
         // DIJET hists
         std::string binning_method = "ave";
-        if (DO_STANDARD_HISTS) {
+        if (DO_KINEMATIC_HISTS) {
             dijet_gen_hists.reset(new QGAnalysisDijetGenHists(ctx, "Dijet_gen"));
             dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
             dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet", binning_method));
@@ -462,7 +464,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
         // note that each of these does neutral+charged, and charged-only
         std::string dj_sel = "dijet";
-        if (DO_STANDARD_HISTS) {
+        if (DO_LAMBDA_HISTS) {
             dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG",
                                                      NJETS_DIJET, false, dj_sel,
                                                      pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
@@ -724,7 +726,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Do Z+Jet hists & selection
     // -------------------------------------------------------------------------
     if (isZPlusJets) {
-        if (DO_STANDARD_HISTS) zplusjets_gen_hists->fill(event);
+        if (DO_KINEMATIC_HISTS) zplusjets_gen_hists->fill(event);
 
         pass_zpj_gen = zplusjets_gen_sel->passes(event);
         event.set(pass_zpj_gen_sel_handle, pass_zpj_gen);
@@ -738,7 +740,7 @@ bool QGAnalysisMCModule::process(Event & event) {
             // flav-specific preselection hists, useful for optimising selection
             uint flav1 = event.jets->at(0).flavor();
             if (zFinder->process(event)) {
-                if (DO_STANDARD_HISTS) zplusjets_hists_presel->fill(event);
+                if (DO_KINEMATIC_HISTS) zplusjets_hists_presel->fill(event);
                 // if (zplusjets_presel->passes(event)) {
                     // if (DO_FLAVOUR_HISTS) {
                     //     if (flav1 == PDGID::GLUON) {
@@ -754,9 +756,12 @@ bool QGAnalysisMCModule::process(Event & event) {
                     event.set(pass_zpj_sel_handle, pass_zpj_reco);
                     if (pass_zpj_reco) {
                         genjet_hists_passZpJReco->fill(event);
-                        if (DO_STANDARD_HISTS) {
+                        if (DO_KINEMATIC_HISTS) {
                             zplusjets_gen_sel_passReco->passes(event); // this plots gen cutflow as well
                             zplusjets_hists->fill(event);
+                        }
+
+                        if (DO_LAMBDA_HISTS) {
                             zplusjets_qg_hists->fill(event);
                             zplusjets_qg_hists_groomed->fill(event);
                         }
@@ -806,7 +811,7 @@ bool QGAnalysisMCModule::process(Event & event) {
         // So we do eta sorting, and jet lambda, then do all the hist filling,
         // since they might use these handles.
 
-        if (DO_STANDARD_HISTS) dijet_gen_hists->fill(event);
+        if (DO_KINEMATIC_HISTS) dijet_gen_hists->fill(event);
 
         if (hasRecoJets && njet_two_sel->passes(event)) {
             // Sort by eta & assign to handles
@@ -860,7 +865,7 @@ bool QGAnalysisMCModule::process(Event & event) {
             uint flav2 = event.jets->at(1).flavor();
 
             // Fill hists
-            if (DO_STANDARD_HISTS) dijet_hists_presel->fill(event);
+            if (DO_KINEMATIC_HISTS) dijet_hists_presel->fill(event);
             // if (DO_FLAVOUR_HISTS) {
             //     if (flav1 == PDGID::GLUON) {
             //         if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
@@ -905,7 +910,7 @@ bool QGAnalysisMCModule::process(Event & event) {
             }
 
             bool standard_sel = dijet_sel->passes(event);
-            if (DO_STANDARD_HISTS) {
+            if (DO_KINEMATIC_HISTS) {
                 if (standard_sel) {
                     dijet_hists->fill(event);
                     dijet_qg_hists->fill(event);
@@ -920,10 +925,23 @@ bool QGAnalysisMCModule::process(Event & event) {
                 }
             }
 
+            if (DO_LAMBDA_HISTS) {
+                if (standard_sel) {
+                    dijet_qg_hists->fill(event);
+                }
+                if (dijet_sel_tighter->passes(event)) {
+                    dijet_qg_hists_tighter->fill(event);
+                    dijet_qg_hists_central_tighter->fill(event);
+                    dijet_qg_hists_forward_tighter->fill(event);
+                    dijet_qg_hists_central_tighter_groomed->fill(event);
+                    dijet_qg_hists_forward_tighter_groomed->fill(event);
+                }
+            }
+
             // do eta-sorted dijet hists (where we need both jets)
 
 
-            if (DO_STANDARD_HISTS && standard_sel) {
+            if (DO_KINEMATIC_HISTS && standard_sel) {
                 // do dijet hists but sorted by eta (only one that matters about eta-ordering)
                 // get them from event.jets and not the central/forward handles,
                 // since event.jets has correct genjet_index
