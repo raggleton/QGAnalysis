@@ -46,6 +46,15 @@ def write_updated_file(contents, new_xml_filename, radius, systematic_names=None
                 f.write(line.replace("AK4PUPPI", radius))
 
             elif systematic_names and "<!--@SYST-->" in line:
+                # Turn off the standard hists, we only care about unfolding ones (currently)
+                for key in ["DO_PU_BINNED_HISTS", "DO_FLAVOUR_HISTS", "DO_STANDARD_HISTS"]:
+                    new_line = '            <Item Name="%s" Value="False"/>\n' % (key)
+                    f.write(new_line)
+
+                new_line = '            <Item Name="DO_UNFOLD_HISTS" Value="True"/>\n'
+                f.write(new_line)
+
+                # Write out systematics
                 for sn, val in zip(systematic_names, systematic_values):
                     new_line = '            <Item Name="%s" Value="%s"/>\n' % (sn, val)
                     f.write(new_line)
