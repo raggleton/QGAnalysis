@@ -878,9 +878,9 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     // Now recluster using WTA
     PseudoJet wtaJet = wta_cluster_(akJets[0]);
 
-    if (wtaJet.constituents().size() != constits.size()) {
-      throw std::runtime_error("WTA constits != genjet constits");
-    }
+    // if (wtaJet.constituents().size() != constits.size()) {
+    //   throw std::runtime_error("WTA constits != genjet constits");
+    // }
 
     // Recluster with CA, apply grooming to jet, get WTA axis, and constits left after grooming
     PseudoJet caJet = ca_cluster_(akJets[0]);
@@ -1085,9 +1085,9 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     // Now recluster using WTA
     PseudoJet wtaJet = wta_cluster_(akJets[0]);
 
-    if (wtaJet.constituents().size() != constits.size()) {
-      throw std::runtime_error("WTA constits != genjet constits");
-    }
+    // if (wtaJet.constituents().size() != constits.size()) {
+    //   throw std::runtime_error("WTA constits != genjet constits");
+    // }
 
     // Recluster with CA, apply grooming to jet, get WTA axis, and constits left after grooming
     PseudoJet caJet = ca_cluster_(akJets[0]);
