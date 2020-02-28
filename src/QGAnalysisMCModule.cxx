@@ -329,10 +329,10 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
                                                                    "ZPlusJetsGenSelPassRecoCutFlow", genjet_handle_name, genmuon_handle_name));
 
         // Preselection for Z+J - only 2 muons to reco Z
-        dphi_jet_z_min = 0.;
-        second_jet_frac_max_zpj = 999.;
-        z_jet_asym_max = 1.;
-        zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max));
+        // dphi_jet_z_min = 0.;
+        // second_jet_frac_max_zpj = 999.;
+        // z_jet_asym_max = 1.;
+        // zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max));
 
     } else {
 
@@ -730,6 +730,7 @@ bool QGAnalysisMCModule::process(Event & event) {
         event.set(pass_zpj_gen_sel_handle, pass_zpj_gen);
         if (pass_zpj_gen) {
             event.set(pt_binning_gen_handle, event.get(genjets_handle)[0].pt());
+            zplusjets_sel_passGen->passes(event); // just to plot cutflow
         }
 
         if (hasRecoJets) {
@@ -738,7 +739,7 @@ bool QGAnalysisMCModule::process(Event & event) {
             uint flav1 = event.jets->at(0).flavor();
             if (zFinder->process(event)) {
                 if (DO_STANDARD_HISTS) zplusjets_hists_presel->fill(event);
-                if (zplusjets_presel->passes(event)) {
+                // if (zplusjets_presel->passes(event)) {
                     // if (DO_FLAVOUR_HISTS) {
                     //     if (flav1 == PDGID::GLUON) {
                     //         zplusjets_hists_presel_g->fill(event);
@@ -754,14 +755,10 @@ bool QGAnalysisMCModule::process(Event & event) {
                     if (pass_zpj_reco) {
                         genjet_hists_passZpJReco->fill(event);
                         if (DO_STANDARD_HISTS) {
-                            zplusjets_gen_sel_passReco->passes(event); // this plots cutflow as well
+                            zplusjets_gen_sel_passReco->passes(event); // this plots gen cutflow as well
                             zplusjets_hists->fill(event);
                             zplusjets_qg_hists->fill(event);
                             zplusjets_qg_hists_groomed->fill(event);
-                        }
-
-                        if (pass_zpj_gen) {
-                            zplusjets_sel_passGen->passes(event); // just to plot cutflow
                         }
 
                         if (DO_FLAVOUR_HISTS) {
@@ -774,7 +771,7 @@ bool QGAnalysisMCModule::process(Event & event) {
                             }
                         }
                     }
-                }
+                // }
             }
         }
 
