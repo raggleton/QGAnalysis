@@ -730,16 +730,19 @@ bool QGAnalysisMCModule::process(Event & event) {
 
         pass_zpj_gen = zplusjets_gen_sel->passes(event);
         event.set(pass_zpj_gen_sel_handle, pass_zpj_gen);
+
+        bool found_reco_z = zFinder->process(event);
+
         if (pass_zpj_gen) {
             event.set(pt_binning_gen_handle, event.get(genjets_handle)[0].pt());
-            zplusjets_sel_passGen->passes(event); // just to plot cutflow
+            if (found_reco_z) zplusjets_sel_passGen->passes(event); // just to plot cutflow, need the if since it uses handle internally
         }
 
         if (hasRecoJets) {
             event.set(pt_binning_reco_handle, event.jets->at(0).pt());
             // flav-specific preselection hists, useful for optimising selection
             uint flav1 = event.jets->at(0).flavor();
-            if (zFinder->process(event)) {
+            if (found_reco_z) {
                 if (DO_KINEMATIC_HISTS) zplusjets_hists_presel->fill(event);
                 // if (zplusjets_presel->passes(event)) {
                     // if (DO_FLAVOUR_HISTS) {
