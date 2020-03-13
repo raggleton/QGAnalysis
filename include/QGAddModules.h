@@ -513,7 +513,7 @@ namespace Binning {
   // pt bins
   // ---------
   const std::vector<double> pt_bin_edges_gen = {
-    50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 1000, 6500 // maximum should be 13 TeV / 2
+    50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 1000, 4000 // maximum should be 13 TeV / 2, but get weird empty reco binning
   };
   const int nbins_pt_gen(pt_bin_edges_gen.size() - 1);
 
