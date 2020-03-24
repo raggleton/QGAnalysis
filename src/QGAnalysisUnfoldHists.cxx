@@ -188,6 +188,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_LHA_PDF_variations.push_back(copy_book_th1f(h_tu_reco_LHA, TString::Format("hist_LHA_reco_all_PDF_%d", i).Data()));
       h_tu_gen_LHA_PDF_variations.push_back(copy_book_th1f(h_tu_gen_LHA, TString::Format("hist_LHA_gen_all_PDF_%d", i).Data()));
+      h_tu_response_LHA_PDF_variations.push_back(copy_book_th2f(h_tu_response_LHA, TString::Format("tu_LHA_GenReco_all_PDF_%d", i).Data()));
     }
   }
 
@@ -240,6 +241,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_LHA_charged_PDF_variations.push_back(copy_book_th1f(h_tu_reco_LHA_charged, TString::Format("hist_LHA_charged_reco_all_PDF_%d", i).Data()));
       h_tu_gen_LHA_charged_PDF_variations.push_back(copy_book_th1f(h_tu_gen_LHA_charged, TString::Format("hist_LHA_charged_gen_all_PDF_%d", i).Data()));
+      h_tu_response_LHA_charged_PDF_variations.push_back(copy_book_th2f(h_tu_response_LHA_charged, TString::Format("tu_LHA_charged_GenReco_all_PDF_%d", i).Data()));
     }
   }
 
@@ -289,6 +291,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_puppiMultiplicity_PDF_variations.push_back(copy_book_th1f(h_tu_reco_puppiMultiplicity, TString::Format("hist_puppiMultiplicity_reco_all_PDF_%d", i).Data()));
       h_tu_gen_puppiMultiplicity_PDF_variations.push_back(copy_book_th1f(h_tu_gen_puppiMultiplicity, TString::Format("hist_puppiMultiplicity_gen_all_PDF_%d", i).Data()));
+      h_tu_response_puppiMultiplicity_PDF_variations.push_back(copy_book_th2f(h_tu_response_puppiMultiplicity, TString::Format("tu_puppiMultiplicity_GenReco_all_PDF_%d", i).Data()));
     }
   }
 
@@ -339,6 +342,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_puppiMultiplicity_charged_PDF_variations.push_back(copy_book_th1f(h_tu_reco_puppiMultiplicity_charged, TString::Format("hist_puppiMultiplicity_charged_reco_all_PDF_%d", i).Data()));
       h_tu_gen_puppiMultiplicity_charged_PDF_variations.push_back(copy_book_th1f(h_tu_gen_puppiMultiplicity_charged, TString::Format("hist_puppiMultiplicity_charged_gen_all_PDF_%d", i).Data()));
+      h_tu_response_puppiMultiplicity_charged_PDF_variations.push_back(copy_book_th2f(h_tu_response_puppiMultiplicity_charged, TString::Format("tu_puppiMultiplicity_charged_GenReco_all_PDF_%d", i).Data()));
     }
   }
 
@@ -389,6 +393,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_pTD_PDF_variations.push_back(copy_book_th1f(h_tu_reco_pTD, TString::Format("hist_pTD_reco_all_PDF_%d", i).Data()));
       h_tu_gen_pTD_PDF_variations.push_back(copy_book_th1f(h_tu_gen_pTD, TString::Format("hist_pTD_gen_all_PDF_%d", i).Data()));
+      h_tu_response_pTD_PDF_variations.push_back(copy_book_th2f(h_tu_response_pTD, TString::Format("tu_pTD_GenReco_all_PDF_%d", i).Data()));
     }
   }
 
@@ -439,6 +444,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_pTD_charged_PDF_variations.push_back(copy_book_th1f(h_tu_reco_pTD_charged, TString::Format("hist_pTD_charged_reco_all_PDF_%d", i).Data()));
       h_tu_gen_pTD_charged_PDF_variations.push_back(copy_book_th1f(h_tu_gen_pTD_charged, TString::Format("hist_pTD_charged_gen_all_PDF_%d", i).Data()));
+      h_tu_response_pTD_charged_PDF_variations.push_back(copy_book_th2f(h_tu_response_pTD_charged, TString::Format("tu_pTD_charged_GenReco_all_PDF_%d", i).Data()));
     }
   }
 
@@ -489,6 +495,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_thrust_PDF_variations.push_back(copy_book_th1f(h_tu_reco_thrust, TString::Format("hist_thrust_reco_all_PDF_%d", i).Data()));
       h_tu_gen_thrust_PDF_variations.push_back(copy_book_th1f(h_tu_gen_thrust, TString::Format("hist_thrust_gen_all_PDF_%d", i).Data()));
+      h_tu_response_thrust_PDF_variations.push_back(copy_book_th2f(h_tu_response_thrust, TString::Format("tu_thrust_GenReco_all_PDF_%d", i).Data()));
     }
   }
 
@@ -539,6 +546,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_thrust_charged_PDF_variations.push_back(copy_book_th1f(h_tu_reco_thrust_charged, TString::Format("hist_thrust_charged_reco_all_PDF_%d", i).Data()));
       h_tu_gen_thrust_charged_PDF_variations.push_back(copy_book_th1f(h_tu_gen_thrust_charged, TString::Format("hist_thrust_charged_gen_all_PDF_%d", i).Data()));
+      h_tu_response_thrust_charged_PDF_variations.push_back(copy_book_th2f(h_tu_response_thrust_charged, TString::Format("tu_thrust_charged_GenReco_all_PDF_%d", i).Data()));
     }
   }
 
@@ -589,6 +597,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_width_PDF_variations.push_back(copy_book_th1f(h_tu_reco_width, TString::Format("hist_width_reco_all_PDF_%d", i).Data()));
       h_tu_gen_width_PDF_variations.push_back(copy_book_th1f(h_tu_gen_width, TString::Format("hist_width_gen_all_PDF_%d", i).Data()));
+      h_tu_response_width_PDF_variations.push_back(copy_book_th2f(h_tu_response_width, TString::Format("tu_width_GenReco_all_PDF_%d", i).Data()));
     }
   }
 
@@ -639,6 +648,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_width_charged_PDF_variations.push_back(copy_book_th1f(h_tu_reco_width_charged, TString::Format("hist_width_charged_reco_all_PDF_%d", i).Data()));
       h_tu_gen_width_charged_PDF_variations.push_back(copy_book_th1f(h_tu_gen_width_charged, TString::Format("hist_width_charged_gen_all_PDF_%d", i).Data()));
+      h_tu_response_width_charged_PDF_variations.push_back(copy_book_th2f(h_tu_response_width_charged, TString::Format("tu_width_charged_GenReco_all_PDF_%d", i).Data()));
     }
   }
 
@@ -1238,7 +1248,9 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       } // end if passReco
 
       // Fill TUnfold 2D response maps
-      // ---------------------------------------------------------------
+      // We fill it so long as we have a passGen, whether or not we have passReco
+      // This ensures we account for the efficiency correctly
+      // -----------------------------------------------------------------------
       h_tu_response_pt->Fill(genBinPt, recBinPt, weight);
       if (thisPassGen) {
         h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, recBinPuppiMult, weight);
@@ -1282,6 +1294,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         h_tu_response_thrust_charged->Fill(genBinThrustCharged, underflow_bin, corr_weight);
       }
 
+      // do split bit
       if (onlyFillResponse && doMCsplit_) {
         h_tu_response_pt_split->Fill(genBinPt, recBinPt, weight);
         // extra part for correct weighting
@@ -1314,6 +1327,42 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           h_tu_response_thrust_charged_split->Fill(genBinThrustCharged, underflow_bin, corr_weight);
         }
 
+      } // end of doMCsplit_
+
+      // do PDF variations
+      if (doPDFvariations_ && event.genInfo->systweights().size() > 0) {
+        for (int i=0; i<N_PDF_VARIATIONS; i++) {
+          double pdf_weight = event.genInfo->systweights().at(i+10) / event.genInfo->systweights().at(9); // +10 as first 9 are scale variations + nominal again
+          double this_gen_weight = gen_weight * pdf_weight;
+          double this_weight = this_gen_weight * reco_weight;
+          double this_corr_weight = this_gen_weight * (1 - reco_weight);
+          if (thisPassGen) {
+            h_tu_response_puppiMultiplicity_PDF_variations.at(i)->Fill(genBinPuppiMult, recBinPuppiMult, this_weight);
+            h_tu_response_LHA_PDF_variations.at(i)->Fill(genBinLHA, recBinLHA, this_weight);
+            h_tu_response_pTD_PDF_variations.at(i)->Fill(genBinpTD, recBinpTD, this_weight);
+            h_tu_response_width_PDF_variations.at(i)->Fill(genBinWidth, recBinWidth, this_weight);
+            h_tu_response_thrust_PDF_variations.at(i)->Fill(genBinThrust, recBinThrust, this_weight);
+            // correct weighting part
+            h_tu_response_puppiMultiplicity_PDF_variations.at(i)->Fill(genBinPuppiMult, underflow_bin, this_corr_weight);
+            h_tu_response_LHA_PDF_variations.at(i)->Fill(genBinLHA, underflow_bin, this_corr_weight);
+            h_tu_response_pTD_PDF_variations.at(i)->Fill(genBinpTD, underflow_bin, this_corr_weight);
+            h_tu_response_width_PDF_variations.at(i)->Fill(genBinWidth, underflow_bin, this_corr_weight);
+            h_tu_response_thrust_PDF_variations.at(i)->Fill(genBinThrust, underflow_bin, this_corr_weight);
+          }
+          if (thisPassGenCharged) {
+            h_tu_response_puppiMultiplicity_charged_PDF_variations.at(i)->Fill(genBinPuppiMultCharged, recBinPuppiMultCharged, this_weight);
+            h_tu_response_LHA_charged_PDF_variations.at(i)->Fill(genBinLHACharged, recBinLHACharged, this_weight);
+            h_tu_response_pTD_charged_PDF_variations.at(i)->Fill(genBinpTDCharged, recBinpTDCharged, this_weight);
+            h_tu_response_width_charged_PDF_variations.at(i)->Fill(genBinWidthCharged, recBinWidthCharged, this_weight);
+            h_tu_response_thrust_charged_PDF_variations.at(i)->Fill(genBinThrustCharged, recBinThrustCharged, this_weight);
+            // correct weighting part
+            h_tu_response_puppiMultiplicity_charged_PDF_variations.at(i)->Fill(genBinPuppiMultCharged, underflow_bin, this_corr_weight);
+            h_tu_response_LHA_charged_PDF_variations.at(i)->Fill(genBinLHACharged, underflow_bin, this_corr_weight);
+            h_tu_response_pTD_charged_PDF_variations.at(i)->Fill(genBinpTDCharged, underflow_bin, this_corr_weight);
+            h_tu_response_width_charged_PDF_variations.at(i)->Fill(genBinWidthCharged, underflow_bin, this_corr_weight);
+            h_tu_response_thrust_charged_PDF_variations.at(i)->Fill(genBinThrustCharged, underflow_bin, this_corr_weight);
+          }
+        }
       }
     } // end of for loop over genjets
   } // end if passGen
