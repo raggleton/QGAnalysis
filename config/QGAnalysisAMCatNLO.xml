@@ -33,7 +33,7 @@
     <Library Name="libSUHH2QGAnalysis"/>
     <Package Name="SUHH2QGAnalysis.par" />
 
-    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-AMCATNLO;/" PostFix="" TargetLumi="1" >
+    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-AMCATNLO;/" PostFix="" TargetLumi="35918" >
 
 
         <InputData Lumi="319474364.440" NEventsMax="&NEVT;" Type="MC" Version="MC_AMCATNLO_DYJetsToLL" Cacheable="False">
