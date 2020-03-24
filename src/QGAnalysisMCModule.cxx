@@ -115,7 +115,7 @@ private:
 
     float jetRadius;
     string jetCone;
-    float htMax;
+    float htMax, qScaleMin, qScaleMax;
 
     bool DO_PU_BINNED_HISTS;
     bool DO_UNFOLD_HISTS;
@@ -136,6 +136,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     cout << "Running analysis module" << endl;
 
     htMax = boost::lexical_cast<float>(ctx.get("maxHT", "-1"));
+    qScaleMin = boost::lexical_cast<float>(ctx.get("qScaleMin", "-1"));
+    qScaleMax = boost::lexical_cast<float>(ctx.get("qScaleMax", "-1")); // -ve disables cut
 
     jetCone = ctx.get("JetCone", "AK4");
     string pu_removal = ctx.get("PURemoval", "CHS");
@@ -636,6 +638,14 @@ bool QGAnalysisMCModule::process(Event & event) {
     }
     if ((htMax > 0) && (genHT > htMax)) { return false; }
 
+    // Gen-level Jet kT cut (Herwig samples)
+    // -------------------------------------------------------------------------
+    float qscale = event.genInfo->qScale();
+    if ((qScaleMax>0) || (qScaleMin>0)) {
+        if ((qScaleMax > 0) && (qscale > qScaleMax)) return false;
+        if ((qScaleMin > 0) && (qscale < qScaleMin)) return false;
+    }
+
     // Common things
     // -------------------------------------------------------------------------
     // Note that we only care about this for reco-specific bits,
@@ -680,6 +690,8 @@ bool QGAnalysisMCModule::process(Event & event) {
     // 1. Cut on pt/genHt to avoid weird events
     if (genHT > 0 && (njet_min_sel->passes(event) && ((event.jets->at(0).pt() / genHT) > 2))) { return false; }
     if (genHT > 0 && (hasGenJets && ((event.get(genjets_handle)[0].pt() / genHT) > 2))) { return false; }
+
+    // if (jetKt > 0 && (hasGenJets && ((event.get(genjets_handle)[0].pt() / genHT) > 2))) { return false; }
 
     float qScale = event.genInfo->qScale();
     if (njet_min_sel->passes(event) && ((event.jets->at(0).pt() / qScale) > 2)) { return false; }

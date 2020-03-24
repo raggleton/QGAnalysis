@@ -24,6 +24,8 @@ protected:
     TH1F *pt_jet1, *pt_jet1_unweighted, *pt_jet_response_binning, *pt_genjet_response_binning;
     TH1F *pt_mumu;
     TH1F *gen_ht;
+    TH1F *genjet_kt;
+    TH2F *genjet_kt_vs_weight;
     TH2F *eta_jet1_vs_pt;
     TH2F *flav_jet1_vs_pt_jet1;
     TH2F *pt_jet1_z_ratio_vs_pt, *pt_jet1_z_ratio_vs_pt_jet1;

@@ -65,7 +65,8 @@ hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
   eta_jet_response = book<TH2F>("eta_jet_response", ";#eta^{jet} (GEN);#eta^{jet} (RECO)", nbins_eta, -eta_max, eta_max, nbins_eta, -eta_max, eta_max);
 
   gen_ht = book<TH1F>("gen_ht", ";H_{T}^{Gen} [GeV]", 500, 0, 5000);
-
+  genjet_kt = book<TH1F>("genjet_kt", ";k_{T}^{Gen} [GeV]", 500, 0, 1000);
+  // genjet_kt_vs_weight = book<TH2F>("genjet_kt_vs_weight", ";Genjet k_{T} [GeV];weight", 500, 0, 1000, );
   pt_jet2_vs_pt = book<TH2F>(TString::Format("pt_jet2_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{jet 2} [GeV];%s", binByVarLabel.Data()), nbins_pt, 0, pt_max, nbins_pt, 0, pt_max);
   eta_jet2_vs_pt = book<TH2F>(TString::Format("eta_jet2_vs_%s", binByVar.Data()), TString::Format(";#eta^{jet 2};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt, 0, pt_max);
   pt_jet2_z_ratio_vs_pt = book<TH2F>(TString::Format("pt_jet2_z_ratio_vs_%s", binByVar.Data()), TString::Format(";p_{T}^{jet 2} / p_{T}^{%s};%s", zName.Data(), binByVarLabel.Data()), 60, 0, 3, nbins_pt, 0, pt_max);
@@ -176,6 +177,9 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
     float genHT = calcGenHT(*(event.genparticles));
     gen_ht->Fill(genHT, weight);
     pt_jet_genHT_ratio->Fill(jet1_pt / genHT, weight);
+
+    float jetKt = calcJetKt(*(event.genparticles));
+    genjet_kt->Fill(jetKt, weight);
 
     const std::vector<GenJetWithParts> * genjets = &event.get(genJets_handle);
     int gj_ind1 = jet1.genjet_index();

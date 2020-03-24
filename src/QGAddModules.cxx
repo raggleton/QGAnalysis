@@ -637,6 +637,19 @@ float calcGenHT(const std::vector<GenParticle> & gps) {
   return ht;
 }
 
+float calcJetKt(const std::vector<GenParticle> & genparticles) {
+  // find hardest parton with status 11
+  float highestPt  = -1;
+  for (const auto & gp : genparticles) {
+      if (gp.status() != 11) continue; // can't assume all the 11s first - some status 4 in there as well!
+      int absId = abs(gp.pdgId());
+      if ((absId > PDGID::TOP_QUARK) && (absId != PDGID::GLUON)) continue;
+      highestPt = max(highestPt, gp.pt());
+      // cout << "jet kt max: " << highestPt << " : " << gp.pt() << " : " << absId << " : " << gp.status() << endl;
+  }
+  return highestPt;
+}
+
 ZllKFactor::ZllKFactor(const std::string & weightFilename_)
 {
   file.reset(TFile::Open(locate_file(weightFilename_).c_str()));
