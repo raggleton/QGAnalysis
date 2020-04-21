@@ -25,8 +25,8 @@
 <!-- split 3 for mgpythia -->
 <!-- split 15 -->
 <!--
-   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="20" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_herwig_target0p5_ZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto_noPtHatCut_noPtReweight_noZjet2Cut_zPt30_trkSF_wtaAK_passGenRsp_sameGenCuts_qScaleCut"/>
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="15" />
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_herwig_target0p5_ZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto_noPtHatCut_noPtReweight_noZjet2Cut_zPt30_trkSF_wtaAK_passGenRsp_sameGenCuts_PartonKtCut"/>
 -->
 
 
@@ -39,18 +39,18 @@
 
         <!-- HERWIG -->
 
-        <InputData Lumi="42202.727" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_DYJetsToLL_qScaleMax210" Cacheable="False">
+        <InputData Lumi="42202.727" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_DYJetsToLL_Incl_PartonKtMax300" Cacheable="False">
         &HERWIG-DY;
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
 
-        <!-- <InputData Lumi="1" NEventsMax="10000" Type="MC" Version="MC_MG_HERWIG_DYJetsToLL_Test" Cacheable="False"> -->
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/DYJetsToLL_M-50_TuneCUETHS1_13TeV-madgraphMLM-herwigpp/crab_DYJetsToLL_M-50_mg-herwig_10_Feb_18_newRecoJetFlav_fixPuppi/180210_102303/0000/Ntuple_1.root" Lumi="0.0"/> -->
-        <!-- <InputTree Name="AnalysisTree"/> -->
-        <!-- <OutputTree Name="AnalysisTree"/> -->
-        <!-- </InputData> -->
-
+<!--         <InputData Lumi="1" NEventsMax="10000" Type="MC" Version="MC_MG_HERWIG_DYJetsToLL_Test" Cacheable="False">
+        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/DYJetsToLL_M-50_TuneCUETHS1_13TeV-madgraphMLM-herwigpp/crab_DYJetsToLL_M-50_mg-herwig_10_Feb_18_newRecoJetFlav_fixPuppi/180210_102303/0000/Ntuple_1.root" Lumi="0.0"/>
+        <InputTree Name="AnalysisTree"/>
+        <OutputTree Name="AnalysisTree"/>
+        </InputData>
+ -->
 
         <UserConfig>
             &COMMON;
@@ -61,15 +61,15 @@
             <!-- &AK8CHS; -->
             <!-- &AK8PUPPI; -->
 
-            <Item Name="qScaleMax" Value="210"/>
+            <Item Name="partonKtMax" Value="300"/>
 
             <!-- If you want to reweight herwig pT spectrum to match Pythia -->
             <Item Name="pt_reweight_file" Value="" />
             <!-- <Item Name="pt_reweight_file" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_dijet_only_weights_ak4puppi.root" /> -->
             <!-- <Item Name="pt_reweight_file" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_dijet_only_weights_ak4puppi_noPtHatCut_noPtReweight_noZjet2Cut_zPt30_newBinning.root" /> -->
 
-            <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
-            <!-- <Item Name="z_reweight_file" Value=""/> -->
+            <!-- <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/> -->
+            <Item Name="z_reweight_file" Value=""/>
 
             <Item Name="neutralHadronShift" Value="nominal"/>
             <!-- <Item Name="neutralHadronShift" Value="down"/> -->
@@ -81,6 +81,13 @@
 
             <!-- <Item Name="ScaleVariationMuR" Value="up"/> -->
             <!-- <Item Name="ScaleVariationMuF" Value="down"/> -->
+
+            <Item Name="DO_PU_BINNED_HISTS" Value="false"/>
+            <Item Name="DO_UNFOLD_HISTS" Value="true"/>
+            <Item Name="DO_FLAVOUR_HISTS" Value="false"/>
+            <Item Name="DO_KINEMATIC_HISTS" Value="true"/>
+            <Item Name="DO_LAMBDA_HISTS" Value="true"/>
+
 
         </UserConfig>
     </Cycle>
