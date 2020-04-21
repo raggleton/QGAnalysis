@@ -34,7 +34,7 @@
 
    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-MG-PYTHIA;/" PostFix="" TargetLumi="35918" >
 
-        <InputData Lumi="9890.307" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-INCL" Cacheable="False">
+        <InputData Lumi="9890.307" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-0to70" Cacheable="False">
         &MG-PYTHIA-DYJetsToLL_INCL;
         <InputTree Name="AnalysisTree"/>
         </InputData>
@@ -57,8 +57,9 @@
             <!-- &AK8CHS; -->
             <!-- &AK8PUPPI; -->
 
-            <Item Name="z_reweight_file" Value=""/>
-            <!-- <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/> -->
+            <!-- <Item Name="z_reweight_file" Value=""/> -->
+            <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
+            <Item Name="maxHT" Value="70"/>
 
             <!--@SYST-->
 

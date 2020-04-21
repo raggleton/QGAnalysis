@@ -98,6 +98,7 @@ if __name__ == "__main__":
         # 'QGAnalysisPythia.xml',
         # 'QGAnalysisMGPythiaQCD.xml',
         'QGAnalysisMGPythiaDY.xml',
+        'QGAnalysisMGPythiaDYInclHTMax70.xml',
         'QGAnalysisMGPythiaDYIncl.xml',
 
         # 'QGAnalysisDataJetHT.xml',
