@@ -69,15 +69,17 @@ def write_updated_file(contents, new_xml_filename, radius, systematic_names=None
                 f.write(line)
 
 
-def submit_xml(xml_filename, local=False):
+def submit_xml(xml_filename, local=False, el7_worker=False):
     local_opt = "--local" if local else ""
-    cmd = 'sframe_batch.py -s %s %s' % (local_opt, xml_filename)
+    worker_opt = "--el7worker" if el7_worker else ""
+    cmd = 'sframe_batch.py -s %s %s %s' % (local_opt, worker_opt, xml_filename)
     result = subprocess.check_output(cmd, shell=True)
     print(result)
 
-def resubmit_xml(xml_filename, local=False):
+def resubmit_xml(xml_filename, local=False, el7_worker=False):
     local_opt = "--local" if local else ""
-    cmd = 'sframe_batch.py -r %s %s' % (local_opt, xml_filename)
+    worker_opt = "--el7worker" if el7_worker else ""
+    cmd = 'sframe_batch.py -r %s %s %s' % (local_opt, worker_opt, xml_filename)
     # subprocess.Popen(cmd, shell=True)
     result = subprocess.check_output(cmd, shell=True)
     print(result)
@@ -91,6 +93,7 @@ if __name__ == "__main__":
     group.add_argument("--resubmit", action='store_true', help='resubmit on sframe_batch')
     parser.add_argument("--onlySubmitSystematics", action='store_true', help='Only submit systematic variation jobs, not nominal')
     parser.add_argument("--local", action='store_true', help='Run locally')
+    parser.add_argument("--el7worker", action='store_true', help='Run on EL7 worker nodes')
     args = parser.parse_args()
 
     base_files = [
@@ -214,10 +217,10 @@ if __name__ == "__main__":
             if not args.onlySubmitSystematics:
                 if args.submit:
                     print "Submitting", new_xml_filename
-                    submit_xml(new_xml_filename, local=args.local)
+                    submit_xml(new_xml_filename, local=args.local, el7_worker=args.el7worker)
                 elif args.resubmit:
                     print "Re-Submitting", new_xml_filename
-                    resubmit_xml(new_xml_filename, local=args.local)
+                    resubmit_xml(new_xml_filename, local=args.local, el7_worker=args.el7worker)
 
             # For now, do one systematic shift at a time
             for syst in systematics:
@@ -238,7 +241,7 @@ if __name__ == "__main__":
                     write_updated_file(contents, new_xml_filename, radius, syst.names, syst_values, append)
                     if args.submit:
                         print "Submitting", new_xml_filename
-                        submit_xml(new_xml_filename, local=args.local)
+                        submit_xml(new_xml_filename, local=args.local, el7_worker=args.el7worker)
                     elif args.resubmit:
                         print "Re-Submitting", new_xml_filename
-                        resubmit_xml(new_xml_filename, local=args.local)
+                        resubmit_xml(new_xml_filename, local=args.local, el7_worker=args.el7worker)
