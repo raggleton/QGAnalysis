@@ -4,6 +4,9 @@
 *.pdf
 *.pyc
 *.txt
+*.so
+*.d
+*.pcm
 *_down.xml
 *_up.xml
 Analysis
@@ -13,4 +16,6 @@ Selection
 config/workdir*
 jobTempOutput*
 obj
+*_ScaleVariationMuR_*_ScaleVariationMuF_*.xml
+*PDFvariations_true.xml
 uhh*.root
