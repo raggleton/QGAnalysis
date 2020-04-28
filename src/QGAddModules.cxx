@@ -680,9 +680,11 @@ bool ZFinder::process(uhh2::Event & event) {
 }
 
 
-float calcGenHT(const std::vector<GenParticle> & gps) {
+float calcGenHT(const std::vector<GenParticle> & genparticles) {
+  // Find scalar sum of all matrix-element partons
+  // Only works for Pythia8 samples due to status check
   float ht = 0.;
-  for (const auto & itr: gps) {
+  for (const auto & itr: genparticles) {
     if (abs(itr.status()) != 23) continue;
     uint pdg = abs(itr.pdgId());
     if (( pdg <= PDGID::TOP_QUARK && pdg >= PDGID::DOWN_QUARK) || pdg == PDGID::GLUON) {
@@ -696,10 +698,11 @@ float calcJetKt(const std::vector<GenParticle> & genparticles) {
   // find hardest parton with status 11
   float highestPt  = -1;
   for (const auto & gp : genparticles) {
-      if (gp.status() != 11) continue; // can't assume all the 11s first - some status 4 in there as well!
+      if (gp.status() != 11) continue; // can't assume all the 11s first - some status 4 in there as well! so don't break
       int absId = abs(gp.pdgId());
-      if ((absId > PDGID::TOP_QUARK) && (absId != PDGID::GLUON)) continue;
-      highestPt = max(highestPt, gp.pt());
+      if (absId < PDGID::TOP_QUARK || absId == PDGID::GLUON) {
+        highestPt = max(highestPt, gp.pt());
+      }
       // cout << "jet kt max: " << highestPt << " : " << gp.pt() << " : " << absId << " : " << gp.status() << endl;
   }
   return highestPt;
