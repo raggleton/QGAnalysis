@@ -115,7 +115,7 @@ private:
 
     float jetRadius;
     string jetCone;
-    float htMax, qScaleMin, qScaleMax;
+    float htMax, partonKtMin, partonKtMax;
 
     bool DO_PU_BINNED_HISTS;
     bool DO_UNFOLD_HISTS;
@@ -136,8 +136,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     cout << "Running analysis module" << endl;
 
     htMax = boost::lexical_cast<float>(ctx.get("maxHT", "-1"));
-    qScaleMin = boost::lexical_cast<float>(ctx.get("qScaleMin", "-1"));
-    qScaleMax = boost::lexical_cast<float>(ctx.get("qScaleMax", "-1")); // -ve disables cut
+    partonKtMin = boost::lexical_cast<float>(ctx.get("partonKtMin", "-1"));
+    partonKtMax = boost::lexical_cast<float>(ctx.get("partonKtMax", "-1")); // -ve disables cut
 
     jetCone = ctx.get("JetCone", "AK4");
     string pu_removal = ctx.get("PURemoval", "CHS");
@@ -638,12 +638,18 @@ bool QGAnalysisMCModule::process(Event & event) {
     }
     if ((htMax > 0) && (genHT > htMax)) { return false; }
 
-    // Gen-level Jet kT cut (Herwig samples)
+    // Gen-level cut (Herwig samples)
     // -------------------------------------------------------------------------
-    float qscale = event.genInfo->qScale();
-    if ((qScaleMax>0) || (qScaleMin>0)) {
-        if ((qScaleMax > 0) && (qscale > qScaleMax)) return false;
-        if ((qScaleMin > 0) && (qscale < qScaleMin)) return false;
+    float qScale = event.genInfo->qScale();
+    // if ((qScaleMax>0) || (qScaleMin>0)) {
+    //     if ((qScaleMax > 0) && (qScale > qScaleMax)) return false;
+    //     if ((qScaleMin > 0) && (qScale < qScaleMin)) return false;
+    // }
+
+    float partonKt = calcJetKt(*event.genparticles);
+    if ((partonKtMax>0) || (partonKtMin>0)) {
+        if ((partonKtMax > 0) && (partonKt > partonKtMax)) return false;
+        if ((partonKtMin > 0) && (partonKt < partonKtMin)) return false;
     }
 
     // Common things
@@ -693,7 +699,6 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // if (jetKt > 0 && (hasGenJets && ((event.get(genjets_handle)[0].pt() / genHT) > 2))) { return false; }
 
-    float qScale = event.genInfo->qScale();
     if (njet_min_sel->passes(event) && ((event.jets->at(0).pt() / qScale) > 2)) { return false; }
 
     float PU_pThat = event.genInfo->PU_pT_hat_max();
