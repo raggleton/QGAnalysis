@@ -52,7 +52,7 @@ def write_updated_file(contents, new_xml_filename, radius, systematic_names=None
                     new_line = '            <Item Name="%s" Value="False"/>\n' % (key)
                     f.write(new_line)
                 new_line = '            <Item Name="DO_LAMBDA_HISTS" Value="True"/>\n'
-                new_line = '            <Item Name="DO_UNFOLD_HISTS" Value="True"/>\n'
+                new_line += '            <Item Name="DO_UNFOLD_HISTS" Value="True"/>\n'
                 f.write(new_line)
 
                 # Write out systematics
