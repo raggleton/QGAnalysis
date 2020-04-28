@@ -58,12 +58,14 @@ Hists(ctx, dirname)
     pt_jet2 = book<TH1F>("pt_jet2", ";p_{T}^{genjet 2} [GeV];", nbins_pt, 0, pt_max);
     pt_jet2_z_ratio = book<TH1F>("pt_jet2_z_ratio", TString::Format(";p_{T}^{genjet 2} / p_{T}^{%s};", zName.Data()), 60, 0, 3);
     pt_jet_genHT_ratio = book<TH1F>("pt_jet_genHT_ratio", ";p_{T}^{genjet 1}/GenHT;", 250, 0, 2.5);
-    pt_hat_pt_jet_ratio = book<TH1F>("pt_hat_pt_jet_ratio", ";p_{T}^{genjet 1}/#hat{p}_{T};", 250, 0, 2.5);
+    pt_hat_pt_jet_ratio = book<TH1F>("pt_hat_pt_jet_ratio", ";p_{T}^{genjet 1}/#hat{p}_{T};", 500, 0, 10);
     pt_mu1 = book<TH1F>("pt_mu1", ";p_{T}^{#mu1};", nbins_pt, 0, mu_pt_max);
     pt_mu2 = book<TH1F>("pt_mu2", ";p_{T}^{#mu2};", nbins_pt, 0, mu_pt_max);
     pt_mumu = book<TH1F>("pt_mumu", TString::Format(";p_{T}^{%s} [GeV];", zName.Data()), nbins_pt, 0, mu_pt_max);
-    // pt_z = book<TH1F>("pt_z", ";p_{T}^{Z} [GeV];", nbins_pt, 0, mu_pt_max);
+    pt_z = book<TH1F>("pt_z", ";p_{T}^{Z} [GeV];", nbins_pt, 0, mu_pt_max);
     q_scale = book<TH1F>("q_scale", ";q scale [GeV];", 250, 0, 500);
+    jet_kt = book<TH1F>("jet_kt", ";Parton k_{T} [GeV];", nbins_pt, 0, mu_pt_max);
+    jet_kt_pt_z_ratio = book<TH1F>("jet_kt_pt_z_ratio", ";Parton k_{T} / p_{T}^{Z};", 250, 0, 2.5);
   }
 
 }
@@ -82,12 +84,20 @@ void QGAnalysisZPlusJetsGenHists::fill(const Event & event){
   n_mu->Fill(Nmuons, weight);
 
   // Don't use - Z probably doesn't exist in list of GPs
-  // const GenParticle & genZ = findGenZ(*event.genparticles);
-  // pt_z->Fill(genZ.pt(), weight);
+  GenParticle genZ = findGenZ(*event.genparticles);
+  // cout << genZ.pdgId() << " : " << genZ.status() << " : " << genZ.pt() << endl;
+  pt_z->Fill(genZ.pt(), weight);
   // eta_z->Fill(genZ.eta(), weight);
 
+  float jetKt = calcJetKt(*event.genparticles);
+  jet_kt->Fill(jetKt, weight);
+
+  float ratio = 0;
+  if (genZ.pt() > 0 && jetKt > 0) ratio = jetKt / genZ.pt();
+  jet_kt_pt_z_ratio->Fill(ratio, weight);
+
   if (event.genInfo->binningValues().size() > 0) {
-    double ptHat = event.genInfo->binningValues().at(0); // sometimes this is pthat, sometimes it means the hardest outgoing partoneg in H++
+    double ptHat = event.genInfo->binningValues().at(0); // sometimes this is pthat, sometimes it means the hardest outgoing parton eg in H++? TBC
     pt_hat->Fill(ptHat, weight);
   }
 
@@ -144,17 +154,48 @@ void QGAnalysisZPlusJetsGenHists::fill(const Event & event){
 }
 
 // this should probably be in the main MC module and set a handle
-// const GenParticle & QGAnalysisZPlusJetsGenHists::findGenZ(std::vector<GenParticle> & gps) {
-//   for (const auto & itr : gps) {
-//     if (itr.pdgId() == 23) {
-//       // stop @ first?
-//       return itr;
-//     }
-//   }
-//   for (const auto & itr : gps) {
-//     cout << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << endl;
-//   }
-//   throw runtime_error("Couldn't find gen Z");
-// }
+GenParticle QGAnalysisZPlusJetsGenHists::findGenZ(std::vector<GenParticle> & gps) {
+  // note that we can't check PDGID - it could be a photon instead
+  bool foundFirstLepton = false;
+  GenParticle firstLepton, secondLepton;
+  for (const auto & itr : gps) {
+    if (abs(itr.pdgId()) >= PDGID::ELECTRON && abs(itr.pdgId()) <= PDGID::TAU_NEUTRINO) {
+      if (!foundFirstLepton) {
+        foundFirstLepton = true;
+        firstLepton.set_pdgId(itr.pdgId());
+        firstLepton.set_v4(itr.v4());
+        firstLepton.set_status(itr.status());
+      } else if (itr.pdgId() == -1*firstLepton.pdgId()) {
+        secondLepton.set_pdgId(itr.pdgId());
+        secondLepton.set_v4(itr.v4());
+        secondLepton.set_status(itr.status());
+        break;
+      }
+    }
+  }
+  if (firstLepton.pt() != 0 && secondLepton.pt() != 0) {
+    // int counter = 0;
+    // for (const auto & itr : gps) {
+    //   counter++;
+    //   cout << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << " : " << itr.v4().px() << " : " << itr.v4().py() << " : " << itr.v4().pz() << endl;
+    //   if (counter == 100) break;
+    // }
+    // cout << " 1st lepton: " << firstLepton.pdgId() << " : " << firstLepton.status() << " : " << firstLepton.pt() << " : " << firstLepton.v4().px() << " : " << firstLepton.v4().py() << " : " << firstLepton.v4().pz() << endl;
+    // cout << " 2nd lepton: " << secondLepton.pdgId() << " : " << secondLepton.status() << " : " << secondLepton.pt() << " : " << secondLepton.v4().px() << " : " << secondLepton.v4().py() << " : " << secondLepton.v4().pz() << endl;
+    GenParticle genZ;
+    genZ.set_v4(firstLepton.v4() + secondLepton.v4());
+    genZ.set_pdgId(PDGID::Z); // in reality could be a photon
+    return genZ;
+  }
+
+  cout << "**** No Z event: ****" << endl;
+  int counter = 0;
+  for (const auto & itr : gps) {
+    counter++;
+    cout << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << " : " << itr.v4().px() << " : " << itr.v4().py() << " : " << itr.v4().pz() << endl;
+    if (counter == 200) break;
+  }
+  throw runtime_error("Couldn't find gen Z");
+}
 
 QGAnalysisZPlusJetsGenHists::~QGAnalysisZPlusJetsGenHists(){}
