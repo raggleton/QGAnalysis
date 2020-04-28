@@ -1035,6 +1035,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
 
       if (!thisPassGen && !thisPassGenCharged) continue;
 
+      float genjet_pt = useBinningValue_ ? event.get(pt_binning_gen_handle) : thisjet.pt();
+
       float gen_lha(0.), gen_mult(0.), gen_ptd(0.), gen_width(0.), gen_thrust(0.);
       if (thisPassGen) {
         gen_lha = genJetCalc.getLambda(1, 0.5);
@@ -1053,7 +1055,6 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         gen_thrust_charged = genJetCalcCharged.getLambda(1, 2);
       }
 
-      float genjet_pt = useBinningValue_ ? event.get(pt_binning_gen_handle) : thisjet.pt();
 
       // Get TUnfold gen bins
       // default to 0 for underflow

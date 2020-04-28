@@ -602,6 +602,7 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // Redo AK8 genjet clustering
     // Do before any ngenjet cuts
+    // This is so we can get all gen jets, since the ntuple only had pt > 170
     // -------------------------------------------------------------------------
     if (jetCone == "AK8") {
         // for (const auto & itr : *(event.genjets)) {
@@ -914,7 +915,6 @@ bool QGAnalysisMCModule::process(Event & event) {
             //     }
             // }
 
-            // pass_dj_reco = dijet_sel->passes(event);
             pass_dj_reco = dijet_sel_tighter->passes(event);
             event.set(pass_dj_sel_handle, pass_dj_reco);
             if (pass_dj_reco) {
