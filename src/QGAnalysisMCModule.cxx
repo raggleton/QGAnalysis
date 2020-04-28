@@ -662,7 +662,7 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // Get Gen muons
     // -------------------------------------------------------------------------
-    std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, 5., 2.4+(jetRadius/2.));
+    std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, 5., 2.4); // 2.4 to match reco
     // printGenParticles(goodGenMuons);
     event.set(genmuons_handle, std::move(goodGenMuons));
 
