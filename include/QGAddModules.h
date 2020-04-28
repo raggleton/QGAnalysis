@@ -39,8 +39,11 @@ enum PDGID {
   BOTTOM_QUARK = 5,
   TOP_QUARK = 6,
   ELECTRON = 11,
+  ELECTRON_NEUTRINO = 12,
   MUON = 13,
+  MUON_NEUTRINO = 14,
   TAU = 15,
+  TAU_NEUTRINO = 16,
   GLUON = 21,
   PHOTON = 22,
   Z = 23,
@@ -108,6 +111,20 @@ private:
   std::unique_ptr<JetCleaner> jet_cleaner;
   std::unique_ptr<JetElectronOverlapRemoval> jet_ele_cleaner;
   std::unique_ptr<JetMuonOverlapRemoval> jet_mu_cleaner;
+};
+
+
+/**
+ * Find generator dilepton invariant object - could be Z, or gamma
+ */
+class GenZllFinder : public uhh2::AnalysisModule {
+public:
+  GenZllFinder(uhh2::Context & ctx, bool onlyStatus23, const std::string & genZhandle="genZ", const std::string & genZLeptonhandle="genZleptons");
+  virtual bool process(uhh2::Event & event) override;
+private:
+  bool onlyStatus23_;
+  uhh2::Event::Handle<GenParticle> gen_z_handle;
+  uhh2::Event::Handle<std::vector<GenParticle>> gen_z_leptons_handle;
 };
 
 

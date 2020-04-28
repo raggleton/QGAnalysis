@@ -180,6 +180,61 @@ bool RecoJetSetup::process(uhh2::Event & event) {
   return true;
 }
 
+GenZllFinder::GenZllFinder(uhh2::Context & ctx, bool onlyStatus23, const std::string & genZhandle, const std::string & genZLeptonhandle):
+  onlyStatus23_(onlyStatus23),
+  gen_z_handle(ctx.get_handle<GenParticle>(genZhandle)),
+  gen_z_leptons_handle(ctx.get_handle<std::vector<GenParticle>>(genZLeptonhandle))
+{
+}
+
+bool GenZllFinder::process(uhh2::Event & event) {
+  bool foundFirstLepton = false;
+  GenParticle firstLepton, secondLepton;
+  for (const auto & itr : *event.genparticles) {
+    bool goodPDGID = (abs(itr.pdgId()) == PDGID::ELECTRON || abs(itr.pdgId()) == PDGID::MUON || abs(itr.pdgId()) == PDGID::TAU);
+    bool goodStatus = onlyStatus23_ ? itr.status() == 23 : true;
+    if (goodPDGID && goodStatus) {
+      if (!foundFirstLepton) {
+        foundFirstLepton = true;
+        firstLepton.set_pdgId(itr.pdgId());
+        firstLepton.set_v4(itr.v4());
+        firstLepton.set_status(itr.status());
+      } else if (itr.pdgId() == -1*firstLepton.pdgId()) {
+        secondLepton.set_pdgId(itr.pdgId());
+        secondLepton.set_v4(itr.v4());
+        secondLepton.set_status(itr.status());
+        break;
+      }
+    }
+  }
+
+  if (firstLepton.pt() != 0 && secondLepton.pt() != 0) {
+    // int counter = 0;
+    // for (const auto & itr : *event.genparticles) {
+    //   counter++;
+    //   cout << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << " : " << itr.v4().px() << " : " << itr.v4().py() << " : " << itr.v4().pz() << endl;
+    //   if (counter == 100) break;
+    // }
+    // cout << " 1st lepton: " << firstLepton.pdgId() << " : " << firstLepton.status() << " : " << firstLepton.pt() << " : " << firstLepton.v4().px() << " : " << firstLepton.v4().py() << " : " << firstLepton.v4().pz() << endl;
+    // cout << " 2nd lepton: " << secondLepton.pdgId() << " : " << secondLepton.status() << " : " << secondLepton.pt() << " : " << secondLepton.v4().px() << " : " << secondLepton.v4().py() << " : " << secondLepton.v4().pz() << endl;
+    GenParticle genZ;
+    genZ.set_v4(firstLepton.v4() + secondLepton.v4());
+    genZ.set_pdgId(PDGID::Z); // in reality could be a photon
+    event.set(gen_z_handle, genZ);
+    std::vector<GenParticle> leptons = {firstLepton, secondLepton};
+    event.set(gen_z_leptons_handle, leptons);
+    return true;
+  }
+
+  cout << "**** No Z event: ****" << endl;
+  int counter = 0;
+  for (const auto & itr : *event.genparticles) {
+    counter++;
+    cout << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << " : " << itr.v4().px() << " : " << itr.v4().py() << " : " << itr.v4().pz() << endl;
+    if (counter == 100) break;
+  }
+  return false;
+}
 
 ZkFactorReweight::ZkFactorReweight(uhh2::Context & ctx, const std::string & weightFilename_, const std::string & genmuon_name):
   z_weight_handle(ctx.get_handle<double>("z_weight"))
