@@ -669,6 +669,24 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
 }
 
 
+void fill_th1_check(TH1 * h, int value, double weight){
+  if (value <= 0) {
+    cout << h->GetName() << " : " << value << " : "<< weight << endl;
+    throw runtime_error("Filling with <= 0 not allowed");
+  }
+  h->Fill(value, weight);
+}
+
+void fill_th2_check(TH2 * h, int xvalue, int yvalue, double weight){
+  if (xvalue <= 0 && yvalue <=0) {
+    cout << h->GetName() << " : " << xvalue << " : " << yvalue << " : " << weight << endl;
+    throw runtime_error("Filling with <= 0 on x and y not allowed");
+  }
+
+  h->Fill(xvalue, yvalue, weight);
+}
+
+
 void QGAnalysisUnfoldHists::fill(const Event & event){
   double weight = event.weight;
 
@@ -808,34 +826,34 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         }
       }
 
-      h_tu_reco_pt->Fill(recBinPt, weight);
+      fill_th1_check(h_tu_reco_pt, recBinPt, weight);
 
       if (thisPassReco) {
-        h_tu_reco_LHA->Fill(recBinLHA, weight);
-        h_tu_reco_puppiMultiplicity->Fill(recBinPuppiMult, weight);
-        h_tu_reco_pTD->Fill(recBinpTD, weight);
-        h_tu_reco_thrust->Fill(recBinThrust, weight);
-        h_tu_reco_width->Fill(recBinWidth, weight);
+        fill_th1_check(h_tu_reco_LHA, recBinLHA, weight);
+        fill_th1_check(h_tu_reco_puppiMultiplicity, recBinPuppiMult, weight);
+        fill_th1_check(h_tu_reco_pTD, recBinpTD, weight);
+        fill_th1_check(h_tu_reco_thrust, recBinThrust, weight);
+        fill_th1_check(h_tu_reco_width, recBinWidth, weight);
 
-        h_tu_reco_LHA_gen_binning->Fill(genBinLHA, weight);
-        h_tu_reco_puppiMultiplicity_gen_binning->Fill(genBinPuppiMult, weight);
-        h_tu_reco_pTD_gen_binning->Fill(genBinpTD, weight);
-        h_tu_reco_thrust_gen_binning->Fill(genBinThrust, weight);
-        h_tu_reco_width_gen_binning->Fill(genBinWidth, weight);
+        fill_th1_check(h_tu_reco_LHA_gen_binning, genBinLHA, weight);
+        fill_th1_check(h_tu_reco_puppiMultiplicity_gen_binning, genBinPuppiMult, weight);
+        fill_th1_check(h_tu_reco_pTD_gen_binning, genBinpTD, weight);
+        fill_th1_check(h_tu_reco_thrust_gen_binning, genBinThrust, weight);
+        fill_th1_check(h_tu_reco_width_gen_binning, genBinWidth, weight);
       }
 
       if (thisPassRecoCharged) {
-        h_tu_reco_LHA_charged->Fill(recBinLHACharged, weight);
-        h_tu_reco_puppiMultiplicity_charged->Fill(recBinPuppiMultCharged, weight);
-        h_tu_reco_pTD_charged->Fill(recBinpTDCharged, weight);
-        h_tu_reco_thrust_charged->Fill(recBinThrustCharged, weight);
-        h_tu_reco_width_charged->Fill(recBinWidthCharged, weight);
+        fill_th1_check(h_tu_reco_LHA_charged, recBinLHACharged, weight);
+        fill_th1_check(h_tu_reco_puppiMultiplicity_charged, recBinPuppiMultCharged, weight);
+        fill_th1_check(h_tu_reco_pTD_charged, recBinpTDCharged, weight);
+        fill_th1_check(h_tu_reco_thrust_charged, recBinThrustCharged, weight);
+        fill_th1_check(h_tu_reco_width_charged, recBinWidthCharged, weight);
 
-        h_tu_reco_LHA_charged_gen_binning->Fill(genBinLHACharged, weight);
-        h_tu_reco_puppiMultiplicity_charged_gen_binning->Fill(genBinPuppiMultCharged, weight);
-        h_tu_reco_pTD_charged_gen_binning->Fill(genBinpTDCharged, weight);
-        h_tu_reco_thrust_charged_gen_binning->Fill(genBinThrustCharged, weight);
-        h_tu_reco_width_charged_gen_binning->Fill(genBinWidthCharged, weight);
+        fill_th1_check(h_tu_reco_LHA_charged_gen_binning, genBinLHACharged, weight);
+        fill_th1_check(h_tu_reco_puppiMultiplicity_charged_gen_binning, genBinPuppiMultCharged, weight);
+        fill_th1_check(h_tu_reco_pTD_charged_gen_binning, genBinpTDCharged, weight);
+        fill_th1_check(h_tu_reco_thrust_charged_gen_binning, genBinThrustCharged, weight);
+        fill_th1_check(h_tu_reco_width_charged_gen_binning, genBinWidthCharged, weight);
       }
 
       if (!onlyFillResponse && doMCsplit_) {
@@ -929,19 +947,19 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
               h_fake_counter_weighted->Fill(ind, weight);
             }
 
-            h_tu_reco_pt_fake->Fill(recBinPt, weight);
+            fill_th1_check(h_tu_reco_pt_fake, recBinPt, weight);
 
-            h_tu_reco_LHA_fake->Fill(recBinLHA, weight);
-            h_tu_reco_puppiMultiplicity_fake->Fill(recBinPuppiMult, weight);
-            h_tu_reco_pTD_fake->Fill(recBinpTD, weight);
-            h_tu_reco_thrust_fake->Fill(recBinThrust, weight);
-            h_tu_reco_width_fake->Fill(recBinWidth, weight);
+            fill_th1_check(h_tu_reco_LHA_fake, recBinLHA, weight);
+            fill_th1_check(h_tu_reco_puppiMultiplicity_fake, recBinPuppiMult, weight);
+            fill_th1_check(h_tu_reco_pTD_fake, recBinpTD, weight);
+            fill_th1_check(h_tu_reco_thrust_fake, recBinThrust, weight);
+            fill_th1_check(h_tu_reco_width_fake, recBinWidth, weight);
 
-            h_tu_reco_LHA_fake_gen_binning->Fill(genBinLHA, weight);
-            h_tu_reco_puppiMultiplicity_fake_gen_binning->Fill(genBinPuppiMult, weight);
-            h_tu_reco_pTD_fake_gen_binning->Fill(genBinpTD, weight);
-            h_tu_reco_thrust_fake_gen_binning->Fill(genBinThrust, weight);
-            h_tu_reco_width_fake_gen_binning->Fill(genBinWidth, weight);
+            fill_th1_check(h_tu_reco_LHA_fake_gen_binning, genBinLHA, weight);
+            fill_th1_check(h_tu_reco_puppiMultiplicity_fake_gen_binning, genBinPuppiMult, weight);
+            fill_th1_check(h_tu_reco_pTD_fake_gen_binning, genBinpTD, weight);
+            fill_th1_check(h_tu_reco_thrust_fake_gen_binning, genBinThrust, weight);
+            fill_th1_check(h_tu_reco_width_fake_gen_binning, genBinWidth, weight);
 
             if (!onlyFillResponse && doMCsplit_) {
               h_tu_reco_pt_fake_split->Fill(recBinPt, weight);
@@ -991,17 +1009,17 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
               h_fake_counter_charged_weighted->Fill(ind, weight);
             }
 
-            h_tu_reco_LHA_charged_fake->Fill(recBinLHACharged, weight);
-            h_tu_reco_puppiMultiplicity_charged_fake->Fill(recBinPuppiMultCharged, weight);
-            h_tu_reco_pTD_charged_fake->Fill(recBinpTDCharged, weight);
-            h_tu_reco_thrust_charged_fake->Fill(recBinThrustCharged, weight);
-            h_tu_reco_width_charged_fake->Fill(recBinWidthCharged, weight);
+            fill_th1_check(h_tu_reco_LHA_charged_fake, recBinLHACharged, weight);
+            fill_th1_check(h_tu_reco_puppiMultiplicity_charged_fake, recBinPuppiMultCharged, weight);
+            fill_th1_check(h_tu_reco_pTD_charged_fake, recBinpTDCharged, weight);
+            fill_th1_check(h_tu_reco_thrust_charged_fake, recBinThrustCharged, weight);
+            fill_th1_check(h_tu_reco_width_charged_fake, recBinWidthCharged, weight);
 
-            h_tu_reco_LHA_charged_fake_gen_binning->Fill(genBinLHACharged, weight);
-            h_tu_reco_puppiMultiplicity_charged_fake_gen_binning->Fill(genBinPuppiMultCharged, weight);
-            h_tu_reco_pTD_charged_fake_gen_binning->Fill(genBinpTDCharged, weight);
-            h_tu_reco_thrust_charged_fake_gen_binning->Fill(genBinThrustCharged, weight);
-            h_tu_reco_width_charged_fake_gen_binning->Fill(genBinWidthCharged, weight);
+            fill_th1_check(h_tu_reco_LHA_charged_fake_gen_binning, genBinLHACharged, weight);
+            fill_th1_check(h_tu_reco_puppiMultiplicity_charged_fake_gen_binning, genBinPuppiMultCharged, weight);
+            fill_th1_check(h_tu_reco_pTD_charged_fake_gen_binning, genBinpTDCharged, weight);
+            fill_th1_check(h_tu_reco_thrust_charged_fake_gen_binning, genBinThrustCharged, weight);
+            fill_th1_check(h_tu_reco_width_charged_fake_gen_binning, genBinWidthCharged, weight);
 
             if (!onlyFillResponse && doMCsplit_) {
               h_tu_reco_LHA_charged_fake_split->Fill(recBinLHACharged, weight);
@@ -1102,19 +1120,19 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       h_tu_gen_pt->Fill(genBinPt, gen_weight);
 
       if (thisPassGen) {
-        h_tu_gen_puppiMultiplicity->Fill(genBinPuppiMult, gen_weight);
-        h_tu_gen_LHA->Fill(genBinLHA, gen_weight);
-        h_tu_gen_pTD->Fill(genBinpTD, gen_weight);
-        h_tu_gen_width->Fill(genBinWidth, gen_weight);
-        h_tu_gen_thrust->Fill(genBinThrust, gen_weight);
+        fill_th1_check(h_tu_gen_puppiMultiplicity, genBinPuppiMult, gen_weight);
+        fill_th1_check(h_tu_gen_LHA, genBinLHA, gen_weight);
+        fill_th1_check(h_tu_gen_pTD, genBinpTD, gen_weight);
+        fill_th1_check(h_tu_gen_width, genBinWidth, gen_weight);
+        fill_th1_check(h_tu_gen_thrust, genBinThrust, gen_weight);
       }
 
       if (thisPassGenCharged) {
-        h_tu_gen_puppiMultiplicity_charged->Fill(genBinPuppiMultCharged, gen_weight);
-        h_tu_gen_LHA_charged->Fill(genBinLHACharged, gen_weight);
-        h_tu_gen_pTD_charged->Fill(genBinpTDCharged, gen_weight);
-        h_tu_gen_width_charged->Fill(genBinWidthCharged, gen_weight);
-        h_tu_gen_thrust_charged->Fill(genBinThrustCharged, gen_weight);
+        fill_th1_check(h_tu_gen_puppiMultiplicity_charged, genBinPuppiMultCharged, gen_weight);
+        fill_th1_check(h_tu_gen_LHA_charged, genBinLHACharged, gen_weight);
+        fill_th1_check(h_tu_gen_pTD_charged, genBinpTDCharged, gen_weight);
+        fill_th1_check(h_tu_gen_width_charged, genBinWidthCharged, gen_weight);
+        fill_th1_check(h_tu_gen_thrust_charged, genBinThrustCharged, gen_weight);
       }
 
       if (!onlyFillResponse && doMCsplit_) {
@@ -1252,24 +1270,24 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       // We fill it so long as we have a passGen, whether or not we have passReco
       // This ensures we account for the efficiency correctly
       // -----------------------------------------------------------------------
-      h_tu_response_pt->Fill(genBinPt, recBinPt, weight);
+      fill_th2_check(h_tu_response_pt, genBinPt, recBinPt, weight);
       if (thisPassGen) {
-        h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, recBinPuppiMult, weight);
-        h_tu_response_LHA->Fill(genBinLHA, recBinLHA, weight);
+        fill_th2_check(h_tu_response_puppiMultiplicity, genBinPuppiMult, recBinPuppiMult, weight);
+        fill_th2_check(h_tu_response_LHA, genBinLHA, recBinLHA, weight);
         if (genBinLHA == 0 && recBinLHA == 0) {
           cout << "BADBIN event " << event.event << " genBinLHA == 0 && recBinLHA = 0: " << gen_lha << " : " << genjet_pt << " reco: "<< lha << " : " << jet_pt << endl;
         }
-        h_tu_response_pTD->Fill(genBinpTD, recBinpTD, weight);
-        h_tu_response_width->Fill(genBinWidth, recBinWidth, weight);
-        h_tu_response_thrust->Fill(genBinThrust, recBinThrust, weight);
+        fill_th2_check(h_tu_response_pTD, genBinpTD, recBinpTD, weight);
+        fill_th2_check(h_tu_response_width, genBinWidth, recBinWidth, weight);
+        fill_th2_check(h_tu_response_thrust, genBinThrust, recBinThrust, weight);
       }
 
       if (thisPassGenCharged) {
-        h_tu_response_puppiMultiplicity_charged->Fill(genBinPuppiMultCharged, recBinPuppiMultCharged, weight);
-        h_tu_response_LHA_charged->Fill(genBinLHACharged, recBinLHACharged, weight);
-        h_tu_response_pTD_charged->Fill(genBinpTDCharged, recBinpTDCharged, weight);
-        h_tu_response_width_charged->Fill(genBinWidthCharged, recBinWidthCharged, weight);
-        h_tu_response_thrust_charged->Fill(genBinThrustCharged, recBinThrustCharged, weight);
+        fill_th2_check(h_tu_response_puppiMultiplicity_charged, genBinPuppiMultCharged, recBinPuppiMultCharged, weight);
+        fill_th2_check(h_tu_response_LHA_charged, genBinLHACharged, recBinLHACharged, weight);
+        fill_th2_check(h_tu_response_pTD_charged, genBinpTDCharged, recBinpTDCharged, weight);
+        fill_th2_check(h_tu_response_width_charged, genBinWidthCharged, recBinWidthCharged, weight);
+        fill_th2_check(h_tu_response_thrust_charged, genBinThrustCharged, recBinThrustCharged, weight);
       }
       // we need to add in an extra part, such that the 1D projection on the gen axis
       // agrees with the 1D gen histogram
@@ -1279,20 +1297,20 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       // not to be confused with ROOT binning, starting at 1 :s)
       double corr_weight = gen_weight * (1 - reco_weight);
       int underflow_bin = 0;
-      h_tu_response_pt->Fill(genBinPt, underflow_bin, corr_weight);
+      fill_th2_check(h_tu_response_pt, genBinPt, underflow_bin, corr_weight);
       if (thisPassGen) {
-        h_tu_response_puppiMultiplicity->Fill(genBinPuppiMult, underflow_bin, corr_weight);
-        h_tu_response_LHA->Fill(genBinLHA, underflow_bin, corr_weight);
-        h_tu_response_pTD->Fill(genBinpTD, underflow_bin, corr_weight);
-        h_tu_response_width->Fill(genBinWidth, underflow_bin, corr_weight);
-        h_tu_response_thrust->Fill(genBinThrust, underflow_bin, corr_weight);
+        fill_th2_check(h_tu_response_puppiMultiplicity, genBinPuppiMult, underflow_bin, corr_weight);
+        fill_th2_check(h_tu_response_LHA, genBinLHA, underflow_bin, corr_weight);
+        fill_th2_check(h_tu_response_pTD, genBinpTD, underflow_bin, corr_weight);
+        fill_th2_check(h_tu_response_width, genBinWidth, underflow_bin, corr_weight);
+        fill_th2_check(h_tu_response_thrust, genBinThrust, underflow_bin, corr_weight);
       }
       if (thisPassGenCharged) {
-        h_tu_response_puppiMultiplicity_charged->Fill(genBinPuppiMultCharged, underflow_bin, corr_weight);
-        h_tu_response_LHA_charged->Fill(genBinLHACharged, underflow_bin, corr_weight);
-        h_tu_response_pTD_charged->Fill(genBinpTDCharged, underflow_bin, corr_weight);
-        h_tu_response_width_charged->Fill(genBinWidthCharged, underflow_bin, corr_weight);
-        h_tu_response_thrust_charged->Fill(genBinThrustCharged, underflow_bin, corr_weight);
+        fill_th2_check(h_tu_response_puppiMultiplicity_charged, genBinPuppiMultCharged, underflow_bin, corr_weight);
+        fill_th2_check(h_tu_response_LHA_charged, genBinLHACharged, underflow_bin, corr_weight);
+        fill_th2_check(h_tu_response_pTD_charged, genBinpTDCharged, underflow_bin, corr_weight);
+        fill_th2_check(h_tu_response_width_charged, genBinWidthCharged, underflow_bin, corr_weight);
+        fill_th2_check(h_tu_response_thrust_charged, genBinThrustCharged, underflow_bin, corr_weight);
       }
 
       // do split bit
