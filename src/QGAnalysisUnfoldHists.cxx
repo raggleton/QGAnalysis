@@ -1212,7 +1212,6 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
 
           thisPassReco = (passReco && recoJetCalc.constits().size() > 1);
           thisPassRecoCharged = (passReco && recoJetCalcCharged.constits().size() > 1);
-          if (!thisPassReco && !thisPassRecoCharged) continue;
 
           float lha(0.), puppiMult(0.), ptd(0.), width(0.), thrust(0.);
           if (thisPassReco) {
