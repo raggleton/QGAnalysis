@@ -1,4 +1,6 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisUnfoldHists.h"
+#include "UHH2/QGAnalysis/include/QGAnalysisPrinters.h"
+
 #include "UHH2/core/include/Event.h"
 #include "UHH2/core/include/Utils.h"
 
@@ -1178,7 +1180,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
 
       // Now fill response matrices
       // -----------------------------------------------------------------------
-      // Loop through genjets, since if there isn't a reco jet then it's a miss-reco,
+      // Loop through genjets, since if there isn't a reco jet then it's a miss-reco (= bin 0),
       // whereas a recojet & no genjet is a fake, which we don't want in our migration matrix
       int recBinPt(0);
       int recBinLHA(0), recBinPuppiMult(0), recBinpTD(0), recBinThrust(0), recBinWidth(0);
@@ -1195,7 +1197,11 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         }
         if (recoInd < 0) {
           for (uint j=0; j<jetLambdas.size(); j++) {
-            if (jetLambdas.at(j).jet.genjet_index() == i) { cout << "Match for genjet " << i << " actually found with reco jet " << j << endl;}
+            if (jetLambdas.at(j).jet.genjet_index() == i) {
+              cout << "Match for genjet " << i << " actually found with reco jet " << j << endl;
+              // printJets(*event.jets);
+              // printGenJets(*event.genjets);
+            }
           }
         }
         if (recoInd >= 0) {
@@ -1263,7 +1269,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
               recBinWidthCharged = detector_distribution_width_charged->GetGlobalBinNumber(width_charged, jet_pt);
             }
           }
-        }
+        } // end if recoInd >= 0
       } // end if passReco
 
       // Fill TUnfold 2D response maps
@@ -1289,13 +1295,15 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         fill_th2_check(h_tu_response_width_charged, genBinWidthCharged, recBinWidthCharged, weight);
         fill_th2_check(h_tu_response_thrust_charged, genBinThrustCharged, recBinThrustCharged, weight);
       }
+
       // we need to add in an extra part, such that the 1D projection on the gen axis
       // agrees with the 1D gen histogram
       // i.e. account for the difference between the reco_weight (goes into event.weight) and gen_weight
       // we use the underflow bin for this
       // (0 as bin edges are tunfold bin numbers, not physical values, so the first bin is 0-1,
       // not to be confused with ROOT binning, starting at 1 :s)
-      double corr_weight = gen_weight * (1 - reco_weight);
+      // double corr_weight = gen_weight * (1 - reco_weight);
+      double corr_weight = gen_weight - weight;
       int underflow_bin = 0;
       fill_th2_check(h_tu_response_pt, genBinPt, underflow_bin, corr_weight);
       if (thisPassGen) {
@@ -1305,6 +1313,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         fill_th2_check(h_tu_response_width, genBinWidth, underflow_bin, corr_weight);
         fill_th2_check(h_tu_response_thrust, genBinThrust, underflow_bin, corr_weight);
       }
+
       if (thisPassGenCharged) {
         fill_th2_check(h_tu_response_puppiMultiplicity_charged, genBinPuppiMultCharged, underflow_bin, corr_weight);
         fill_th2_check(h_tu_response_LHA_charged, genBinLHACharged, underflow_bin, corr_weight);
@@ -1383,6 +1392,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           }
         }
       }
+
     } // end of for loop over genjets
   } // end if passGen
 
