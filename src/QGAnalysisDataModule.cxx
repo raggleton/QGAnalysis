@@ -383,7 +383,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
                                                                       pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
                                                                       reco_jetlambda_handle_name, gen_jetlambda_handle_name));
             zplusjets_qg_unfold_hists_groomed.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG_Unfold_groomed",
-                                                                              NJETS_ZPJ, false, zpj_sel,
+                                                                              NJETS_ZPJ, true, zpj_sel,
                                                                               pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
                                                                               reco_jetlambda_handle_name, gen_jetlambda_handle_name));
         }
