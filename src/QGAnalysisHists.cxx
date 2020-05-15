@@ -247,6 +247,10 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   h_jet1_flavour_vs_pt = book<TH2F>("jet1_flavour_vs_pt", "jet1 flavour;PDGID;Jet1 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
   h_jet2_flavour_vs_pt = book<TH2F>("jet2_flavour_vs_pt", "jet2 flavour;PDGID;Jet2 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
 
+  h_genjet_flavour_vs_pt = book<TH2F>("genjet_flavour_vs_pt", "genjet flavour;PDGID;GenJet p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
+  h_genjet1_flavour_vs_pt = book<TH2F>("genjet1_flavour_vs_pt", "genjet1 flavour;PDGID;GenJet1 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
+  h_genjet2_flavour_vs_pt = book<TH2F>("genjet2_flavour_vs_pt", "genjet2 flavour;PDGID;GenJet2 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
+
   h_jet_flavour_vs_eta = book<TH2F>("jet_flavour_vs_eta", "jet flavour;PDGID;Jet #eta", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
 
   // q jet only
@@ -489,6 +493,7 @@ void QGAnalysisHists::fill(const Event & event){
         // Store variables for matched GenJet
         bool matchedGenJet = (thisjet.genjet_index() > -1 && thisjet.genjet_index() < 5); // put upper limit to avoid weird matches
         float genjet_pt = -1.;
+        float genjet_flav = -1.;
         float response = -1.;
 
         if (matchedGenJet) { // we don't care about passing the GEN selection, just looking for a match
@@ -504,6 +509,7 @@ void QGAnalysisHists::fill(const Event & event){
           bool thisPassGenCharged = passGen && (matchedGenJetCalcCharged.constits().size() > 1);
 
           genjet_pt = genjet.pt();
+          genjet_flav = abs(genjet.flavor());
           response = jet_pt/genjet_pt;
           h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
 
@@ -639,6 +645,15 @@ void QGAnalysisHists::fill(const Event & event){
           else if (i == 1) {
             h_jet2_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
           }
+          if (matchedGenJet) {
+            h_genjet_flavour_vs_pt->Fill(genjet_flav, genjet_pt, weight);
+            if (i == 0) {
+              h_genjet1_flavour_vs_pt->Fill(genjet_flav, genjet_pt, weight);
+            }
+            else if (i == 1) {
+              h_genjet2_flavour_vs_pt->Fill(genjet_flav, genjet_pt, weight);
+            }
+          }
 
           h_jet_flavour_vs_eta->Fill(jet_flav, thisjet.eta(), weight);
         }
@@ -704,8 +719,8 @@ void QGAnalysisHists::fill(const Event & event){
       h_genjet_pt->Fill(genjet_pt, gen_weight);
       h_genjet_eta->Fill(thisjet.eta(), gen_weight);
 
-      float gen_lha = genJetCalc.getLambda(1, 0.5);
       float gen_mult = genJetCalc.getLambda(0, 0);
+      float gen_lha = genJetCalc.getLambda(1, 0.5);
       float gen_ptd = genJetCalc.getLambda(2, 0);
       float gen_width = genJetCalc.getLambda(1, 1);
       float gen_thrust = genJetCalc.getLambda(1, 2);
@@ -722,24 +737,18 @@ void QGAnalysisHists::fill(const Event & event){
       h_genjet_width_vs_pt->Fill(gen_width, genjet_pt, gen_weight);
       h_genjet_thrust_vs_pt->Fill(gen_thrust, genjet_pt, gen_weight);
 
-      // float gen_lha_charged = genJetCalcCharged.getLambda(1, 0.5);
-      // float gen_mult_charged = genJetCalcCharged.getLambda(0, 0);
-      // float gen_ptd_charged = genJetCalcCharged.getLambda(2, 0);
-      // float gen_width_charged = genJetCalcCharged.getLambda(1, 1);
-      // float gen_thrust_charged = genJetCalcCharged.getLambda(1, 2);
-
-      // if (thisjet.flavor() == 21) { // gluon jets
-      //   h_ggenjet_multiplicity->Fill(mult, weight);
-      //   h_ggenjet_LHA->Fill(lha / LHA_rescale, weight);
-      //   h_ggenjet_pTD->Fill(ptd, weight);
-      //   h_ggenjet_width->Fill(width / width_rescale, weight);
-      //   h_ggenjet_thrust->Fill(thrust / thrust_rescale, weight);
-      // } else if ((abs(thisjet.flavor()) <= 3) && (abs(thisjet.flavor()) > 0)){ // uds jets
-      //   h_qgenjet_multiplicity->Fill(mult, weight);
-      //   h_qgenjet_LHA->Fill(lha / LHA_rescale, weight);
-      //   h_qgenjet_pTD->Fill(ptd, weight);
-      //   h_qgenjet_width->Fill(width / width_rescale, weight);
-      //   h_qgenjet_thrust->Fill(thrust / thrust_rescale, weight);
+      // if (thisjet.flavor() == PDGID::GLUON) { // gluon jets
+      //   h_ggenjet_multiplicity->Fill(gen_mult, gen_weight);
+      //   h_ggenjet_LHA->Fill(gen_lha, gen_weight);
+      //   h_ggenjet_pTD->Fill(gen_ptd, gen_weight);
+      //   h_ggenjet_width->Fill(gen_width, gen_weight);
+      //   h_ggenjet_thrust->Fill(gen_thrust, gen_weight);
+      // } else if ((abs(thisjet.flavor()) <= PDGID::STRANGE_QUARK) && (abs(thisjet.flavor()) > PDGID::UNKNOWN)){ // uds jets
+      //   h_qgenjet_multiplicity->Fill(gen_mult, gen_weight);
+      //   h_qgenjet_LHA->Fill(gen_lha, gen_weight);
+      //   h_qgenjet_pTD->Fill(gen_ptd, gen_weight);
+      //   h_qgenjet_width->Fill(gen_width, gen_weight);
+      //   h_qgenjet_thrust->Fill(gen_thrust, gen_weight);
       // }
 
     }
