@@ -86,9 +86,9 @@ private:
     std::unique_ptr<EventNumberSelection> event_sel;
     DATASET::Name dataset;
 
-    const bool DO_UNFOLD_HISTS = true;
-    const bool DO_KINEMATIC_HISTS = true;
-    const bool DO_LAMBDA_HISTS = true;
+    bool DO_UNFOLD_HISTS = true;
+    bool DO_KINEMATIC_HISTS = true;
+    bool DO_LAMBDA_HISTS = true;
 
     std::string zLabel;
 
@@ -116,6 +116,10 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
 
     cout << "Running with jet cone: " << jet_cone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
+
+    DO_UNFOLD_HISTS = string2bool(ctx.get("DO_UNFOLD_HISTS", "true"));
+    DO_KINEMATIC_HISTS = string2bool(ctx.get("DO_KINEMATIC_HISTS", "true"));
+    DO_LAMBDA_HISTS = string2bool(ctx.get("DO_LAMBDA_HISTS", "true"));
 
     common_setup.reset(new GeneralEventSetup(ctx));
     float jet_pt_min = 30.;
@@ -517,10 +521,10 @@ bool QGAnalysisDataModule::process(Event & event) {
 
     if (PRINTOUT) printJets(*event.jets);
 
-        // Calculate lambda vars for jets for Z+jets
-        // These will be used in various histogram classes
-        // At this point, all objects should have had all necessary corrections, filtering, etc
-        // ---------------------------------------------------------------------
+    // Calculate lambda vars for jets for Z+jets
+    // These will be used in various histogram classes
+    // At this point, all objects should have had all necessary corrections, filtering, etc
+    // ---------------------------------------------------------------------
     jetLambdaCreatorPtSorted->process(event);
 
     if (dataset == DATASET::SingleMu) {
@@ -529,8 +533,9 @@ bool QGAnalysisDataModule::process(Event & event) {
 
         event.set(pt_binning_reco_handle, event.jets->at(0).pt());
         if (zplusjets_presel->passes(event)) {
-
-            zplusjets_hists_presel->fill(event);
+            if (DO_KINEMATIC_HISTS) {
+                zplusjets_hists_presel->fill(event);
+            }
             selected = zplusjets_sel->passes(event);
             event.set(pass_zpj_sel_handle, selected);
             if (selected) {
