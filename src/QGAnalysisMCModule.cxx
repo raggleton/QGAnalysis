@@ -880,6 +880,9 @@ bool QGAnalysisMCModule::process(Event & event) {
         genjetLambdaCreatorForward->process(event);
         genjetLambdaCreatorCentral->process(event);
 
+        pass_dj_gen = dijet_gen_sel->passes(event);
+        event.set(pass_dj_gen_sel_handle, pass_dj_gen);
+
         if (hasRecoJets && njet_two_sel->passes(event)) {
             // flav-specific preselection hists, useful for optimising selection
             uint flav1 = event.jets->at(0).flavor();
@@ -922,8 +925,6 @@ bool QGAnalysisMCModule::process(Event & event) {
                 genjet_hists_passDijetReco->fill(event);
             }
 
-            pass_dj_gen = dijet_gen_sel->passes(event);
-            event.set(pass_dj_gen_sel_handle, pass_dj_gen);
             if (pass_dj_gen) {
                 // to plot reco cutflow when passGen==true
                 dijet_sel_tighter_passGen->passes(event);
@@ -997,7 +998,7 @@ bool QGAnalysisMCModule::process(Event & event) {
                     }
                 }
             }
-        }
+        } // end hasRecoJets & >=2 jets
 
         // Do unfolding hists
         // ---------------------------------------------------------------------
