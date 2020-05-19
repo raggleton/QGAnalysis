@@ -23,12 +23,19 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   doGroomed_(doGroomed),
   rand_(4357), // random number generator for splitting MC into 2 independent groups for unfold testing
   doMCsplit_(true),
+  doJackknifeVariations_(false),
   useBinningValue_(false), // use the centrally determined bining value (e.g. dijet ave), otherwise use jet pT
-  N_PDF_VARIATIONS(100)
+  N_JACKKNIFE_VARIATIONS(10),
+  N_PDF_VARIATIONS(100),
+  eventCounter_(-1) // for jackknifing to ensure exclusive samples
   {
 
   is_mc_ = ctx.get("dataset_type") == "MC";
   doMCsplit_ = is_mc_;
+  doJackknifeVariations_ = (string2bool(ctx.get("JackknifeVariations", "false")) && is_mc_);;
+  if (doJackknifeVariations_) {
+    cout << "Doing jackknife variations in " << dirname << endl;
+  }
   doPDFvariations_ = (string2bool(ctx.get("PDFvariations", "false")) && is_mc_);
   if (doPDFvariations_) {
     cout << "Doing PDF variations in QGAnalysisUnfoldHists" << endl;
@@ -185,6 +192,14 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_LHA_split = copy_book_th1d(h_tu_gen_LHA_tmp, "hist_LHA_truth_split");
   delete h_tu_gen_LHA_tmp;
 
+  if (doJackknifeVariations_) {
+    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
+      h_tu_response_LHA_jackknife_variations.push_back(copy_book_th2d(h_tu_response_LHA, TString::Format("tu_LHA_GenReco_all_jackknife_%d", i).Data()));
+      h_tu_reco_LHA_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_LHA, TString::Format("hist_LHA_reco_all_jackknife_%d", i).Data()));
+      h_tu_gen_LHA_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_LHA, TString::Format("hist_LHA_truth_all_jackknife_%d", i).Data()));
+    }
+  }
+
   // PDF variations
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
@@ -239,6 +254,14 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_LHA_charged_split = copy_book_th1d(h_tu_gen_LHA_charged_tmp, "hist_LHA_charged_truth_split");
   delete h_tu_gen_LHA_charged_tmp;
 
+  if (doJackknifeVariations_) {
+    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
+      h_tu_reco_LHA_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_LHA_charged, TString::Format("hist_LHA_charged_reco_all_jackknife_%d", i).Data()));
+      h_tu_gen_LHA_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_LHA_charged, TString::Format("hist_LHA_charged_truth_all_jackknife_%d", i).Data()));
+      h_tu_response_LHA_charged_jackknife_variations.push_back(copy_book_th2d(h_tu_response_LHA_charged, TString::Format("tu_LHA_charged_GenReco_all_jackknife_%d", i).Data()));
+    }
+  }
+
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_LHA_charged_PDF_variations.push_back(copy_book_th1d(h_tu_reco_LHA_charged, TString::Format("hist_LHA_charged_reco_all_PDF_%d", i).Data()));
@@ -288,6 +311,14 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_puppiMultiplicity = copy_book_th1d(h_tu_gen_puppiMultiplicity_tmp, "hist_puppiMultiplicity_truth_all");
   h_tu_gen_puppiMultiplicity_split = copy_book_th1d(h_tu_gen_puppiMultiplicity_tmp, "hist_puppiMultiplicity_truth_split");
   delete h_tu_gen_puppiMultiplicity_tmp;
+
+  if (doJackknifeVariations_) {
+    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
+      h_tu_reco_puppiMultiplicity_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_puppiMultiplicity, TString::Format("hist_puppiMultiplicity_reco_all_jackknife_%d", i).Data()));
+      h_tu_gen_puppiMultiplicity_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_puppiMultiplicity, TString::Format("hist_puppiMultiplicity_truth_all_jackknife_%d", i).Data()));
+      h_tu_response_puppiMultiplicity_jackknife_variations.push_back(copy_book_th2d(h_tu_response_puppiMultiplicity, TString::Format("tu_puppiMultiplicity_GenReco_all_jackknife_%d", i).Data()));
+    }
+  }
 
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
@@ -340,6 +371,14 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_puppiMultiplicity_charged_split = copy_book_th1d(h_tu_gen_puppiMultiplicity_charged_tmp, "hist_puppiMultiplicity_charged_truth_split");
   delete h_tu_gen_puppiMultiplicity_charged_tmp;
 
+  if (doJackknifeVariations_) {
+    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
+      h_tu_reco_puppiMultiplicity_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_puppiMultiplicity_charged, TString::Format("hist_puppiMultiplicity_charged_reco_all_jackknife_%d", i).Data()));
+      h_tu_gen_puppiMultiplicity_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_puppiMultiplicity_charged, TString::Format("hist_puppiMultiplicity_charged_truth_all_jackknife_%d", i).Data()));
+      h_tu_response_puppiMultiplicity_charged_jackknife_variations.push_back(copy_book_th2d(h_tu_response_puppiMultiplicity_charged, TString::Format("tu_puppiMultiplicity_charged_GenReco_all_jackknife_%d", i).Data()));
+    }
+  }
+
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_puppiMultiplicity_charged_PDF_variations.push_back(copy_book_th1d(h_tu_reco_puppiMultiplicity_charged, TString::Format("hist_puppiMultiplicity_charged_reco_all_PDF_%d", i).Data()));
@@ -390,6 +429,14 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_pTD = copy_book_th1d(h_tu_gen_pTD_tmp, "hist_pTD_truth_all");
   h_tu_gen_pTD_split = copy_book_th1d(h_tu_gen_pTD_tmp, "hist_pTD_truth_split");
   delete h_tu_gen_pTD_tmp;
+
+  if (doJackknifeVariations_) {
+    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
+      h_tu_reco_pTD_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_pTD, TString::Format("hist_pTD_reco_all_jackknife_%d", i).Data()));
+      h_tu_gen_pTD_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_pTD, TString::Format("hist_pTD_truth_all_jackknife_%d", i).Data()));
+      h_tu_response_pTD_jackknife_variations.push_back(copy_book_th2d(h_tu_response_pTD, TString::Format("tu_pTD_GenReco_all_jackknife_%d", i).Data()));
+    }
+  }
 
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
@@ -442,6 +489,14 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_pTD_charged_split = copy_book_th1d(h_tu_gen_pTD_charged_tmp, "hist_pTD_charged_truth_split");
   delete h_tu_gen_pTD_charged_tmp;
 
+  if (doJackknifeVariations_) {
+    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
+      h_tu_reco_pTD_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_pTD_charged, TString::Format("hist_pTD_charged_reco_all_jackknife_%d", i).Data()));
+      h_tu_gen_pTD_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_pTD_charged, TString::Format("hist_pTD_charged_truth_all_jackknife_%d", i).Data()));
+      h_tu_response_pTD_charged_jackknife_variations.push_back(copy_book_th2d(h_tu_response_pTD_charged, TString::Format("tu_pTD_charged_GenReco_all_jackknife_%d", i).Data()));
+    }
+  }
+
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_pTD_charged_PDF_variations.push_back(copy_book_th1d(h_tu_reco_pTD_charged, TString::Format("hist_pTD_charged_reco_all_PDF_%d", i).Data()));
@@ -492,6 +547,14 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_thrust = copy_book_th1d(h_tu_gen_thrust_tmp, "hist_thrust_truth_all");
   h_tu_gen_thrust_split = copy_book_th1d(h_tu_gen_thrust_tmp, "hist_thrust_truth_split");
   delete h_tu_gen_thrust_tmp;
+
+  if (doJackknifeVariations_) {
+    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
+      h_tu_reco_thrust_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_thrust, TString::Format("hist_thrust_reco_all_jackknife_%d", i).Data()));
+      h_tu_gen_thrust_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_thrust, TString::Format("hist_thrust_truth_all_jackknife_%d", i).Data()));
+      h_tu_response_thrust_jackknife_variations.push_back(copy_book_th2d(h_tu_response_thrust, TString::Format("tu_thrust_GenReco_all_jackknife_%d", i).Data()));
+    }
+  }
 
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
@@ -544,6 +607,14 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_thrust_charged_split = copy_book_th1d(h_tu_gen_thrust_charged_tmp, "hist_thrust_charged_truth_split");
   delete h_tu_gen_thrust_charged_tmp;
 
+  if (doJackknifeVariations_) {
+    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
+      h_tu_reco_thrust_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_thrust_charged, TString::Format("hist_thrust_charged_reco_all_jackknife_%d", i).Data()));
+      h_tu_gen_thrust_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_thrust_charged, TString::Format("hist_thrust_charged_truth_all_jackknife_%d", i).Data()));
+      h_tu_response_thrust_charged_jackknife_variations.push_back(copy_book_th2d(h_tu_response_thrust_charged, TString::Format("tu_thrust_charged_GenReco_all_jackknife_%d", i).Data()));
+    }
+  }
+
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_thrust_charged_PDF_variations.push_back(copy_book_th1d(h_tu_reco_thrust_charged, TString::Format("hist_thrust_charged_reco_all_PDF_%d", i).Data()));
@@ -595,6 +666,14 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_width_split = copy_book_th1d(h_tu_gen_width_tmp, "hist_width_truth_split");
   delete h_tu_gen_width_tmp;
 
+  if (doJackknifeVariations_) {
+    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
+      h_tu_reco_width_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_width, TString::Format("hist_width_reco_all_jackknife_%d", i).Data()));
+      h_tu_gen_width_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_width, TString::Format("hist_width_truth_all_jackknife_%d", i).Data()));
+      h_tu_response_width_jackknife_variations.push_back(copy_book_th2d(h_tu_response_width, TString::Format("tu_width_GenReco_all_jackknife_%d", i).Data()));
+    }
+  }
+
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_width_PDF_variations.push_back(copy_book_th1d(h_tu_reco_width, TString::Format("hist_width_reco_all_PDF_%d", i).Data()));
@@ -645,6 +724,14 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_width_charged = copy_book_th1d(h_tu_gen_width_charged_tmp, "hist_width_charged_truth_all");
   h_tu_gen_width_charged_split = copy_book_th1d(h_tu_gen_width_charged_tmp, "hist_width_charged_truth_split");
   delete h_tu_gen_width_charged_tmp;
+
+  if (doJackknifeVariations_) {
+    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
+      h_tu_reco_width_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_width_charged, TString::Format("hist_width_charged_reco_all_jackknife_%d", i).Data()));
+      h_tu_gen_width_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_width_charged, TString::Format("hist_width_charged_truth_all_jackknife_%d", i).Data()));
+      h_tu_response_width_charged_jackknife_variations.push_back(copy_book_th2d(h_tu_response_width_charged, TString::Format("tu_width_charged_GenReco_all_jackknife_%d", i).Data()));
+    }
+  }
 
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
@@ -716,6 +803,8 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
   // This allows us to split the MC into 2 separate samples for testing
   // Make 80% go into response hist so good stats
   bool onlyFillResponse = (rand_.Rndm() > 0.2);
+
+  eventCounter_++;
 
   // Fill reco jet 1D hists
   // ---------------------------------------------------------------------------
@@ -887,6 +976,32 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           h_tu_reco_pTD_charged_gen_binning_split->Fill(genBinpTDCharged, weight);
           h_tu_reco_thrust_charged_gen_binning_split->Fill(genBinThrustCharged, weight);
           h_tu_reco_width_charged_gen_binning_split->Fill(genBinWidthCharged, weight);
+        }
+      }
+
+      if (doJackknifeVariations_) {
+        // Fill jackknife reco hists
+        // we use 100*(1-(1/N_JACKKNIFE_VARIATIONS))% of the sample to fill each gen hist matrix
+        // so we fill every hist *except* for the one at index (eventCounter_ % N_JACKKNIFE_VARIATIONS)
+        // Then afterwards in the analysis we use RMS * (N_JACKKNIFE_VARIATIONS / (N_JACKKNIFE_VARIATIONS-1))
+        // as the uncertainty
+        uint index = eventCounter_ % N_JACKKNIFE_VARIATIONS;
+        for (uint jk_ind=0; jk_ind<N_JACKKNIFE_VARIATIONS; jk_ind++) {
+          if (jk_ind == index) continue;
+          if (thisPassReco) {
+            h_tu_reco_puppiMultiplicity_jackknife_variations.at(index)->Fill(recBinPuppiMult, weight);
+            h_tu_reco_LHA_jackknife_variations.at(index)->Fill(recBinLHA, weight);
+            h_tu_reco_pTD_jackknife_variations.at(index)->Fill(recBinpTD, weight);
+            h_tu_reco_width_jackknife_variations.at(index)->Fill(recBinWidth, weight);
+            h_tu_reco_thrust_jackknife_variations.at(index)->Fill(recBinThrust, weight);
+          }
+          if (thisPassRecoCharged) {
+            h_tu_reco_puppiMultiplicity_charged_jackknife_variations.at(index)->Fill(recBinPuppiMultCharged, weight);
+            h_tu_reco_LHA_charged_jackknife_variations.at(index)->Fill(recBinLHACharged, weight);
+            h_tu_reco_pTD_charged_jackknife_variations.at(index)->Fill(recBinpTDCharged, weight);
+            h_tu_reco_width_charged_jackknife_variations.at(index)->Fill(recBinWidthCharged, weight);
+            h_tu_reco_thrust_charged_jackknife_variations.at(index)->Fill(recBinThrustCharged, weight);
+          }
         }
       }
 
@@ -1156,6 +1271,32 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         }
       }
 
+      if (doJackknifeVariations_) {
+        // Fill jackknife gen hists
+        // we use 100*(1-(1/N_JACKKNIFE_VARIATIONS))% of the sample to fill each gen hist matrix
+        // so we fill every hist *except* for the one at index (eventCounter_ % N_JACKKNIFE_VARIATIONS)
+        // Then afterwards in the analysis we use RMS * (N_JACKKNIFE_VARIATIONS / (N_JACKKNIFE_VARIATIONS-1))
+        // as the uncertainty
+        uint index = eventCounter_ % N_JACKKNIFE_VARIATIONS;
+        for (uint jk_ind=0; jk_ind<N_JACKKNIFE_VARIATIONS; jk_ind++) {
+          if (jk_ind == index) continue;
+          if (thisPassGen) {
+            h_tu_gen_puppiMultiplicity_jackknife_variations.at(index)->Fill(genBinPuppiMult, gen_weight);
+            h_tu_gen_LHA_jackknife_variations.at(index)->Fill(genBinLHA, gen_weight);
+            h_tu_gen_pTD_jackknife_variations.at(index)->Fill(genBinpTD, gen_weight);
+            h_tu_gen_width_jackknife_variations.at(index)->Fill(genBinWidth, gen_weight);
+            h_tu_gen_thrust_jackknife_variations.at(index)->Fill(genBinThrust, gen_weight);
+          }
+          if (thisPassGenCharged) {
+            h_tu_gen_puppiMultiplicity_charged_jackknife_variations.at(index)->Fill(genBinPuppiMultCharged, gen_weight);
+            h_tu_gen_LHA_charged_jackknife_variations.at(index)->Fill(genBinLHACharged, gen_weight);
+            h_tu_gen_pTD_charged_jackknife_variations.at(index)->Fill(genBinpTDCharged, gen_weight);
+            h_tu_gen_width_charged_jackknife_variations.at(index)->Fill(genBinWidthCharged, gen_weight);
+            h_tu_gen_thrust_charged_jackknife_variations.at(index)->Fill(genBinThrustCharged, gen_weight);
+          }
+        }
+      }
+
       // Fill PDF variations by varying weight
       if (doPDFvariations_ && event.genInfo->systweights().size() > 0) {
         for (int i=0; i<N_PDF_VARIATIONS; i++) {
@@ -1355,6 +1496,44 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         }
 
       } // end of doMCsplit_
+
+      if (doJackknifeVariations_) {
+        // Fill jackknife response matrices
+        // we use 100*(1-(1/N_JACKKNIFE_VARIATIONS))% of the sample to fill each response matrix
+        // so we fill every hist *except* for the one at index (eventCounter_ % N_JACKKNIFE_VARIATIONS)
+        // Then afterwards in the analysis we use RMS * (N_JACKKNIFE_VARIATIONS / (N_JACKKNIFE_VARIATIONS-1))
+        // as the uncertainty
+        uint index = eventCounter_ % N_JACKKNIFE_VARIATIONS;
+        for (uint jk_ind=0; jk_ind<N_JACKKNIFE_VARIATIONS; jk_ind++) {
+          if (jk_ind == index) continue;
+          if (thisPassGen) {
+            h_tu_response_puppiMultiplicity_jackknife_variations.at(index)->Fill(genBinPuppiMult, recBinPuppiMult, weight);
+            h_tu_response_LHA_jackknife_variations.at(index)->Fill(genBinLHA, recBinLHA, weight);
+            h_tu_response_pTD_jackknife_variations.at(index)->Fill(genBinpTD, recBinpTD, weight);
+            h_tu_response_width_jackknife_variations.at(index)->Fill(genBinWidth, recBinWidth, weight);
+            h_tu_response_thrust_jackknife_variations.at(index)->Fill(genBinThrust, recBinThrust, weight);
+            // correct weighting part
+            h_tu_response_puppiMultiplicity_jackknife_variations.at(index)->Fill(genBinPuppiMult, underflow_bin, corr_weight);
+            h_tu_response_LHA_jackknife_variations.at(index)->Fill(genBinLHA, underflow_bin, corr_weight);
+            h_tu_response_pTD_jackknife_variations.at(index)->Fill(genBinpTD, underflow_bin, corr_weight);
+            h_tu_response_width_jackknife_variations.at(index)->Fill(genBinWidth, underflow_bin, corr_weight);
+            h_tu_response_thrust_jackknife_variations.at(index)->Fill(genBinThrust, underflow_bin, corr_weight);
+          }
+          if (thisPassGenCharged) {
+            h_tu_response_puppiMultiplicity_charged_jackknife_variations.at(index)->Fill(genBinPuppiMultCharged, recBinPuppiMultCharged, weight);
+            h_tu_response_LHA_charged_jackknife_variations.at(index)->Fill(genBinLHACharged, recBinLHACharged, weight);
+            h_tu_response_pTD_charged_jackknife_variations.at(index)->Fill(genBinpTDCharged, recBinpTDCharged, weight);
+            h_tu_response_width_charged_jackknife_variations.at(index)->Fill(genBinWidthCharged, recBinWidthCharged, weight);
+            h_tu_response_thrust_charged_jackknife_variations.at(index)->Fill(genBinThrustCharged, recBinThrustCharged, weight);
+            // correct weighting part
+            h_tu_response_puppiMultiplicity_charged_jackknife_variations.at(index)->Fill(genBinPuppiMultCharged, underflow_bin, corr_weight);
+            h_tu_response_LHA_charged_jackknife_variations.at(index)->Fill(genBinLHACharged, underflow_bin, corr_weight);
+            h_tu_response_pTD_charged_jackknife_variations.at(index)->Fill(genBinpTDCharged, underflow_bin, corr_weight);
+            h_tu_response_width_charged_jackknife_variations.at(index)->Fill(genBinWidthCharged, underflow_bin, corr_weight);
+            h_tu_response_thrust_charged_jackknife_variations.at(index)->Fill(genBinThrustCharged, underflow_bin, corr_weight);
+          }
+        }
+      }
 
       // do PDF variations
       if (doPDFvariations_ && event.genInfo->systweights().size() > 0) {
