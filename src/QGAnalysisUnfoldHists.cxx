@@ -38,7 +38,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   }
   doPDFvariations_ = (string2bool(ctx.get("PDFvariations", "false")) && is_mc_);
   if (doPDFvariations_) {
-    cout << "Doing PDF variations in QGAnalysisUnfoldHists" << endl;
+    cout << "Doing PDF variations in " << dirname << endl;
   }
 
   if (useNJets_ < 0) useNJets_ = 99999; // Do them all
@@ -204,7 +204,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_LHA_PDF_variations.push_back(copy_book_th1d(h_tu_reco_LHA, TString::Format("hist_LHA_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_LHA_PDF_variations.push_back(copy_book_th1d(h_tu_gen_LHA, TString::Format("hist_LHA_gen_all_PDF_%d", i).Data()));
+      h_tu_gen_LHA_PDF_variations.push_back(copy_book_th1d(h_tu_gen_LHA, TString::Format("hist_LHA_truth_all_PDF_%d", i).Data()));
       h_tu_response_LHA_PDF_variations.push_back(copy_book_th2d(h_tu_response_LHA, TString::Format("tu_LHA_GenReco_all_PDF_%d", i).Data()));
     }
   }
@@ -265,7 +265,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_LHA_charged_PDF_variations.push_back(copy_book_th1d(h_tu_reco_LHA_charged, TString::Format("hist_LHA_charged_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_LHA_charged_PDF_variations.push_back(copy_book_th1d(h_tu_gen_LHA_charged, TString::Format("hist_LHA_charged_gen_all_PDF_%d", i).Data()));
+      h_tu_gen_LHA_charged_PDF_variations.push_back(copy_book_th1d(h_tu_gen_LHA_charged, TString::Format("hist_LHA_charged_truth_all_PDF_%d", i).Data()));
       h_tu_response_LHA_charged_PDF_variations.push_back(copy_book_th2d(h_tu_response_LHA_charged, TString::Format("tu_LHA_charged_GenReco_all_PDF_%d", i).Data()));
     }
   }
@@ -323,7 +323,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_puppiMultiplicity_PDF_variations.push_back(copy_book_th1d(h_tu_reco_puppiMultiplicity, TString::Format("hist_puppiMultiplicity_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_puppiMultiplicity_PDF_variations.push_back(copy_book_th1d(h_tu_gen_puppiMultiplicity, TString::Format("hist_puppiMultiplicity_gen_all_PDF_%d", i).Data()));
+      h_tu_gen_puppiMultiplicity_PDF_variations.push_back(copy_book_th1d(h_tu_gen_puppiMultiplicity, TString::Format("hist_puppiMultiplicity_truth_all_PDF_%d", i).Data()));
       h_tu_response_puppiMultiplicity_PDF_variations.push_back(copy_book_th2d(h_tu_response_puppiMultiplicity, TString::Format("tu_puppiMultiplicity_GenReco_all_PDF_%d", i).Data()));
     }
   }
@@ -382,7 +382,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_puppiMultiplicity_charged_PDF_variations.push_back(copy_book_th1d(h_tu_reco_puppiMultiplicity_charged, TString::Format("hist_puppiMultiplicity_charged_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_puppiMultiplicity_charged_PDF_variations.push_back(copy_book_th1d(h_tu_gen_puppiMultiplicity_charged, TString::Format("hist_puppiMultiplicity_charged_gen_all_PDF_%d", i).Data()));
+      h_tu_gen_puppiMultiplicity_charged_PDF_variations.push_back(copy_book_th1d(h_tu_gen_puppiMultiplicity_charged, TString::Format("hist_puppiMultiplicity_charged_truth_all_PDF_%d", i).Data()));
       h_tu_response_puppiMultiplicity_charged_PDF_variations.push_back(copy_book_th2d(h_tu_response_puppiMultiplicity_charged, TString::Format("tu_puppiMultiplicity_charged_GenReco_all_PDF_%d", i).Data()));
     }
   }
@@ -441,7 +441,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_pTD_PDF_variations.push_back(copy_book_th1d(h_tu_reco_pTD, TString::Format("hist_pTD_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_pTD_PDF_variations.push_back(copy_book_th1d(h_tu_gen_pTD, TString::Format("hist_pTD_gen_all_PDF_%d", i).Data()));
+      h_tu_gen_pTD_PDF_variations.push_back(copy_book_th1d(h_tu_gen_pTD, TString::Format("hist_pTD_truth_all_PDF_%d", i).Data()));
       h_tu_response_pTD_PDF_variations.push_back(copy_book_th2d(h_tu_response_pTD, TString::Format("tu_pTD_GenReco_all_PDF_%d", i).Data()));
     }
   }
@@ -500,7 +500,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_pTD_charged_PDF_variations.push_back(copy_book_th1d(h_tu_reco_pTD_charged, TString::Format("hist_pTD_charged_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_pTD_charged_PDF_variations.push_back(copy_book_th1d(h_tu_gen_pTD_charged, TString::Format("hist_pTD_charged_gen_all_PDF_%d", i).Data()));
+      h_tu_gen_pTD_charged_PDF_variations.push_back(copy_book_th1d(h_tu_gen_pTD_charged, TString::Format("hist_pTD_charged_truth_all_PDF_%d", i).Data()));
       h_tu_response_pTD_charged_PDF_variations.push_back(copy_book_th2d(h_tu_response_pTD_charged, TString::Format("tu_pTD_charged_GenReco_all_PDF_%d", i).Data()));
     }
   }
@@ -559,7 +559,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_thrust_PDF_variations.push_back(copy_book_th1d(h_tu_reco_thrust, TString::Format("hist_thrust_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_thrust_PDF_variations.push_back(copy_book_th1d(h_tu_gen_thrust, TString::Format("hist_thrust_gen_all_PDF_%d", i).Data()));
+      h_tu_gen_thrust_PDF_variations.push_back(copy_book_th1d(h_tu_gen_thrust, TString::Format("hist_thrust_truth_all_PDF_%d", i).Data()));
       h_tu_response_thrust_PDF_variations.push_back(copy_book_th2d(h_tu_response_thrust, TString::Format("tu_thrust_GenReco_all_PDF_%d", i).Data()));
     }
   }
@@ -618,7 +618,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_thrust_charged_PDF_variations.push_back(copy_book_th1d(h_tu_reco_thrust_charged, TString::Format("hist_thrust_charged_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_thrust_charged_PDF_variations.push_back(copy_book_th1d(h_tu_gen_thrust_charged, TString::Format("hist_thrust_charged_gen_all_PDF_%d", i).Data()));
+      h_tu_gen_thrust_charged_PDF_variations.push_back(copy_book_th1d(h_tu_gen_thrust_charged, TString::Format("hist_thrust_charged_truth_all_PDF_%d", i).Data()));
       h_tu_response_thrust_charged_PDF_variations.push_back(copy_book_th2d(h_tu_response_thrust_charged, TString::Format("tu_thrust_charged_GenReco_all_PDF_%d", i).Data()));
     }
   }
@@ -677,7 +677,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_width_PDF_variations.push_back(copy_book_th1d(h_tu_reco_width, TString::Format("hist_width_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_width_PDF_variations.push_back(copy_book_th1d(h_tu_gen_width, TString::Format("hist_width_gen_all_PDF_%d", i).Data()));
+      h_tu_gen_width_PDF_variations.push_back(copy_book_th1d(h_tu_gen_width, TString::Format("hist_width_truth_all_PDF_%d", i).Data()));
       h_tu_response_width_PDF_variations.push_back(copy_book_th2d(h_tu_response_width, TString::Format("tu_width_GenReco_all_PDF_%d", i).Data()));
     }
   }
@@ -736,7 +736,7 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   if (doPDFvariations_) {
     for (int i=0; i < N_PDF_VARIATIONS; i++) {
       h_tu_reco_width_charged_PDF_variations.push_back(copy_book_th1d(h_tu_reco_width_charged, TString::Format("hist_width_charged_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_width_charged_PDF_variations.push_back(copy_book_th1d(h_tu_gen_width_charged, TString::Format("hist_width_charged_gen_all_PDF_%d", i).Data()));
+      h_tu_gen_width_charged_PDF_variations.push_back(copy_book_th1d(h_tu_gen_width_charged, TString::Format("hist_width_charged_truth_all_PDF_%d", i).Data()));
       h_tu_response_width_charged_PDF_variations.push_back(copy_book_th2d(h_tu_response_width_charged, TString::Format("tu_width_charged_GenReco_all_PDF_%d", i).Data()));
     }
   }
