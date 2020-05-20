@@ -146,6 +146,15 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_gen_pt_split = copy_book_th1d(h_tu_gen_pt_tmp, "hist_pt_truth_split");
   delete h_tu_gen_pt_tmp;
 
+  // PDF variations
+  if (doPDFvariations_) {
+    for (int i=0; i < N_PDF_VARIATIONS; i++) {
+      h_tu_reco_pt_PDF_variations.push_back(copy_book_th1d(h_tu_reco_pt, TString::Format("hist_pt_reco_all_PDF_%d", i).Data()));
+      h_tu_gen_pt_PDF_variations.push_back(copy_book_th1d(h_tu_gen_pt, TString::Format("hist_pt_truth_all_PDF_%d", i).Data()));
+      h_tu_response_pt_PDF_variations.push_back(copy_book_th2d(h_tu_response_pt, TString::Format("tu_pt_GenReco_all_PDF_%d", i).Data()));
+    }
+  }
+
   // LHA
   // -------------------------------------
   detector_tu_binning_LHA = new TUnfoldBinning("detector");

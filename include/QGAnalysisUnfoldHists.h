@@ -46,6 +46,8 @@ protected:
     TH2D *h_tu_response_pt, *h_tu_response_pt_split;
     TH1D *h_tu_reco_pt, *h_tu_reco_pt_split, *h_tu_reco_pt_fake, *h_tu_reco_pt_fake_split;
     TH1D *h_tu_gen_pt, *h_tu_gen_pt_split;
+    std::vector<TH1D*> h_tu_reco_pt_PDF_variations, h_tu_gen_pt_PDF_variations;
+    std::vector<TH2D*> h_tu_response_pt_PDF_variations;
 
     // reco jet hists
     // For unfolding with TUnfold
