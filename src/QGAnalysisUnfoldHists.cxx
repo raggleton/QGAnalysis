@@ -25,20 +25,22 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   doMCsplit_(true),
   doJackknifeVariations_(false),
   useBinningValue_(false), // use the centrally determined bining value (e.g. dijet ave), otherwise use jet pT
-  N_JACKKNIFE_VARIATIONS(10),
+  N_JACKKNIFE_VARIATIONS(25),
   N_PDF_VARIATIONS(100),
   eventCounter_(-1) // for jackknifing to ensure exclusive samples
   {
 
   is_mc_ = ctx.get("dataset_type") == "MC";
   doMCsplit_ = is_mc_;
-  doJackknifeVariations_ = (string2bool(ctx.get("JackknifeVariations", "false")) && is_mc_);;
+  doJackknifeVariations_ = string2bool(ctx.get("JackknifeVariations", "false"));
   if (doJackknifeVariations_) {
     cout << "Doing jackknife variations in " << dirname << endl;
   }
   doPDFvariations_ = (string2bool(ctx.get("PDFvariations", "false")) && is_mc_);
   if (doPDFvariations_) {
     cout << "Doing PDF variations in " << dirname << endl;
+    doJackknifeVariations_ = false;
+    cout << "Turning off jackknife variations" << endl;
   }
 
   if (useNJets_ < 0) useNJets_ = 99999; // Do them all
