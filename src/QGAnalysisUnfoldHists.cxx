@@ -929,6 +929,14 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       }
 
       fill_th1_check(h_tu_reco_pt, recBinPt, weight);
+      // Fill PDF variations by varying weight
+      if (doPDFvariations_ && event.genInfo->systweights().size() > 0) {
+        for (int i=0; i<N_PDF_VARIATIONS; i++) {
+          double pdf_weight = event.genInfo->systweights().at(i+10) / event.genInfo->systweights().at(9); // +10 as first 9 are scale variations, then comes the nominal weight again
+          double this_weight = weight * pdf_weight;
+          h_tu_reco_pt_PDF_variations.at(i)->Fill(recBinPt, this_weight);
+        }
+      }
 
       if (thisPassReco) {
         fill_th1_check(h_tu_reco_LHA, recBinLHA, weight);
@@ -1246,6 +1254,14 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       // Fill 1D gen hist
       // -----------------------------------------------------------------------
       h_tu_gen_pt->Fill(genBinPt, gen_weight);
+      // Fill PDF variations by varying weight
+      if (doPDFvariations_ && event.genInfo->systweights().size() > 0) {
+        for (int i=0; i<N_PDF_VARIATIONS; i++) {
+          double pdf_weight = event.genInfo->systweights().at(i+10) / event.genInfo->systweights().at(9); // +10 as first 9 are scale variations, then comes the nominal weight again
+          double this_weight = weight * gen_weight;
+          h_tu_gen_pt_PDF_variations.at(i)->Fill(genBinPt, this_weight);
+        }
+      }
 
       if (thisPassGen) {
         fill_th1_check(h_tu_gen_puppiMultiplicity, genBinPuppiMult, gen_weight);
@@ -1553,6 +1569,9 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           double this_gen_weight = gen_weight * pdf_weight;
           double this_weight = this_gen_weight * reco_weight;
           double this_corr_weight = this_gen_weight * (1 - reco_weight);
+          h_tu_response_pt_PDF_variations.at(i)->Fill(genBinPt, recBinPt, this_weight);
+          h_tu_response_pt_PDF_variations.at(i)->Fill(genBinPt, recBinPt, this_corr_weight);
+
           if (thisPassGen) {
             h_tu_response_puppiMultiplicity_PDF_variations.at(i)->Fill(genBinPuppiMult, recBinPuppiMult, this_weight);
             h_tu_response_LHA_PDF_variations.at(i)->Fill(genBinLHA, recBinLHA, this_weight);
