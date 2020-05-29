@@ -169,7 +169,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     // FIXME: get everything from ctx not extra args
     common_setup.reset(new GeneralEventSetup(ctx));
-    tracking_eff.reset(new TrackingEfficiency(ctx));
+    bool update4vec = false;
+    tracking_eff.reset(new TrackingEfficiency(ctx, update4vec));
     float jet_pt_min = 30.;
     recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, jet_pt_min));
     std::string genjet_handle_name = "GoodGenJets";
@@ -658,7 +659,6 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Note that we only care about this for reco-specific bits,
     // not gen-specific (only false if fails MET filters)
     bool passCommonRecoSetup = common_setup->process(event);
-    tracking_eff->process(event);
     recojet_setup->process(event);
 
     if (!(njet_min_sel->passes(event) || ngenjet_min_sel->passes(event))) return false;
@@ -734,6 +734,10 @@ bool QGAnalysisMCModule::process(Event & event) {
     // if (PRINTOUT) printGenJets(event.get(genjets_handle), "GoodGenJets");
     if (PRINTOUT) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets");
     if (PRINTOUT) printGenJetsWithParts(event.get(genjets_handle), event.genparticles, "GoodGenJets");
+
+    // Apply tracking SFs, but only after JECs, etc applied
+    // - we want to use the original jet pT
+    tracking_eff->process(event);
 
     // Calculate lambda vars for reco jets for Z+jets
     // At this point, all objects should have had all necessary corrections, filtering, etc

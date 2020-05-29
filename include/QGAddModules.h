@@ -197,12 +197,13 @@ private:
  */
 class JetPFUpdater : public uhh2::AnalysisModule {
 public:
-  JetPFUpdater(uhh2::Context & ctx, const std::string & jet_coll_name="jets");
+  JetPFUpdater(uhh2::Context & ctx, const std::string & jet_coll_name="jets", bool update4vec=true);
   virtual bool process(uhh2::Event & event) override;
 private:
   Event::Handle<std::vector<Jet>> jet_handle;
   Event::Handle<std::vector<PFParticle>> dropped_pf_handle;
   Event::Handle<std::vector<PFParticle>> promoted_pf_handle;
+  bool update4vec_;
 };
 
 
@@ -211,7 +212,7 @@ private:
  */
 class TrackingEfficiency : public uhh2::AnalysisModule {
 public:
-  explicit TrackingEfficiency(uhh2::Context & ctx);
+  explicit TrackingEfficiency(uhh2::Context & ctx, bool update4vec);
   virtual bool process(uhh2::Event & event) override;
 private:
   std::unique_ptr<AnalysisModule> track_sf, jet_updater;

@@ -486,10 +486,11 @@ bool MCTrackScaleFactor::process(uhh2::Event & event) {
 }
 
 
-JetPFUpdater::JetPFUpdater(uhh2::Context & ctx, const std::string & jet_coll_name):
+JetPFUpdater::JetPFUpdater(uhh2::Context & ctx, const std::string & jet_coll_name, bool update4vec):
   jet_handle(ctx.get_handle<std::vector<Jet>>(jet_coll_name)),
   dropped_pf_handle(ctx.get_handle<std::vector<PFParticle>>("dropped_pfparticles")),
-  promoted_pf_handle(ctx.get_handle<std::vector<PFParticle>>("promoted_genparticles"))
+  promoted_pf_handle(ctx.get_handle<std::vector<PFParticle>>("promoted_genparticles")),
+  update4vec_(update4vec)
 {
 }
 
@@ -544,8 +545,7 @@ bool JetPFUpdater::process(uhh2::Event & event) {
     }
     // cout << "New v4: " << jetv4.pt() << " : " << jetv4.eta() << " : " << jetv4.phi() << endl;
     // TODO: recalc energy fractions as well?
-
-    jet.set_v4(jetv4); // update with uncorrected 4-vector
+    if (update4vec_) jet.set_v4(jetv4); // update with uncorrected 4-vector
     jet.set_daughterIndices(newDauIndices);
     jet.set_numberOfDaughters(newDauIndices.size());
   }
@@ -554,9 +554,9 @@ bool JetPFUpdater::process(uhh2::Event & event) {
 }
 
 
-TrackingEfficiency::TrackingEfficiency(uhh2::Context & ctx) {
+TrackingEfficiency::TrackingEfficiency(uhh2::Context & ctx, bool update4vec) {
   track_sf.reset(new MCTrackScaleFactor(ctx, ctx.get("track_direction", "nominal")));
-  jet_updater.reset(new JetPFUpdater(ctx));
+  jet_updater.reset(new JetPFUpdater(ctx, "jets", update4vec));
 }
 
 bool TrackingEfficiency::process(uhh2::Event & event) {
