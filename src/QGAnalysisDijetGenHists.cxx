@@ -33,11 +33,11 @@ Hists(ctx, dirname)
     int nbins_r = 300;
     float r_max = 6;
 
-    deta_jet = book<TH1F>("deta_jet", ";|#Delta#eta_{jet, jet}|;", nbins_eta, 0, 2*eta_max);
+    deta_jet = book<TH1F>("deta_jet", ";|#Deltay_{jet, jet}|;", nbins_eta, 0, 2*eta_max);
     dphi_jet = book<TH1F>("dphi_jet", ";|#Delta#phi_{jet, jet}|;", nbins_phi, 0, phi_max);
     dr_jet = book<TH1F>("dr_jet", ";|#DeltaR_{jet, jet}|;", nbins_r, 0, r_max);
-    eta_jet1 = book<TH1F>("eta_jet1", ";#eta^{genjet 1};", nbins_eta, -eta_max, eta_max);
-    eta_jet2 = book<TH1F>("eta_jet2", ";#eta^{genjet 2};", nbins_eta, -eta_max, eta_max);
+    eta_jet1 = book<TH1F>("eta_jet1", ";y^{genjet 1};", nbins_eta, -eta_max, eta_max);
+    eta_jet2 = book<TH1F>("eta_jet2", ";y^{genjet 2};", nbins_eta, -eta_max, eta_max);
     gen_ht = book<TH1F>("gen_ht", ";H_{T}^{Gen} [GeV];", 500, 0, 5000);
     pt_hat = book<TH1F>("ptHat", ";#hat{p}_{T} [GeV];", 2500, 0, 5000);
     n_jets = book<TH1F>("n_jets", ";N_{genjets};", 10, 0, 10);
@@ -78,18 +78,18 @@ void QGAnalysisDijetGenHists::fill(const Event & event){
   float jet1_pt = jet1.pt();
   float jet2_pt = jet2.pt();
 
-  deta_jet->Fill(fabs(jet1.eta() - jet2.eta()), weight);
+  deta_jet->Fill(fabs(jet1.Rapidity() - jet2.Rapidity()), weight);
   dphi_jet->Fill(fabs(deltaPhi(jet1, jet2)), weight);
   dr_jet->Fill(uhh2::deltaR(jet1, jet2), weight);
 
   pt_jet1->Fill(jet1_pt, weight);
-  eta_jet1->Fill(jet1.eta(), weight);
+  eta_jet1->Fill(jet1.Rapidity(), weight);
   if (event.genInfo->binningValues().size() > 0) {
     double ptHat = event.genInfo->binningValues().at(0);
     pt_hat_pt_jet_ratio->Fill(jet1_pt / ptHat, weight);
   }
   pt_jet2->Fill(jet2_pt, weight);
-  eta_jet2->Fill(jet2.eta(), weight);
+  eta_jet2->Fill(jet2.Rapidity(), weight);
   pt_dijet_ave->Fill(0.5*(jet1_pt + jet2_pt), weight);
 
   float genHT = calcGenHT(*(event.genparticles));

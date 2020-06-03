@@ -123,7 +123,8 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
 
     common_setup.reset(new GeneralEventSetup(ctx));
     float jet_pt_min = 30.;
-    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jetRadius, jet_pt_min));
+    float jet_y_max = 2.5 - 0.8; // allow both AK4 & AK8 to fall inside tracker, and keeps both consistent
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jetRadius, jet_pt_min, jet_y_max));
     gen_weight_handle = ctx.get_handle<double>("gen_weight");
     pt_binning_reco_handle = ctx.get_handle<double>("pt_binning_reco_value"); // the value to use for reco pt bin e.g dijet average
     pt_binning_gen_handle = ctx.get_handle<double>("pt_binning_gen_value"); // the value to use for gen pt bin e.g dijet average
@@ -565,7 +566,7 @@ bool QGAnalysisDataModule::process(Event & event) {
             }
             double ave_pt = 0.5*(leadingJets[0].pt() + leadingJets[1].pt());
             event.set(pt_binning_reco_handle, ave_pt);
-            sort_by_eta(leadingJets);
+            sort_by_y(leadingJets);
             std::vector<Jet> forwardJet = {leadingJets[0]};
             std::vector<Jet> centralJet = {leadingJets[1]};
             event.set(dijet_forward_handle, forwardJet);

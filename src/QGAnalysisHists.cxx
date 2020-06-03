@@ -58,7 +58,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
 
   int nEtaBins = 50;
   float etaMin(-5), etaMax(5);
-  h_jet_eta = book<TH1F>("jet_eta", ";#eta^{j};", nEtaBins, etaMin, etaMax);
+  h_jet_eta = book<TH1F>("jet_eta", ";y^{j};", nEtaBins, etaMin, etaMax);
 
   h_jet_flavour = book<TH1F>("jet_flavour", "jet flavour;PDGID;", 23, -0.5, 22.5);
 
@@ -251,7 +251,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   h_genjet1_flavour_vs_pt = book<TH2F>("genjet1_flavour_vs_pt", "genjet1 flavour;PDGID;GenJet1 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
   h_genjet2_flavour_vs_pt = book<TH2F>("genjet2_flavour_vs_pt", "genjet2 flavour;PDGID;GenJet2 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
 
-  h_jet_flavour_vs_eta = book<TH2F>("jet_flavour_vs_eta", "jet flavour;PDGID;Jet #eta", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
+  h_jet_flavour_vs_eta = book<TH2F>("jet_flavour_vs_eta", "jet flavour;PDGID;Jet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
 
   // q jet only
   h_qjet_multiplicity_vs_pt = book<TH2F>("qjet_multiplicity_vs_pt", "q-flavour;# of constituents (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
@@ -318,7 +318,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   // ------------
   // For all jets
   h_genjet_pt = book<TH1F>("genjet_pt", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, ptMax);
-  h_genjet_eta = book<TH1F>("genjet_eta", ";#eta^{j};", nEtaBins, etaMin, etaMax);
+  h_genjet_eta = book<TH1F>("genjet_eta", ";y^{j};", nEtaBins, etaMin, etaMax);
 
   h_genjet_multiplicity = book<TH1F>("genjet_multiplicity", ";# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
   h_genjet_LHA = book<TH1F>("genjet_LHA", ";LHA (#lambda_{0.5}^{1});", nBins, 0, 1);
@@ -417,7 +417,7 @@ void QGAnalysisHists::fill(const Event & event){
       }
       h_jet_pt_unweighted->Fill(jet_pt);
       h_jet_pt->Fill(jet_pt, weight);
-      h_jet_eta->Fill(thisjet.eta(), weight);
+      h_jet_eta->Fill(thisjet.Rapidity(), weight);
 
       float puppiMult(0.), mult(0.), lha(0.), ptd(0.), width(0.), thrust(0.);
 
@@ -432,7 +432,7 @@ void QGAnalysisHists::fill(const Event & event){
         if (ptd > 1){
           cout << "ptd > 1: " << ptd << endl;
           cout << "ptSum: " << recoJetCalc.getPtSum() << endl;
-          cout << " jet " << thisjet.pt() << " : " << thisjet.eta() << " : " << thisjet.phi() << endl;
+          cout << " jet " << thisjet.pt() << " : " << thisjet.Rapidity() << " : " << thisjet.phi() << endl;
           cout << "calc constits: " << recoJetCalc.constits().size() << endl;
           cout << "constits: " << endl;
           float myptd = 0;
@@ -440,7 +440,7 @@ void QGAnalysisHists::fill(const Event & event){
           for (const auto & cind : thisjet.daughterIndices()) {
             const PFParticle & pf = event.pfparticles->at(cind);
             if (pf.pt() < 1) continue;
-            cout << pf.pt() << " : " << pf.eta() << " : " << pf.phi() << " : " << pf.puppiWeight() << endl;
+            cout << pf.pt() << " : " << pf.Rapidity() << " : " << pf.phi() << " : " << pf.puppiWeight() << endl;
             ptsum += (pf.pt() * pf.puppiWeight());
             myptd += pow(pf.pt() * pf.puppiWeight(), 2);
           }
@@ -655,7 +655,7 @@ void QGAnalysisHists::fill(const Event & event){
             }
           }
 
-          h_jet_flavour_vs_eta->Fill(jet_flav, thisjet.eta(), weight);
+          h_jet_flavour_vs_eta->Fill(jet_flav, thisjet.Rapidity(), weight);
         }
       } // end is_mc_
 
@@ -717,7 +717,7 @@ void QGAnalysisHists::fill(const Event & event){
       float genjet_pt = thisjet.pt();
 
       h_genjet_pt->Fill(genjet_pt, gen_weight);
-      h_genjet_eta->Fill(thisjet.eta(), gen_weight);
+      h_genjet_eta->Fill(thisjet.Rapidity(), gen_weight);
 
       float gen_mult = genJetCalc.getLambda(0, 0);
       float gen_lha = genJetCalc.getLambda(1, 0.5);
@@ -822,10 +822,10 @@ trigNames(trigNames_)
   int nEtaBins = 50;
   float etaMin(-5), etaMax(5);
   for (const auto & trig: trigNames) {
-    hTrigs.push_back(book<TH2F>("pt_vs_eta_" + trig, trig+";Jet p_{T} [GeV];Jet |#eta|", nPtBins, ptMin, ptMax, nEtaBins, etaMin, etaMax));
+    hTrigs.push_back(book<TH2F>("pt_vs_eta_" + trig, trig+";Jet p_{T} [GeV];Jet |y|", nPtBins, ptMin, ptMax, nEtaBins, etaMin, etaMax));
     trigSels.push_back(TriggerSelection(trig));
   }
-  hAll = book<TH2F>("pt_vs_eta_all", "All;Jet p_{T} [GeV];Jet |#eta|", nPtBins, ptMin, ptMax, nEtaBins, etaMin, etaMax);
+  hAll = book<TH2F>("pt_vs_eta_all", "All;Jet p_{T} [GeV];Jet |y|", nPtBins, ptMin, ptMax, nEtaBins, etaMin, etaMax);
 }
 
 void QGJetTrigHists::fill(const uhh2::Event & event) {
@@ -837,10 +837,10 @@ void QGJetTrigHists::fill(const uhh2::Event & event) {
     auto ti = event.get_trigger_index(trigNames[i]);
     if (event.lookup_trigger_index(ti) && trigSels[i].passes(event)) {
       // cout << "fill: Fired: " << trigNames[i] << endl;
-      hTrigs[i]->Fill(leadingJet.pt(), leadingJet.eta(), event.weight);
+      hTrigs[i]->Fill(leadingJet.pt(), leadingJet.Rapidity(), event.weight);
     }
   }
-  hAll->Fill(leadingJet.pt(), leadingJet.eta(), event.weight);
+  hAll->Fill(leadingJet.pt(), leadingJet.Rapidity(), event.weight);
 
 }
 

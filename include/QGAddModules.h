@@ -103,7 +103,7 @@ private:
  */
 class RecoJetSetup : public uhh2::AnalysisModule {
 public:
-  RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min);
+  RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min, float jet_y_max);
   virtual bool process(uhh2::Event & event) override;
 private:
   std::unique_ptr<JetCleaner> jet_pf_id;

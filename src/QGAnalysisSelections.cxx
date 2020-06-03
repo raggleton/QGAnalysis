@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <algorithm>
 
+using namespace std;
 using namespace uhh2examples;
 using namespace uhh2;
 
@@ -293,8 +294,8 @@ bool DijetSelection::passes(const Event & event){
     cutflow_raw->Fill(i);
     cutflow_weighted->Fill(i, event.weight);
 
-    auto eta1 = jet1.eta();
-    auto eta2 = jet2.eta();
+    auto eta1 = jet1.Rapidity();
+    auto eta2 = jet2.Rapidity();
 
     if (ss_eta_ && ((eta1 * eta2) < 0)) return false;
     i++;
@@ -378,8 +379,8 @@ bool DijetGenSelection::passes(const Event & event){
     cutflow_raw->Fill(i);
     cutflow_weighted->Fill(i, event.weight);
 
-    auto eta1 = jet1.eta();
-    auto eta2 = jet2.eta();
+    auto eta1 = jet1.Rapidity();
+    auto eta2 = jet2.Rapidity();
 
     if (ss_eta_ && ((eta1 * eta2) < 0)) return false;
     i++;
@@ -445,7 +446,7 @@ bool ZplusJetsTheorySelection::passes(const Event & event) {
 
     if ((jet.pt() / z_cand.pt()) < jet_frac_min_) return false;
 
-    if (fabs(jet.eta() - z_cand.eta()) > jet_z_deta_max_) return false;
+    if (fabs(jet.Rapidity() - z_cand.Rapidity()) > jet_z_deta_max_) return false;
 
     if (genjets.size() >=2) {
         const auto & jet2 = genjets.at(1);
@@ -478,7 +479,7 @@ bool DijetTheorySelection::passes(const Event & event) {
 
     if (jet2.pt() < (jet1.pt() * jet_frac_min_)) return false;
 
-    if (fabs(jet1.eta() - jet2.eta()) > jet_deta_max_) return false;
+    if (fabs(jet1.Rapidity() - jet2.Rapidity()) > jet_deta_max_) return false;
 
     if (genjets.size()>=3) {
         const auto & jet3 = genjets.at(2);
@@ -521,7 +522,7 @@ bool DataJetSelection::passes(const Event & event) {
     if (event.jets->size() == 0) return false;
     // iterate in reverse so as to get the highest trigger threshold that fires
     // (assumes you loaded the triggers in ascending order!)
-    // std::cout << "Leading jet: "<< event.jets->at(0).pt() << " : " << event.jets->at(0).eta() << std::endl;
+    // std::cout << "Leading jet: "<< event.jets->at(0).pt() << " : " << event.jets->at(0).Rapidity() << std::endl;
     for (ind = trigSel_.size()-1; ind >= 0; ind--) {
         // if (trigSel_[ind].passes(event)) std::cout << "Fired " << ind << std::endl;
         if (trigSel_[ind].passes(event) && ptSel_[ind](event.jets->at(0), event)) {

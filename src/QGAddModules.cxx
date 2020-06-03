@@ -144,7 +144,7 @@ bool GeneralEventSetup::process(uhh2::Event & event) {
 }
 
 
-RecoJetSetup::RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min) {
+RecoJetSetup::RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min, float jet_y_max) {
   bool is_mc = ctx.get("dataset_type") == "MC";
 
   jet_pf_id.reset(new JetCleaner(ctx, JetPFID(JetPFID::wp::WP_LOOSE)));
@@ -156,7 +156,11 @@ RecoJetSetup::RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, 
   }
 
   // eta cut to allow for all of the jet to fall inside tracker (<2.5)
-  jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(jet_pt_min, 2.5-jet_radius)));
+  // jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(jet_pt_min, 2.5-jet_radius)));
+
+  // eta cut to allow for both AK4 & AK8 jets to fall inside tracker (<2.5)
+  // also note we cut on y not eta, since our jets can be massive
+  jet_cleaner.reset(new JetCleaner(ctx, PtYCut(jet_pt_min, jet_y_max)));
 
   jet_ele_cleaner.reset(new JetElectronOverlapRemoval(jet_radius));
 
@@ -536,7 +540,7 @@ bool JetPFUpdater::process(uhh2::Event & event) {
       float jetRadius = TMath::Sqrt(jet.jetArea() / TMath::Pi()); // take from user instead?
       for (uint promInd=0; promInd < promoted_pf_particles.size(); promInd++) {
         const PFParticle & promoted = promoted_pf_particles.at(promInd);
-        if (deltaR(promoted.v4(), jet.v4()) < jetRadius) {
+        if (deltaRUsingY(promoted.v4(), jet.v4()) < jetRadius) {
           // cout << "*************************** Adding new dau ind " << old_pf_size+promInd << " to jet " << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
           newDauIndices.push_back(old_pf_size+promInd);
           jetv4 += promoted.v4();
@@ -823,7 +827,7 @@ float LambdaCalculator<T>::getLambda(float kappa, float beta)
     z *= weight;
     // for the reference jet vector for deltaR, we use the WTA vector
     // if beta <=1, and the normal jet vector otherwise
-    float theta = (beta != 0) ? deltaR(dtr.v4(), (beta <= 1) ? wtaVector_ : jetVector_) / jetRadius_ : 1.; // 1 as puppi doesn't change direction
+    float theta = (beta != 0) ? deltaRUsingY(dtr.v4(), (beta <= 1) ? wtaVector_ : jetVector_) / jetRadius_ : 1.; // 1 as puppi doesn't change direction
     result += (pow(z, kappa) * pow(theta, beta));
   }
   resultsCache_[thisArgs] = result;
@@ -846,7 +850,7 @@ float LambdaCalculator<GenParticle>::getLambda(float kappa, float beta)
     float z = (kappa != 0) ? dtr.pt() / ptSum_ : 1.;
     // for the reference jet vector for deltaR, we use the WTA vector
     // if beta <=1, and the normal jet vector otherwise
-    float theta = (beta != 0) ? deltaR(dtr.v4(), (beta <= 1) ? wtaVector_ : jetVector_) / jetRadius_ : 1.;
+    float theta = (beta != 0) ? deltaRUsingY(dtr.v4(), (beta <= 1) ? wtaVector_ : jetVector_) / jetRadius_ : 1.;
     // cout << "    adding z= " << z << " theta: " << theta << " for constit " << dtr.pdgId() << " : " << dtr.pt() << " : " << dtr.eta() << " : " << dtr.phi() << endl;
     // cout << "    => " << pow(z, kappa) << " * " << pow(theta, beta) << " = " << pow(z, kappa) * pow(theta, beta) << endl;
     result += (pow(z, kappa) * pow(theta, beta));
@@ -943,8 +947,18 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
         cout << "ak jet: " << subjet.pt() << " : " << subjet.eta() << " : " << subjet.phi() << endl;
       }
     } else if (akJets.size() == 0) {
-      throw std::runtime_error("AKx reclustering failed - no jets");
+      cout << "uhh jet constits:" << endl;
+      for (const auto & dau : constits) {
+        cout << "    " << dau.pt() << " : " << dau.eta() << " :" << dau.phi() << endl;
+      }
+      cout << "pjconstits:" << endl;
+      for (const auto & dau : pjconstits) {
+        cout << "    " << dau.pt() << " : " << dau.eta() << " :" << dau.phi() << endl;
+      }
+      throw std::runtime_error("AKx reclustering failed QGAnalysisJetLambda - no jets");
     }
+    // cout << "Original jet: " << jet.pt()*jet.JEC_factor_raw() << " : " << jet.eta() << " : " << jet.phi() << endl;
+    // cout << "ak jet: " << akJets[0].pt() << " : " << akJets[0].eta() << " : " << akJets[0].phi() << endl;
 
     // Now recluster using WTA
     PseudoJet wtaJet = wta_cluster_(akJets[0]);
@@ -1150,7 +1164,7 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
         cout << "ak jet: " << subjet.pt() << " : " << subjet.eta() << " : " << subjet.phi() << endl;
       }
     } else if (akJets.size() == 0) {
-      throw std::runtime_error("AKx reclustering failed - no jets");
+      throw std::runtime_error("AKx reclustering failed QGAnalysisGenJetLambda - no jets");
     }
 
     // Now recluster using WTA
@@ -1243,7 +1257,7 @@ bool JetMatcher::process(uhh2::Event & event) {
         continue;
 
       const auto genjtr = genjets.at(gjInd);
-      auto thisDR = deltaR(jtr, genjtr);
+      auto thisDR = deltaRUsingY(jtr, genjtr);
       if (thisDR < matchRadius_ && thisDR < minDR) {
         matchInd = gjInd;
         minDR = thisDR;

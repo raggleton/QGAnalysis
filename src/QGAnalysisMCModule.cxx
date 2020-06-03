@@ -45,7 +45,7 @@ public:
 
     explicit QGAnalysisMCModule(Context & ctx);
     virtual bool process(Event & event) override;
-    std::vector<GenJetWithParts> getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=1.5, float lepton_overlap_dr=0.2);
+    std::vector<GenJetWithParts> getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min=5., float y_max=1.5, float lepton_overlap_dr=0.2);
     std::vector<GenParticle> getGenMuons(std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=2.5);
     std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax=0.8, bool uniqueMatch=true);
     virtual void endInputData() override;
@@ -172,7 +172,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     bool update4vec = false;
     tracking_eff.reset(new TrackingEfficiency(ctx, update4vec));
     float jet_pt_min = 30.;
-    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, jet_pt_min));
+    float jet_y_max = 2.5 - 0.8; // allow both AK4 & AK8 to fall inside tracker, and keeps both consistent
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, jet_pt_min, jet_y_max));
     std::string genjet_handle_name = "GoodGenJets";
     std::string genmuon_handle_name = "GoodGenMuons";
     genjets_handle = ctx.get_handle< std::vector<GenJetWithParts> > (genjet_handle_name);
@@ -327,10 +328,10 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         // just to plot cutflow only when passGen==true
         zplusjets_sel_passGen.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max, "ZPlusJetsSelPassGenCutFlow"));
 
-        zplusjets_gen_sel.reset(new ZplusJetsGenSelection(ctx, mu1_pt/mcSelFactor, mu2_pt/mcSelFactor, mZ_window*mcSelFactor, dphi_jet_z_min/mcSelFactor, second_jet_frac_max_zpj*mcSelFactor, z_pt_min, z_jet_asym_max*mcSelFactor,
+        zplusjets_gen_sel.reset(new ZplusJetsGenSelection(ctx, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max,
                                                           "ZPlusJetsGenSelCutFlow", genjet_handle_name, genmuon_handle_name));
         // just to plot gen cutflow only when passReco==true
-        zplusjets_gen_sel_passReco.reset(new ZplusJetsGenSelection(ctx, mu1_pt/mcSelFactor, mu2_pt/mcSelFactor, mZ_window*mcSelFactor, dphi_jet_z_min/mcSelFactor, second_jet_frac_max_zpj*mcSelFactor, z_pt_min, z_jet_asym_max*mcSelFactor,
+        zplusjets_gen_sel_passReco.reset(new ZplusJetsGenSelection(ctx, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max,
                                                                    "ZPlusJetsGenSelPassRecoCutFlow", genjet_handle_name, genmuon_handle_name));
 
         // Preselection for Z+J - only 2 muons to reco Z
@@ -353,10 +354,10 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         // just to plot cutflow only when passGen == true
         dijet_sel_tighter_passGen.reset(new DijetSelection(ctx, dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta, "DijetSelTighterPassGenCutFlow"));
 
-        dijet_gen_sel.reset(new DijetGenSelection(ctx, dphi_min/mcSelFactor, second_jet_frac_max_dj*mcSelFactor, jet_asym_max*mcSelFactor, ss_eta, deta*mcSelFactor, sumEta*mcSelFactor,
+        dijet_gen_sel.reset(new DijetGenSelection(ctx, dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta,
                                                   "DijetGenSelCutFlow", genjet_handle_name));
         // just to plot gen cutflow only when passReco==true
-        dijet_gen_sel_passReco.reset(new DijetGenSelection(ctx, dphi_min/mcSelFactor, second_jet_frac_max_dj*mcSelFactor, jet_asym_max*mcSelFactor, ss_eta, deta*mcSelFactor, sumEta*mcSelFactor,
+        dijet_gen_sel_passReco.reset(new DijetGenSelection(ctx, dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta,
                                                            "DijetGenSelPassRecoCutFlow", genjet_handle_name));
     }
 
@@ -560,9 +561,13 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // dijet_hists_highPt.reset(new QGAnalysisDijetHists(ctx, "Dijet_highPt", binning_method));
     // dijet_qg_hists_highPt.reset(new QGAnalysisHists(ctx, "Dijet_QG_highPt", NJETS_DIJET, "dijet"));
 
-    genjet_hists.reset(new GenJetsHists(ctx, "GenJetsPresel", 3, genjet_handle_name));
-    genjet_hists_passZpJReco.reset(new GenJetsHists(ctx, "GenJetsPassZPlusJetsReco", 3, genjet_handle_name));
-    genjet_hists_passDijetReco.reset(new GenJetsHists(ctx, "GenJetsPassDijetReco", 3, genjet_handle_name));
+    bool useRapidity = true;
+    genjet_hists.reset(new GenJetsHists(ctx, "GenJetsPresel", 3, genjet_handle_name, useRapidity));
+    if (isZPlusJets) {
+        genjet_hists_passZpJReco.reset(new GenJetsHists(ctx, "GenJetsPassZPlusJetsReco", 3, genjet_handle_name, useRapidity));
+    } else {
+        genjet_hists_passDijetReco.reset(new GenJetsHists(ctx, "GenJetsPassDijetReco", 3, genjet_handle_name, useRapidity));
+    }
 
     // event_sel.reset(new EventNumberSelection({111}));
 
@@ -675,10 +680,12 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // Get good GenJets, store in event
     // -------------------------------------------------------------------------
+    // Lower pT cut to be inclusive due to large resolution
     double genjet_pt_cut = 15.;
-    double genjet_eta_cut = 2.5-(jetRadius/2.); // reco jets go up to 2.5-jetRadius. We also need an extra jetRadius/2 to account for dR matching
-    std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, &event.get(genmuons_handle), genjet_pt_cut, genjet_eta_cut, jetRadius);
-    // std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, nullptr, genjet_pt_cut, genjet_eta_cut, jetRadius);
+    // keep y cut same as in reco (don't care about missing some matches?)
+    float jet_y_max = 2.5 - 0.8; // allow both AK4 & AK8 to fall inside tracker, and keeps both consistent
+    std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, &event.get(genmuons_handle), genjet_pt_cut, jet_y_max, jetRadius);
+    // std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, nullptr, genjet_pt_cut, jet_y_cut, jetRadius);
     event.set(genjets_handle, std::move(goodGenJets));
 
     // MC-specific parts like reweighting for SF, for muR/F scale, etc
@@ -847,7 +854,7 @@ bool QGAnalysisMCModule::process(Event & event) {
             }
             double ave_pt = 0.5*(leadingJets[0].pt() + leadingJets[1].pt());
             event.set(pt_binning_reco_handle, ave_pt);
-            sort_by_eta(leadingJets);
+            sort_by_y(leadingJets);
             std::vector<Jet> forwardJet = {leadingJets[0]};
             std::vector<Jet> centralJet = {leadingJets[1]};
             event.set(dijet_forward_handle, forwardJet);
@@ -862,7 +869,7 @@ bool QGAnalysisMCModule::process(Event & event) {
             }
             double ave_pt = 0.5*(leadingGenJets[0].pt() + leadingGenJets[1].pt());
             event.set(pt_binning_gen_handle, ave_pt);
-            sort_by_eta(leadingGenJets);
+            sort_by_y(leadingGenJets);
             std::vector<GenJetWithParts> forwardGenJet = {leadingGenJets[0]};
             std::vector<GenJetWithParts> centralGenJet = {leadingGenJets[1]};
             event.set(dijet_gen_forward_handle, forwardGenJet);
@@ -974,7 +981,7 @@ bool QGAnalysisMCModule::process(Event & event) {
                 if (leadingJets.size() != 2) {
                     throw std::runtime_error("Slicing jets gone wrong!");
                 }
-                sort_by_eta(leadingJets);  // by descending eta, so jets[0] = fwd, jets[1] = cen
+                sort_by_y(leadingJets);  // by descending eta, so jets[0] = fwd, jets[1] = cen
                 std::swap(*event.jets, leadingJets);
                 dijet_hists_eta_ordered->fill(event);
 
@@ -1109,7 +1116,7 @@ void QGAnalysisMCModule::endInputData(){
 /**
  * Get GenJets, ignoring those that are basically a lepton, and have some minimum pt and maximum eta.
  */
-std::vector<GenJetWithParts> QGAnalysisMCModule::getGenJets(std::vector<GenJetWithParts> * genjets_in, std::vector<GenParticle> * genparticles, float pt_min, float eta_max, float lepton_overlap_dr) {
+std::vector<GenJetWithParts> QGAnalysisMCModule::getGenJets(std::vector<GenJetWithParts> * genjets_in, std::vector<GenParticle> * genparticles, float pt_min, float y_max, float lepton_overlap_dr) {
     std::vector<GenJetWithParts> genjets_out;
     for (const auto jet : *genjets_in) {
         bool found = (std::find(genjets_out.begin(), genjets_out.end(), jet) != genjets_out.end()); // avoid duplicate genjets
@@ -1119,11 +1126,11 @@ std::vector<GenJetWithParts> QGAnalysisMCModule::getGenJets(std::vector<GenJetWi
             for (const auto & ptr : *genparticles) {
                 bool isLepton = ((abs(ptr.pdgId()) == PDGID::MUON) || (abs(ptr.pdgId()) == PDGID::ELECTRON) || (abs(ptr.pdgId()) == PDGID::TAU));
                 if (!isLepton) continue;
-                bool thisLeptonOverlap = isLepton && (deltaR(ptr.v4(), jet.v4()) < lepton_overlap_dr) && ((ptr.pt() / jet.pt()) > 0.5);
+                bool thisLeptonOverlap = isLepton && (deltaRUsingY(ptr.v4(), jet.v4()) < lepton_overlap_dr) && ((ptr.pt() / jet.pt()) > 0.5);
                 leptonOverlap = leptonOverlap || thisLeptonOverlap;
             }
         }
-        if ((jet.pt() > pt_min) && (fabs(jet.eta()) < eta_max) && !found && !leptonOverlap && (jet.genparticles_indices().size()>1)) genjets_out.push_back(jet);
+        if ((jet.pt() > pt_min) && (fabs(jet.Rapidity()) < y_max) && !found && !leptonOverlap && (jet.genparticles_indices().size()>1)) genjets_out.push_back(jet);
     }
     sort_by_pt(genjets_out);
     return genjets_out;
@@ -1143,10 +1150,10 @@ std::vector<GenParticle> QGAnalysisMCModule::getGenMuons(std::vector<GenParticle
         // status check may not be reliable for e.g. herwig
         bool alreadyFound = std::any_of(muons.begin(), muons.end(), [&itr] (const GenParticle & mtr) { return deltaR(*itr, mtr) < 0.05 && itr->charge() == mtr.charge(); });
         if ((abs(itr->pdgId()) == PDGID::MUON) && (itr->status() == 1) && (itr->pt() > pt_min) && (fabs(itr->eta()) < eta_max) && !alreadyFound) {
+        // if ((abs(itr->pdgId()) == PDGID::MUON) && (itr->pt() > pt_min) && (fabs(itr->eta()) < eta_max)) {
             muons.push_back(*itr);
         }
     }
-    // turn this off, because we want the latest muons, not similar ones
     sort_by_pt(muons);
     return muons;
 }
@@ -1171,7 +1178,7 @@ std::vector<Jet> QGAnalysisMCModule::getMatchedJets(std::vector<Jet> * jets, std
                 continue;
 
             const auto genjtr = genjets->at(gjInd);
-            auto thisDR = deltaR(jtr, genjtr);
+            auto thisDR = deltaRUsingY(jtr, genjtr);
             if (thisDR < drMax && thisDR < minDR) {
                 matchInd = gjInd;
                 minDR = thisDR;

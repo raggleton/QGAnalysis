@@ -37,16 +37,16 @@ Hists(ctx, dirname)
     TString zName = "#mu#mu";
     TString binByVar = "pt_z";
 
-    deta_mumu = book<TH1F>("deta_mumu", TString::Format(";|#Delta#eta_{%s}|;", zName.Data()), nbins_eta, 0, 2*eta_max);
-    deta_mumu_jet1 = book<TH1F>("deta_mumu_jet1", TString::Format(";|#Delta#eta_{%s, genjet 1}|;", zName.Data()), nbins_eta, 0, 2*eta_max);
+    deta_mumu = book<TH1F>("deta_mumu", TString::Format(";|#Deltay_{%s}|;", zName.Data()), nbins_eta, 0, 2*eta_max);
+    deta_mumu_jet1 = book<TH1F>("deta_mumu_jet1", TString::Format(";|#Deltay_{%s, genjet 1}|;", zName.Data()), nbins_eta, 0, 2*eta_max);
     dphi_mumu = book<TH1F>("dphi_mumu", TString::Format(";|#Delta#phi_{%s}|;", zName.Data()), nbins_phi, 0, phi_max);
     dphi_mumu_jet1 = book<TH1F>("dphi_mumu_jet1", TString::Format(";|#Delta#phi_{%s, genjet 1}|;", zName.Data()), nbins_phi, 0, phi_max);
-    eta_jet1 = book<TH1F>("eta_jet1", ";#eta^{genjet 1};", nbins_eta, -eta_max, eta_max);
-    eta_jet2 = book<TH1F>("eta_jet2", ";#eta^{genjet 2};", nbins_eta, -eta_max, eta_max);
-    eta_mu1 = book<TH1F>("eta_mu1", ";#eta^{#mu1};", nbins_eta, -eta_max, eta_max);
-    eta_mu2 = book<TH1F>("eta_mu2", ";#eta^{#mu2};", nbins_eta, -eta_max, eta_max);
-    eta_mumu = book<TH1F>("eta_mumu", TString::Format(";#eta^{%s};", zName.Data()), nbins_eta, -eta_max, eta_max);
-    // eta_z = book<TH1F>("eta_z", ";#eta^{Z};", nbins_eta, -eta_max, eta_max);
+    eta_jet1 = book<TH1F>("eta_jet1", ";y^{genjet 1};", nbins_eta, -eta_max, eta_max);
+    eta_jet2 = book<TH1F>("eta_jet2", ";y^{genjet 2};", nbins_eta, -eta_max, eta_max);
+    eta_mu1 = book<TH1F>("eta_mu1", ";y^{#mu1};", nbins_eta, -eta_max, eta_max);
+    eta_mu2 = book<TH1F>("eta_mu2", ";y^{#mu2};", nbins_eta, -eta_max, eta_max);
+    eta_mumu = book<TH1F>("eta_mumu", TString::Format(";y^{%s};", zName.Data()), nbins_eta, -eta_max, eta_max);
+    // eta_z = book<TH1F>("eta_z", ";y^{Z};", nbins_eta, -eta_max, eta_max);
     gen_ht = book<TH1F>("gen_ht", ";H_{T}^{Gen} [GeV];", 500, 0, 5000);
     pt_hat = book<TH1F>("ptHat", ";#hat{p}_{T} [GeV];", 2500, 0, 5000);
     m_mumu = book<TH1F>("m_mumu", TString::Format(";m_{%s} [GeV];", zName.Data()), 80, 90-40, 90+40);
@@ -87,7 +87,7 @@ void QGAnalysisZPlusJetsGenHists::fill(const Event & event){
   GenParticle genZ = findGenZ(*event.genparticles);
   // cout << genZ.pdgId() << " : " << genZ.status() << " : " << genZ.pt() << endl;
   pt_z->Fill(genZ.pt(), weight);
-  // eta_z->Fill(genZ.eta(), weight);
+  // eta_z->Fill(genZ.Rapidity(), weight);
 
   float jetKt = calcJetKt(*event.genparticles);
   jet_kt->Fill(jetKt, weight);
@@ -110,17 +110,17 @@ void QGAnalysisZPlusJetsGenHists::fill(const Event & event){
   LorentzVector z_cand = mu1.v4() + mu2.v4();
   float z_pt = z_cand.pt();
   pt_mumu->Fill(z_pt, weight);
-  eta_mumu->Fill(z_cand.eta(), weight);
+  eta_mumu->Fill(z_cand.Rapidity(), weight);
 
   pt_mu1->Fill(mu1.pt(), weight);
-  eta_mu1->Fill(mu1.eta(), weight);
+  eta_mu1->Fill(mu1.Rapidity(), weight);
 
   pt_mu2->Fill(mu2.pt(), weight);
-  eta_mu2->Fill(mu2.eta(), weight);
+  eta_mu2->Fill(mu2.Rapidity(), weight);
 
   m_mumu->Fill(z_cand.M(), weight);
 
-  deta_mumu->Fill(fabs(mu1.eta() - mu2.eta()), weight);
+  deta_mumu->Fill(fabs(mu1.Rapidity() - mu2.Rapidity()), weight);
   dphi_mumu->Fill(fabs(deltaPhi(mu1, mu2)), weight);
 
   // Jets
@@ -129,7 +129,7 @@ void QGAnalysisZPlusJetsGenHists::fill(const Event & event){
   auto jet1 = genjets->at(0);
   float jet1_pt = jet1.pt();
   pt_jet1->Fill(jet1_pt, weight);
-  eta_jet1->Fill(jet1.eta(), weight);
+  eta_jet1->Fill(jet1.Rapidity(), weight);
   if (event.genInfo->binningValues().size() > 0) {
     double ptHat = event.genInfo->binningValues().at(0);
     pt_hat_pt_jet_ratio->Fill(jet1_pt / ptHat, weight);
@@ -140,13 +140,13 @@ void QGAnalysisZPlusJetsGenHists::fill(const Event & event){
   pt_jet_genHT_ratio->Fill(jet1_pt / genHT, weight);
 
   pt_jet1_z_ratio->Fill(jet1_pt / z_pt, weight);
-  deta_mumu_jet1->Fill(fabs(z_cand.eta() - jet1.eta()), weight);
+  deta_mumu_jet1->Fill(fabs(z_cand.Rapidity() - jet1.Rapidity()), weight);
   dphi_mumu_jet1->Fill(fabs(deltaPhi(jet1, z_cand)), weight);
 
   if (Njets >= 2) {
     auto jet2 = genjets->at(1);
     pt_jet2->Fill(jet2.pt(), weight);
-    eta_jet2->Fill(jet2.eta(), weight);
+    eta_jet2->Fill(jet2.Rapidity(), weight);
     pt_jet2_z_ratio->Fill(jet2.pt() / z_pt, weight);
     pt_jet1_pt_jet2_ratio->Fill(jet1_pt / jet2.pt(), weight);
   }

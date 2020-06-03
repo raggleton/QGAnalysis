@@ -84,7 +84,8 @@ QGAnalysisFlavModule::QGAnalysisFlavModule(Context & ctx){
     cout << "Running with PUS: " << pu_removal << endl;
 
     common_setup.reset(new GeneralEventSetup(ctx));
-    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jetRadius, 30.));
+    float jet_y_max = 2.5 - 0.8; // allow both AK4 & AK8 to fall inside tracker, and keeps both consistent
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jetRadius, 30., jet_y_max));
     mc_reweight.reset(new MCReweighting(ctx));
 
     genjets_handle = ctx.declare_event_output< std::vector<GenJetWithParts> > ("GoodGenJets");

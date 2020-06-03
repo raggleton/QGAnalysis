@@ -68,13 +68,13 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
   // dont' reverse axis direction - it doens't like it
   pt_jet_response_fine = book<TH2F>("pt_jet_response_fine", TString::Format(";%s (GEN);%s (RECO)", binByVarLabel.Data(), binByVarLabel.Data()), nbins_pt_equal, 0, pt_max, nbins_pt_equal, 0, pt_max);
   pt_jet_response = book<TH2F>("pt_jet_response", TString::Format(";%s (GEN);%s (RECO)", binByVarLabel.Data(), binByVarLabel.Data()), nbins_pt, &pt_bin_edges[0], nbins_pt, &pt_bin_edges[0]);
-  eta_jet1_vs_pt_jet = book<TH2F>("eta_jet1_vs_pt_jet", TString::Format(";#eta^{jet 1};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt_equal, 0, pt_max);
-  eta_jet_response = book<TH2F>("eta_jet_response", ";#eta^{jet} (GEN);#eta^{jet} (RECO)", nbins_eta, -eta_max, eta_max, nbins_eta, -eta_max, eta_max);
+  eta_jet1_vs_pt_jet = book<TH2F>("eta_jet1_vs_pt_jet", TString::Format(";y^{jet 1};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt_equal, 0, pt_max);
+  eta_jet_response = book<TH2F>("eta_jet_response", ";y^{jet} (GEN);y^{jet} (RECO)", nbins_eta, -eta_max, eta_max, nbins_eta, -eta_max, eta_max);
   phi_jet1_vs_pt_jet = book<TH2F>("phi_jet1_vs_pt_jet", TString::Format(";#phi^{jet 1};%s", binByVarLabel.Data()), nbins_phi, -phi_max, phi_max, nbins_pt_equal, 0, pt_max);
 
-  eta_jet1_vs_eta_jet2 = book<TH2F>("eta_jet1_vs_eta_jet2", ";#eta^{jet 1};#eta^{jet 2}", nbins_eta, -eta_max, eta_max, nbins_eta,-eta_max, eta_max);
+  eta_jet1_vs_eta_jet2 = book<TH2F>("eta_jet1_vs_eta_jet2", ";y^{jet 1};y^{jet 2}", nbins_eta, -eta_max, eta_max, nbins_eta,-eta_max, eta_max);
   pt_jet2_vs_pt_jet = book<TH2F>("pt_jet2_vs_pt_jet", TString::Format(";p_{T}^{jet 2};%s", binByVarLabel.Data()), nbins_pt_equal, 0, pt_max, nbins_pt_equal, 0, pt_max);
-  eta_jet2_vs_pt_jet = book<TH2F>("eta_jet2_vs_pt_jet", TString::Format(";#eta^{jet 2};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt_equal, 0, pt_max);
+  eta_jet2_vs_pt_jet = book<TH2F>("eta_jet2_vs_pt_jet", TString::Format(";y^{jet 2};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt_equal, 0, pt_max);
   phi_jet2_vs_pt_jet = book<TH2F>("phi_jet2_vs_pt_jet", TString::Format(";#phi^{jet 2};%s", binByVarLabel.Data()), nbins_phi, -phi_max, phi_max, nbins_pt_equal, 0, pt_max);
 
   DO_MATCHING_INDS = false;
@@ -104,13 +104,13 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
 
   m_jj_vs_pt_jet = book<TH2F>("m_jj_vs_pt_jet", TString::Format(";m_{jj} [GeV];%s", binByVarLabel.Data()), 200, 0, 4000, nbins_pt_equal, 0, pt_max);
 
-  deta_jj_vs_pt_jet = book<TH2F>("deta_jj_vs_pt_jet", TString::Format(";|#Delta#eta(jet1, jet2)|;%s", binByVarLabel.Data()), nbins_eta, 0, 2*eta_max, nbins_pt_equal, 0, pt_max);
+  deta_jj_vs_pt_jet = book<TH2F>("deta_jj_vs_pt_jet", TString::Format(";|#Deltay(jet1, jet2)|;%s", binByVarLabel.Data()), nbins_eta, 0, 2*eta_max, nbins_pt_equal, 0, pt_max);
   dphi_jj_vs_pt_jet = book<TH2F>("dphi_jj_vs_pt_jet", TString::Format(";|#Delta#phi(jet1, jet2)|;%s", binByVarLabel.Data()), nbins_phi, 0, phi_max, nbins_pt_equal, 0, pt_max);
-  sumeta_jj_vs_pt_jet = book<TH2F>("sumeta_jj_vs_pt_jet", TString::Format(";#sum#eta(jet1, jet2)};%s", binByVarLabel.Data()), 2*nbins_eta, -2*eta_max, 2*eta_max, nbins_pt_equal, 0, pt_max);
+  sumeta_jj_vs_pt_jet = book<TH2F>("sumeta_jj_vs_pt_jet", TString::Format(";#sumy(jet1, jet2);%s", binByVarLabel.Data()), 2*nbins_eta, -2*eta_max, 2*eta_max, nbins_pt_equal, 0, pt_max);
 
   // Possible 3rd jet in the event
   pt_jet3_vs_pt_jet = book<TH2F>("pt_jet3_vs_pt_jet", TString::Format(";p_{T}^{jet 3};%s", binByVarLabel.Data()), nbins_pt_equal, 0, 500, nbins_pt_equal, 0, pt_max);
-  eta_jet3_vs_pt_jet = book<TH2F>("eta_jet3_vs_pt_jet", TString::Format(";#eta^{jet 3};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt_equal, 0, pt_max);
+  eta_jet3_vs_pt_jet = book<TH2F>("eta_jet3_vs_pt_jet", TString::Format(";y^{jet 3};%s", binByVarLabel.Data()), nbins_eta, -eta_max, eta_max, nbins_pt_equal, 0, pt_max);
   pt_jet3_frac_vs_pt_jet = book<TH2F>("pt_jet3_frac_vs_pt_jet", TString::Format(";p_{T}^{jet 3} / #LT p_{T}^{jet 1}, p_{T}^{jet 2} #GT;%s", binByVarLabel.Data()), 50, 0, 1, nbins_pt_equal, 0, pt_max);
 
   // MET
@@ -182,11 +182,11 @@ void QGAnalysisDijetHists::fill(const Event & event){
     double genVal = -1.;
     if (gj_ind1>=0) {
       auto genjet1 = genjets->at(gj_ind1);
-      eta_jet_response->Fill(genjet1.eta(), jet1.eta(), weight);
+      eta_jet_response->Fill(genjet1.Rapidity(), jet1.Rapidity(), weight);
     }
     if (gj_ind2 >=0) {
       auto genjet2 = genjets->at(gj_ind2);
-      eta_jet_response->Fill(genjet2.eta(), jet2.eta(), weight);
+      eta_jet_response->Fill(genjet2.Rapidity(), jet2.Rapidity(), weight);
     }
     if (gj_ind1>=0 && gj_ind2 >=0) {
       auto genjet1 = genjets->at(gj_ind1);
@@ -226,8 +226,8 @@ void QGAnalysisDijetHists::fill(const Event & event){
         if (reco_ind >= 0) {
           matches.push_back(reco_ind);
           // cout << "GenJet-reco match: " << endl;
-          // cout << "  Gen: " << genjet_ind << " : " << gjItr.pt() << " : " << gjItr.eta() << " : " << gjItr.phi() << endl;
-          // cout << "  Reco: " << reco_ind << " : " << jets->at(reco_ind).pt() << " : " << jets->at(reco_ind).eta() << " : " << jets->at(reco_ind).phi() << endl;
+          // cout << "  Gen: " << genjet_ind << " : " << gjItr.pt() << " : " << gjItr.Rapidity() << " : " << gjItr.phi() << endl;
+          // cout << "  Reco: " << reco_ind << " : " << jets->at(reco_ind).pt() << " : " << jets->at(reco_ind).Rapidity() << " : " << jets->at(reco_ind).phi() << endl;
         }
 
         //  find which pt bin is suitable for this genjet
@@ -330,12 +330,12 @@ void QGAnalysisDijetHists::fill(const Event & event){
   pt_jet->Fill(binByVal, weight);
   pt_jet_unweighted->Fill(binByVal);
   pt_jet_response_binning->Fill(binByVal, weight);
-  eta_jet1_vs_pt_jet->Fill(jet1.eta(), binByVal, weight);
+  eta_jet1_vs_pt_jet->Fill(jet1.Rapidity(), binByVal, weight);
   phi_jet1_vs_pt_jet->Fill(jet1.phi(), binByVal, weight);
 
-  eta_jet1_vs_eta_jet2->Fill(jet1.eta(), jet2.eta(), weight);
+  eta_jet1_vs_eta_jet2->Fill(jet1.Rapidity(), jet2.Rapidity(), weight);
   pt_jet2_vs_pt_jet->Fill(jet2_pt, binByVal, weight);
-  eta_jet2_vs_pt_jet->Fill(jet2.eta(), binByVal, weight);
+  eta_jet2_vs_pt_jet->Fill(jet2.Rapidity(), binByVal, weight);
   phi_jet2_vs_pt_jet->Fill(jet2.phi(), binByVal, weight);
 
   // ensure it's always smaller / bigger
@@ -353,11 +353,11 @@ void QGAnalysisDijetHists::fill(const Event & event){
   double mass = (jet1.v4() + jet2.v4()).M();
   m_jj_vs_pt_jet->Fill(mass, binByVal, weight);
 
-  double dEta = fabs(jet1.eta() - jet2.eta());
+  double dEta = fabs(jet1.Rapidity() - jet2.Rapidity());
   double dPhi = fabs(deltaPhi(jet1, jet2));
   deta_jj_vs_pt_jet->Fill(dEta, binByVal, weight);
   dphi_jj_vs_pt_jet->Fill(dPhi, binByVal, weight);
-  sumeta_jj_vs_pt_jet->Fill(jet1.eta() + jet2.eta(), binByVal, weight);
+  sumeta_jj_vs_pt_jet->Fill(jet1.Rapidity() + jet2.Rapidity(), binByVal, weight);
 
   met_vs_pt_jet->Fill(event.met->pt(), binByVal, weight);
   met_sig_vs_pt_jet->Fill(event.met->mEtSig(), binByVal, weight);
@@ -365,7 +365,7 @@ void QGAnalysisDijetHists::fill(const Event & event){
   if (Njets >= 3) {
     Jet jet3 = jets->at(2);
     pt_jet3_vs_pt_jet->Fill(jet3.pt(), binByVal, weight);
-    eta_jet3_vs_pt_jet->Fill(jet3.eta(), binByVal, weight);
+    eta_jet3_vs_pt_jet->Fill(jet3.Rapidity(), binByVal, weight);
     pt_jet3_frac_vs_pt_jet->Fill(jet3.pt() / (0.5 * (jet1_pt + jet2_pt)), binByVal, weight);
   } else {
     pt_jet3_frac_vs_pt_jet->Fill(0.0, binByVal, weight);
