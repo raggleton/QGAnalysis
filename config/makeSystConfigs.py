@@ -92,24 +92,48 @@ def submit_xml(xml_filename, local=False, el7_worker=False):
     local_opt = "--local" if local else ""
     worker_opt = "--el7worker" if el7_worker else ""
     cmd = 'sframe_batch.py -s %s %s %s' % (local_opt, worker_opt, xml_filename)
-    result = subprocess.check_output(cmd, shell=True)
-    print(result)
+    try:
+        result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        print(result)
+    except Exception as err:
+        print(err)
+        print(err.output)
+    sleep(5)
+
 
 def resubmit_xml(xml_filename, local=False, el7_worker=False):
     local_opt = "--local" if local else ""
     worker_opt = "--el7worker" if el7_worker else ""
     cmd = 'sframe_batch.py -r %s %s %s' % (local_opt, worker_opt, xml_filename)
-    # subprocess.Popen(cmd, shell=True)
-    result = subprocess.check_output(cmd, shell=True)
-    print(result)
+    try:
+        # if not local:
+        result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        print(result)
+        # else:
+        #     subprocess.Popen(cmd, shell=True,)
+    except Exception as err:
+        print(err)
+        print(err.output)
+    sleep(5)
+
+
+def check_xml(xml_filename):
+    cmd = 'sframe_batch.py %s' % (xml_filename)
+    try:
+        result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        print(result)
+    except Exception as err:
+        print(err)
+        print(err.output)
     sleep(5)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("--submit", action='store_true', help='submit on sframe_batch')
-    group.add_argument("--resubmit", action='store_true', help='resubmit on sframe_batch')
+    group.add_argument( "-s", "--submit", action='store_true', help='submit on sframe_batch')
+    group.add_argument("-r", "--resubmit", action='store_true', help='resubmit on sframe_batch')
+    group.add_argument("-c", "--check", action='store_true', help='check with sframe_batch')
     parser.add_argument("--onlySubmitSystematics", action='store_true', help='Only submit systematic variation jobs, not nominal')
     parser.add_argument("--local", action='store_true', help='Run locally')
     parser.add_argument("--el7worker", action='store_true', help='Run on EL7 worker nodes')
@@ -240,6 +264,9 @@ if __name__ == "__main__":
                 elif args.resubmit:
                     print "Re-Submitting", new_xml_filename
                     resubmit_xml(new_xml_filename, local=args.local, el7_worker=args.el7worker)
+                elif args.check:
+                    print "Checking", new_xml_filename
+                    check_xml(new_xml_filename)
 
             # For now, do one systematic shift at a time
             for syst in systematics:
@@ -264,3 +291,6 @@ if __name__ == "__main__":
                     elif args.resubmit:
                         print "Re-Submitting", new_xml_filename
                         resubmit_xml(new_xml_filename, local=args.local, el7_worker=args.el7worker)
+                    elif args.check:
+                        print "Checking", new_xml_filename
+                        check_xml(new_xml_filename)
