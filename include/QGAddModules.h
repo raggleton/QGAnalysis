@@ -396,7 +396,7 @@ public:
 
 private:
   fastjet::Recluster wta_cluster_;
-  fastjet::Recluster ca_cluster_;
+  // fastjet::Recluster ca_cluster_;
   fastjet::contrib::ModifiedMassDropTagger mmdt_;
   float jetRadius_;
   int nJetsMax_;
@@ -424,7 +424,7 @@ public:
 
 private:
   fastjet::Recluster wta_cluster_;
-  fastjet::Recluster ca_cluster_;
+  // fastjet::Recluster ca_cluster_;
   fastjet::contrib::ModifiedMassDropTagger mmdt_;
   float jetRadius_;
   int nJetsMax_;

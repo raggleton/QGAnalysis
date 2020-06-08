@@ -876,7 +876,7 @@ QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx,
                                          const std::string & jet_coll_name,
                                          const std::string & output_coll_name):
   wta_cluster_(Recluster(JetDefinition(antikt_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme), false, Recluster::keep_only_hardest)),
-  ca_cluster_(Recluster(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme), false, Recluster::keep_only_hardest)),
+  // ca_cluster_(Recluster(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R), false, Recluster::keep_only_hardest)),
   mmdt_(contrib::ModifiedMassDropTagger(0.1)),
   jetRadius_(jetRadius),
   nJetsMax_(nJetsMax),
@@ -889,7 +889,7 @@ QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx,
   output_handle_(ctx.get_handle<std::vector<JetLambdaBundle>>(output_coll_name))
 {
   mmdt_.set_grooming_mode();
-  mmdt_.set_reclustering(false);
+  mmdt_.set_reclustering(true);
 }
 
 
@@ -967,9 +967,12 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     //   throw std::runtime_error("WTA constits != genjet constits");
     // }
 
-    // Recluster with CA, apply grooming to jet, get WTA axis, and constits left after grooming
-    PseudoJet caJet = ca_cluster_(akJets[0]);
-    PseudoJet mmdtJet = mmdt_(caJet);
+    // Apply grooming to jet (does CA reclustering internally)
+    // Get WTA axis, and constits left after grooming
+    // PseudoJet caJet = ca_cluster_(akJets[0]);
+    // cout << "CA jet: " << caJet.pt() << " : " << caJet.eta() << " : " << caJet.phi() << endl;
+    PseudoJet mmdtJet = mmdt_(akJets[0]);
+    // cout << "MMDT jet: " << mmdtJet.pt() << " : " << mmdtJet.eta() << " : " << mmdtJet.phi() << endl;
     PseudoJet mmdtJetWTA = wta_cluster_(mmdtJet); // want the AK WTA axis for lambda variables
     // create collection with only those in groomed jet
     std::vector<PFParticle> groomedConstits;
@@ -1098,7 +1101,7 @@ QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx,
                                                const std::string & jet_coll_name,
                                                const std::string & output_coll_name):
   wta_cluster_(Recluster(JetDefinition(antikt_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme), false, Recluster::keep_only_hardest)),
-  ca_cluster_(Recluster(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme), false, Recluster::keep_only_hardest)),
+  // ca_cluster_(Recluster(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme), false, Recluster::keep_only_hardest)),
   mmdt_(contrib::ModifiedMassDropTagger(0.1)),
   jetRadius_(jetRadius),
   nJetsMax_(nJetsMax),
@@ -1109,7 +1112,7 @@ QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx,
   output_handle_(ctx.get_handle<std::vector<GenJetLambdaBundle>>(output_coll_name))
 {
   mmdt_.set_grooming_mode();
-  mmdt_.set_reclustering(false);
+  mmdt_.set_reclustering(true);
 }
 
 
@@ -1174,9 +1177,10 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     //   throw std::runtime_error("WTA constits != genjet constits");
     // }
 
-    // Recluster with CA, apply grooming to jet, get WTA axis, and constits left after grooming
-    PseudoJet caJet = ca_cluster_(akJets[0]);
-    PseudoJet mmdtJet = mmdt_(caJet);
+    // Apply grooming to jet, internally does CA reclustering
+    // Get WTA axis, and constits left after grooming
+    // PseudoJet caJet = ca_cluster_(akJets[0]);
+    PseudoJet mmdtJet = mmdt_(akJets[0]);
     PseudoJet mmdtJetWTA = wta_cluster_(mmdtJet); // want the AK WTA axis for lambda variables
     // create collection with only those in groomed jet
     std::vector<GenParticle> groomedConstits;
