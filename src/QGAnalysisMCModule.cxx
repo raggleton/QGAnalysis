@@ -57,6 +57,7 @@ private:
     std::unique_ptr<GenJetSelector> genJet_selector;
     std::unique_ptr<MCReweighting> mc_reweight;
     std::unique_ptr<TrackingEfficiency> tracking_eff;
+    std::unique_ptr<JetCleaner> jet_pf_id;
 
     std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreatorPtSorted, jetLambdaCreatorForward, jetLambdaCreatorCentral;
     std::unique_ptr<QGAnalysisGenJetLambda> genjetLambdaCreatorPtSorted, genjetLambdaCreatorForward, genjetLambdaCreatorCentral;
@@ -174,7 +175,11 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     tracking_eff.reset(new TrackingEfficiency(ctx, update4vec));
     float jet_pt_min = 30.;
     float jet_y_max = 2.5 - 0.8; // allow both AK4 & AK8 to fall inside tracker, and keeps both consistent
-    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, jet_pt_min, jet_y_max));
+    bool doJetId = false; // do it AFTER the tracking SF and not before - could have some promoted particles
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, jet_pt_min, jet_y_max, doJetId));
+
+    // another jet ID check after tracking SFs applied (basically constituent check)
+    jet_pf_id.reset(new JetCleaner(ctx, JetPFID(JetPFID::wp::WP_LOOSE)));
 
     // Setup Gen objects
     std::string genjet_handle_name = "GoodGenJets";
@@ -696,11 +701,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     mc_reweight->process(event); // also responsible for setting gen weight, so do after scale variations
 
     // Need these as loosest possible requirement to run reco- or gen-specific bits
-    bool hasRecoJets = njet_min_sel->passes(event) && passCommonRecoSetup; // commonReco bit here as common for all reco parts
     bool hasGenJets = ngenjet_good_sel->passes(event);
-
-    // We need recojets and/or genjets (want both fakes and miss-recos)
-    if (!(hasRecoJets || hasGenJets)) return false;
 
     // Cuts to throw away high-weight events from lower pT bins
     // (e.g. where leading jet actually PU jet)
@@ -750,7 +751,16 @@ bool QGAnalysisMCModule::process(Event & event) {
     // - we want to use the original jet pT
     tracking_eff->process(event);
 
+    // Apply Jet PF ID since the jet constituents changes
+    jet_pf_id->process(event);
+
     if (PRINTOUT || printout_event_sel) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets after tracking SF");
+
+    // Do AFTER all things that could affect number of jets e.g. track SF, IDs
+    bool hasRecoJets = njet_min_sel->passes(event) && passCommonRecoSetup; // commonReco bit here as common for all reco parts
+
+    // We need recojets and/or genjets (want both fakes and miss-recos)
+    if (!(hasRecoJets || hasGenJets)) return false;
 
     // Calculate lambda vars for reco jets for Z+jets
     // At this point, all objects should have had all necessary corrections, filtering, etc

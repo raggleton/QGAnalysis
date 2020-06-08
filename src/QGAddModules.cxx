@@ -144,10 +144,10 @@ bool GeneralEventSetup::process(uhh2::Event & event) {
 }
 
 
-RecoJetSetup::RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min, float jet_y_max) {
+RecoJetSetup::RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min, float jet_y_max, bool doJetID) {
   bool is_mc = ctx.get("dataset_type") == "MC";
 
-  jet_pf_id.reset(new JetCleaner(ctx, JetPFID(JetPFID::wp::WP_LOOSE)));
+  if (doJetID) jet_pf_id.reset(new JetCleaner(ctx, JetPFID(JetPFID::wp::WP_LOOSE)));
 
   if (is_mc) {
     jet_met_corrector.reset(new MCJetMetCorrector(ctx, pu_removal, jet_cone));
@@ -169,7 +169,7 @@ RecoJetSetup::RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, 
 
 bool RecoJetSetup::process(uhh2::Event & event) {
 
-  jet_pf_id->process(event);
+  if (jet_pf_id) jet_pf_id->process(event);
 
   jet_met_corrector->process(event);
 
