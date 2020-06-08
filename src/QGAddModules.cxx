@@ -921,6 +921,10 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     std::vector<PFParticle> constits = get_jet_pfparticles(jet, event, false);
     clean_collection<PFParticle>(constits, event, PtEtaCut(1E-8, 5)); // basic cut to remove weird 0 pt constits
 
+    if (constits.size() < 2) {
+      throw runtime_error("QGAnalysisJetLambda: constits.size() < 2, jet filtering not done properly!");
+    }
+
     // Shift energies if appropriate
     if (fabs(chargedHadronShift_) > 1E-6) { shift_charged_hadron_pfparticles(constits, chargedHadronShift_); }
     if (fabs(neutralHadronShift_) > 1E-6) { shift_neutral_hadron_pfparticles(constits, neutralHadronShift_); }
@@ -1144,6 +1148,10 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     std::vector<GenParticle> constits = get_jet_genparticles(jet, event);
     clean_collection<GenParticle>(constits, event, PtEtaCut(1E-8, 5)); // basic cut to remove weird 0 pt constits
 
+    if (constits.size() < 2) {
+      throw runtime_error("QGAnalysisGenJetLambda: constits.size() < 2, jet filtering not done properly!");
+    }
+
     // FIXME: handle when 0 leftover constituents
 
     // Calculate the WTA axis
@@ -1167,6 +1175,14 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
         cout << "ak jet: " << subjet.pt() << " : " << subjet.eta() << " : " << subjet.phi() << endl;
       }
     } else if (akJets.size() == 0) {
+      cout << "uhh jet constits:" << endl;
+      for (const auto & dau : constits) {
+        cout << "    " << dau.pt() << " : " << dau.eta() << " :" << dau.phi() << endl;
+      }
+      cout << "pjconstits:" << endl;
+      for (const auto & dau : pjconstits) {
+        cout << "    " << dau.pt() << " : " << dau.eta() << " :" << dau.phi() << endl;
+      }
       throw std::runtime_error("AKx reclustering failed QGAnalysisGenJetLambda - no jets");
     }
 
