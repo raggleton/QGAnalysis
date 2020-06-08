@@ -522,6 +522,29 @@ private:
 };
 
 
+
+/**
+ * Class to do cuts on GenJets, and other selection criteria
+ */
+class GenJetSelector : public uhh2::AnalysisModule {
+public:
+  explicit GenJetSelector(uhh2::Context & ctx,
+                          float pt_min,
+                          float y_max,
+                          float lepton_overlap_dr,
+                          const std::string & genjet_coll_name="genjets",
+                          const std::string & out_genjet_coll_name="GoodGenJets",
+                          const std::string & genparticles_coll_name="genparticles");
+  virtual bool process(uhh2::Event & event) override;
+private:
+  float jet_pt_min_;
+  float jet_y_max_;
+  float lepton_overlap_dr_;
+  uhh2::Event::Handle<std::vector<GenJetWithParts>> genjet_handle_, out_genjet_handle_;
+  uhh2::Event::Handle<std::vector<GenParticle>> genparticle_handle_;
+};
+
+
 namespace Binning {
   // For unfolding, the "coarse" binning is the binning used for the final unfolded plots
   // The "fine" binning is each of the coarse bins divided by 2, which is better for TUnfold

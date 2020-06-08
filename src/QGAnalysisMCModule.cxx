@@ -54,6 +54,7 @@ private:
     Event::Handle<std::vector<GenJetWithParts>> new_genjets_handle;
     std::unique_ptr<GeneralEventSetup> common_setup;
     std::unique_ptr<RecoJetSetup> recojet_setup;
+    std::unique_ptr<GenJetSelector> genJet_selector;
     std::unique_ptr<MCReweighting> mc_reweight;
     std::unique_ptr<TrackingEfficiency> tracking_eff;
 
@@ -174,7 +175,12 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     float jet_pt_min = 30.;
     float jet_y_max = 2.5 - 0.8; // allow both AK4 & AK8 to fall inside tracker, and keeps both consistent
     recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, jet_pt_min, jet_y_max));
+
+    // Setup Gen objects
     std::string genjet_handle_name = "GoodGenJets";
+    float genjet_pt_min = 15.; // looser as we want to include the reco phase space, and jet resolution massive at low pt
+    // use same y cut to ensure everything else same
+    genJet_selector.reset(new GenJetSelector(ctx, genjet_pt_min, jet_y_max, jetRadius, "genjets", genjet_handle_name, "genparticles"));
     std::string genmuon_handle_name = "GoodGenMuons";
     genjets_handle = ctx.get_handle< std::vector<GenJetWithParts> > (genjet_handle_name);
     genmuons_handle = ctx.get_handle< std::vector<GenParticle> > (genmuon_handle_name);
@@ -684,13 +690,7 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // Get good GenJets, store in event
     // -------------------------------------------------------------------------
-    // Lower pT cut to be inclusive due to large resolution
-    double genjet_pt_cut = 15.;
-    // keep y cut same as in reco (don't care about missing some matches?)
-    float jet_y_max = 2.5 - 0.8; // allow both AK4 & AK8 to fall inside tracker, and keeps both consistent
-    std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, &event.get(genmuons_handle), genjet_pt_cut, jet_y_max, jetRadius);
-    // std::vector<GenJetWithParts> goodGenJets = getGenJets(event.genjets, nullptr, genjet_pt_cut, jet_y_cut, jetRadius);
-    event.set(genjets_handle, std::move(goodGenJets));
+    genJet_selector->process(event);
 
     // MC-specific parts like reweighting for SF, for muR/F scale, etc
     mc_reweight->process(event); // also responsible for setting gen weight, so do after scale variations
@@ -1117,29 +1117,6 @@ void QGAnalysisMCModule::endInputData(){
     cout << " # z+j reco||gen: " << nZPJEvents << endl;
     cout << " # dijet||z+j reco||gen: " << nPassEvents << endl;
     cout << " # dijet && z+j reco: " << nOverlapEvents << endl;
-}
-
-/**
- * Get GenJets, ignoring those that are basically a lepton, and have some minimum pt and maximum eta.
- */
-std::vector<GenJetWithParts> QGAnalysisMCModule::getGenJets(std::vector<GenJetWithParts> * genjets_in, std::vector<GenParticle> * genparticles, float pt_min, float y_max, float lepton_overlap_dr) {
-    std::vector<GenJetWithParts> genjets_out;
-    for (const auto jet : *genjets_in) {
-        bool found = (std::find(genjets_out.begin(), genjets_out.end(), jet) != genjets_out.end()); // avoid duplicate genjets
-        // avoid jets that are just leptons + a few spurious gluons, i.e. check their pT fraction
-        bool leptonOverlap = false;
-        if (genparticles != nullptr) {
-            for (const auto & ptr : *genparticles) {
-                bool isLepton = ((abs(ptr.pdgId()) == PDGID::MUON) || (abs(ptr.pdgId()) == PDGID::ELECTRON) || (abs(ptr.pdgId()) == PDGID::TAU));
-                if (!isLepton) continue;
-                bool thisLeptonOverlap = isLepton && (deltaRUsingY(ptr.v4(), jet.v4()) < lepton_overlap_dr) && ((ptr.pt() / jet.pt()) > 0.5);
-                leptonOverlap = leptonOverlap || thisLeptonOverlap;
-            }
-        }
-        if ((jet.pt() > pt_min) && (fabs(jet.Rapidity()) < y_max) && !found && !leptonOverlap && (jet.genparticles_indices().size()>1)) genjets_out.push_back(jet);
-    }
-    sort_by_pt(genjets_out);
-    return genjets_out;
 }
 
 

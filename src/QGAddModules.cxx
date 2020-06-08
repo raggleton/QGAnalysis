@@ -1355,6 +1355,44 @@ bool GenJetClusterer::process(uhh2::Event & event) {
 }
 
 
+GenJetSelector::GenJetSelector(uhh2::Context & ctx,
+                               float pt_min,
+                               float y_max,
+                               float lepton_overlap_dr,
+                               const std::string & genjet_coll_name,
+                               const std::string & output_genjet_coll_name,
+                               const std::string & genparticles_coll_name):
+  jet_pt_min_(pt_min),
+  jet_y_max_(y_max),
+  lepton_overlap_dr_(lepton_overlap_dr),
+  genjet_handle_(ctx.get_handle<std::vector<GenJetWithParts>>(genjet_coll_name)),
+  out_genjet_handle_(ctx.get_handle<std::vector<GenJetWithParts>>(output_genjet_coll_name)),
+  genparticle_handle_(ctx.get_handle<std::vector<GenParticle>>(genparticles_coll_name))
+{}
+
+bool GenJetSelector::process(uhh2::Event & event) {
+  std::vector<GenJetWithParts> genjets_out;
+  const std::vector<GenParticle> & genparticles = event.get(genparticle_handle_);
+  for (const auto jet : event.get(genjet_handle_)) {
+      bool found = (std::find(genjets_out.begin(), genjets_out.end(), jet) != genjets_out.end()); // avoid duplicate genjets
+      // avoid jets that are just leptons + a few spurious gluons, i.e. check their pT fraction
+      bool leptonOverlap = false;
+      for (const auto & gp : genparticles) {
+        bool isLepton = ((abs(gp.pdgId()) == PDGID::MUON) || (abs(gp.pdgId()) == PDGID::ELECTRON) || (abs(gp.pdgId()) == PDGID::TAU));
+        if (!isLepton) continue;
+        bool thisLeptonOverlap = isLepton && (deltaRUsingY(gp.v4(), jet.v4()) < lepton_overlap_dr_) && ((gp.pt() / jet.pt()) > 0.5);
+        leptonOverlap = leptonOverlap || thisLeptonOverlap;
+      }
+      if ((jet.pt() > jet_pt_min_) && (fabs(jet.Rapidity()) < jet_y_max_) && !found && !leptonOverlap && (jet.genparticles_indices().size()>1)) {
+        genjets_out.push_back(jet);
+      }
+    }
+    sort_by_pt(genjets_out);
+    event.set(out_genjet_handle_, genjets_out);
+    return true;
+};
+
+
 std::vector<double> Binning::calculate_fine_binning(const std::vector<double> & coarse_bin_edges)
 {
   std::vector<double> fine_bin_edges;
