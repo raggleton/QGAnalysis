@@ -221,7 +221,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // Lambda calculators
     bool doPuppi = (pu_removal == "PUPPI");
     int maxNJets = max(NJETS_ZPJ, NJETS_DIJET);
-    float recoConstitPtMin = 1.;
+    float recoConstitPtMin = 0.;
     float recoConstitEtaMax = 5.;
     // FIXME: get stuff from ctx not extra args?
     std::string reco_jetlambda_handle_name = "JetLambdas";
@@ -229,7 +229,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
                                                            PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
                                                            "jets", reco_jetlambda_handle_name));
 
-    float genConstitPtMin = 1.;
+    float genConstitPtMin = 0.;
     float genConstitEtaMax = 5.;
     std::string gen_jetlambda_handle_name = "GoodGenJetLambdas";
     genjetLambdaCreatorPtSorted.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 5, // allow more jets for possible reco/gen matching outside of top 2
