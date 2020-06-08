@@ -123,7 +123,7 @@ private:
     bool DO_KINEMATIC_HISTS;
     bool DO_LAMBDA_HISTS;
 
-    std::unique_ptr<EventNumberSelection> event_sel;
+    std::unique_ptr<EventNumberSelection> event_sel, event_sel_printout;
 
     int NJETS_ZPJ, NJETS_DIJET;
     uint nOverlapEvents, nZPJEvents, nDijetEvents, nPassEvents;
@@ -569,7 +569,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         genjet_hists_passDijetReco.reset(new GenJetsHists(ctx, "GenJetsPassDijetReco", 3, genjet_handle_name, useRapidity));
     }
 
-    // event_sel.reset(new EventNumberSelection({111}));
+    // event_sel.reset(new EventNumberSelection({65406240}));
+    event_sel_printout.reset(new EventNumberSelection({65406240, 98686924}));
 
     nOverlapEvents = 0;
     nZPJEvents = 0;
@@ -579,6 +580,9 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
 
 bool QGAnalysisMCModule::process(Event & event) {
+
+    bool printout_event_sel = event_sel_printout->passes(event);
+
     // if (!event_sel->passes(event)) return false;
 
     event.set(gen_weight_handle, event.weight); // need to set this at the start
@@ -603,7 +607,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     event.set(dijet_gen_forward_handle, std::vector<GenJetWithParts>());
     event.set(dijet_gen_central_handle, std::vector<GenJetWithParts>());
 
-    if (PRINTOUT) { cout << "-- Event: " << event.event << endl; }
+    if (PRINTOUT || printout_event_sel) { cout << "-- Event: " << event.event << endl; }
     // cout << "-- Event: " << event.event << endl;
 
     // Redo AK8 genjet clustering
@@ -633,9 +637,9 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     if (!(njet_min_sel->passes(event) || ngenjet_min_sel->passes(event))) return false;
 
-    if (PRINTOUT) printMuons(*event.muons, "Precleaning");
-    if (PRINTOUT) printElectrons(*event.electrons, "Precleaning");
-    if (PRINTOUT) printJets(*event.jets, "Precleaning");
+    if (PRINTOUT || printout_event_sel) printMuons(*event.muons, "Precleaning");
+    if (PRINTOUT || printout_event_sel) printElectrons(*event.electrons, "Precleaning");
+    if (PRINTOUT || printout_event_sel) printJets(*event.jets, "Precleaning");
 
     // Gen-level HT cut if necessary
     // -------------------------------------------------------------------------
@@ -668,9 +672,9 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     if (!(njet_min_sel->passes(event) || ngenjet_min_sel->passes(event))) return false;
 
-    if (PRINTOUT) printMuons(*event.muons);
-    if (PRINTOUT) printElectrons(*event.electrons);
-    // if (PRINTOUT) printGenParticles(*event.genparticles);
+    if (PRINTOUT || printout_event_sel) printMuons(*event.muons);
+    if (PRINTOUT || printout_event_sel) printElectrons(*event.electrons);
+    // if (PRINTOUT || printout_event_sel) printGenParticles(*event.genparticles);
 
     // Get Gen muons
     // -------------------------------------------------------------------------
@@ -731,20 +735,22 @@ bool QGAnalysisMCModule::process(Event & event) {
     genjet_hists->fill(event);
 
     // RECO PART
-    if (PRINTOUT) printJets(*event.jets, "Original jets");
+    if (PRINTOUT || printout_event_sel) printJets(*event.jets, "Original jets");
 
     // Get matching GenJets for reco jets
     // -------------------------------------------------------------------------
     jetMatcherPtOrdered->process(event);
 
-    // if (PRINTOUT) printJets(*event.jets, "Matched Jets");
-    // if (PRINTOUT) printGenJets(event.get(genjets_handle), "GoodGenJets");
-    if (PRINTOUT) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets");
-    if (PRINTOUT) printGenJetsWithParts(event.get(genjets_handle), event.genparticles, "GoodGenJets");
+    // if (PRINTOUT || printout_event_sel) printJets(*event.jets, "Matched Jets");
+    // if (PRINTOUT || printout_event_sel) printGenJets(event.get(genjets_handle), "GoodGenJets");
+    if (PRINTOUT || printout_event_sel) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets");
+    if (PRINTOUT || printout_event_sel) printGenJetsWithParts(event.get(genjets_handle), event.genparticles, "GoodGenJets");
 
     // Apply tracking SFs, but only after JECs, etc applied
     // - we want to use the original jet pT
     tracking_eff->process(event);
+
+    if (PRINTOUT || printout_event_sel) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets after tracking SF");
 
     // Calculate lambda vars for reco jets for Z+jets
     // At this point, all objects should have had all necessary corrections, filtering, etc
