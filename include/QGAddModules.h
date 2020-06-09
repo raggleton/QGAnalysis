@@ -536,6 +536,7 @@ public:
                           const std::string & out_genjet_coll_name="GoodGenJets",
                           const std::string & genparticles_coll_name="genparticles");
   virtual bool process(uhh2::Event & event) override;
+  std::vector<GenParticle> get_jet_genparticles(const GenJetWithParts & genjet, uhh2::Event & event);
 private:
   float jet_pt_min_;
   float jet_y_max_;

@@ -1375,7 +1375,8 @@ bool GenJetSelector::process(uhh2::Event & event) {
   const std::vector<GenParticle> & genparticles = event.get(genparticle_handle_);
   for (const auto jet : event.get(genjet_handle_)) {
       bool found = (std::find(genjets_out.begin(), genjets_out.end(), jet) != genjets_out.end()); // avoid duplicate genjets
-      // avoid jets that are just leptons + a few spurious gluons, i.e. check their pT fraction
+      // avoid jets that are just leptons + a few spurious gluons,
+      // i.e. look for overlapping ones, and check their pT fraction
       bool leptonOverlap = false;
       for (const auto & gp : genparticles) {
         bool isLepton = ((abs(gp.pdgId()) == PDGID::MUON) || (abs(gp.pdgId()) == PDGID::ELECTRON) || (abs(gp.pdgId()) == PDGID::TAU));
@@ -1383,7 +1384,13 @@ bool GenJetSelector::process(uhh2::Event & event) {
         bool thisLeptonOverlap = isLepton && (deltaRUsingY(gp.v4(), jet.v4()) < lepton_overlap_dr_) && ((gp.pt() / jet.pt()) > 0.5);
         leptonOverlap = leptonOverlap || thisLeptonOverlap;
       }
-      if ((jet.pt() > jet_pt_min_) && (fabs(jet.Rapidity()) < jet_y_max_) && !found && !leptonOverlap && (jet.genparticles_indices().size()>1)) {
+      // check constituents
+      // occasionally get one with 0 pt so skip those
+      // Get constituents
+      std::vector<GenParticle> constits = get_jet_genparticles(jet, event);
+      clean_collection<GenParticle>(constits, event, PtEtaCut(1E-8, 5)); // basic cut to remove weird 0 pt constits
+
+      if ((jet.pt() > jet_pt_min_) && (fabs(jet.Rapidity()) < jet_y_max_) && !found && !leptonOverlap && (constits.size()>1)) {
         genjets_out.push_back(jet);
       }
     }
@@ -1392,6 +1399,14 @@ bool GenJetSelector::process(uhh2::Event & event) {
     return true;
 };
 
+std::vector<GenParticle> GenJetSelector::get_jet_genparticles(const GenJetWithParts & genjet, uhh2::Event & event) {
+  std::vector<GenParticle> * genparticles = event.genparticles;
+  std::vector<GenParticle> gp;
+  for (const uint i : genjet.genparticles_indices()) {
+    gp.push_back(genparticles->at(i)); // TODO store copy incase we shift it?
+  }
+  return gp;
+}
 
 std::vector<double> Binning::calculate_fine_binning(const std::vector<double> & coarse_bin_edges)
 {

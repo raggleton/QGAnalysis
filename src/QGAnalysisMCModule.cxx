@@ -696,12 +696,11 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Get good GenJets, store in event
     // -------------------------------------------------------------------------
     genJet_selector->process(event);
+    // Need these as loosest possible requirement to run reco- or gen-specific bits
+    bool hasGenJets = ngenjet_good_sel->passes(event);
 
     // MC-specific parts like reweighting for SF, for muR/F scale, etc
     mc_reweight->process(event); // also responsible for setting gen weight, so do after scale variations
-
-    // Need these as loosest possible requirement to run reco- or gen-specific bits
-    bool hasGenJets = ngenjet_good_sel->passes(event);
 
     // Cuts to throw away high-weight events from lower pT bins
     // (e.g. where leading jet actually PU jet)
