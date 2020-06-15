@@ -173,19 +173,15 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     common_setup.reset(new GeneralEventSetup(ctx));
     bool update4vec = false;
     tracking_eff.reset(new TrackingEfficiency(ctx, update4vec));
-    float jet_pt_min = 30.;
-    float jet_y_max = 2.5 - 0.8; // allow both AK4 & AK8 to fall inside tracker, and keeps both consistent
     bool doJetId = false; // do it AFTER the tracking SF and not before - could have some promoted particles
-    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, jet_pt_min, jet_y_max, doJetId));
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, Cuts::reco_jet_pt_min, Cuts::jet_y_max, doJetId));
 
     // another jet ID check after tracking SFs applied (basically constituent check)
     jet_pf_id.reset(new JetCleaner(ctx, JetPFID(Cuts::RECO_JET_ID)));
 
     // Setup Gen objects
     std::string genjet_handle_name = "GoodGenJets";
-    float genjet_pt_min = 15.; // looser as we want to include the reco phase space, and jet resolution massive at low pt
-    // use same y cut to ensure everything else same
-    genJet_selector.reset(new GenJetSelector(ctx, genjet_pt_min, jet_y_max, jetRadius, "genjets", genjet_handle_name, "genparticles"));
+    genJet_selector.reset(new GenJetSelector(ctx, Cuts::gen_jet_pt_min, Cuts::jet_y_max, jetRadius, "genjets", genjet_handle_name, "genparticles"));
     std::string genmuon_handle_name = "GoodGenMuons";
     genjets_handle = ctx.get_handle< std::vector<GenJetWithParts> > (genjet_handle_name);
     genmuons_handle = ctx.get_handle< std::vector<GenParticle> > (genmuon_handle_name);
@@ -232,16 +228,16 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // Lambda calculators
     bool doPuppi = (pu_removal == "PUPPI");
     int maxNJets = max(NJETS_ZPJ, NJETS_DIJET);
-    float recoConstitPtMin = 0.;
-    float recoConstitEtaMax = 5.;
+    float recoConstitPtMin = Cuts::constit_pt_min;
+    float recoConstitEtaMax = Cuts::constit_eta_max;
     // FIXME: get stuff from ctx not extra args?
     std::string reco_jetlambda_handle_name = "JetLambdas";
     jetLambdaCreatorPtSorted.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi,
                                                            PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
                                                            "jets", reco_jetlambda_handle_name));
 
-    float genConstitPtMin = recoConstitPtMin;
-    float genConstitEtaMax = recoConstitEtaMax;
+    float genConstitPtMin = Cuts::constit_pt_min;
+    float genConstitEtaMax = Cuts::constit_eta_max;
     std::string gen_jetlambda_handle_name = "GoodGenJetLambdas";
     genjetLambdaCreatorPtSorted.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 5, // allow more jets for possible reco/gen matching outside of top 2
                                                                  PtEtaCut(genConstitPtMin, genConstitEtaMax),
@@ -319,56 +315,52 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     std::string zLabel = "zMuonCand";
 
-    // For scaling gen selection realtive to reco selection
-    // Set to 1, to avoid over-reliance on MC to extrapolate to wider gen phase space
+
+
+    // Note that Gen selections have basically same cuts as reco,
+    // to avoid over-reliance on MC to extrapolate to wider gen phase space
     // A lot of variables are very well-measured anyway
-    float mcSelFactor = 1.;
 
     if (isZPlusJets) {
         zFinder.reset(new ZFinder(ctx, "muons", zLabel));
 
         // Z+JETS selection
-        float mu1_pt = 26.; // muon pt cut comes from the cleaner in GeneralEventSetup
-        float mu2_pt = 26.;
-        float mZ_window = 20.;
-        float dphi_jet_z_min = 2.0;
+        float mu1_pt = Cuts::reco_muon_pt_min;
+        float mu2_pt = Cuts::reco_muon_pt_min;
         float second_jet_frac_max_zpj = 1000.3;
-        float z_pt_min = 30.; // actually the gen level cut, but resolution good so no need to scale it
-        float z_jet_asym_max = 100.4;
-        zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max, "ZPlusJetsSelCutFlow"));
+        float z_jet_asym_max = 100.;
+        zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max, "ZPlusJetsSelCutFlow"));
         // just to plot cutflow only when passGen==true
-        zplusjets_sel_passGen.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max, "ZPlusJetsSelPassGenCutFlow"));
+        zplusjets_sel_passGen.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max, "ZPlusJetsSelPassGenCutFlow"));
 
-        zplusjets_gen_sel.reset(new ZplusJetsGenSelection(ctx, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max,
+        zplusjets_gen_sel.reset(new ZplusJetsGenSelection(ctx, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max,
                                                           "ZPlusJetsGenSelCutFlow", genjet_handle_name, genmuon_handle_name));
         // just to plot gen cutflow only when passReco==true
-        zplusjets_gen_sel_passReco.reset(new ZplusJetsGenSelection(ctx, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max,
+        zplusjets_gen_sel_passReco.reset(new ZplusJetsGenSelection(ctx, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max,
                                                                    "ZPlusJetsGenSelPassRecoCutFlow", genjet_handle_name, genmuon_handle_name));
 
         // Preselection for Z+J - only 2 muons to reco Z
         // dphi_jet_z_min = 0.;
         // second_jet_frac_max_zpj = 999.;
         // z_jet_asym_max = 1.;
-        // zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max));
+        // zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, Cuts::mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max));
 
     } else {
 
         // DIJET selection
-        float dphi_min = 2.;
         float second_jet_frac_max_dj = 10.94;
-        float jet_asym_max = 0.3;
         bool ss_eta = false;
         float deta = 12;
         float sumEta = 10.;
-        dijet_sel.reset(new DijetSelection(ctx, dphi_min, second_jet_frac_max_dj, 1000, ss_eta, deta, sumEta, "DijetSelCutFlow")); // this is without any asymmetry cut
-        dijet_sel_tighter.reset(new DijetSelection(ctx, dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta, "DijetSelTighterCutFlow"));
+        dijet_sel.reset(new DijetSelection(ctx, Cuts::dijet_dphi_min, second_jet_frac_max_dj, 1000, ss_eta, deta, sumEta, "DijetSelCutFlow")); // this is without any asymmetry cut
+        dijet_sel_tighter.reset(new DijetSelection(ctx, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta, "DijetSelTighterCutFlow"));
         // just to plot cutflow only when passGen == true
-        dijet_sel_tighter_passGen.reset(new DijetSelection(ctx, dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta, "DijetSelTighterPassGenCutFlow"));
+        dijet_sel_tighter_passGen.reset(new DijetSelection(ctx, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta, "DijetSelTighterPassGenCutFlow"));
 
-        dijet_gen_sel.reset(new DijetGenSelection(ctx, dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta,
+        dijet_gen_sel.reset(new DijetGenSelection(ctx, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta,
                                                   "DijetGenSelCutFlow", genjet_handle_name));
         // just to plot gen cutflow only when passReco==true
-        dijet_gen_sel_passReco.reset(new DijetGenSelection(ctx, dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta,
+        dijet_gen_sel_passReco.reset(new DijetGenSelection(ctx, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta,
                                                            "DijetGenSelPassRecoCutFlow", genjet_handle_name));
     }
 
@@ -689,7 +681,7 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // Get Gen muons
     // -------------------------------------------------------------------------
-    std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, 5., 2.4); // 2.4 to match reco
+    std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, Cuts::gen_muon_pt_min, Cuts::muon_eta_max);
     // printGenParticles(goodGenMuons);
     event.set(genmuons_handle, std::move(goodGenMuons));
 

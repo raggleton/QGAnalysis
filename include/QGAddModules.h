@@ -55,9 +55,32 @@ enum PDGID {
  * Common cuts in different modules
  */
 namespace Cuts {
+  // Jet-related cuts
+  const float reco_jet_pt_min = 30.;
+  const float jet_y_max = 2.5 - 0.8; // allow both AK4 & AK8 to fall inside tracker, and keeps both consistent
   const JetPFID::wp RECO_JET_ID = JetPFID::wp::WP_TIGHT_PUPPI;
   const std::string jec_tag_2016 = "Summer16_07Aug2017";
   const std::string jec_ver_2016 = "11";
+
+  // Z+Jet selection criteria
+  const float reco_muon_pt_min = 26.;
+  const float muon_eta_max = 2.4;
+  const float mZ_window = 20.;
+  const float dphi_jet_z_min = 2.;
+  const float z_pt_min = 30.;
+
+  // Dijet selection criteria
+  const float dijet_dphi_min = 2.;
+  const float jet_asym_max = 0.3;
+
+  // Constituent cuts for lambda vars
+  // - this may become a cut per variable
+  const float constit_pt_min = 0.;
+  const float constit_eta_max = 5.;
+
+  const float gen_jet_pt_min = 15.; // looser than reco, since massively smeared
+  const float gen_muon_pt_min = 5.;
+
 }
 
 
