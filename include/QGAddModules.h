@@ -17,6 +17,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include "fastjet/JetDefinition.hh"
 #include "fastjet/ClusterSequence.hh"
 #include "fastjet/tools/Recluster.hh"
