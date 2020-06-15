@@ -4,3 +4,4 @@
 <use name="fastjet-contrib"/>
 <use name="UHH2/common" />
 <use name="UHH2/core" />
+<lib name="Unfold" />
