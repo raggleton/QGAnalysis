@@ -38,7 +38,7 @@ protected:
     TH1F *pt_asym;
     TH1F *q_scale;
 
-    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+    uhh2::Event::Handle<std::vector<GenJet> > genJets_handle;
     uhh2::Event::Handle<double> gen_weight_handle;
 };
 

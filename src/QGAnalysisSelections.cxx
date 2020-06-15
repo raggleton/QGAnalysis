@@ -130,7 +130,7 @@ ZplusJetsGenSelection::ZplusJetsGenSelection(uhh2::Context & ctx,
                                              const std::string & cutflow_hname,
                                              const std::string & genjet_name,
                                              const std::string & genmuon_name):
-    genJets_handle(ctx.get_handle<std::vector<GenJetWithParts>>(genjet_name)),
+    genJets_handle(ctx.get_handle<std::vector<GenJet>>(genjet_name)),
     zMuons_handle(ctx.get_handle<std::vector<GenParticle>>(genmuon_name)),
     mu1_pt_(mu1_pt),
     mu2_pt_(mu2_pt),
@@ -324,7 +324,7 @@ DijetGenSelection::DijetGenSelection(uhh2::Context & ctx,
                                      float sum_eta,
                                      const std::string & cutflow_hname,
                                      const std::string & genjet_name):
-    genJets_handle(ctx.get_handle<std::vector<GenJetWithParts>>(genjet_name)),
+    genJets_handle(ctx.get_handle<std::vector<GenJet>>(genjet_name)),
     dphi_min_(dphi_min),
     second_jet_frac_max_(second_jet_frac_max),
     jet_asym_max_(jet_asym_max),
@@ -417,7 +417,7 @@ ZplusJetsTheorySelection::ZplusJetsTheorySelection(Context & ctx, float pt_min, 
     jet_z_deta_max_(jet_z_deta_max),
     second_jet_frac_max_(second_jet_frac_max),
     mZ_window_(mZ_window) {
-        genJets_handle = ctx.get_handle<std::vector<GenJetWithParts>>("GoodGenJets");
+        genJets_handle = ctx.get_handle<std::vector<GenJet>>("GoodGenJets");
         genMuons_handle = ctx.get_handle<std::vector<GenParticle>>("GoodGenMuons");
     }
 
@@ -462,7 +462,7 @@ DijetTheorySelection::DijetTheorySelection(Context & ctx, float pt_min, float je
     jet_frac_min_(jet_frac_min),
     jet_deta_max_(jet_deta_max),
     third_frac_max_(third_frac_max) {
-        genJets_handle = ctx.get_handle<std::vector<GenJetWithParts>>("GoodGenJets");
+        genJets_handle = ctx.get_handle<std::vector<GenJet>>("GoodGenJets");
     }
 
 bool DijetTheorySelection::passes(const Event & event) {

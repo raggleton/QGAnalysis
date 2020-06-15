@@ -18,7 +18,7 @@ QGAnalysisDijetGenHists::QGAnalysisDijetGenHists(Context & ctx, const string & d
 Hists(ctx, dirname)
 {
   if (ctx.get("dataset_type") == "MC") {
-    genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > (genjets_name);
+    genJets_handle = ctx.get_handle< std::vector<GenJet> > (genjets_name);
     gen_weight_handle = ctx.get_handle<double>("gen_weight");
 
     int nbins_pt = 500;
@@ -58,7 +58,7 @@ void QGAnalysisDijetGenHists::fill(const Event & event){
   if (event.isRealData) return;
   double weight = event.get(gen_weight_handle);
 
-  const std::vector<GenJetWithParts> * genjets = &event.get(genJets_handle);
+  const std::vector<GenJet> * genjets = &event.get(genJets_handle);
   int Njets = genjets->size();
   n_jets->Fill(Njets, weight);
 

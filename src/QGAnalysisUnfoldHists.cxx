@@ -1180,7 +1180,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
   // ---------------------------------------------------------------------------
   if (is_mc_ && passGen) {
     for (int i = 0; i < useNJets_; i++) {
-      const GenJetWithParts & thisjet = genjetLambdas->at(i).jet;
+      const GenJet & thisjet = genjetLambdas->at(i).jet;
       LambdaCalculator<GenParticle> genJetCalc = genjetLambdas->at(i).getLambdaCalculator(false, doGroomed_); // can't be const as getLambda() modifies it
       bool thisPassGen = (passGen && genJetCalc.constits().size() > 1);
       // FIXME check this corresponds to same jet as normal lambdas?

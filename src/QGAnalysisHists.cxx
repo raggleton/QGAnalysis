@@ -347,7 +347,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   h_genjet_thrust_vs_pt = book<TH2F>("genjet_thrust_vs_pt", ";Thrust (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
 
   if (is_mc_) {
-    // genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > ("GoodGenJets");
+    // genJets_handle = ctx.get_handle< std::vector<GenJet> > ("GoodGenJets");
     genJetsLambda_handle = ctx.get_handle< std::vector<GenJetLambdaBundle> > (gen_jetlambda_handle_name);
     pass_gen_handle = ctx.get_handle<bool> (gen_sel_handle_name);
   }
@@ -367,7 +367,7 @@ void QGAnalysisHists::fill(const Event & event){
 
   h_weights->Fill(weight);
 
-  // const std::vector<GenJetWithParts> * genjets = nullptr;
+  // const std::vector<GenJet> * genjets = nullptr;
   if (is_mc_) {
     if (event.genInfo->binningValues().size() > 0)
       h_pthat_vs_weight->Fill(weight, event.genInfo->binningValues()[0]);
@@ -501,7 +501,7 @@ void QGAnalysisHists::fill(const Event & event){
           if (thisInd >= (int) genjetLambdas->size()) {
             cout << "WARNING: wanted genjet_index " << thisInd << " but only have " << genjetLambdas->size() << " in genjetLambdas" << endl;
           }
-          const GenJetWithParts & genjet = genjetLambdas->at(thisInd).jet;
+          const GenJet & genjet = genjetLambdas->at(thisInd).jet;
           LambdaCalculator<GenParticle> matchedGenJetCalc = genjetLambdas->at(thisInd).getLambdaCalculator(false, doGroomed_);
           LambdaCalculator<GenParticle> matchedGenJetCalcCharged = genjetLambdas->at(thisInd).getLambdaCalculator(true, doGroomed_);
 
@@ -709,7 +709,7 @@ void QGAnalysisHists::fill(const Event & event){
     }
 
     for (int i = 0; i < useNJets_; i++) {
-      const GenJetWithParts & thisjet = genjetLambdas->at(i).jet;
+      const GenJet & thisjet = genjetLambdas->at(i).jet;
       LambdaCalculator<GenParticle> genJetCalc = genjetLambdas->at(i).getLambdaCalculator(false, doGroomed_);
       // FIXME check this corresponds to same jet as normal lambdas?
       LambdaCalculator<GenParticle> genJetCalcCharged = genjetLambdas->at(i).getLambdaCalculator(true, doGroomed_);
@@ -788,7 +788,7 @@ void QGAnalysisHists::fill_lambda_rsp_hists(float reco_val, float gen_val, float
 /**
  * Get the collection of GenParticle*s for a given GenJet
  */
-// std::vector<GenParticle*> QGAnalysisHists::get_genjet_genparticles(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles) {
+// std::vector<GenParticle*> QGAnalysisHists::get_genjet_genparticles(const GenJet & jet, std::vector<GenParticle>* genparticles) {
 //   std::vector<GenParticle*> gp;
 //   for (const uint i : jet.genparticles_indices()) {
 //     gp.push_back(&(genparticles->at(i)));

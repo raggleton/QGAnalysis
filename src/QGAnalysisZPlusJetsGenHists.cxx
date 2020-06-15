@@ -18,7 +18,7 @@ QGAnalysisZPlusJetsGenHists::QGAnalysisZPlusJetsGenHists(Context & ctx, const st
 Hists(ctx, dirname)
 {
   if (ctx.get("dataset_type") == "MC") {
-    genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > ("GoodGenJets");
+    genJets_handle = ctx.get_handle< std::vector<GenJet> > ("GoodGenJets");
     genMuons_handle = ctx.get_handle<std::vector<GenParticle>>("GoodGenMuons");
     gen_weight_handle = ctx.get_handle<double>("gen_weight");
 
@@ -75,7 +75,7 @@ void QGAnalysisZPlusJetsGenHists::fill(const Event & event){
   if (event.isRealData) return;
   double weight = event.get(gen_weight_handle);
 
-  const std::vector<GenJetWithParts> * genjets = &event.get(genJets_handle);
+  const std::vector<GenJet> * genjets = &event.get(genJets_handle);
   int Njets = genjets->size();
   n_jets->Fill(Njets, weight);
 

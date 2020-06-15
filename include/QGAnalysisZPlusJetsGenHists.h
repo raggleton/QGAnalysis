@@ -51,7 +51,7 @@ protected:
     TH1F *jet_kt;
     TH1F *jet_kt_pt_z_ratio;
 
-    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+    uhh2::Event::Handle<std::vector<GenJet> > genJets_handle;
     uhh2::Event::Handle<std::vector<GenParticle>> genMuons_handle;
     uhh2::Event::Handle<double> gen_weight_handle;
 };

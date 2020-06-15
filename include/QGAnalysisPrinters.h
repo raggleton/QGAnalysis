@@ -27,13 +27,13 @@ namespace uhh2examples {
 // Helper funcs
 void printGenParticles(const std::vector<GenParticle> & gps, const std::string & label="", Color::Code color=Color::FG_DEFAULT);
 
-void print_genjet_genparticles(const GenJetWithParts & jet, const std::vector<GenParticle>* genparticles);
+void print_genjet_genparticles(const GenJet & jet, const std::vector<GenParticle>* genparticles);
 
 void print_jet_pfparticles(const Jet & jet, const std::vector<PFParticle>* pfparticles);
 
-void printGenJets(const std::vector<GenJetWithParts> & gps, const std::string & label="", Color::Code color=Color::FG_BLUE);
+void printGenJets(const std::vector<GenJet> & gps, const std::string & label="", Color::Code color=Color::FG_BLUE);
 
-void printGenJetsWithParts(const std::vector<GenJetWithParts> & gps, const std::vector<GenParticle>* genparticles, const std::string & label="", Color::Code color=Color::FG_BLUE);
+void printGenJetsWithParts(const std::vector<GenJet> & gps, const std::vector<GenParticle>* genparticles, const std::string & label="", Color::Code color=Color::FG_BLUE);
 
 void printJets(const std::vector<Jet> & jets, const std::string & label="", Color::Code color=Color::FG_GREEN);
 

@@ -44,7 +44,7 @@ protected:
 
     TH1F * n_pv;
 
-    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+    uhh2::Event::Handle<std::vector<GenJet> > genJets_handle;
     uhh2::Event::Handle<std::vector<Muon>> hndlZ;
 
     bool DO_MATCHING_INDS;

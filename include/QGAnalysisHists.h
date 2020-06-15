@@ -29,7 +29,7 @@ public:
     virtual void fill(const uhh2::Event & ev) override;
     virtual ~QGAnalysisHists();
 protected:
-    // std::vector<GenParticle*> get_genjet_genparticles(const GenJetWithParts &, std::vector<GenParticle>*);
+    // std::vector<GenParticle*> get_genjet_genparticles(const GenJet &, std::vector<GenParticle>*);
     std::vector<PFParticle*> get_jet_pfparticles(const Jet &, std::vector<PFParticle>*);
     void fill_lambda_rsp_hists(float reco_val, float gen_val, float weight,
                                TH2F * response, TH2F * rel_response,
@@ -113,7 +113,7 @@ protected:
     uhh2::Event::Handle<bool> pass_reco_handle;
     uhh2::Event::Handle<bool> pass_gen_handle;
 
-    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+    uhh2::Event::Handle<std::vector<GenJet> > genJets_handle;
 
     bool is_mc_;
     float rsp_lowPt_cut_, rsp_midPt_cut_, rsp_highPt_cut_;

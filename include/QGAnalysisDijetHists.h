@@ -20,7 +20,7 @@ public:
     virtual ~QGAnalysisDijetHists();
 
 protected:
-    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+    uhh2::Event::Handle<std::vector<GenJet> > genJets_handle;
 
     TH2F *n_jets_vs_pt_jet;
     TH1F *pt_jet, *pt_jet1, *pt_jet2, *pt_jet_unweighted, *pt_jet1_unweighted, *pt_jet_response_binning, *pt_genjet_response_binning;

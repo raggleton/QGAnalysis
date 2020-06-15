@@ -45,13 +45,13 @@ public:
 
     explicit QGAnalysisMCModule(Context & ctx);
     virtual bool process(Event & event) override;
-    std::vector<GenJetWithParts> getGenJets(std::vector<GenJetWithParts> * jets, std::vector<GenParticle> * genparticles, float pt_min=5., float y_max=1.5, float lepton_overlap_dr=0.2);
+    std::vector<GenJet> getGenJets(std::vector<GenJet> * jets, std::vector<GenParticle> * genparticles, float pt_min=5., float y_max=1.5, float lepton_overlap_dr=0.2);
     std::vector<GenParticle> getGenMuons(std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=2.5);
-    std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax=0.8, bool uniqueMatch=true);
+    std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJet> * genjets, float drMax=0.8, bool uniqueMatch=true);
     virtual void endInputData() override;
 private:
     std::unique_ptr<GenJetClusterer> genjet_cluster; // to cluster genjets - needed for AK8 since MiniAOD starts at 150
-    Event::Handle<std::vector<GenJetWithParts>> new_genjets_handle;
+    Event::Handle<std::vector<GenJet>> new_genjets_handle;
     std::unique_ptr<GeneralEventSetup> common_setup;
     std::unique_ptr<RecoJetSetup> recojet_setup;
     std::unique_ptr<GenJetSelector> genJet_selector;
@@ -65,10 +65,10 @@ private:
     // For doing reco/gen jet matching e.g. after forward/central eta split
     std::unique_ptr<JetMatcher> jetMatcherPtOrdered, jetMatcherForward, jetMatcherCentral;
 
-    Event::Handle<std::vector<GenJetWithParts>> genjets_handle;
+    Event::Handle<std::vector<GenJet>> genjets_handle;
     Event::Handle<std::vector<GenParticle>> genmuons_handle;
     Event::Handle<std::vector<Jet>> dijet_forward_handle, dijet_central_handle;
-    Event::Handle<std::vector<GenJetWithParts>> dijet_gen_forward_handle, dijet_gen_central_handle;
+    Event::Handle<std::vector<GenJet>> dijet_gen_forward_handle, dijet_gen_central_handle;
 
     // Reco selections/hists
     std::unique_ptr<ZFinder> zFinder;
@@ -166,7 +166,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         // FIXME add cut nonu, final state
         string new_genjet_name = "newgenjets";
         genjet_cluster.reset(new GenJetClusterer(ctx, new_genjet_name, 0.8, "genparticles"));
-        new_genjets_handle = ctx.get_handle< std::vector<GenJetWithParts> > (new_genjet_name);
+        new_genjets_handle = ctx.get_handle< std::vector<GenJet> > (new_genjet_name);
     }
 
     // FIXME: get everything from ctx not extra args
@@ -187,7 +187,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // use same y cut to ensure everything else same
     genJet_selector.reset(new GenJetSelector(ctx, genjet_pt_min, jet_y_max, jetRadius, "genjets", genjet_handle_name, "genparticles"));
     std::string genmuon_handle_name = "GoodGenMuons";
-    genjets_handle = ctx.get_handle< std::vector<GenJetWithParts> > (genjet_handle_name);
+    genjets_handle = ctx.get_handle< std::vector<GenJet> > (genjet_handle_name);
     genmuons_handle = ctx.get_handle< std::vector<GenParticle> > (genmuon_handle_name);
 
     mc_reweight.reset(new MCReweighting(ctx, genjet_handle_name, genmuon_handle_name));
@@ -201,8 +201,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     std::string dijet_gen_forward_handle_name("DijetForwardGenJet"), dijet_gen_central_handle_name("DijetCentralGenJet");
     dijet_forward_handle = ctx.get_handle<std::vector<Jet>>(dijet_forward_handle_name); // vector so easily interchangeable with event.jets etc
     dijet_central_handle = ctx.get_handle<std::vector<Jet>>(dijet_central_handle_name);
-    dijet_gen_forward_handle = ctx.get_handle<std::vector<GenJetWithParts>>(dijet_gen_forward_handle_name);
-    dijet_gen_central_handle = ctx.get_handle<std::vector<GenJetWithParts>>(dijet_gen_central_handle_name);
+    dijet_gen_forward_handle = ctx.get_handle<std::vector<GenJet>>(dijet_gen_forward_handle_name);
+    dijet_gen_central_handle = ctx.get_handle<std::vector<GenJet>>(dijet_gen_central_handle_name);
 
     // Save handles to global pass/fail selection bools
     std::string pass_zpj_sel_handle_name("ZPlusJetsSelection"), pass_zpj_gen_sel_handle_name("ZPlusJetsGenSelection");
@@ -224,10 +224,10 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     int minNJets = min(NJETS_ZPJ, NJETS_DIJET);
     njet_min_sel.reset(new NJetSelection(minNJets));
     njet_two_sel.reset(new NJetSelection(NJETS_DIJET));
-    ngenjet_min_sel.reset(new NGenJetWithPartsSelection(minNJets));
-    ngenjet_two_sel.reset(new NGenJetWithPartsSelection(NJETS_DIJET)); //, -1, boost::none, genjet_handle_name));
-    ngenjet_good_sel.reset(new NGenJetWithPartsSelection(minNJets, -1, boost::none, genjets_handle));
-    ngenjet_good_two_sel.reset(new NGenJetWithPartsSelection(2, -1, boost::none, genjets_handle));
+    ngenjet_min_sel.reset(new NGenJetSelection(minNJets));
+    ngenjet_two_sel.reset(new NGenJetSelection(NJETS_DIJET)); //, -1, boost::none, genjet_handle_name));
+    ngenjet_good_sel.reset(new NGenJetSelection(minNJets, -1, boost::none, genjets_handle));
+    ngenjet_good_two_sel.reset(new NGenJetSelection(2, -1, boost::none, genjets_handle));
 
     // Lambda calculators
     bool doPuppi = (pu_removal == "PUPPI");
@@ -615,8 +615,8 @@ bool QGAnalysisMCModule::process(Event & event) {
     // -------------------------------------------------------------------------
     event.set(dijet_forward_handle, std::vector<Jet>());
     event.set(dijet_central_handle, std::vector<Jet>());
-    event.set(dijet_gen_forward_handle, std::vector<GenJetWithParts>());
-    event.set(dijet_gen_central_handle, std::vector<GenJetWithParts>());
+    event.set(dijet_gen_forward_handle, std::vector<GenJet>());
+    event.set(dijet_gen_central_handle, std::vector<GenJet>());
 
     if (PRINTOUT || printout_event_sel) { cout << "-- Event: " << event.event << endl; }
     // cout << "-- Event: " << event.event << endl;
@@ -634,7 +634,7 @@ bool QGAnalysisMCModule::process(Event & event) {
         //     }
         // }
         genjet_cluster->process(event);
-        std::vector<GenJetWithParts> newGenJets = event.get(new_genjets_handle);
+        std::vector<GenJet> newGenJets = event.get(new_genjets_handle);
         std::swap(*event.genjets, newGenJets);
         // for (const auto & itr : *(event.genjets)) {
         //     cout << "New gj: " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << " : " << itr.genparticles_indices().size() << endl;
@@ -878,15 +878,15 @@ bool QGAnalysisMCModule::process(Event & event) {
 
         if (ngenjet_good_two_sel->passes(event)) {
             // Save forward/central genjets to own handles
-            std::vector<GenJetWithParts> leadingGenJets(event.get(genjets_handle).begin(), event.get(genjets_handle).begin()+2);
+            std::vector<GenJet> leadingGenJets(event.get(genjets_handle).begin(), event.get(genjets_handle).begin()+2);
             if (leadingGenJets.size() != 2) {
                 throw std::runtime_error("Slicing genjets gone wrong!");
             }
             double ave_pt = 0.5*(leadingGenJets[0].pt() + leadingGenJets[1].pt());
             event.set(pt_binning_gen_handle, ave_pt);
             sort_by_y(leadingGenJets);
-            std::vector<GenJetWithParts> forwardGenJet = {leadingGenJets[0]};
-            std::vector<GenJetWithParts> centralGenJet = {leadingGenJets[1]};
+            std::vector<GenJet> forwardGenJet = {leadingGenJets[0]};
+            std::vector<GenJet> centralGenJet = {leadingGenJets[1]};
             event.set(dijet_gen_forward_handle, forwardGenJet);
             event.set(dijet_gen_central_handle, centralGenJet);
         }
@@ -1157,7 +1157,7 @@ std::vector<GenParticle> QGAnalysisMCModule::getGenMuons(std::vector<GenParticle
  * uniqueMatch controls whether matching GenJets must be unique (i.e 2 reco jets can't match the same GenJet)
  *
  */
-std::vector<Jet> QGAnalysisMCModule::getMatchedJets(std::vector<Jet> * jets, std::vector<GenJetWithParts> * genjets, float drMax, bool uniqueMatch) {
+std::vector<Jet> QGAnalysisMCModule::getMatchedJets(std::vector<Jet> * jets, std::vector<GenJet> * genjets, float drMax, bool uniqueMatch) {
     std::vector<Jet> goodJets;
     std::vector<uint> matchedIndices;
     for (auto & jtr: *jets) {

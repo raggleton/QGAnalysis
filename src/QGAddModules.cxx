@@ -288,7 +288,7 @@ bool ZkFactorReweight::process(uhh2::Event & event) {
 
 
 PtReweight::PtReweight(uhh2::Context & ctx, const std::string & genjets_name, const std::string & weightFilename_, const std::string & region_):
-genjets_handle(ctx.get_handle<std::vector<GenJetWithParts>>(genjets_name))
+genjets_handle(ctx.get_handle<std::vector<GenJet>>(genjets_name))
 {
   if (weightFilename_ != "" && region_ != "") {
     TFile f_weight(weightFilename_.c_str());
@@ -313,7 +313,7 @@ genjets_handle(ctx.get_handle<std::vector<GenJetWithParts>>(genjets_name))
 bool PtReweight::process(uhh2::Event & event) {
   if (reweightHist) {
     double val = -1;
-    std::vector<GenJetWithParts> genjets = event.get(genjets_handle);
+    std::vector<GenJet> genjets = event.get(genjets_handle);
     if (method == "jet" && genjets.size() >= 1) {
       val = genjets.at(0).pt();
     } else if (method == "dijet" && genjets.size() >=2 ) {
@@ -1112,7 +1112,7 @@ QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx,
   genId_(genId),
   neutralHadronShift_(0), // these are the fractional shift, e.g. 0.2 for 20%
   photonShift_(0),
-  genjet_handle_(ctx.get_handle<std::vector<GenJetWithParts>>(jet_coll_name)),
+  genjet_handle_(ctx.get_handle<std::vector<GenJet>>(jet_coll_name)),
   output_handle_(ctx.get_handle<std::vector<GenJetLambdaBundle>>(output_coll_name))
 {
   mmdt_.set_grooming_mode();
@@ -1128,7 +1128,7 @@ PseudoJet QGAnalysisGenJetLambda::convert_uhh_genparticle_to_pseudojet(const Gen
 
 
 bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
-  std::vector<GenJetWithParts> jets = event.get(genjet_handle_);
+  std::vector<GenJet> jets = event.get(genjet_handle_);
   std::vector<GenJetLambdaBundle> outputs;
   int nJetCounter = 0;
   // cout << "---- Doing QGAnalysisGenJetLambda::process ----" << endl;
@@ -1244,7 +1244,7 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
   return true;
 }
 
-std::vector<GenParticle> QGAnalysisGenJetLambda::get_jet_genparticles(const GenJetWithParts & genjet, uhh2::Event & event) {
+std::vector<GenParticle> QGAnalysisGenJetLambda::get_jet_genparticles(const GenJet & genjet, uhh2::Event & event) {
   std::vector<GenParticle> * genparticles = event.genparticles;
   std::vector<GenParticle> gp;
   for (const uint i : genjet.genparticles_indices()) {
@@ -1256,7 +1256,7 @@ std::vector<GenParticle> QGAnalysisGenJetLambda::get_jet_genparticles(const GenJ
 
 JetMatcher::JetMatcher(uhh2::Context & ctx, const std::string & jet_coll_name, const std::string & genjet_coll_name, float matchRadius, bool uniqueMatch):
   recojet_handle_(ctx.get_handle<std::vector<Jet>>(jet_coll_name)),
-  genjet_handle_(ctx.get_handle<std::vector<GenJetWithParts>>(genjet_coll_name)),
+  genjet_handle_(ctx.get_handle<std::vector<GenJet>>(genjet_coll_name)),
   matchRadius_(matchRadius),
   uniqueMatch_(uniqueMatch)
 {}
@@ -1264,7 +1264,7 @@ JetMatcher::JetMatcher(uhh2::Context & ctx, const std::string & jet_coll_name, c
 bool JetMatcher::process(uhh2::Event & event) {
   std::vector<uint> matchedIndices;
   std::vector<Jet> & jets = event.get(recojet_handle_);
-  std::vector<GenJetWithParts> & genjets = event.get(genjet_handle_);
+  std::vector<GenJet> & genjets = event.get(genjet_handle_);
   // For each reco jet, loop through genjets and find closest that is within matchRadius_
   // If uniqueMatch is true, then each genjet can only be matched to at most 1 reco jet
   for (auto & jtr: jets) {
@@ -1291,7 +1291,7 @@ bool JetMatcher::process(uhh2::Event & event) {
 
 
 GenJetClusterer::GenJetClusterer(uhh2::Context & ctx, const std::string & genjet_coll_name, float radius, const std::string & genparticles_coll_name):
-  genjet_handle_(ctx.get_handle<std::vector<GenJetWithParts>>(genjet_coll_name)),
+  genjet_handle_(ctx.get_handle<std::vector<GenJet>>(genjet_coll_name)),
   genparticle_handle_(ctx.get_handle<std::vector<GenParticle>>(genparticles_coll_name)),
   jet_def_(antikt_algorithm, radius)
 {
@@ -1304,8 +1304,8 @@ PseudoJet GenJetClusterer::convert_uhh_genparticle_to_pseudojet(const GenParticl
   return outputParticle;
 }
 
-GenJetWithParts GenJetClusterer::convert_pseudojet_to_uhh_genjet(const PseudoJet & jet) {
-  GenJetWithParts genjet;
+GenJet GenJetClusterer::convert_pseudojet_to_uhh_genjet(const PseudoJet & jet) {
+  GenJet genjet;
   // use XYZE v4 as safer?
   genjet.set_v4(toPtEtaPhi(LorentzVectorXYZE(jet.px(), jet.py(), jet.pz(), jet.E())));
   for (const auto & dItr : jet.constituents()) {
@@ -1343,10 +1343,10 @@ bool GenJetClusterer::process(uhh2::Event & event) {
   vector<fastjet::PseudoJet> akJets = sorted_by_pt(clust_seq.inclusive_jets(ptmin));
   // TODO: flavour assignment?
 
-  // Convert back to GenJetWithParts
-  vector<GenJetWithParts> genJets;
+  // Convert back to GenJet
+  vector<GenJet> genJets;
   for (auto fjjet : akJets) {
-    GenJetWithParts genjet = convert_pseudojet_to_uhh_genjet(fjjet);
+    GenJet genjet = convert_pseudojet_to_uhh_genjet(fjjet);
     genJets.push_back(genjet);
   }
   event.set(genjet_handle_, genJets);
@@ -1365,13 +1365,13 @@ GenJetSelector::GenJetSelector(uhh2::Context & ctx,
   jet_pt_min_(pt_min),
   jet_y_max_(y_max),
   lepton_overlap_dr_(lepton_overlap_dr),
-  genjet_handle_(ctx.get_handle<std::vector<GenJetWithParts>>(genjet_coll_name)),
-  out_genjet_handle_(ctx.get_handle<std::vector<GenJetWithParts>>(output_genjet_coll_name)),
+  genjet_handle_(ctx.get_handle<std::vector<GenJet>>(genjet_coll_name)),
+  out_genjet_handle_(ctx.get_handle<std::vector<GenJet>>(output_genjet_coll_name)),
   genparticle_handle_(ctx.get_handle<std::vector<GenParticle>>(genparticles_coll_name))
 {}
 
 bool GenJetSelector::process(uhh2::Event & event) {
-  std::vector<GenJetWithParts> genjets_out;
+  std::vector<GenJet> genjets_out;
   const std::vector<GenParticle> & genparticles = event.get(genparticle_handle_);
   for (const auto jet : event.get(genjet_handle_)) {
       bool found = (std::find(genjets_out.begin(), genjets_out.end(), jet) != genjets_out.end()); // avoid duplicate genjets
@@ -1399,7 +1399,7 @@ bool GenJetSelector::process(uhh2::Event & event) {
     return true;
 };
 
-std::vector<GenParticle> GenJetSelector::get_jet_genparticles(const GenJetWithParts & genjet, uhh2::Event & event) {
+std::vector<GenParticle> GenJetSelector::get_jet_genparticles(const GenJet & genjet, uhh2::Event & event) {
   std::vector<GenParticle> * genparticles = event.genparticles;
   std::vector<GenParticle> gp;
   for (const uint i : genjet.genparticles_indices()) {

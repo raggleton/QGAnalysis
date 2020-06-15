@@ -166,7 +166,7 @@ public:
 private:
   std::unique_ptr<TH1F> reweightHist;
   std::string method;
-  Event::Handle<std::vector<GenJetWithParts>> genjets_handle;
+  Event::Handle<std::vector<GenJet>> genjets_handle;
 };
 
 
@@ -339,7 +339,7 @@ struct JetLambdaBundle {
  * because then we only need to run fastjet once per jet for e.g. WTA axis
  */
 struct GenJetLambdaBundle {
-  GenJetWithParts jet; // original AKx jet
+  GenJet jet; // original AKx jet
   LambdaCalculator<GenParticle> lambda;
   LambdaCalculator<GenParticle> chargedLambda;
   LambdaCalculator<GenParticle> groomedLambda;
@@ -421,7 +421,7 @@ public:
                          const std::string & output_coll_name);
   bool process(uhh2::Event & event);
   fastjet::PseudoJet convert_uhh_genparticle_to_pseudojet(const GenParticle & particle);
-  std::vector<GenParticle> get_jet_genparticles(const GenJetWithParts & genjet, uhh2::Event & event);
+  std::vector<GenParticle> get_jet_genparticles(const GenJet & genjet, uhh2::Event & event);
 
 private:
   fastjet::Recluster wta_cluster_;
@@ -431,7 +431,7 @@ private:
   int nJetsMax_;
   GenParticleId genId_;
   float neutralHadronShift_, photonShift_;
-  uhh2::Event::Handle<std::vector<GenJetWithParts>> genjet_handle_;
+  uhh2::Event::Handle<std::vector<GenJet>> genjet_handle_;
   uhh2::Event::Handle<std::vector<GenJetLambdaBundle>> output_handle_;
 };
 
@@ -458,7 +458,7 @@ public:
   bool process(uhh2::Event & event);
 private:
   uhh2::Event::Handle<std::vector<Jet>> recojet_handle_;
-  uhh2::Event::Handle<std::vector<GenJetWithParts>> genjet_handle_;
+  uhh2::Event::Handle<std::vector<GenJet>> genjet_handle_;
   float matchRadius_;
   bool uniqueMatch_;
 };
@@ -513,10 +513,10 @@ public:
   GenJetClusterer(uhh2::Context & ctx, const std::string & genjet_coll_name, float radius, const std::string & genparticles_coll_name="genparticles");
   virtual bool process(uhh2::Event & event) override;
   fastjet::PseudoJet convert_uhh_genparticle_to_pseudojet(const GenParticle & particle);
-  GenJetWithParts convert_pseudojet_to_uhh_genjet(const fastjet::PseudoJet & jet);
+  GenJet convert_pseudojet_to_uhh_genjet(const fastjet::PseudoJet & jet);
   inline bool floatMatch(float a, float b) { return (fabs(a-b) < (1E-6 * std::max(a, b))); }
 private:
-  uhh2::Event::Handle<std::vector<GenJetWithParts>> genjet_handle_;
+  uhh2::Event::Handle<std::vector<GenJet>> genjet_handle_;
   uhh2::Event::Handle<std::vector<GenParticle>> genparticle_handle_;
   fastjet::JetDefinition jet_def_;
   GenParticleId gpId_;
@@ -537,12 +537,12 @@ public:
                           const std::string & out_genjet_coll_name="GoodGenJets",
                           const std::string & genparticles_coll_name="genparticles");
   virtual bool process(uhh2::Event & event) override;
-  std::vector<GenParticle> get_jet_genparticles(const GenJetWithParts & genjet, uhh2::Event & event);
+  std::vector<GenParticle> get_jet_genparticles(const GenJet & genjet, uhh2::Event & event);
 private:
   float jet_pt_min_;
   float jet_y_max_;
   float lepton_overlap_dr_;
-  uhh2::Event::Handle<std::vector<GenJetWithParts>> genjet_handle_, out_genjet_handle_;
+  uhh2::Event::Handle<std::vector<GenJet>> genjet_handle_, out_genjet_handle_;
   uhh2::Event::Handle<std::vector<GenParticle>> genparticle_handle_;
 };
 

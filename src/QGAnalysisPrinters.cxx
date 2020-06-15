@@ -25,7 +25,7 @@ void uhh2examples::printGenParticles(const std::vector<GenParticle> & gps, const
   }
 }
 
-void uhh2examples::print_genjet_genparticles(const GenJetWithParts & jet, const std::vector<GenParticle>* genparticles) {
+void uhh2examples::print_genjet_genparticles(const GenJet & jet, const std::vector<GenParticle>* genparticles) {
   for (const uint i : jet.genparticles_indices()) {
     std::cout << genparticles->at(i).pdgId() << " : " << genparticles->at(i).pt() << " : " << deltaR(jet.v4(), genparticles->at(i).v4()) << std::endl;
   }
@@ -37,7 +37,7 @@ void uhh2examples::print_jet_pfparticles(const Jet & jet, const std::vector<PFPa
   }
 }
 
-void uhh2examples::printGenJets(const std::vector<GenJetWithParts> & gps, const std::string & label, Color::Code color) {
+void uhh2examples::printGenJets(const std::vector<GenJet> & gps, const std::string & label, Color::Code color) {
   for (auto & itr: gps) {
     std::cout << color << "GenJet";
     if (label != "") {
@@ -47,7 +47,7 @@ void uhh2examples::printGenJets(const std::vector<GenJetWithParts> & gps, const 
   }
 }
 
-void uhh2examples::printGenJetsWithParts(const std::vector<GenJetWithParts> & gps, const std::vector<GenParticle>* genparticles, const std::string & label, Color::Code color) {
+void uhh2examples::printGenJetsWithParts(const std::vector<GenJet> & gps, const std::vector<GenParticle>* genparticles, const std::string & label, Color::Code color) {
   for (auto & itr: gps) {
     std::cout << color << "GenJet";
     if (label != "") {

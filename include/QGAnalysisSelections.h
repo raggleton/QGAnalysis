@@ -55,7 +55,7 @@ public:
                           const std::string & genmuon_name="GoodGenMuons");
     virtual bool passes(const uhh2::Event & event) override;
 private:
-    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+    uhh2::Event::Handle<std::vector<GenJet> > genJets_handle;
     uhh2::Event::Handle<std::vector<GenParticle>> zMuons_handle;
     float mu1_pt_, mu2_pt_, mZ_window_, dphi_jet_z_min_, second_jet_frac_max_, z_pt_min_, z_jet_asym_max_;
     TH1D * cutflow_raw, * cutflow_weighted; // owned by Context
@@ -98,7 +98,7 @@ public:
                       const std::string & genjet_name="GoodGenJets");
     virtual bool passes(const uhh2::Event & event) override;
 private:
-    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+    uhh2::Event::Handle<std::vector<GenJet> > genJets_handle;
     float dphi_min_, second_jet_frac_max_, jet_asym_max_, ss_eta_, deta_max_, sum_eta_;
     TH1D * cutflow_raw, * cutflow_weighted; // owned by Context
 };
@@ -125,7 +125,7 @@ public:
     ZplusJetsTheorySelection(uhh2::Context & ctx, float pt_min=100., float jet_frac_min=0.8, float jet_z_deta_max_=1.0, float second_jet_frac_max=999., float mZ_window=20);
     virtual bool passes(const uhh2::Event & event) override;
 private:
-    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+    uhh2::Event::Handle<std::vector<GenJet> > genJets_handle;
     uhh2::Event::Handle<std::vector<GenParticle> > genMuons_handle;
     float pt_min_;
     float jet_frac_min_;
@@ -143,7 +143,7 @@ public:
     DijetTheorySelection(uhh2::Context & ctx, float pt_min=100., float jet_frac_min=0.8, float jet_deta_max=1.0, float third_frac_max=999.);
     virtual bool passes(const uhh2::Event & event) override;
 private:
-    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+    uhh2::Event::Handle<std::vector<GenJet> > genJets_handle;
     float pt_min_;
     float jet_frac_min_;
     float jet_deta_max_;

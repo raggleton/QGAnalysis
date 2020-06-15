@@ -21,7 +21,7 @@ hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_))
   string jet_cone = ctx.get("JetCone", "AK4");
   jetRadius = get_jet_radius(jet_cone);
 
-  if (ctx.get("dataset_type") == "MC") genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > (genjets_name);
+  if (ctx.get("dataset_type") == "MC") genJets_handle = ctx.get_handle< std::vector<GenJet> > (genjets_name);
 
   // book all histograms here
   // jets
@@ -181,7 +181,7 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
     float jetKt = calcJetKt(*(event.genparticles));
     genjet_kt->Fill(jetKt, weight);
 
-    const std::vector<GenJetWithParts> * genjets = &event.get(genJets_handle);
+    const std::vector<GenJet> * genjets = &event.get(genJets_handle);
     int gj_ind1 = jet1.genjet_index();
 
     // if (gj_ind1 < 0) throw std::runtime_error("gj_ind1 is < 0");

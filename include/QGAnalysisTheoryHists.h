@@ -32,8 +32,8 @@ public:
     virtual void fill(const uhh2::Event & ev) override;
     virtual ~QGAnalysisTheoryHists();
 protected:
-    std::vector<GenParticle*> get_genjet_genparticles(const GenJetWithParts &, std::vector<GenParticle>*);
-    int get_jet_flavour(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles, float dr_max=0.2, bool PythiaMode=true);
+    std::vector<GenParticle*> get_genjet_genparticles(const GenJet &, std::vector<GenParticle>*);
+    int get_jet_flavour(const GenJet & jet, std::vector<GenParticle>* genparticles, float dr_max=0.2, bool PythiaMode=true);
 
     float jetRadius;
 
@@ -81,7 +81,7 @@ protected:
 
     int useNJets_;
 
-    uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
+    uhh2::Event::Handle<std::vector<GenJet> > genJets_handle;
 
     bool doHerwigReweighting;
     TH1F * reweightHist;

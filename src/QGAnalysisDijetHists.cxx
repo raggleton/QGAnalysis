@@ -23,7 +23,7 @@ QGAnalysisDijetHists::QGAnalysisDijetHists(Context & ctx, const string & dirname
     throw std::runtime_error("Binning should be 'ave', 'tnp', or 'leading'");
   }
   is_mc_ = ctx.get("dataset_type") == "MC";
-  if (is_mc_) genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > ("GoodGenJets");
+  if (is_mc_) genJets_handle = ctx.get_handle< std::vector<GenJet> > ("GoodGenJets");
 
   // book all histograms here
   // jets
@@ -172,7 +172,7 @@ void QGAnalysisDijetHists::fill(const Event & event){
     pt_jet_vs_genHT->Fill(largest_jet_pt, genHT, weight);
     weight_vs_puHat_genHT_ratio->Fill(weight, event.genInfo->PU_pT_hat_max() / genHT);
 
-    const std::vector<GenJetWithParts> * genjets = &event.get(genJets_handle);
+    const std::vector<GenJet> * genjets = &event.get(genJets_handle);
     int gj_ind1 = jet1.genjet_index();
     int gj_ind2 = jet2.genjet_index();
 

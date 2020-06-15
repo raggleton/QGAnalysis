@@ -220,12 +220,12 @@ QGAnalysisTheoryHists::QGAnalysisTheoryHists(Context & ctx, const string & dirna
   else
     throw runtime_error("Cannot determine jetRadius in QGAnalysisTheoryHists");
 
-  genJets_handle = ctx.get_handle< std::vector<GenJetWithParts> > ("GoodGenJets");
+  genJets_handle = ctx.get_handle< std::vector<GenJet> > ("GoodGenJets");
 }
 
 
 void QGAnalysisTheoryHists::fill(const Event & event){
-  // std::vector<GenJetWithParts>* genjets = event.genjets;
+  // std::vector<GenJet>* genjets = event.genjets;
   const auto & genjets = event.get(genJets_handle);
   int Njets = genjets.size();
 
@@ -428,7 +428,7 @@ void QGAnalysisTheoryHists::fill(const Event & event){
 /**
  * Get the collection of GenParticle*s for a given GenJet
  */
-std::vector<GenParticle*> QGAnalysisTheoryHists::get_genjet_genparticles(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles) {
+std::vector<GenParticle*> QGAnalysisTheoryHists::get_genjet_genparticles(const GenJet & jet, std::vector<GenParticle>* genparticles) {
   std::vector<GenParticle*> gp;
   for (const uint i : jet.genparticles_indices()) {
     gp.push_back(&(genparticles->at(i)));
@@ -444,7 +444,7 @@ std::vector<GenParticle*> QGAnalysisTheoryHists::get_genjet_genparticles(const G
 /**
  *
  */
-int QGAnalysisTheoryHists::get_jet_flavour(const GenJetWithParts & jet, std::vector<GenParticle>* genparticles, float dr_max, bool pythiaMode) {
+int QGAnalysisTheoryHists::get_jet_flavour(const GenJet & jet, std::vector<GenParticle>* genparticles, float dr_max, bool pythiaMode) {
 
   // cout << "genjet:" << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
   float smallest_dr = dr_max;
