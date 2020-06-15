@@ -55,7 +55,8 @@ enum PDGID {
  * Common cuts in different modules
  */
 namespace Cuts {
-  const std::string jec_tag_2016 = "Summer16_07Aug2017"; // not used in 80X, more to avoid conflicts when cherry-picking
+  const JetPFID::wp RECO_JET_ID = JetPFID::wp::WP_TIGHT_PUPPI;
+  const std::string jec_tag_2016 = "Summer16_07Aug2017";
   const std::string jec_ver_2016 = "11";
 }
 
