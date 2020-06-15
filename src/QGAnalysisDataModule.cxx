@@ -122,9 +122,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     DO_LAMBDA_HISTS = string2bool(ctx.get("DO_LAMBDA_HISTS", "true"));
 
     common_setup.reset(new GeneralEventSetup(ctx));
-    float jet_pt_min = 30.;
-    float jet_y_max = 2.5 - 0.8; // allow both AK4 & AK8 to fall inside tracker, and keeps both consistent
-    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jetRadius, jet_pt_min, jet_y_max));
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jetRadius, Cuts::reco_jet_pt_min, Cuts::jet_y_max));
     gen_weight_handle = ctx.get_handle<double>("gen_weight");
     pt_binning_reco_handle = ctx.get_handle<double>("pt_binning_reco_value"); // the value to use for reco pt bin e.g dijet average
     pt_binning_gen_handle = ctx.get_handle<double>("pt_binning_gen_value"); // the value to use for gen pt bin e.g dijet average
@@ -150,35 +148,28 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     zFinder.reset(new ZFinder(ctx, "muons", zLabel));
 
     // Z+JETS selection
-    float mu1_pt = 26.; // muon pt cut comes from the cleaner in GeneralEventSetup
-    float mu2_pt = 26.;
-    float mZ_window = 20.;
-    float dphi_jet_z_min = 2.0;
     float second_jet_frac_max_zpj = 1000.3;
-    float z_pt_min = 30.; // actually the gen level cut, but resolution good so no need to scale it
     float z_jet_asym_max = 100.4;
-    zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max, "ZPlusJetsSel"));
+    zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, Cuts::reco_muon_pt_min, Cuts::reco_muon_pt_min, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max, "ZPlusJetsSel"));
 
-    // Preselection for Z+J - only 2 muons to reco Z
-    dphi_jet_z_min = 0.;
+    // Preselection for Z+J - only 2 muons to reco Z, no other event cuts
+    float dphi_jet_z_min = 0.;
     second_jet_frac_max_zpj = 999.;
     z_jet_asym_max = 1.;
-    zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, z_pt_min, z_jet_asym_max, "ZPlusJetsSel_presel"));
+    zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, Cuts::reco_muon_pt_min, Cuts::reco_muon_pt_min, Cuts::mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max, "ZPlusJetsSel_presel"));
 
     // DIJET selection
-    float dphi_min = 2.;
     float second_jet_frac_max_dj = 10.94;
-    float jet_asym_max = 0.3;
     bool ss_eta = false;
     float deta = 12;
     float sumEta = 10.;
-    dijet_sel.reset(new DijetSelection(ctx, dphi_min, second_jet_frac_max_dj, jet_asym_max, ss_eta, deta, sumEta, "DijetSelCutFlow"));
+    dijet_sel.reset(new DijetSelection(ctx, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta, "DijetSelCutFlow"));
 
     // Lambda calculators
     bool doPuppi = (pu_removal == "PUPPI");
     int maxNJets = max(NJETS_ZPJ, NJETS_DIJET);
-    float recoConstitPtMin = 1.;
-    float recoConstitEtaMax = 5.;
+    float recoConstitPtMin = Cuts::constit_pt_min;
+    float recoConstitEtaMax = Cuts::constit_eta_max;
     // FIXME: get stuff from ctx not extra args?
     std::string reco_jetlambda_handle_name = "JetLambdas";
     jetLambdaCreatorPtSorted.reset(new QGAnalysisJetLambda(ctx, jetRadius, maxNJets, doPuppi,

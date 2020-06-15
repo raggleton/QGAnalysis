@@ -87,7 +87,7 @@ GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx) {
 
   electron_cleaner.reset(new ElectronCleaner(AndId<Electron>(ElectronID_Summer16_medium, PtEtaCut(20.0, 2.5))));
 
-  muon_cleaner.reset(new MuonCleaner(AndId<Muon>(MuonID(Muon::CutBasedIdMedium), PtEtaCut(26.0, 2.4), MuonID(Muon::PFIsoMedium))));
+  muon_cleaner.reset(new MuonCleaner(AndId<Muon>(MuonID(Muon::CutBasedIdMedium), PtEtaCut(Cuts::reco_muon_pt_min, Cuts::muon_eta_max), MuonID(Muon::PFIsoMedium))));
 }
 
 bool GeneralEventSetup::process(uhh2::Event & event) {
