@@ -5,7 +5,7 @@
 <Item Name="MuonCollection" Value="slimmedMuonsUSER" />
 
 <Item Name="GenParticleCollection" Value="GenParticles" />
-<Item Name="PFParticleCollection" Value="JetPFParticles" />
+<Item Name="PFParticleCollection" Value="PFParticles" />
 
 <!-- the class name of the AnalysisModule subclasses to run: -->
 <Item Name="AnalysisModule" Value="QGAnalysisDataModule" />
