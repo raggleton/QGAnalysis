@@ -74,20 +74,20 @@ MCJetMetCorrector::MCJetMetCorrector(uhh2::Context & ctx, const std::string & pu
   if (pu_removal == "CHS") {
     if (jet_cone == "AK4") {
       JEC_MC = JERFiles::Summer16_07Aug2017_V11_L123_AK4PFchs_MC;
-      resolutionFilename = "Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt";
+      resolutionFilename = "2016/Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt";
     } else if (jet_cone == "AK8") {
       JEC_MC = JERFiles::Summer16_07Aug2017_V11_L123_AK8PFchs_MC;
-      resolutionFilename = "Summer16_25nsV1_MC_PtResolution_AK8PFchs.txt";
+      resolutionFilename = "2016/Summer16_25nsV1_MC_PtResolution_AK8PFchs.txt";
     } else {
       throw runtime_error("CHS must have jet_cone of AK4 or AK8");
     }
   } else if (pu_removal == "PUPPI") {
     if (jet_cone == "AK4") {
       JEC_MC = JERFiles::Summer16_07Aug2017_V11_L123_AK4PFPuppi_MC;
-      resolutionFilename = "Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt";
+      resolutionFilename = "2016/Summer16_25nsV1_MC_PtResolution_AK4PFPuppi.txt";
     } else if (jet_cone == "AK8") {
       JEC_MC = JERFiles::Summer16_07Aug2017_V11_L123_AK8PFPuppi_MC;
-      resolutionFilename = "Summer16_25nsV1_MC_PtResolution_AK8PFchs.txt";
+      resolutionFilename = "2016/Summer16_25nsV1_MC_PtResolution_AK8PFPuppi.txt";
     } else {
       throw runtime_error("PUPPI must have jet_cone of AK4 or AK8");
     }
@@ -95,7 +95,7 @@ MCJetMetCorrector::MCJetMetCorrector(uhh2::Context & ctx, const std::string & pu
     throw runtime_error("pu_removal must be CHS or PUPPI");
   }
   jet_corrector.reset(new JetCorrector(ctx, JEC_MC));
-  jet_resolution_smearer.reset(new GenericJetResolutionSmearer(ctx, jet_coll_name, genjet_coll_name, true, JERSmearing::SF_13Tev_Summer16_25nsV1, resolutionFilename));
+  jet_resolution_smearer.reset(new GenericJetResolutionSmearer(ctx, jet_coll_name, genjet_coll_name, JERSmearing::SF_13TeV_Summer16_25nsV1, resolutionFilename));
 }
 
 bool MCJetMetCorrector::process(uhh2::Event & event) {
