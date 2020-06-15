@@ -122,7 +122,7 @@ GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx) {
 
   pv_cleaner.reset(new PrimaryVertexCleaner(pvid));
 
-  electron_cleaner.reset(new ElectronCleaner(AndId<Electron>(ElectronID_Spring16_medium, PtEtaCut(20.0, 2.5))));
+  electron_cleaner.reset(new ElectronCleaner(AndId<Electron>(ElectronID_Summer16_medium, PtEtaCut(20.0, 2.5))));
 
   muon_cleaner.reset(new MuonCleaner(AndId<Muon>(MuonID(Muon::CutBasedIdMedium), PtEtaCut(26.0, 2.4), MuonID(Muon::PFIsoMedium))));
 }
