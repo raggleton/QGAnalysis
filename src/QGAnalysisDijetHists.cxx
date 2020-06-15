@@ -360,7 +360,7 @@ void QGAnalysisDijetHists::fill(const Event & event){
   sumeta_jj_vs_pt_jet->Fill(jet1.Rapidity() + jet2.Rapidity(), binByVal, weight);
 
   met_vs_pt_jet->Fill(event.met->pt(), binByVal, weight);
-  met_sig_vs_pt_jet->Fill(event.met->mEtSig(), binByVal, weight);
+  met_sig_vs_pt_jet->Fill(event.met->mEtSignificance(), binByVal, weight);
 
   if (Njets >= 3) {
     Jet jet3 = jets->at(2);

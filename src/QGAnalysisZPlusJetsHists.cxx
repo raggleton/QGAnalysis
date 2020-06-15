@@ -280,7 +280,7 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   }
 
   met_vs_pt->Fill(event.met->pt(), binPt, weight);
-  met_sig_vs_pt->Fill(event.met->mEtSig(), binPt, weight);
+  met_sig_vs_pt->Fill(event.met->mEtSignificance(), binPt, weight);
 
   pt_jet1_z_ratio_vs_pt->Fill(jet1_pt / z_pt, binPt, weight);
   pt_jet1_z_ratio_vs_pt_jet1->Fill(jet1_pt / z_pt, jet1_pt, weight);
