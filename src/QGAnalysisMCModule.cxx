@@ -179,7 +179,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, jet_pt_min, jet_y_max, doJetId));
 
     // another jet ID check after tracking SFs applied (basically constituent check)
-    jet_pf_id.reset(new JetCleaner(ctx, JetPFID(JetPFID::wp::WP_LOOSE)));
+    jet_pf_id.reset(new JetCleaner(ctx, JetPFID(JetPFID::wp::WP_TIGHT_PUPPI)));
 
     // Setup Gen objects
     std::string genjet_handle_name = "GoodGenJets";
