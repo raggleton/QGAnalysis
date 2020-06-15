@@ -106,11 +106,11 @@ def resubmit_xml(xml_filename, local=False, el7_worker=False):
     worker_opt = "--el7worker" if el7_worker else ""
     cmd = 'sframe_batch.py -r %s %s %s' % (local_opt, worker_opt, xml_filename)
     try:
-        # if not local:
-        result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-        print(result)
-        # else:
-        #     subprocess.Popen(cmd, shell=True,)
+        if not local:
+            result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+            print(result)
+        else:
+            subprocess.Popen(cmd, shell=True)
     except Exception as err:
         print(err)
         print(err.output)
