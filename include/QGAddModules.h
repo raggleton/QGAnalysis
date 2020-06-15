@@ -14,6 +14,7 @@
 #include "UHH2/common/include/JetIds.h"
 #include "UHH2/common/include/CleaningModules.h"
 #include "UHH2/common/include/MCWeight.h"
+#include "UHH2/common/include/YearRunSwitchers.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -53,6 +54,15 @@ enum PDGID {
 
 
 /**
+ * Common cuts in different modules
+ */
+namespace Cuts {
+  const std::string jec_tag_2016 = "Summer16_07Aug2017";
+  const std::string jec_ver_2016 = "11";
+}
+
+
+/**
  * Easy way to do JEC, JER, MET corrections in Data. Takes care of run period dependency.
  */
 class DataJetMetCorrector : public uhh2::AnalysisModule {
@@ -60,12 +70,7 @@ public:
   explicit DataJetMetCorrector(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone);
   virtual bool process(uhh2::Event & event) override;
 private:
-  std::unique_ptr<JetCorrector> jet_corrector_BCD, jet_corrector_EFearly, jet_corrector_GH;
-  const int runnr_BCD = 276811;
-  const int runnr_EFearly = 278801;
-  const int runnr_FlateG = 280385;
-  // G&H last set
-  // const int runnr_FlateG = 280385;
+  std::unique_ptr<RunSwitcher> jec_switcher_16;
 };
 
 
