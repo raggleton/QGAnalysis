@@ -512,7 +512,7 @@ bool JetPFUpdater::process(uhh2::Event & event) {
   // go through jets, for each remove constituent if in dropped collection, add if in promoted
 
   for (auto & jet: event.get(jet_handle)) {
-    std::vector<uint> newDauIndices;
+    std::vector<long int> newDauIndices;
 
     // get un-corrected 4-vector, will be updated with dropped/promoted particles
     LorentzVectorXYZE jetv4xyz = toXYZ(jet.v4()) * jet.JEC_factor_raw();
@@ -521,7 +521,7 @@ bool JetPFUpdater::process(uhh2::Event & event) {
 
     // remove dropped
     if (dropped_pf_particles.size() > 0) {
-      for (const auto dInd : jet.daughterIndices()) {
+      for (const auto dInd : jet.pfcand_indexs()) {
         PFParticle dau = event.pfparticles->at(dInd);
         if (std::find(dropped_pf_particles.begin(), dropped_pf_particles.end(), dau) == dropped_pf_particles.end()) {
           newDauIndices.push_back(dInd);
@@ -532,7 +532,7 @@ bool JetPFUpdater::process(uhh2::Event & event) {
         }
       }
     } else {
-      newDauIndices = jet.daughterIndices();
+      newDauIndices = jet.pfcand_indexs();
     }
 
     if (promoted_pf_particles.size() > 0) {
@@ -550,7 +550,7 @@ bool JetPFUpdater::process(uhh2::Event & event) {
     // cout << "New v4: " << jetv4.pt() << " : " << jetv4.eta() << " : " << jetv4.phi() << endl;
     // TODO: recalc energy fractions as well?
     if (update4vec_) jet.set_v4(jetv4); // update with uncorrected 4-vector
-    jet.set_daughterIndices(newDauIndices);
+    jet.set_pfcand_indexs(newDauIndices);
     jet.set_numberOfDaughters(newDauIndices.size());
   }
 
@@ -1026,7 +1026,7 @@ std::vector<PFParticle> QGAnalysisJetLambda::get_jet_pfparticles(const Jet & jet
   std::vector<PFParticle> * pfparticles = event.pfparticles;
   std::vector<PFParticle> pfCopy;
   // Create a copy, since we might modify it later and we want to keep the original event.pfparticles intact
-  for (const uint i : jet.daughterIndices()) {
+  for (const uint i : jet.pfcand_indexs()) {
     PFParticle newPf;
     newPf.set_particleID(pfparticles->at(i).particleID());
     newPf.set_puppiWeight(pfparticles->at(i).puppiWeight());

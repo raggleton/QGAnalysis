@@ -171,7 +171,7 @@ void QGAnalysisZPlusJetsHists::fill(const Event & event){
   pt_jet1_unweighted->Fill(jet1_pt);
   pt_jet_response_binning->Fill(jet1_pt, weight);
   eta_jet1_vs_pt->Fill(jet1.Rapidity(), binPt, weight);
-  flav_jet1_vs_pt_jet1->Fill(abs(jet1.flavor()), jet1_pt, weight);
+  flav_jet1_vs_pt_jet1->Fill(abs(jet1.partonFlavour()), jet1_pt, weight);
 
   if (!event.isRealData) {
     float genHT = calcGenHT(*(event.genparticles));

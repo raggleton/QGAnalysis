@@ -785,7 +785,7 @@ bool QGAnalysisMCModule::process(Event & event) {
         if (hasRecoJets) {
             event.set(pt_binning_reco_handle, event.jets->at(0).pt());
             // flav-specific preselection hists, useful for optimising selection
-            uint flav1 = event.jets->at(0).flavor();
+            uint flav1 = event.jets->at(0).partonFlavour();
             if (found_reco_z) {
                 if (DO_KINEMATIC_HISTS) zplusjets_hists_presel->fill(event);
                 // if (zplusjets_presel->passes(event)) {
@@ -911,8 +911,8 @@ bool QGAnalysisMCModule::process(Event & event) {
 
         if (hasRecoJets && njet_two_sel->passes(event)) {
             // flav-specific preselection hists, useful for optimising selection
-            uint flav1 = event.jets->at(0).flavor();
-            uint flav2 = event.jets->at(1).flavor();
+            uint flav1 = event.jets->at(0).partonFlavour();
+            uint flav2 = event.jets->at(1).partonFlavour();
 
             // Fill hists
             if (DO_KINEMATIC_HISTS) dijet_hists_presel->fill(event);
@@ -1001,8 +1001,8 @@ bool QGAnalysisMCModule::process(Event & event) {
                 dijet_hists_eta_ordered->fill(event);
 
                 // flav-specific eta-orderd hists, useful for optimising selection
-                flav1 = event.jets->at(0).flavor();
-                flav2 = event.jets->at(1).flavor();
+                flav1 = event.jets->at(0).partonFlavour();
+                flav2 = event.jets->at(1).partonFlavour();
 
                 // cout << "eta order plots: " << endl;
                 // if (event.jets->size() > 0) cout << "jet[0].genjet_index: " << event.jets->at(0).genjet_index() << endl;
@@ -1057,7 +1057,7 @@ bool QGAnalysisMCModule::process(Event & event) {
         if (event.jets->at(0).pt() < ptCut) return false;
         flav2 = 99999999;
         if ((event.jets->size() > 1) && (event.jets->at(1).pt() > ptCut)) {
-            flav2 = event.jets->at(1).flavor();
+            flav2 = event.jets->at(1).partonFlavour();
             dijet_hists_presel_highPt->fill(event);
 
             // flav-specific preselection hists, useful for optimising selection

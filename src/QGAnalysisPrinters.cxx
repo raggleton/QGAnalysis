@@ -32,7 +32,7 @@ void uhh2examples::print_genjet_genparticles(const GenJet & jet, const std::vect
 }
 
 void uhh2examples::print_jet_pfparticles(const Jet & jet, const std::vector<PFParticle>* pfparticles) {
-  for (const uint i : jet.daughterIndices()) {
+  for (const uint i : jet.pfcand_indexs()) {
     std::cout << pfparticles->at(i).pt() << " : " << pfparticles->at(i).charge() << " : " << deltaR(jet.v4(), pfparticles->at(i).v4()) << std::endl;
   }
 }

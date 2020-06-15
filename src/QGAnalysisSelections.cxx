@@ -406,7 +406,7 @@ JetFlavourSelection::JetFlavourSelection(std::vector<int> pdgids, uint jet_index
 bool JetFlavourSelection::passes(const Event & event) {
     if (event.jets->size() <= jet_index_) return false;
     const auto & jet = event.jets->at(jet_index_);
-    uint flav = abs(jet.genPartonFlavor());
+    uint flav = abs(jet.partonFlavour());
     return std::find(flavours_.begin(), flavours_.end(), flav) != flavours_.end();
 }
 

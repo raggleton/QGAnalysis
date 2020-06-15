@@ -437,7 +437,7 @@ void QGAnalysisHists::fill(const Event & event){
           cout << "constits: " << endl;
           float myptd = 0;
           float ptsum = 0;
-          for (const auto & cind : thisjet.daughterIndices()) {
+          for (const auto & cind : thisjet.pfcand_indexs()) {
             const PFParticle & pf = event.pfparticles->at(cind);
             if (pf.pt() < 1) continue;
             cout << pf.pt() << " : " << pf.Rapidity() << " : " << pf.phi() << " : " << pf.puppiWeight() << endl;
@@ -509,7 +509,7 @@ void QGAnalysisHists::fill(const Event & event){
           bool thisPassGenCharged = passGen && (matchedGenJetCalcCharged.constits().size() > 1);
 
           genjet_pt = genjet.pt();
-          genjet_flav = abs(genjet.flavor());
+          genjet_flav = abs(genjet.partonFlavour());
           response = jet_pt/genjet_pt;
           h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
 
@@ -603,7 +603,7 @@ void QGAnalysisHists::fill(const Event & event){
         } // end if matchedgenjet
 
         // int jet_flav = get_jet_flavour(thisjet, event.genparticles);
-        int jet_flav = abs(thisjet.flavor());
+        int jet_flav = abs(thisjet.partonFlavour());
 
         // Split by actual jet flavour - these only make sense for MC
         if (thisPassReco) {
@@ -737,13 +737,13 @@ void QGAnalysisHists::fill(const Event & event){
       h_genjet_width_vs_pt->Fill(gen_width, genjet_pt, gen_weight);
       h_genjet_thrust_vs_pt->Fill(gen_thrust, genjet_pt, gen_weight);
 
-      // if (thisjet.flavor() == PDGID::GLUON) { // gluon jets
+      // if (thisjet.partonFlavour() == PDGID::GLUON) { // gluon jets
       //   h_ggenjet_multiplicity->Fill(gen_mult, gen_weight);
       //   h_ggenjet_LHA->Fill(gen_lha, gen_weight);
       //   h_ggenjet_pTD->Fill(gen_ptd, gen_weight);
       //   h_ggenjet_width->Fill(gen_width, gen_weight);
       //   h_ggenjet_thrust->Fill(gen_thrust, gen_weight);
-      // } else if ((abs(thisjet.flavor()) <= PDGID::STRANGE_QUARK) && (abs(thisjet.flavor()) > PDGID::UNKNOWN)){ // uds jets
+      // } else if ((abs(thisjet.partonFlavour()) <= PDGID::STRANGE_QUARK) && (abs(thisjet.partonFlavour()) > PDGID::UNKNOWN)){ // uds jets
       //   h_qgenjet_multiplicity->Fill(gen_mult, gen_weight);
       //   h_qgenjet_LHA->Fill(gen_lha, gen_weight);
       //   h_qgenjet_pTD->Fill(gen_ptd, gen_weight);
@@ -802,7 +802,7 @@ void QGAnalysisHists::fill_lambda_rsp_hists(float reco_val, float gen_val, float
  */
 std::vector<PFParticle*> QGAnalysisHists::get_jet_pfparticles(const Jet & jet, std::vector<PFParticle>* pfparticles) {
   std::vector<PFParticle*> pf;
-  for (const uint i : jet.daughterIndices()) {
+  for (const uint i : jet.pfcand_indexs()) {
     pf.push_back(&(pfparticles->at(i)));
   }
   return pf;

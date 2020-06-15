@@ -77,8 +77,8 @@ void QGAnalysisFlavCompHists::fill(const Event & event){
     float absEta = fabs(thisjet.eta());
     if ((pt < jetPtMin_) || (pt > jetPtMax_) || (absEta < jetEtaMin_) || (absEta > jetEtaMax_))
       continue;
-    int jet_flav = abs(thisjet.flavor());
-    int jet_hadronflav = abs(thisjet.hadronFlavor());
+    int jet_flav = abs(thisjet.partonFlavour());
+    int jet_hadronflav = abs(thisjet.hadronFlavour());
 
     h_jet_flavour_vs_hadron_flavour->Fill(jet_flav, jet_hadronflav, weight);
   }
