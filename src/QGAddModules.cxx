@@ -84,10 +84,10 @@ MCJetMetCorrector::MCJetMetCorrector(uhh2::Context & ctx, const std::string & pu
   } else if (pu_removal == "PUPPI") {
     if (jet_cone == "AK4") {
       JEC_MC = JERFiles::Summer16_07Aug2017_V11_L123_AK4PFPuppi_MC;
-      resolutionFilename = "Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt";
+      resolutionFilename = "Summer16_25nsV1_MC_PtResolution_AK4PFPuppi.txt";
     } else if (jet_cone == "AK8") {
       JEC_MC = JERFiles::Summer16_07Aug2017_V11_L123_AK8PFPuppi_MC;
-      resolutionFilename = "Summer16_25nsV1_MC_PtResolution_AK8PFchs.txt";
+      resolutionFilename = "Summer16_25nsV1_MC_PtResolution_AK8PFPuppi.txt";
     } else {
       throw runtime_error("PUPPI must have jet_cone of AK4 or AK8");
     }
