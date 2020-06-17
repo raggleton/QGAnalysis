@@ -512,16 +512,7 @@ bool QGAnalysisDataModule::process(Event & event) {
 
     if (PRINTOUT) printMuons(*event.muons);
     if (PRINTOUT) printElectrons(*event.electrons);
-
-    if (!njet_sel->passes(event)) return false; //redo 1 jet cut again after cleaning etc
-
-    if (PRINTOUT) printJets(*event.jets);
-
-    // Calculate lambda vars for jets for Z+jets
-    // These will be used in various histogram classes
-    // At this point, all objects should have had all necessary corrections, filtering, etc
-    // ---------------------------------------------------------------------
-    jetLambdaCreatorPtSorted->process(event);
+    if (PRINTOUT) printJetsWithParts(*event.jets, event.pfparticles);
 
     if (dataset == DATASET::SingleMu) {
         if (!zFinder->process(event))
@@ -535,6 +526,11 @@ bool QGAnalysisDataModule::process(Event & event) {
             selected = zplusjets_sel->passes(event);
             event.set(pass_zpj_sel_handle, selected);
             if (selected) {
+                // Calculate lambda vars for jets (pt ordered)
+                // These will be used in various histogram classes
+                // At this point, all objects should have had all necessary corrections, filtering, etc
+                jetLambdaCreatorPtSorted->process(event);
+
                 if (DO_KINEMATIC_HISTS) {
                     zplusjets_hists->fill(event);
                 }
@@ -566,6 +562,11 @@ bool QGAnalysisDataModule::process(Event & event) {
             std::vector<Jet> centralJet = {leadingJets[1]};
             event.set(dijet_forward_handle, forwardJet);
             event.set(dijet_central_handle, centralJet);
+
+            // Calculate lambda vars for jets (pt ordered)
+            // These will be used in various histogram classes
+            // At this point, all objects should have had all necessary corrections, filtering, etc
+            jetLambdaCreatorPtSorted->process(event);
 
             // Calculate lambda vars for recojets for dijets
             // These will be used in various histogram classes
