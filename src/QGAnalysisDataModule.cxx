@@ -480,7 +480,7 @@ bool QGAnalysisDataModule::process(Event & event) {
         }
     }
 
-    if (PRINTOUT) {cout << "-- Event: " << event.event << endl; }
+    if (PRINTOUT) cout << Color::BG_RED << "-- Event: " << event.event << " : " << event.luminosityBlock << " : " << event.run << Color::BG_DEFAULT << endl;
 
     if (PRINTOUT) printMuons(*event.muons, "Precleaning");
     if (PRINTOUT) printElectrons(*event.electrons, "Precleaning");
@@ -492,6 +492,8 @@ bool QGAnalysisDataModule::process(Event & event) {
     if (!njet_sel->passes(event)) return false;
 
     // Check trigger
+    // Note that the ZeroBias/JetHT gets split depending on leading jet pT
+    // So do it after JEC/JER etc (if that's how the threshold was measured)
     bool passTrigger(false);
     int dj_trig_ind(0);
     if (dataset == DATASET::SingleMu) {

@@ -584,9 +584,9 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
 bool QGAnalysisMCModule::process(Event & event) {
 
-    bool printout_event_sel = event_sel_printout->passes(event);
-
-    // if (!event_sel->passes(event)) return false;
+    bool printout_event_sel = false;
+    // bool printout_event_sel = event_sel_printout->passes(event);
+    // if (!printout_event_sel) return false;
 
     event.set(gen_weight_handle, event.weight); // need to set this at the start
     event.set(pt_binning_reco_handle, 0); // need to set this at the start
@@ -610,7 +610,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     event.set(dijet_gen_forward_handle, std::vector<GenJetWithParts>());
     event.set(dijet_gen_central_handle, std::vector<GenJetWithParts>());
 
-    if (PRINTOUT || printout_event_sel) { cout << "-- Event: " << event.event << endl; }
+    if (PRINTOUT || printout_event_sel) cout << Color::BG_RED << "-- Event: " << event.event << " : " << event.luminosityBlock << " : " << event.run << Color::BG_DEFAULT << endl;
     // cout << "-- Event: " << event.event << endl;
 
     // Redo AK8 genjet clustering
@@ -618,28 +618,30 @@ bool QGAnalysisMCModule::process(Event & event) {
     // This is so we can get all gen jets, since the ntuple only had pt > 170
     // -------------------------------------------------------------------------
     if (jetCone == "AK8") {
-        // for (const auto & itr : *(event.genjets)) {
-        //     cout << "Original gj: " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << " : " << itr.genparticles_indices().size() << endl;
-        //     for (const auto & citr : itr.genparticles_indices()) {
-        //         auto constit = event.genparticles->at(citr);
-        //         cout << "    constit: " << constit.pt() << " : " << constit.eta() << " : " << constit.phi() << " : " << constit.pdgId() << " : " << constit.status() << " : " << constit.daughter1() << " : " << constit.daughter2() << endl;
-        //     }
-        // }
+        for (const auto & itr : *(event.genjets)) {
+            cout << "Original gj: " << itr.pt() << " : " << itr.Rapidity() << " : " << itr.phi() << " : " << itr.genparticles_indices().size() << endl;
+            for (const auto & citr : itr.genparticles_indices()) {
+                auto constit = event.genparticles->at(citr);
+                cout << "    constit: " << constit.pt() << " : " << constit.Rapidity() << " : " << constit.phi() << " : " << constit.pdgId() << " : " << constit.status() << " : " << constit.daughter1() << " : " << constit.daughter2() << endl;
+            }
+        }
         genjet_cluster->process(event);
         std::vector<GenJetWithParts> newGenJets = event.get(new_genjets_handle);
         std::swap(*event.genjets, newGenJets);
-        // for (const auto & itr : *(event.genjets)) {
-        //     cout << "New gj: " << itr.pt() << " : " << itr.eta() << " : " << itr.phi() << " : " << itr.genparticles_indices().size() << endl;
-        //     for (const auto & citr : itr.genparticles_indices()) {
-        //         auto constit = event.genparticles->at(citr);
-        //         cout << "    constit: " << constit.pt() << " : " << constit.eta() << " : " << constit.phi() << " : " << constit.pdgId() << " : " << constit.status() << " : " << constit.daughter1() << " : " << constit.daughter2() << endl;
-        //     }
-        // }
+        for (const auto & itr : *(event.genjets)) {
+            cout << "New gj: " << itr.pt() << " : " << itr.Rapidity() << " : " << itr.phi() << " : " << itr.genparticles_indices().size() << endl;
+            for (const auto & citr : itr.genparticles_indices()) {
+                auto constit = event.genparticles->at(citr);
+                cout << "    constit: " << constit.pt() << " : " << constit.Rapidity() << " : " << constit.phi() << " : " << constit.pdgId() << " : " << constit.status() << " : " << constit.daughter1() << " : " << constit.daughter2() << endl;
+            }
+        }
 
     }
 
     if (!(njet_min_sel->passes(event) || ngenjet_min_sel->passes(event))) return false;
 
+    if (PRINTOUT || printout_event_sel) printGenParticles(*event.genparticles);
+    if (PRINTOUT || printout_event_sel) printPFParticles(*event.pfparticles);
     if (PRINTOUT || printout_event_sel) printMuons(*event.muons, "Precleaning");
     if (PRINTOUT || printout_event_sel) printElectrons(*event.electrons, "Precleaning");
     if (PRINTOUT || printout_event_sel) printJets(*event.jets, "Precleaning");
@@ -675,12 +677,11 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     if (PRINTOUT || printout_event_sel) printMuons(*event.muons);
     if (PRINTOUT || printout_event_sel) printElectrons(*event.electrons);
-    // if (PRINTOUT || printout_event_sel) printGenParticles(*event.genparticles);
 
     // Get Gen muons
     // -------------------------------------------------------------------------
     std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, Cuts::gen_muon_pt_min, Cuts::muon_eta_max);
-    // printGenParticles(goodGenMuons);
+    if (PRINTOUT || printout_event_sel) printGenParticles(goodGenMuons, "GenMuons", Color::FG_CYAN);
     event.set(genmuons_handle, std::move(goodGenMuons));
 
     // Get good GenJets, store in event
@@ -727,15 +728,15 @@ bool QGAnalysisMCModule::process(Event & event) {
     genjet_hists->fill(event);
 
     // RECO PART
-    if (PRINTOUT || printout_event_sel) printJets(*event.jets, "Original jets");
+    // if (PRINTOUT || printout_event_sel) printJets(*event.jets, "Original jets");
 
     // Get matching GenJets for reco jets
     // -------------------------------------------------------------------------
     jetMatcherPtOrdered->process(event);
 
-    // if (PRINTOUT || printout_event_sel) printJets(*event.jets, "Matched Jets");
+    if (PRINTOUT || printout_event_sel) printJets(*event.jets, "Matched Jets");
     // if (PRINTOUT || printout_event_sel) printGenJets(event.get(genjets_handle), "GoodGenJets");
-    if (PRINTOUT || printout_event_sel) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets");
+    // if (PRINTOUT || printout_event_sel) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets");
     if (PRINTOUT || printout_event_sel) printGenJetsWithParts(event.get(genjets_handle), event.genparticles, "GoodGenJets");
 
     // Apply tracking SFs, but only after JECs, etc applied
