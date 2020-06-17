@@ -1,10 +1,9 @@
-<Item Name="lumi_file" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/common/data/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.root"/>
+<Item Name="lumi_file" Value="/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/data/2016/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.root"/>
 <Item Name="PrimaryVertexCollection" Value="offlineSlimmedPrimaryVertices" />
 <Item Name="ElectronCollection" Value="slimmedElectronsUSER" />
 <!-- <Item Name="ElectronCollection" Value="slimmedElectrons" /> -->
 <Item Name="MuonCollection" Value="slimmedMuonsUSER" />
 
-<Item Name="GenParticleCollection" Value="GenParticles" />
 <Item Name="PFParticleCollection" Value="PFParticles" />
 
 <!-- the class name of the AnalysisModule subclasses to run: -->
