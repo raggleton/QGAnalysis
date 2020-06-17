@@ -866,6 +866,11 @@ bool QGAnalysisMCModule::process(Event & event) {
             std::vector<Jet> centralJet = {leadingJets[1]};
             event.set(dijet_forward_handle, forwardJet);
             event.set(dijet_central_handle, centralJet);
+
+            // Do Reco selection
+            pass_dj_reco = dijet_sel_tighter->passes(event);
+            event.set(pass_dj_sel_handle, pass_dj_reco);
+
         }
 
         if (hasGenJets) {
@@ -881,6 +886,10 @@ bool QGAnalysisMCModule::process(Event & event) {
             std::vector<GenJetWithParts> centralGenJet = {leadingGenJets[1]};
             event.set(dijet_gen_forward_handle, forwardGenJet);
             event.set(dijet_gen_central_handle, centralGenJet);
+
+            // Do Gen selection
+            pass_dj_gen = dijet_gen_sel->passes(event);
+            event.set(pass_dj_gen_sel_handle, pass_dj_gen);
         }
 
         // Do genjet matching specifically for forward/central
@@ -898,10 +907,7 @@ bool QGAnalysisMCModule::process(Event & event) {
         genjetLambdaCreatorForward->process(event);
         genjetLambdaCreatorCentral->process(event);
 
-        pass_dj_gen = dijet_gen_sel->passes(event);
-        event.set(pass_dj_gen_sel_handle, pass_dj_gen);
-
-        if (hasRecoJets && njet_two_sel->passes(event)) {
+        if (hasRecoJets) {
             // flav-specific preselection hists, useful for optimising selection
             uint flav1 = event.jets->at(0).flavor();
             uint flav2 = event.jets->at(1).flavor();
@@ -936,8 +942,6 @@ bool QGAnalysisMCModule::process(Event & event) {
             //     }
             // }
 
-            pass_dj_reco = dijet_sel_tighter->passes(event);
-            event.set(pass_dj_sel_handle, pass_dj_reco);
             if (pass_dj_reco) {
                 dijet_gen_sel_passReco->passes(event); // this plots cutflow as well - only if we pass dijet reco selection
                 genjet_hists_passDijetReco->fill(event);
@@ -949,12 +953,13 @@ bool QGAnalysisMCModule::process(Event & event) {
             }
 
             bool standard_sel = dijet_sel->passes(event);
+            bool tight_sel = dijet_sel_tighter->passes(event); // aka passReco
             if (DO_KINEMATIC_HISTS) {
                 if (standard_sel) {
                     dijet_hists->fill(event);
                     dijet_qg_hists->fill(event);
                 }
-                if (dijet_sel_tighter->passes(event)) {
+                if (tight_sel) {
                     dijet_hists_tighter->fill(event);
                     dijet_qg_hists_tighter->fill(event);
                     dijet_qg_hists_central_tighter->fill(event);
@@ -968,7 +973,7 @@ bool QGAnalysisMCModule::process(Event & event) {
                 if (standard_sel) {
                     dijet_qg_hists->fill(event);
                 }
-                if (dijet_sel_tighter->passes(event)) {
+                if (tight_sel) {
                     dijet_qg_hists_tighter->fill(event);
                     dijet_qg_hists_central_tighter->fill(event);
                     dijet_qg_hists_forward_tighter->fill(event);
@@ -978,7 +983,6 @@ bool QGAnalysisMCModule::process(Event & event) {
             }
 
             // do eta-sorted dijet hists (where we need both jets)
-
 
             if (DO_KINEMATIC_HISTS && standard_sel) {
                 // do dijet hists but sorted by eta (only one that matters about eta-ordering)
