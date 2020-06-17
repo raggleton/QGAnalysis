@@ -940,7 +940,9 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
 
     // Cluster using AKx to make pseudojet with right history
     JetDefinition jet_def(antikt_algorithm, JetDefinition::max_allowable_R); // don't use jet radius, as it can lead to several jets instead of the original
-    std::vector<PseudoJet> akJets = jet_def(pjconstits);
+    fastjet::ClusterSequence clust_seq(pjconstits, jet_def);
+    std::vector<PseudoJet> akJets = sorted_by_pt(clust_seq.inclusive_jets(1.));
+
     if (akJets.size() > 1) {
       cout << " >1 ak jets" << endl;
       cout << "Original jet: " << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
@@ -1164,7 +1166,9 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
 
     // Cluster using AKx to make pseudojet with right history
     JetDefinition jet_def(antikt_algorithm, JetDefinition::max_allowable_R); // don't use jet radius, as it can lead to several jets instead of the original
-    std::vector<PseudoJet> akJets = jet_def(pjconstits);
+    fastjet::ClusterSequence clust_seq(pjconstits, jet_def);
+    std::vector<PseudoJet> akJets = sorted_by_pt(clust_seq.inclusive_jets(1.));
+
     if (akJets.size() > 1) {
       cout << " >1 ak jets" << endl;
       cout << "Original jet: " << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
