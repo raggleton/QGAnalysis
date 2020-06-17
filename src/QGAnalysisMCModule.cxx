@@ -217,17 +217,17 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // Event Selections
     NJETS_ZPJ = 1;
     NJETS_DIJET = 2;
-    int minNJets = min(NJETS_ZPJ, NJETS_DIJET);
+    int minNJets = isZPlusJets ? NJETS_ZPJ : NJETS_DIJET;
     njet_min_sel.reset(new NJetSelection(minNJets));
-    njet_two_sel.reset(new NJetSelection(NJETS_DIJET));
+    // njet_two_sel.reset(new NJetSelection(NJETS_DIJET));
     ngenjet_min_sel.reset(new NGenJetSelection(minNJets));
-    ngenjet_two_sel.reset(new NGenJetSelection(NJETS_DIJET)); //, -1, boost::none, genjet_handle_name));
+    // ngenjet_two_sel.reset(new NGenJetSelection(NJETS_DIJET)); //, -1, boost::none, genjet_handle_name));
     ngenjet_good_sel.reset(new NGenJetSelection(minNJets, -1, boost::none, genjets_handle));
-    ngenjet_good_two_sel.reset(new NGenJetSelection(2, -1, boost::none, genjets_handle));
+    // ngenjet_good_two_sel.reset(new NGenJetSelection(2, -1, boost::none, genjets_handle));
 
     // Lambda calculators
     bool doPuppi = (pu_removal == "PUPPI");
-    int maxNJets = max(NJETS_ZPJ, NJETS_DIJET);
+    int maxNJets = minNJets;
     float recoConstitPtMin = Cuts::constit_pt_min;
     float recoConstitEtaMax = Cuts::constit_eta_max;
     // FIXME: get stuff from ctx not extra args?
@@ -673,8 +673,6 @@ bool QGAnalysisMCModule::process(Event & event) {
     bool passCommonRecoSetup = common_setup->process(event);
     recojet_setup->process(event);
 
-    if (!(njet_min_sel->passes(event) || ngenjet_min_sel->passes(event))) return false;
-
     if (PRINTOUT || printout_event_sel) printMuons(*event.muons);
     if (PRINTOUT || printout_event_sel) printElectrons(*event.electrons);
     // if (PRINTOUT || printout_event_sel) printGenParticles(*event.genparticles);
@@ -690,6 +688,8 @@ bool QGAnalysisMCModule::process(Event & event) {
     genJet_selector->process(event);
     // Need these as loosest possible requirement to run reco- or gen-specific bits
     bool hasGenJets = ngenjet_good_sel->passes(event);
+
+    if (!(njet_min_sel->passes(event) || hasGenJets)) return false;
 
     // MC-specific parts like reweighting for SF, for muR/F scale, etc
     mc_reweight->process(event); // also responsible for setting gen weight, so do after scale variations
@@ -852,7 +852,7 @@ bool QGAnalysisMCModule::process(Event & event) {
 
         if (DO_KINEMATIC_HISTS) dijet_gen_hists->fill(event);
 
-        if (hasRecoJets && njet_two_sel->passes(event)) {
+        if (hasRecoJets) {
             // Sort by eta & assign to handles
             // assign forward/central jets to handles for later use
             std::vector<Jet> leadingJets(event.jets->begin(), event.jets->begin()+2);
@@ -868,7 +868,7 @@ bool QGAnalysisMCModule::process(Event & event) {
             event.set(dijet_central_handle, centralJet);
         }
 
-        if (ngenjet_good_two_sel->passes(event)) {
+        if (hasGenJets) {
             // Save forward/central genjets to own handles
             std::vector<GenJet> leadingGenJets(event.get(genjets_handle).begin(), event.get(genjets_handle).begin()+2);
             if (leadingGenJets.size() != 2) {
@@ -1016,7 +1016,7 @@ bool QGAnalysisMCModule::process(Event & event) {
                     }
                 }
             }
-        } // end hasRecoJets & >=2 jets
+        } // end hasRecoJets
 
         // Do unfolding hists
         // ---------------------------------------------------------------------
