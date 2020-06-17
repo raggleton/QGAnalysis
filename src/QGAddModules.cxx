@@ -944,22 +944,37 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     std::vector<PseudoJet> akJets = sorted_by_pt(clust_seq.inclusive_jets(1.));
 
     if (akJets.size() > 1) {
-      cout << " >1 ak jets" << endl;
-      cout << "Original jet: " << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
-      for (const auto & subjet : akJets) {
-        cout << "ak jet: " << subjet.pt() << " : " << subjet.eta() << " : " << subjet.phi() << endl;
+      cout << "QGAnalysisJetLambda : >1 ak jets" << endl;
+      cout << "Original jet: " << jet.pt()*jet.JEC_factor_raw() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
+      for (const auto & newjet : akJets) {
+        cout << "ak jet: " << newjet.pt() << " : " << newjet.rap() << " : " << newjet.phi() << endl;
+        for (const auto & d : newjet.constituents()) {
+          cout << "   constit: " << d.pt() << " : " << d.rap() << " : " << d.phi() << endl;
+        }
       }
     } else if (akJets.size() == 0) {
       cout << "uhh jet constits:" << endl;
       for (const auto & dau : constits) {
-        cout << "    " << dau.pt() << " : " << dau.eta() << " :" << dau.phi() << endl;
+        cout << "    " << dau.pt() << " : " << dau.Rapidity() << " :" << dau.phi() << endl;
       }
       cout << "pjconstits:" << endl;
       for (const auto & dau : pjconstits) {
-        cout << "    " << dau.pt() << " : " << dau.eta() << " :" << dau.phi() << endl;
+        cout << "    " << dau.pt() << " : " << dau.rap() << " :" << dau.phi() << endl;
       }
       throw std::runtime_error("AKx reclustering failed QGAnalysisJetLambda - no jets");
     }
+
+    if (fabs(akJets[0].pt() - jet.pt()*jet.JEC_factor_raw()) / akJets[0].pt() > 0.1)  {
+      cout << "Original jet: " << jet.pt()*jet.JEC_factor_raw() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
+      cout << "ak jet: " << akJets[0].pt() << " : " << akJets[0].rap() << " : " << akJets[0].phi() << endl;
+      throw std::runtime_error("Reclustered AK pT mismatch");
+    }
+    if (fabs(akJets[0].rap() - jet.Rapidity()) > 0.1)  {
+      cout << "Original jet: " << jet.pt()*jet.JEC_factor_raw() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
+      cout << "ak jet: " << akJets[0].pt() << " : " << akJets[0].rap() << " : " << akJets[0].phi() << endl;
+      throw std::runtime_error("Reclustered AK eta mismatch");
+    }
+
     // cout << "Original jet: " << jet.pt()*jet.JEC_factor_raw() << " : " << jet.eta() << " : " << jet.phi() << endl;
     // cout << "ak jet: " << akJets[0].pt() << " : " << akJets[0].eta() << " : " << akJets[0].phi() << endl;
 
@@ -1170,21 +1185,35 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     std::vector<PseudoJet> akJets = sorted_by_pt(clust_seq.inclusive_jets(1.));
 
     if (akJets.size() > 1) {
-      cout << " >1 ak jets" << endl;
-      cout << "Original jet: " << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
-      for (const auto & subjet : akJets) {
-        cout << "ak jet: " << subjet.pt() << " : " << subjet.eta() << " : " << subjet.phi() << endl;
+      cout << "QGAnalysisGenJetLambda : >1 ak jets" << endl;
+      cout << "Original jet: " << jet.pt() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
+      for (const auto & newjet : akJets) {
+        cout << "ak jet: " << newjet.pt() << " : " << newjet.rap() << " : " << newjet.phi() << endl;
+        for (const auto & d : newjet.constituents()) {
+          cout << "   constit: " << d.pt() << " : " << d.rap() << " : " << d.phi() << endl;
+        }
       }
     } else if (akJets.size() == 0) {
       cout << "uhh jet constits:" << endl;
       for (const auto & dau : constits) {
-        cout << "    " << dau.pt() << " : " << dau.eta() << " :" << dau.phi() << endl;
+        cout << "    " << dau.pt() << " : " << dau.Rapidity() << " :" << dau.phi() << endl;
       }
       cout << "pjconstits:" << endl;
       for (const auto & dau : pjconstits) {
-        cout << "    " << dau.pt() << " : " << dau.eta() << " :" << dau.phi() << endl;
+        cout << "    " << dau.pt() << " : " << dau.rap() << " :" << dau.phi() << endl;
       }
       throw std::runtime_error("AKx reclustering failed QGAnalysisGenJetLambda - no jets");
+    }
+
+    if (fabs(akJets[0].pt() - jet.pt()) / jet.pt() > 0.1)  {
+      cout << "Original genjet: " << jet.pt() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
+      cout << "ak jet: " << akJets[0].pt() << " : " << akJets[0].rap() << " : " << akJets[0].phi() << endl;
+      throw std::runtime_error("Reclustered AK pT mismatch");
+    }
+    if (fabs(akJets[0].rap() - jet.Rapidity()) > 0.1)  {
+      cout << "Original genjet: " << jet.pt() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
+      cout << "ak jet: " << akJets[0].pt() << " : " << akJets[0].rap() << " : " << akJets[0].phi() << endl;
+      throw std::runtime_error("Reclustered AK y mismatch");
     }
 
     // Now recluster using WTA
