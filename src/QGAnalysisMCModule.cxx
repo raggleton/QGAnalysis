@@ -741,7 +741,7 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // Apply tracking SFs, but only after JECs, etc applied
     // - we want to use the original jet pT
-    tracking_eff->process(event);
+    // tracking_eff->process(event);
 
     // Apply Jet PF ID since the jet constituents changes
     jet_pf_id->process(event);
