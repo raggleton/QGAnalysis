@@ -155,9 +155,6 @@ RecoJetSetup::RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, 
     jet_met_corrector.reset(new DataJetMetCorrector(ctx, pu_removal, jet_cone));
   }
 
-  // eta cut to allow for all of the jet to fall inside tracker (<2.5)
-  // jet_cleaner.reset(new JetCleaner(ctx, PtEtaCut(jet_pt_min, 2.5-jet_radius)));
-
   // eta cut to allow for both AK4 & AK8 jets to fall inside tracker (<2.5)
   // also note we cut on y not eta, since our jets can be massive
   jet_cleaner.reset(new JetCleaner(ctx, PtYCut(jet_pt_min, jet_y_max)));
