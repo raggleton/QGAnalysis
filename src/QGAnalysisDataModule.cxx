@@ -85,6 +85,7 @@ private:
 
     std::unique_ptr<EventNumberSelection> event_sel;
     DATASET::Name dataset;
+    bool isZPlusJets = false;
 
     bool DO_UNFOLD_HISTS = true;
     bool DO_KINEMATIC_HISTS = true;
@@ -116,6 +117,8 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
 
     cout << "Running with jet cone: " << jet_cone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
+    cout << "Is Z+jets: " << isZPlusJets << endl;
+    isZPlusJets = (dataset == DATASET::SingleMu);
 
     DO_UNFOLD_HISTS = string2bool(ctx.get("DO_UNFOLD_HISTS", "true"));
     DO_KINEMATIC_HISTS = string2bool(ctx.get("DO_KINEMATIC_HISTS", "true"));
@@ -142,7 +145,8 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     // Event Selections
     int NJETS_ZPJ = 1;
     int NJETS_DIJET = 2;
-    njet_sel.reset(new NJetSelection(min(NJETS_ZPJ, NJETS_DIJET)));
+    int minNJets = isZPlusJets ? NJETS_ZPJ : NJETS_DIJET;
+    njet_sel.reset(new NJetSelection(minNJets));
 
     zLabel = "zMuonCand";
     zFinder.reset(new ZFinder(ctx, "muons", zLabel));
@@ -167,7 +171,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
 
     // Lambda calculators
     bool doPuppi = (pu_removal == "PUPPI");
-    int maxNJets = max(NJETS_ZPJ, NJETS_DIJET);
+    int maxNJets = minNJets;
     float recoConstitPtMin = Cuts::constit_pt_min;
     float recoConstitEtaMax = Cuts::constit_eta_max;
     // FIXME: get stuff from ctx not extra args?
