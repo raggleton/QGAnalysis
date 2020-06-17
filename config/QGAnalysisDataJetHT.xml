@@ -4,24 +4,24 @@
     <!ENTITY NEVT "-1">
 
     <!-- Output directories -->
-    <!ENTITY ODIR-JETHT "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/JetHT">
+    <!ENTITY ODIR-JETHT "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/JetHT">
 
-    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/commonData.xml">
+    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/commonData.xml">
 
-    <!ENTITY JETHT-B SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunB.xml">
-    <!ENTITY JETHT-C SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunC.xml">
-    <!ENTITY JETHT-D SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunD.xml">
-    <!ENTITY JETHT-E SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunE.xml">
-    <!ENTITY JETHT-F SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunF.xml">
-    <!ENTITY JETHT-G SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunG.xml">
-    <!ENTITY JETHT-H-v2 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunH_ver2.xml">
-    <!ENTITY JETHT-H-v3 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/JetHT/RunH_ver3.xml">
+    <!ENTITY JETHT-B SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/JetHT/RunB.xml">
+    <!ENTITY JETHT-C SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/JetHT/RunC.xml">
+    <!ENTITY JETHT-D SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/JetHT/RunD.xml">
+    <!ENTITY JETHT-E SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/JetHT/RunE.xml">
+    <!ENTITY JETHT-F SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/JetHT/RunF.xml">
+    <!ENTITY JETHT-G SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/JetHT/RunG.xml">
+    <!ENTITY JETHT-H-v2 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/JetHT/RunH_ver2.xml">
+    <!ENTITY JETHT-H-v3 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/JetHT/RunH_ver3.xml">
 
     <!-- Jet config snippets -->
-    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chsData.xml">
-    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4puppiData.xml">
-    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8chsData.xml">
-    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8puppiData.xml">
+    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4chsData.xml">
+    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4puppiData.xml">
+    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8chsData.xml">
+    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8puppiData.xml">
 ]>
 
 
@@ -38,10 +38,14 @@
 
     <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-JETHT;/" PostFix="" TargetLumi="1" >
 
-        <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_JetHT" Cacheable="False">
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/JetHT/crab_JetHT_Run2016F-03Feb2017-v1_10_Feb_18_newRecoJetFlav_fixPuppi_v3/180210_122328/0000/Ntuple_1.root" Lumi="0.0"/> -->
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/SingleMuon/crab_SingleMuon_Run2016B-03Feb2017_ver2-v2_10_Feb_18_newRecoJetFlav_fixPuppi_v3/180210_120234/0000/Ntuple_1.root" Lumi="0.0"/> -->
+        <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_JetHT_2016v3" Cacheable="False">
+        <In FileName="/pnfs/desy.de/cms/tier2/store/group/uhh/uhh2ntuples/RunII_102X_v2/2016v3/JetHT/crab_JetHT_2016C_v1/200214_145140/0000/Ntuple_1.root" Lumi="0.0"/>
+        <In FileName="/pnfs/desy.de/cms/tier2/store/group/uhh/uhh2ntuples/RunII_102X_v2/2016v3/JetHT/crab_JetHT_2016C_v1/200214_145140/0000/Ntuple_10.root" Lumi="0.0"/>
+        <In FileName="/pnfs/desy.de/cms/tier2/store/group/uhh/uhh2ntuples/RunII_102X_v2/2016v3/JetHT/crab_JetHT_2016C_v1/200214_145140/0000/Ntuple_100.root" Lumi="0.0"/>
+        <In FileName="/pnfs/desy.de/cms/tier2/store/group/uhh/uhh2ntuples/RunII_102X_v2/2016v3/JetHT/crab_JetHT_2016C_v1/200214_145140/0000/Ntuple_101.root" Lumi="0.0"/>
+        <In FileName="/pnfs/desy.de/cms/tier2/store/group/uhh/uhh2ntuples/RunII_102X_v2/2016v3/JetHT/crab_JetHT_2016C_v1/200214_145140/0000/Ntuple_102.root" Lumi="0.0"/>
 
+<!--
         &JETHT-B;
         &JETHT-C;
         &JETHT-D;
@@ -50,7 +54,7 @@
         &JETHT-G;
         &JETHT-H-v2;
         &JETHT-H-v3;
-
+-->
 
         <InputTree Name="AnalysisTree"/>
         </InputData>
@@ -61,9 +65,9 @@
             <!-- Choose your jet configuration -->
 
             <!-- &AK4CHS; -->
-            &AK4PUPPI;
+            <!-- &AK4PUPPI; -->
             <!-- &AK8CHS; -->
-            <!-- &AK8PUPPI; -->
+            &AK8PUPPI;
 
             <Item Name="Dataset" Value="JetHT" />
 
