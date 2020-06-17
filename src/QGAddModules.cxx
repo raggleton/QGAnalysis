@@ -1106,7 +1106,7 @@ PseudoJet QGAnalysisGenJetLambda::convert_uhh_genparticle_to_pseudojet(const Gen
 
 bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
   std::vector<GenJet> jets = event.get(genjet_handle_);
-  std::vector<GenJetLambdaBundle> outputs;
+  std::vector<GenJetLambdaBundle> outputs = {};
   int nJetCounter = 0;
   // cout << "---- Doing QGAnalysisGenJetLambda::process ----" << endl;
   for (auto & jet : jets) {
