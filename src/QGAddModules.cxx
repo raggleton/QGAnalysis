@@ -635,7 +635,7 @@ bool ZFinder::process(uhh2::Event & event) {
   // Do we also want to consider more than leading & subleading?
   // Prob v.v.litle diff as not often > 2 leptons that pass selection
   auto zCand = inputs[0].v4() + inputs[1].v4();
-  if ((fabs(zCand.M() - 90) < 20) && (inputs[0].charge() * inputs[1].charge() < 0)) {
+  if ((fabs(zCand.M() - 90) < Cuts::mZ_window) && (inputs[0].charge() * inputs[1].charge() < 0)) {
     std::vector<Muon> cands = {inputs[0], inputs[1]};
     event.set(hndlZ, cands);
     return true;
