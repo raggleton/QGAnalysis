@@ -545,7 +545,7 @@ MCReweighting::MCReweighting(uhh2::Context & ctx, const std::string & genjet_nam
   cout << "doMuons: " << doMuons << endl;
 
   if (doMuons) {
-    std::string sf_path_name = locate_file("common/data/MuonID_EfficienciesAndSF_average_RunBtoH.root");
+    std::string sf_path_name = locate_file("common/data/2016/MuonID_EfficienciesAndSF_average_RunBtoH.root");
     std::string sf_name = "MC_NUM_MediumID_DEN_genTracks_PAR_pt_eta";
     muon_id_reweighter_pt_eta.reset(new MCMuonScaleFactor(ctx, sf_path_name, sf_name, 100));
 
@@ -553,11 +553,11 @@ MCReweighting::MCReweighting(uhh2::Context & ctx, const std::string & genjet_nam
     // Doesn't work
     // muon_id_reweighter_vtx.reset(new MCMuonScaleFactor(ctx, sf_path_name, sf_name, 100));
 
-    sf_path_name = locate_file("common/data/MuonTrigger_EfficienciesAndSF_average_RunBtoH.root");
+    sf_path_name = locate_file("common/data/2016/MuonTrigger_EfficienciesAndSF_average_RunBtoH.root");
     sf_name = "IsoMu24_OR_IsoTkMu24_PtEtaBins";
     muon_trg_reweighter.reset(new MCMuonScaleFactor(ctx, sf_path_name, sf_name, 100));
 
-    std::string trk_path_name = locate_file("common/data/general_eff_aeta_dr030e030_corr_ratio.txt");
+    std::string trk_path_name = locate_file("common/data/2016/general_eff_aeta_dr030e030_corr_ratio.txt");
     muon_trk_reweighter.reset(new MCMuonTrkScaleFactor(ctx, trk_path_name, 100));
   }
 
