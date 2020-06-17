@@ -7,17 +7,22 @@
 
 namespace Color {
   enum Code {
-      FG_RED      = 31,
-      FG_GREEN    = 32,
-      FG_YELLOW   = 33,
-      FG_BLUE     = 34,
-      FG_MAGENTA  = 35,
-      FG_CYAN     = 36,
-      FG_DEFAULT  = 39,
-      BG_RED      = 41,
-      BG_GREEN    = 42,
-      BG_BLUE     = 44,
-      BG_DEFAULT  = 49
+    FG_RED      = 31,
+    FG_GREEN    = 32,
+    FG_YELLOW   = 33,
+    FG_BLUE     = 34,
+    FG_MAGENTA  = 35,
+    FG_CYAN     = 36,
+    FG_DEFAULT  = 39,
+
+    BG_RED      = 41,
+    BG_GREEN    = 42,
+    BG_YELLOW   = 43,
+    BG_BLUE     = 44,
+    BG_MAGENTA  = 45,
+    BG_CYAN     = 46,
+    BG_WHITE    = 47,
+    BG_DEFAULT  = 49
   };
   std::ostream& operator<<(std::ostream& os, Code code);
 };
@@ -28,6 +33,8 @@ namespace uhh2examples {
 void printGenParticles(const std::vector<GenParticle> & gps, const std::string & label="", Color::Code color=Color::FG_DEFAULT);
 
 void print_genjet_genparticles(const GenJetWithParts & jet, const std::vector<GenParticle>* genparticles);
+
+void printPFParticles(const std::vector<PFParticle> & pfparticles, const std::string & label="", Color::Code color=Color::FG_DEFAULT);
 
 void print_jet_pfparticles(const Jet & jet, const std::vector<PFParticle>* pfparticles);
 
