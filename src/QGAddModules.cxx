@@ -1367,30 +1367,30 @@ bool GenJetSelector::process(uhh2::Event & event) {
   std::vector<GenJet> genjets_out;
   const std::vector<GenParticle> & genparticles = event.get(genparticle_handle_);
   for (const auto jet : event.get(genjet_handle_)) {
-      bool found = (std::find(genjets_out.begin(), genjets_out.end(), jet) != genjets_out.end()); // avoid duplicate genjets
-      // avoid jets that are just leptons + a few spurious gluons,
-      // i.e. look for overlapping ones, and check their pT fraction
-      bool leptonOverlap = false;
-      for (const auto & gp : genparticles) {
-        bool isLepton = ((abs(gp.pdgId()) == PDGID::MUON) || (abs(gp.pdgId()) == PDGID::ELECTRON) || (abs(gp.pdgId()) == PDGID::TAU));
-        if (!isLepton) continue;
-        bool thisLeptonOverlap = isLepton && (deltaRUsingY(gp.v4(), jet.v4()) < lepton_overlap_dr_) && ((gp.pt() / jet.pt()) > 0.5);
-        leptonOverlap = leptonOverlap || thisLeptonOverlap;
-      }
-      // check constituents
-      // occasionally get one with 0 pt so skip those
-      // Get constituents
-      std::vector<GenParticle> constits = get_jet_genparticles(jet, event);
-      clean_collection<GenParticle>(constits, event, PtEtaCut(1E-8, 5)); // basic cut to remove weird 0 pt constits
-
-      if ((jet.pt() > jet_pt_min_) && (fabs(jet.Rapidity()) < jet_y_max_) && !found && !leptonOverlap && (constits.size()>1)) {
-        genjets_out.push_back(jet);
-      }
+    bool found = (std::find(genjets_out.begin(), genjets_out.end(), jet) != genjets_out.end()); // avoid duplicate genjets
+    // avoid jets that are just leptons + a few spurious gluons,
+    // i.e. look for overlapping ones, and check their pT fraction
+    bool leptonOverlap = false;
+    for (const auto & gp : genparticles) {
+      bool isLepton = ((abs(gp.pdgId()) == PDGID::MUON) || (abs(gp.pdgId()) == PDGID::ELECTRON) || (abs(gp.pdgId()) == PDGID::TAU));
+      if (!isLepton) continue;
+      bool thisLeptonOverlap = isLepton && (deltaRUsingY(gp.v4(), jet.v4()) < lepton_overlap_dr_) && ((gp.pt() / jet.pt()) > 0.5);
+      leptonOverlap = leptonOverlap || thisLeptonOverlap;
     }
-    sort_by_pt(genjets_out);
-    event.set(out_genjet_handle_, genjets_out);
-    return true;
-};
+    // check constituents
+    // occasionally get one with 0 pt so skip those
+    // Get constituents
+    std::vector<GenParticle> constits = get_jet_genparticles(jet, event);
+    clean_collection<GenParticle>(constits, event, PtEtaCut(1E-8, 5)); // basic cut to remove weird 0 pt constits
+
+    if ((jet.pt() > jet_pt_min_) && (fabs(jet.Rapidity()) < jet_y_max_) && !found && !leptonOverlap && (constits.size()>1)) {
+      genjets_out.push_back(jet);
+    }
+  }
+  sort_by_pt(genjets_out);
+  event.set(out_genjet_handle_, genjets_out);
+  return true;
+}
 
 std::vector<GenParticle> GenJetSelector::get_jet_genparticles(const GenJet & genjet, uhh2::Event & event) {
   std::vector<GenParticle> * genparticles = event.genparticles;
