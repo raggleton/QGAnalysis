@@ -72,7 +72,7 @@ private:
 
     // Reco selections/hists
     std::unique_ptr<ZFinder> zFinder;
-    std::unique_ptr<Selection> njet_min_sel, njet_two_sel, ngenjet_min_sel, ngenjet_two_sel, ngenjet_good_sel, ngenjet_good_two_sel;
+    std::unique_ptr<Selection> njet_min_sel, ngenjet_min_sel, ngenjet_good_sel;
     std::unique_ptr<Selection> zplusjets_sel, zplusjets_sel_passGen, zplusjets_presel, dijet_sel, dijet_sel_tighter, dijet_sel_tighter_passGen;
 
     std::unique_ptr<Hists> zplusjets_gen_hists;
@@ -219,11 +219,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     NJETS_DIJET = 2;
     int minNJets = isZPlusJets ? NJETS_ZPJ : NJETS_DIJET;
     njet_min_sel.reset(new NJetSelection(minNJets));
-    // njet_two_sel.reset(new NJetSelection(NJETS_DIJET));
     ngenjet_min_sel.reset(new NGenJetWithPartsSelection(minNJets));
-    // ngenjet_two_sel.reset(new NGenJetSelection(NJETS_DIJET)); //, -1, boost::none, genjet_handle_name));
     ngenjet_good_sel.reset(new NGenJetWithPartsSelection(minNJets, -1, boost::none, genjets_handle));
-    // ngenjet_good_two_sel.reset(new NGenJetSelection(2, -1, boost::none, genjets_handle));
 
     // Lambda calculators
     bool doPuppi = (pu_removal == "PUPPI");
