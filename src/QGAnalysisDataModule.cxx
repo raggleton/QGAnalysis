@@ -125,7 +125,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     DO_LAMBDA_HISTS = string2bool(ctx.get("DO_LAMBDA_HISTS", "true"));
 
     common_setup.reset(new GeneralEventSetup(ctx));
-    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jetRadius, Cuts::reco_jet_pt_min, Cuts::jet_y_max));
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jetRadius, Cuts::reco_jet_pt_min, 5.)); // set y large here, do y selection as part of dijet selection
     gen_weight_handle = ctx.get_handle<double>("gen_weight");
     pt_binning_reco_handle = ctx.get_handle<double>("pt_binning_reco_value"); // the value to use for reco pt bin e.g dijet average
     pt_binning_gen_handle = ctx.get_handle<double>("pt_binning_gen_value"); // the value to use for gen pt bin e.g dijet average
@@ -167,7 +167,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     bool ss_eta = false;
     float deta = 12;
     float sumEta = 10.;
-    dijet_sel.reset(new DijetSelection(ctx, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta, "DijetSelCutFlow"));
+    dijet_sel.reset(new DijetSelection(ctx, Cuts::reco_jet_pt_min, Cuts::jet_y_max, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta, "DijetSelCutFlow"));
 
     // Lambda calculators
     bool doPuppi = (pu_removal == "PUPPI");
