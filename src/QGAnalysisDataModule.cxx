@@ -202,56 +202,6 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     std::string gen_jetlambda_forward_handle_name = "GoodGenJetLambdas";
     std::string gen_jetlambda_central_handle_name = "GoodGenJetLambdas";
 
-    // Setup for systematics
-    // FIXME put all this inside the ctor as it has ctx!
-    std::string chargedHadronShift = ctx.get("chargedHadronShift", "nominal");
-    float chargedHadronShiftAmount = 0.01;
-    if (chargedHadronShift == "nominal") {
-        // pass
-    } else if (chargedHadronShift == "up") {
-        jetLambdaCreatorPtSorted->set_charged_hadron_shift(1, chargedHadronShiftAmount);
-        jetLambdaCreatorCentral->set_charged_hadron_shift(1, chargedHadronShiftAmount);
-        jetLambdaCreatorForward->set_charged_hadron_shift(1, chargedHadronShiftAmount);
-    } else if (chargedHadronShift == "down") {
-        jetLambdaCreatorPtSorted->set_charged_hadron_shift(-1, chargedHadronShiftAmount);
-        jetLambdaCreatorCentral->set_charged_hadron_shift(-1, chargedHadronShiftAmount);
-        jetLambdaCreatorForward->set_charged_hadron_shift(-1, chargedHadronShiftAmount);
-    } else {
-        throw runtime_error("chargedHadronShift must be nominal, up, or down");
-    }
-
-    std::string neutralHadronShift = ctx.get("neutralHadronShift", "nominal");
-    float neutralHadronShiftAmount = 0.03;
-    if (neutralHadronShift == "nominal") {
-        // pass
-    } else if (neutralHadronShift == "up") {
-        jetLambdaCreatorPtSorted->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
-        jetLambdaCreatorCentral->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
-        jetLambdaCreatorForward->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
-    } else if (neutralHadronShift == "down") {
-        jetLambdaCreatorPtSorted->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
-        jetLambdaCreatorCentral->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
-        jetLambdaCreatorForward->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
-    } else {
-        throw runtime_error("neutralHadronShift must be nominal, up, or down");
-    }
-
-    std::string photonShift = ctx.get("photonShift", "nominal");
-    float photonShiftAmount = 0.01;
-    if (photonShift == "nominal") {
-        // pass
-    } else if (photonShift == "up") {
-        jetLambdaCreatorPtSorted->set_photon_shift(1, photonShiftAmount);
-        jetLambdaCreatorCentral->set_photon_shift(1, photonShiftAmount);
-        jetLambdaCreatorForward->set_photon_shift(1, photonShiftAmount);
-    } else if (photonShift == "down") {
-        jetLambdaCreatorPtSorted->set_photon_shift(-1, photonShiftAmount);
-        jetLambdaCreatorCentral->set_photon_shift(-1, photonShiftAmount);
-        jetLambdaCreatorForward->set_photon_shift(-1, photonShiftAmount);
-    } else {
-        throw runtime_error("photonShift must be nominal, up, or down");
-    }
-
     // Triggers for data
     zerobias_trigger_sel.reset(new TriggerSelection("HLT_ZeroBias_v*"));
 
