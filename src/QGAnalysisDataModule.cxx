@@ -51,6 +51,7 @@ public:
     explicit QGAnalysisDataModule(Context & ctx);
     virtual bool process(Event & event) override;
     DATASET::Name matchDatasetName(const std::string & name);
+    virtual void endInputData() override;
 
 private:
 
@@ -98,6 +99,8 @@ private:
     double zb_prescale = TOTAL_LUMI / ZB_LUMI;
 
     std::unique_ptr<TriggerSelection> trig320;
+
+    int nFailTrigEvents, nSelectedEvents, nTotalEvents;
 };
 
 
@@ -449,7 +452,11 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
                                                                                           pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
                                                                                           reco_jetlambda_forward_handle_name, gen_jetlambda_forward_handle_name));
         }
-    }
+    } // end if else on DATASET
+
+    nFailTrigEvents = 0;
+    nSelectedEvents = 0;
+    nTotalEvents = 0;
 
     // event_sel.reset(new EventNumberSelection({111}));
 }
@@ -472,6 +479,8 @@ bool QGAnalysisDataModule::process(Event & event) {
     // -------------------------------------------------------------------------
     event.set(dijet_forward_handle, std::vector<Jet>());
     event.set(dijet_central_handle, std::vector<Jet>());
+
+    nTotalEvents++;
 
     // if (!event_sel->passes(event)) return false;
     if (event.run < 274954) {
@@ -600,7 +609,16 @@ bool QGAnalysisDataModule::process(Event & event) {
             }
         }
     }
+    nSelectedEvents++;
     return selected;
+}
+
+
+void QGAnalysisDataModule::endInputData(){
+    cout << "Summary stats: " << endl;
+    cout << " # fail trigger: " << nFailTrigEvents << endl;
+    cout << " # selected: " << nSelectedEvents << endl;
+    cout << " # input: " << nTotalEvents << endl;
 }
 
 
