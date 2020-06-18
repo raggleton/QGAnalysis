@@ -174,14 +174,15 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     bool update4vec = false;
     tracking_eff.reset(new TrackingEfficiency(ctx, update4vec));
     bool doJetId = true; // if have tracking SF, need False - do it AFTER the tracking SF and not before - could have some promoted particles
-    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, Cuts::reco_jet_pt_min, 5., doJetId)); // set y large here, do y selection as part of dijet selection
+    float largeY = 5.; // dummy value
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, Cuts::reco_jet_pt_min, largeY, doJetId)); // set y large here, do y selection as part of dijet selection
 
     // another jet ID check after tracking SFs applied (basically constituent check)
     // jet_pf_id.reset(new JetCleaner(ctx, JetPFID(Cuts::RECO_JET_ID)));
 
     // Setup Gen objects
     std::string genjet_handle_name = "GoodGenJets";
-    genJet_selector.reset(new GenJetSelector(ctx, Cuts::gen_jet_pt_min, 5., jetRadius, "genjets", genjet_handle_name, "genparticles")); // set y large here, do y selection as part of dijet selection
+    genJet_selector.reset(new GenJetSelector(ctx, Cuts::gen_jet_pt_min, largeY, jetRadius, "genjets", genjet_handle_name, "genparticles")); // set y large here, do y selection as part of dijet selection
     std::string genmuon_handle_name = "GoodGenMuons";
     genjets_handle = ctx.get_handle< std::vector<GenJet> > (genjet_handle_name);
     genmuons_handle = ctx.get_handle< std::vector<GenParticle> > (genmuon_handle_name);

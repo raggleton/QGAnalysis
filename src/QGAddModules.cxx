@@ -894,7 +894,7 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     // Get constituents
     // don't apply puppi weight here, since we already account for it in the LambdaCalculator
     std::vector<PFParticle> constits = get_jet_pfparticles(jet, event, false);
-    clean_collection<PFParticle>(constits, event, PtEtaCut(1E-8, 5)); // basic cut to remove weird 0 pt constits
+    clean_collection<PFParticle>(constits, event, PtEtaCut(1E-8, 10.)); // basic cut to remove weird 0 pt constits
 
     if (constits.size() < 2) {
       cout << "Event number : run : lumi: " << event.event << " : " << event.run << " : " << event.luminosityBlock << endl;
@@ -1153,7 +1153,7 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
 
     // Get constituents
     std::vector<GenParticle> constits = get_jet_genparticles(jet, event);
-    clean_collection<GenParticle>(constits, event, PtEtaCut(1E-8, 5)); // basic cut to remove weird 0 pt constits
+    clean_collection<GenParticle>(constits, event, PtEtaCut(1E-8, 10.)); // basic cut to remove weird 0 pt constits
 
     if (constits.size() < 2) {
       cout << "Event number : run : lumi: " << event.event << " : " << event.run << " : " << event.luminosityBlock << endl;
@@ -1439,7 +1439,7 @@ bool GenJetSelector::process(uhh2::Event & event) {
     // occasionally get one with 0 pt so skip those
     // Get constituents
     std::vector<GenParticle> constits = get_jet_genparticles(jet, event);
-    clean_collection<GenParticle>(constits, event, PtEtaCut(1E-8, 5)); // basic cut to remove weird 0 pt constits
+    clean_collection<GenParticle>(constits, event, PtEtaCut(1E-8, 10.)); // basic cut to remove weird 0 pt constits
 
     if ((jet.pt() > jet_pt_min_) && (fabs(jet.Rapidity()) < jet_y_max_) && !found && !leptonOverlap && (constits.size()>1)) {
       genjets_out.push_back(jet);
