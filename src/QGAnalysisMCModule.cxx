@@ -173,7 +173,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     common_setup.reset(new GeneralEventSetup(ctx));
     bool update4vec = false;
     tracking_eff.reset(new TrackingEfficiency(ctx, update4vec));
-    bool doJetId = false; // do it AFTER the tracking SF and not before - could have some promoted particles
+    bool doJetId = true; // do it AFTER the tracking SF and not before - could have some promoted particles
     recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, Cuts::reco_jet_pt_min, Cuts::jet_y_max, doJetId));
 
     // another jet ID check after tracking SFs applied (basically constituent check)
@@ -741,7 +741,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     // tracking_eff->process(event);
 
     // Apply Jet PF ID since the jet constituents changes
-    jet_pf_id->process(event);
+    // jet_pf_id->process(event);
 
     if (PRINTOUT || printout_event_sel) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets after tracking SF");
 
