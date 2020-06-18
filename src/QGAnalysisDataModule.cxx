@@ -151,26 +151,28 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     int minNJets = isZPlusJets ? NJETS_ZPJ : NJETS_DIJET;
     njet_sel.reset(new NJetSelection(minNJets));
 
-    zLabel = "zMuonCand";
-    zFinder.reset(new ZFinder(ctx, "muons", zLabel));
-
     // Z+JETS selection
-    float second_jet_frac_max_zpj = 1000.3;
-    float z_jet_asym_max = 100.4;
-    zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, Cuts::reco_muon_pt_min, Cuts::reco_muon_pt_min, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max, "ZPlusJetsSel"));
+    if (isZPlusJets) {
+        zLabel = "zMuonCand";
+        zFinder.reset(new ZFinder(ctx, "muons", zLabel));
 
-    // Preselection for Z+J - only 2 muons to reco Z, no other event cuts
-    float dphi_jet_z_min = 0.;
-    second_jet_frac_max_zpj = 999.;
-    z_jet_asym_max = 1.;
-    zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, Cuts::reco_muon_pt_min, Cuts::reco_muon_pt_min, Cuts::mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max, "ZPlusJetsSel_presel"));
+        float second_jet_frac_max_zpj = 1000.3;
+        float z_jet_asym_max = 100.4;
+        zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, Cuts::reco_muon_pt_min, Cuts::reco_muon_pt_min, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max, "ZPlusJetsSel"));
 
-    // DIJET selection
-    float second_jet_frac_max_dj = 10.94;
-    bool ss_eta = false;
-    float deta = 12;
-    float sumEta = 10.;
-    dijet_sel.reset(new DijetSelection(ctx, Cuts::reco_jet_pt_min, Cuts::jet_y_max, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta, "DijetSelCutFlow"));
+        // Preselection for Z+J - only 2 muons to reco Z, no other event cuts
+        float dphi_jet_z_min = 0.;
+        second_jet_frac_max_zpj = 999.;
+        z_jet_asym_max = 1.;
+        zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, Cuts::reco_muon_pt_min, Cuts::reco_muon_pt_min, Cuts::mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max, "ZPlusJetsSel_presel"));
+    } else {
+        // DIJET selection
+        float second_jet_frac_max_dj = 10.94;
+        bool ss_eta = false;
+        float deta = 12;
+        float sumEta = 10.;
+        dijet_sel.reset(new DijetSelection(ctx, Cuts::reco_jet_pt_min, Cuts::jet_y_max, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta, "DijetSelCutFlow"));
+    }
 
     // Lambda calculators
     bool doPuppi = (pu_removal == "PUPPI");
@@ -363,7 +365,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     jetht_zb_pt_boundary = dj_trig_thresholds.at(0);
 
     // only setup needed hists to avoid extra objects in output file
-    if (dataset == DATASET::SingleMu) {
+    if (isZPlusJets) {
         // Hists
         if (DO_KINEMATIC_HISTS) {
             zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLabel));
@@ -390,6 +392,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
                                                                               pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
                                                                               reco_jetlambda_handle_name, gen_jetlambda_handle_name));
         }
+
     } else {
         std::string binning_method = "ave";
         std::string dj_sel = "dijet";
@@ -525,7 +528,7 @@ bool QGAnalysisDataModule::process(Event & event) {
     if (PRINTOUT) printElectrons(*event.electrons);
     if (PRINTOUT) printJetsWithParts(*event.jets, event.pfparticles);
 
-    if (dataset == DATASET::SingleMu) {
+    if (isZPlusJets) {
         if (!zFinder->process(event))
             return false;
 
@@ -555,7 +558,8 @@ bool QGAnalysisDataModule::process(Event & event) {
                 }
             }
         }
-    } else if (dataset == DATASET::JetHT || dataset == DATASET::ZeroBias) {
+
+    } else {
         dijet_hists_presel->fill(event);
         selected = dijet_sel->passes(event);
         event.set(pass_dj_sel_handle, selected);
