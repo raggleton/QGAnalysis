@@ -760,7 +760,6 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Do Z+Jet hists & selection
     // -------------------------------------------------------------------------
     if (isZPlusJets) {
-        if (DO_KINEMATIC_HISTS) zplusjets_gen_hists->fill(event);
 
         pass_zpj_gen = zplusjets_gen_sel->passes(event);
         event.set(pass_zpj_gen_sel_handle, pass_zpj_gen);
@@ -770,6 +769,7 @@ bool QGAnalysisMCModule::process(Event & event) {
         if (pass_zpj_gen) {
             event.set(pt_binning_gen_handle, event.get(genjets_handle)[0].pt());
             if (found_reco_z) zplusjets_sel_passGen->passes(event); // just to plot cutflow, need the if since it uses handle internally
+            if (DO_KINEMATIC_HISTS) zplusjets_gen_hists->fill(event);
         }
 
         if (hasRecoJets) {
