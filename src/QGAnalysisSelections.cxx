@@ -240,7 +240,18 @@ bool ZplusJetsGenSelection::passes(const Event & event){
 }
 
 
-DijetSelection::DijetSelection(uhh2::Context & ctx, float dphi_min, float second_jet_frac_max, float jet_asym_max, bool ss_eta, float deta_max, float sum_eta, const std::string & cutflow_hname):
+DijetSelection::DijetSelection(uhh2::Context & ctx,
+                               float jet_pt_min,
+                               float jet_y_max,
+                               float dphi_min,
+                               float second_jet_frac_max,
+                               float jet_asym_max,
+                               bool ss_eta,
+                               float deta_max,
+                               float sum_eta,
+                               const std::string & cutflow_hname):
+    jet_pt_min_(jet_pt_min),
+    jet_y_max_(jet_y_max),
     dphi_min_(dphi_min),
     second_jet_frac_max_(second_jet_frac_max),
     jet_asym_max_(jet_asym_max),
@@ -251,6 +262,8 @@ DijetSelection::DijetSelection(uhh2::Context & ctx, float dphi_min, float second
         // Remember to update when you update passes() ! Yes is horrible
         std::vector<std::string> descriptions = {
             "nJets>=2",
+            "jet_pt_min",
+            "jet_y_max",
             "second_jet_frac_max",
             "dphi_min",
             "ss_eta",
@@ -281,6 +294,20 @@ bool DijetSelection::passes(const Event & event){
 
     const auto & jet1 = event.jets->at(0);
     const auto & jet2 = event.jets->at(1);
+
+    // Should be pt-ordered
+    if (jet1.pt() < jet2.pt())
+        throw runtime_error("jet1.pt < jet2.pt, expecting descending pt order");
+    // so only need to check jet2
+    if (jet2.pt() < jet_pt_min_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
+
+    if ((fabs(jet1.Rapidity()) > jet_y_max_) || (fabs(jet2.Rapidity()) > jet_y_max_)) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     float ratio = (jet1.pt() > jet2.pt()) ? jet2.pt() / jet1.pt() : jet1.pt() / jet2.pt();
     if (ratio > second_jet_frac_max_) return false;
@@ -316,6 +343,8 @@ bool DijetSelection::passes(const Event & event){
 }
 
 DijetGenSelection::DijetGenSelection(uhh2::Context & ctx,
+                                     float jet_pt_min,
+                                     float jet_y_max,
                                      float dphi_min,
                                      float second_jet_frac_max,
                                      float jet_asym_max,
@@ -325,6 +354,8 @@ DijetGenSelection::DijetGenSelection(uhh2::Context & ctx,
                                      const std::string & cutflow_hname,
                                      const std::string & genjet_name):
     genJets_handle(ctx.get_handle<std::vector<GenJetWithParts>>(genjet_name)),
+    jet_pt_min_(jet_pt_min),
+    jet_y_max_(jet_y_max),
     dphi_min_(dphi_min),
     second_jet_frac_max_(second_jet_frac_max),
     jet_asym_max_(jet_asym_max),
@@ -335,6 +366,8 @@ DijetGenSelection::DijetGenSelection(uhh2::Context & ctx,
         // Remember to update when you update passes() ! Yes is horrible
         std::vector<std::string> descriptions = {
             "nGenJets>=2",
+            "jet_pt_min",
+            "jet_y_max",
             "second_jet_frac_max",
             "dphi_min",
             "ss_eta",
@@ -366,6 +399,20 @@ bool DijetGenSelection::passes(const Event & event){
 
     const auto & jet1 = jets.at(0);
     const auto & jet2 = jets.at(1);
+
+    // Should be pt-ordered
+    if (jet1.pt() < jet2.pt())
+        throw runtime_error("jet1.pt < jet2.pt, expecting descending pt order");
+    // so only need to check jet2
+    if (jet2.pt() < jet_pt_min_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
+
+    if ((fabs(jet1.Rapidity()) > jet_y_max_) || (fabs(jet2.Rapidity()) > jet_y_max_)) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     float ratio = (jet1.pt() > jet2.pt()) ? jet2.pt() / jet1.pt() : jet1.pt() / jet2.pt();
     if (ratio > second_jet_frac_max_) return false;

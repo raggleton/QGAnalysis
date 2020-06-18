@@ -173,15 +173,15 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     common_setup.reset(new GeneralEventSetup(ctx));
     bool update4vec = false;
     tracking_eff.reset(new TrackingEfficiency(ctx, update4vec));
-    bool doJetId = true; // do it AFTER the tracking SF and not before - could have some promoted particles
-    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, Cuts::reco_jet_pt_min, Cuts::jet_y_max, doJetId));
+    bool doJetId = true; // if have tracking SF, need False - do it AFTER the tracking SF and not before - could have some promoted particles
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, Cuts::reco_jet_pt_min, 5., doJetId)); // set y large here, do y selection as part of dijet selection
 
     // another jet ID check after tracking SFs applied (basically constituent check)
-    jet_pf_id.reset(new JetCleaner(ctx, JetPFID(Cuts::RECO_JET_ID)));
+    // jet_pf_id.reset(new JetCleaner(ctx, JetPFID(Cuts::RECO_JET_ID)));
 
     // Setup Gen objects
     std::string genjet_handle_name = "GoodGenJets";
-    genJet_selector.reset(new GenJetSelector(ctx, Cuts::gen_jet_pt_min, Cuts::jet_y_max, jetRadius, "genjets", genjet_handle_name, "genparticles"));
+    genJet_selector.reset(new GenJetSelector(ctx, Cuts::gen_jet_pt_min, 5., jetRadius, "genjets", genjet_handle_name, "genparticles")); // set y large here, do y selection as part of dijet selection
     std::string genmuon_handle_name = "GoodGenMuons";
     genjets_handle = ctx.get_handle< std::vector<GenJetWithParts> > (genjet_handle_name);
     genmuons_handle = ctx.get_handle< std::vector<GenParticle> > (genmuon_handle_name);
@@ -312,8 +312,6 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     std::string zLabel = "zMuonCand";
 
-
-
     // Note that Gen selections have basically same cuts as reco,
     // to avoid over-reliance on MC to extrapolate to wider gen phase space
     // A lot of variables are very well-measured anyway
@@ -349,16 +347,16 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         bool ss_eta = false;
         float deta = 12;
         float sumEta = 10.;
-        dijet_sel.reset(new DijetSelection(ctx, Cuts::dijet_dphi_min, second_jet_frac_max_dj, 1000, ss_eta, deta, sumEta, "DijetSelCutFlow")); // this is without any asymmetry cut
-        dijet_sel_tighter.reset(new DijetSelection(ctx, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta, "DijetSelTighterCutFlow"));
+        float no_jet_asym = 1000.;
+        // this is without any asymmetry cut
+        dijet_sel.reset(                new DijetSelection(ctx, Cuts::reco_jet_pt_min, Cuts::jet_y_max, Cuts::dijet_dphi_min, second_jet_frac_max_dj, no_jet_asym, ss_eta, deta, sumEta, "DijetSelCutFlow"));
+        dijet_sel_tighter.reset(        new DijetSelection(ctx, Cuts::reco_jet_pt_min, Cuts::jet_y_max, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta, "DijetSelTighterCutFlow"));
         // just to plot cutflow only when passGen == true
-        dijet_sel_tighter_passGen.reset(new DijetSelection(ctx, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta, "DijetSelTighterPassGenCutFlow"));
+        dijet_sel_tighter_passGen.reset(new DijetSelection(ctx, Cuts::reco_jet_pt_min, Cuts::jet_y_max, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta, "DijetSelTighterPassGenCutFlow"));
 
-        dijet_gen_sel.reset(new DijetGenSelection(ctx, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta,
-                                                  "DijetGenSelCutFlow", genjet_handle_name));
+        dijet_gen_sel.reset(            new DijetGenSelection(ctx, Cuts::gen_jet_pt_min, Cuts::jet_y_max, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta, "DijetGenSelCutFlow", genjet_handle_name));
         // just to plot gen cutflow only when passReco==true
-        dijet_gen_sel_passReco.reset(new DijetGenSelection(ctx, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta,
-                                                           "DijetGenSelPassRecoCutFlow", genjet_handle_name));
+        dijet_gen_sel_passReco.reset(   new DijetGenSelection(ctx, Cuts::gen_jet_pt_min, Cuts::jet_y_max, Cuts::dijet_dphi_min, second_jet_frac_max_dj, Cuts::jet_asym_max, ss_eta, deta, sumEta, "DijetGenSelPassRecoCutFlow", genjet_handle_name));
     }
 
     if (DO_PU_BINNED_HISTS) {

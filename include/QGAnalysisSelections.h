@@ -68,6 +68,8 @@ private:
 class DijetSelection: public uhh2::Selection {
 public:
     DijetSelection(uhh2::Context & ctx,
+                   float jet_pt_min=30.,
+                   float jet_y_max=1.7, // 2.5-0.8 = 1.7
                    float dphi_min=2.0,
                    float second_jet_frac_max=0.94,
                    float jet_asym_max=0.3,
@@ -77,7 +79,7 @@ public:
                    const std::string & cutflow_hname="_Dijet");
     virtual bool passes(const uhh2::Event & event) override;
 private:
-    float dphi_min_, second_jet_frac_max_, jet_asym_max_, ss_eta_, deta_max_, sum_eta_;
+    float jet_pt_min_, jet_y_max_, dphi_min_, second_jet_frac_max_, jet_asym_max_, ss_eta_, deta_max_, sum_eta_;
     TH1D * cutflow_raw, * cutflow_weighted; // owned by Context
 };
 
@@ -88,6 +90,8 @@ private:
 class DijetGenSelection: public uhh2::Selection {
 public:
     DijetGenSelection(uhh2::Context & ctx,
+                      float jet_pt_min=15.,
+                      float jet_y_max=1.7,
                       float dphi_min=2.0,
                       float second_jet_frac_max=0.94,
                       float jet_asym_max=0.3,
@@ -99,7 +103,7 @@ public:
     virtual bool passes(const uhh2::Event & event) override;
 private:
     uhh2::Event::Handle<std::vector<GenJetWithParts> > genJets_handle;
-    float dphi_min_, second_jet_frac_max_, jet_asym_max_, ss_eta_, deta_max_, sum_eta_;
+    float jet_pt_min_, jet_y_max_, dphi_min_, second_jet_frac_max_, jet_asym_max_, ss_eta_, deta_max_, sum_eta_;
     TH1D * cutflow_raw, * cutflow_weighted; // owned by Context
 };
 
