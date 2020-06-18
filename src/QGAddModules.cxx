@@ -78,8 +78,12 @@ GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx) {
   metfilters_selection->add<TriggerSelection>("HBHENoiseFilter", "Flag_HBHENoiseFilter");
   metfilters_selection->add<TriggerSelection>("HBHENoiseIsoFilter", "Flag_HBHENoiseIsoFilter");
   metfilters_selection->add<TriggerSelection>("globalTightHalo2016Filter", "Flag_globalTightHalo2016Filter");
+  metfilters_selection->add<TriggerSelection>("globalSuperTightHalo2016Filter", "Flag_globalSuperTightHalo2016Filter");
   metfilters_selection->add<TriggerSelection>("EcalDeadCellTriggerPrimitiveFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter");
   metfilters_selection->add<TriggerSelection>("eeBadScFilter", "Flag_eeBadScFilter");
+  metfilters_selection->add<TriggerSelection>("goodVertices", "Flag_goodVertices");
+  metfilters_selection->add<EcalBadCalibSelection>("EcalBadCalibSelection"); // Use this instead of Flag_ecalBadCalibFilter, uses ecalBadCalibReducedMINIAODFilter in ntuple_generator
+  metfilters_selection->add<TriggerSelection>("BadPFMuonFilter", "Flag_BadPFMuonFilter");
   PrimaryVertexId pvid = StandardPrimaryVertexId();
   metfilters_selection->add<NPVSelection>("1 good PV", 1, -1, pvid);
 
