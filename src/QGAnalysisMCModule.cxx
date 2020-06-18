@@ -673,6 +673,7 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     if (PRINTOUT || printout_event_sel) printMuons(*event.muons);
     if (PRINTOUT || printout_event_sel) printElectrons(*event.electrons);
+    if (PRINTOUT || printout_event_sel) printJets(*event.jets, "Postcleaning");
 
     // Get Gen muons
     // -------------------------------------------------------------------------
@@ -723,16 +724,13 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     genjet_hists->fill(event);
 
-    // RECO PART
-    // if (PRINTOUT || printout_event_sel) printJets(*event.jets, "Original jets");
-
     // Get matching GenJets for reco jets
     // -------------------------------------------------------------------------
     jetMatcherPtOrdered->process(event);
 
     if (PRINTOUT || printout_event_sel) printJets(*event.jets, "Matched Jets");
-    // if (PRINTOUT || printout_event_sel) printGenJets(event.get(genjets_handle), "GoodGenJets");
     // if (PRINTOUT || printout_event_sel) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets");
+    // if (PRINTOUT || printout_event_sel) printGenJets(event.get(genjets_handle), "GoodGenJets");
     if (PRINTOUT || printout_event_sel) printGenJetsWithParts(event.get(genjets_handle), event.genparticles, "GoodGenJets");
 
     // Apply tracking SFs, but only after JECs, etc applied
@@ -750,16 +748,14 @@ bool QGAnalysisMCModule::process(Event & event) {
     // We need recojets and/or genjets (want both fakes and miss-recos)
     if (!(hasRecoJets || hasGenJets)) return false;
 
-    // Calculate lambda vars for reco jets for Z+jets
+    // Calculate lambda vars
     // At this point, all objects should have had all necessary corrections, filtering, etc
     // -------------------------------------------------------------------------
     jetLambdaCreatorPtSorted->process(event);
     genjetLambdaCreatorPtSorted->process(event);
 
-    // Do Z+Jet hists & selection
-    // -------------------------------------------------------------------------
     if (isZPlusJets) {
-
+        // Do Z+Jet hists & selection
         pass_zpj_gen = zplusjets_gen_sel->passes(event);
         event.set(pass_zpj_gen_sel_handle, pass_zpj_gen);
 
@@ -791,6 +787,7 @@ bool QGAnalysisMCModule::process(Event & event) {
                     pass_zpj_reco = zplusjets_sel->passes(event);
                     event.set(pass_zpj_sel_handle, pass_zpj_reco);
                     if (pass_zpj_reco) {
+
                         genjet_hists_passZpJReco->fill(event);
                         if (DO_KINEMATIC_HISTS) {
                             zplusjets_gen_sel_passReco->passes(event); // this plots gen cutflow as well
