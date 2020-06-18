@@ -448,10 +448,22 @@ bool QGAnalysisDataModule::process(Event & event) {
     if (PRINTOUT) printElectrons(*event.electrons, "Precleaning");
     if (PRINTOUT) printJets(*event.jets, "Precleaning");
 
-    if (!common_setup->process(event)) return false;
-    if (!recojet_setup->process(event)) return false;
+    if (!common_setup->process(event)) {
+        if (PRINTOUT) cout << Color::FG_BLUE << "Failed common setup" << Color::FG_DEFAULT << endl;
+        return false;
+    }
 
-    if (!njet_sel->passes(event)) return false;
+    if (!recojet_setup->process(event)) {
+        if (PRINTOUT) cout << Color::FG_BLUE << "Failed recojet setup" << Color::FG_DEFAULT << endl;
+        return false;
+    }
+
+    if (!njet_sel->passes(event)) {
+        if (PRINTOUT) cout << Color::FG_BLUE << "Failed njet_sel" << Color::FG_DEFAULT << endl;
+        return false;
+    }
+
+    if (PRINTOUT) printJets(*event.jets, "Postcleaning");
 
     // Check trigger
     // Note that the ZeroBias/JetHT gets split depending on leading jet pT
@@ -466,13 +478,29 @@ bool QGAnalysisDataModule::process(Event & event) {
         // have to do dijet bit before any jet ID to figure out which jet fired trigger
         dj_trig_ind = dijet_trigger_sel->passIndex();
     } else if (dataset == DATASET::ZeroBias) {
-        // to ensure we don't doublecount events
+        // to ensure we don't double-count events
         // that are also in JetHT, we ensure that the first jet has pT < the first
         // bin in JetHT. (inside dijet_trigger_sel is an equivalent check for JetHT)
         // passTrigger = true;
         passTrigger = (zerobias_trigger_sel->passes(event)) && (event.jets->at(0).pt() < jetht_zb_pt_boundary);
     }
-    if (!passTrigger) return false;
+    if (!passTrigger) {
+        nFailTrigEvents++;
+        if (PRINTOUT) {
+            if (event.jets->at(0).pt() > 100) {
+                for (auto tname : event.get_current_triggernames()) {
+                    if (tname.rfind("Flag_", 0) == 0) continue;
+                    if (tname.rfind("muGT", 0) == 0) continue;
+                    auto ti = event.get_trigger_index(tname);
+                    if (event.passes_trigger(ti))
+                        cout << "   " << tname << " : " << event.passes_trigger(ti) << endl;
+                }
+            }
+
+            cout << Color::BG_YELLOW << Color::FG_BLUE << " ! Failed trigger" << Color::BG_DEFAULT << Color::FG_DEFAULT << endl;
+        }
+        return false;
+    }
 
     if (PRINTOUT) printMuons(*event.muons);
     if (PRINTOUT) printElectrons(*event.electrons);
@@ -506,7 +534,11 @@ bool QGAnalysisDataModule::process(Event & event) {
                     zplusjets_qg_unfold_hists->fill(event);
                     zplusjets_qg_unfold_hists_groomed->fill(event);
                 }
+            } else if (PRINTOUT) {
+                cout << Color::BG_WHITE << Color::FG_RED << " ! Failed Z+J selection" << Color::BG_DEFAULT << Color::FG_DEFAULT << endl;
             }
+        } else if (PRINTOUT) {
+            cout << Color::BG_WHITE << Color::FG_RED << " ! Failed Z+J selection" << Color::BG_DEFAULT << Color::FG_DEFAULT << endl;
         }
 
     } else {
@@ -561,6 +593,8 @@ bool QGAnalysisDataModule::process(Event & event) {
                 dijet_qg_unfold_hists_central_tighter_groomed->fill(event);
                 dijet_qg_unfold_hists_forward_tighter_groomed->fill(event);
             }
+        } else if (PRINTOUT) {
+            cout << Color::BG_WHITE << Color::FG_RED << " ! Failed dijet selection" << Color::BG_DEFAULT << Color::FG_DEFAULT << endl;
         }
     }
     nSelectedEvents++;
