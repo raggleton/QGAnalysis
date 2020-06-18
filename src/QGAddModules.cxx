@@ -955,13 +955,13 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
       throw std::runtime_error("AKx reclustering failed QGAnalysisJetLambda - no jets");
     }
 
-    if (fabs(akJets[0].pt() - jet.pt()*jet.JEC_factor_raw()) / akJets[0].pt() > 0.1)  {
+    if (fabs(akJets[0].pt() - jet.pt()*jet.JEC_factor_raw()) / akJets[0].pt() > 0.2)  {
       cout << "Original jet: " << jet.pt()*jet.JEC_factor_raw() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
       cout << "ak jet: " << akJets[0].pt() << " : " << akJets[0].rap() << " : " << akJets[0].phi() << endl;
       cout << "Event number : run : lumi: " << event.event << " : " << event.run << " : " << event.luminosityBlock << endl;
       throw std::runtime_error("Reclustered AK pT mismatch");
     }
-    if (fabs(akJets[0].rap() - jet.Rapidity()) > 0.1)  {
+    if (fabs(akJets[0].rap() - jet.Rapidity()) > 0.2)  {
       cout << "Original jet: " << jet.pt()*jet.JEC_factor_raw() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
       cout << "ak jet: " << akJets[0].pt() << " : " << akJets[0].rap() << " : " << akJets[0].phi() << endl;
       cout << "Event number : run : lumi: " << event.event << " : " << event.run << " : " << event.luminosityBlock << endl;
@@ -1211,7 +1211,7 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
       throw std::runtime_error("AKx reclustering failed QGAnalysisGenJetLambda - no jets");
     }
 
-    if (fabs(akJets[0].pt() - jet.pt()) / jet.pt() > 0.1)  {
+    if (fabs(akJets[0].pt() - jet.pt()) / jet.pt() > 0.2)  {
       cout << "Original genjet: " << jet.pt() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
       for (const auto & dau : constits) {
         cout << "   dau: " << dau.pt() << " : " << dau.Rapidity() << " : " << dau.phi() << endl;
@@ -1223,7 +1223,7 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
       cout << "Event number : run : lumi: " << event.event << " : " << event.run << " : " << event.luminosityBlock << endl;
       throw std::runtime_error("Reclustered gen AK pT mismatch");
     }
-    if (fabs(akJets[0].rap() - jet.Rapidity()) > 0.1)  {
+    if (fabs(akJets[0].rap() - jet.Rapidity()) > 0.2)  {
       cout << "Original genjet: " << jet.pt() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
       for (const auto & dau : constits) {
         cout << "   dau: " << dau.pt() << " : " << dau.Rapidity() << " : " << dau.phi() << endl;
