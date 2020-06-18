@@ -492,7 +492,7 @@ void QGAnalysisHists::fill(const Event & event){
 
       if (is_mc_) { // TODO: should there be a && passGen?
         // Store variables for matched GenJet
-        bool matchedGenJet = (thisjet.genjet_index() > -1 && thisjet.genjet_index() < 5); // put upper limit to avoid weird matches
+        bool matchedGenJet = (thisjet.genjet_index() > -1 && thisjet.genjet_index() < 3); // put upper limit to avoid weird matches
         float genjet_pt = -1.;
         float genjet_flav = -1.;
         float response = -1.;
