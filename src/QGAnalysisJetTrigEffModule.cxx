@@ -113,8 +113,10 @@ QGAnalysisJetTrigEffModule::QGAnalysisJetTrigEffModule(Context & ctx){
     }
     float jet_radius = get_jet_radius(jet_cone);
     common_setup.reset(new GeneralEventSetup(ctx));
-    float jet_y_max = 2.5 - 0.8; // allow both AK4 & AK8 to fall inside tracker, and keeps both consistent
-    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jet_radius, 10., jet_y_max));
+    float jet_pt_min = 10.;
+    float jet_y_max = Cuts::jet_y_max; // allow both AK4 & AK8 to fall inside tracker, and keeps both consistent
+    bool jetId = true;
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jet_radius, jet_pt_min, jet_y_max, jetId));
     cout << "Running with jet cone: " << jet_cone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
 
