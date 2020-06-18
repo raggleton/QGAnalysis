@@ -207,7 +207,7 @@ bool ZplusJetsGenSelection::passes(const Event & event){
     if (z_cand.pt() < z_pt_min_) return false;
     i++;
     cutflow_raw->Fill(i);
-    cutflow_weighted->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
 
     float m_mumu = z_cand.M();
     if (fabs(m_mumu - 90) > mZ_window_) return false;
