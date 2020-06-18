@@ -177,7 +177,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     // Lambda calculators
     bool doPuppi = (pu_removal == "PUPPI");
     int maxNJets = max(NJETS_ZPJ, NJETS_DIJET);
-    float recoConstitPtMin = 1.;
+    float recoConstitPtMin = 0.;
     float recoConstitEtaMax = 5.;
     // FIXME: get stuff from ctx not extra args?
     std::string reco_jetlambda_handle_name = "JetLambdas";

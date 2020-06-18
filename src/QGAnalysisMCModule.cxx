@@ -240,8 +240,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
                                                            PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
                                                            "jets", reco_jetlambda_handle_name));
 
-    float genConstitPtMin = 0.;
-    float genConstitEtaMax = 5.;
+    float genConstitPtMin = recoConstitPtMin;
+    float genConstitEtaMax = recoConstitEtaMax;
     std::string gen_jetlambda_handle_name = "GoodGenJetLambdas";
     genjetLambdaCreatorPtSorted.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 5, // allow more jets for possible reco/gen matching outside of top 2
                                                                  PtEtaCut(genConstitPtMin, genConstitEtaMax),
