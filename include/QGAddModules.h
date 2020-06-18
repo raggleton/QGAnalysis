@@ -52,6 +52,15 @@ enum PDGID {
 
 
 /**
+ * Common cuts in different modules
+ */
+namespace Cuts {
+  const std::string jec_tag_2016 = "Summer16_07Aug2017"; // not used in 80X, more to avoid conflicts when cherry-picking
+  const std::string jec_ver_2016 = "11";
+}
+
+
+/**
  * Easy way to do JEC, JER, MET corrections in Data. Takes care of run period dependency.
  */
 class DataJetMetCorrector : public uhh2::AnalysisModule {
