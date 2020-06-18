@@ -768,6 +768,12 @@ float LambdaCalculator<T>::getLambda(float kappa, float beta)
     return findRes->second;
   }
 
+  // special case if no constits
+  if (constits_.size() == 0) {
+    resultsCache_[thisArgs] = -1.;
+    return resultsCache_[thisArgs];
+  }
+
   // If not, calculate it and store in cache
   // Special case if both 0 ie multiplicity
   // Do it this way to ensure puppi weights correctly accounted for
@@ -805,6 +811,12 @@ float LambdaCalculator<GenParticle>::getLambda(float kappa, float beta)
   auto findRes = resultsCache_.find(thisArgs);
   if (findRes != resultsCache_.end()) {
     return findRes->second;
+  }
+
+  // special case if no constits
+  if (constits_.size() == 0) {
+    resultsCache_[thisArgs] = -1.;
+    return resultsCache_[thisArgs];
   }
 
   // If not, calculate it and store in cache
@@ -886,7 +898,18 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
 
     if (constits.size() < 2) {
       cout << "Event number : run : lumi: " << event.event << " : " << event.run << " : " << event.luminosityBlock << endl;
-      throw runtime_error("QGAnalysisJetLambda: constits.size() < 2, jet filtering not done properly!");
+      cout << "WARNING: QGAnalysisJetLambda: constits.size() < 2, jet filtering not done properly!" << endl;
+      // since we might encounter a jet without its constituents (ntuple only has them for top 3 jets)
+      LambdaCalculator<PFParticle> recoJetCalc(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
+      LambdaCalculator<PFParticle> recoJetCalcCharged(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
+
+      LambdaCalculator<PFParticle> recoJetCalcGroomed(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
+      LambdaCalculator<PFParticle> recoJetCalcGroomedCharged(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
+
+      JetLambdaBundle thisBundle{jet, recoJetCalc, recoJetCalcCharged, recoJetCalcGroomed, recoJetCalcGroomedCharged};
+      outputs.push_back(thisBundle);
+      continue;
+      // throw runtime_error("QGAnalysisJetLambda: constits.size() < 2, jet filtering not done properly!");
     }
 
     // Shift energies if appropriate
@@ -1134,7 +1157,18 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
 
     if (constits.size() < 2) {
       cout << "Event number : run : lumi: " << event.event << " : " << event.run << " : " << event.luminosityBlock << endl;
-      throw runtime_error("QGAnalysisGenJetLambda: constits.size() < 2, jet filtering not done properly!");
+      cout << "WARNING: QGAnalysisGenJetLambda: constits.size() < 2, jet filtering not done properly!" << endl;
+      // since we might encounter a jet without its constituents (ntuple only has them for top 3 jets)
+      LambdaCalculator<GenParticle> genJetCalc(constits, jetRadius_, jet.v4(), jet.v4(), false);
+      LambdaCalculator<GenParticle> genJetCalcCharged(constits, jetRadius_, jet.v4(), jet.v4(), false);
+
+      LambdaCalculator<GenParticle> genJetCalcGroomed(constits, jetRadius_, jet.v4(), jet.v4(), false);
+      LambdaCalculator<GenParticle> genJetCalcGroomedCharged(constits, jetRadius_, jet.v4(), jet.v4(), false);
+
+      GenJetLambdaBundle thisBundle{jet, genJetCalc, genJetCalcCharged, genJetCalcGroomed, genJetCalcGroomedCharged};
+      outputs.push_back(thisBundle);
+      continue;
+      // throw runtime_error("QGAnalysisGenJetLambda: constits.size() < 2, jet filtering not done properly!");
     }
 
     // FIXME: handle when 0 leftover constituents
