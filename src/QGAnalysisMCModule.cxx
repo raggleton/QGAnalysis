@@ -325,14 +325,14 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         float mu2_pt = Cuts::reco_muon_pt_min;
         float second_jet_frac_max_zpj = 1000.3;
         float z_jet_asym_max = 100.;
-        zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max, "ZPlusJetsSelCutFlow"));
+        zplusjets_sel.reset(            new ZplusJetsSelection(ctx, zLabel, Cuts::reco_jet_pt_min, Cuts::jet_y_max,mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max, "ZPlusJetsSelCutFlow"));
         // just to plot cutflow only when passGen==true
-        zplusjets_sel_passGen.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max, "ZPlusJetsSelPassGenCutFlow"));
+        zplusjets_sel_passGen.reset(    new ZplusJetsSelection(ctx, zLabel, Cuts::reco_jet_pt_min, Cuts::jet_y_max, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max, "ZPlusJetsSelPassGenCutFlow"));
 
-        zplusjets_gen_sel.reset(new ZplusJetsGenSelection(ctx, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max,
+        zplusjets_gen_sel.reset(        new ZplusJetsGenSelection(ctx, Cuts::gen_jet_pt_min, Cuts::jet_y_max, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max,
                                                           "ZPlusJetsGenSelCutFlow", genjet_handle_name, genmuon_handle_name));
         // just to plot gen cutflow only when passReco==true
-        zplusjets_gen_sel_passReco.reset(new ZplusJetsGenSelection(ctx, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max,
+        zplusjets_gen_sel_passReco.reset(new ZplusJetsGenSelection(ctx, Cuts::gen_jet_pt_min, Cuts::jet_y_max, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max,
                                                                    "ZPlusJetsGenSelPassRecoCutFlow", genjet_handle_name, genmuon_handle_name));
 
         // Preselection for Z+J - only 2 muons to reco Z

@@ -9,8 +9,21 @@ using namespace uhh2examples;
 using namespace uhh2;
 
 
-ZplusJetsSelection::ZplusJetsSelection(uhh2::Context & ctx, const std::string & zLabel_, float mu1_pt, float mu2_pt, float mZ_window, float dphi_jet_z_min, float second_jet_frac_max, float z_pt_min, float z_jet_asym_max, const std::string & cutflow_hname):
+ZplusJetsSelection::ZplusJetsSelection(uhh2::Context & ctx,
+                                       const std::string & zLabel_,
+                                       float jet_pt_min,
+                                       float jet_y_max,
+                                       float mu1_pt,
+                                       float mu2_pt,
+                                       float mZ_window,
+                                       float dphi_jet_z_min,
+                                       float second_jet_frac_max,
+                                       float z_pt_min,
+                                       float z_jet_asym_max,
+                                       const std::string & cutflow_hname):
     hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_)),
+    jet_pt_min_(jet_pt_min),
+    jet_y_max_(jet_y_max),
     mu1_pt_(mu1_pt),
     mu2_pt_(mu2_pt),
     mZ_window_(mZ_window),
@@ -22,6 +35,8 @@ ZplusJetsSelection::ZplusJetsSelection(uhh2::Context & ctx, const std::string & 
         // Remember to update when you update passes() ! Yes is horrible
         std::vector<std::string> descriptions = {
             "nJets>=1",
+            "jet_pt_min",
+            "jet_y_max",
             "nZMuons>=2",
             "muon1_pt",
             "muon2_pt",
@@ -51,6 +66,18 @@ bool ZplusJetsSelection::passes(const Event & event){
     cutflow_weighted->Fill(i, event.weight);
 
     if (event.jets->size() < 1) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
+
+    const auto & jet1 = event.jets->at(0);
+
+    if (jet1.pt() < jet_pt_min_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
+
+    if (fabs(jet1.Rapidity()) > jet_y_max_) return false;
     i++;
     cutflow_raw->Fill(i);
     cutflow_weighted->Fill(i, event.weight);
@@ -94,7 +121,6 @@ bool ZplusJetsSelection::passes(const Event & event){
     cutflow_raw->Fill(i);
     cutflow_weighted->Fill(i, event.weight);
 
-    const auto & jet1 = event.jets->at(0);
     if (fabs(deltaPhi(jet1, z_cand)) < dphi_jet_z_min_) return false;
     i++;
     cutflow_raw->Fill(i);
@@ -120,6 +146,8 @@ bool ZplusJetsSelection::passes(const Event & event){
 
 
 ZplusJetsGenSelection::ZplusJetsGenSelection(uhh2::Context & ctx,
+                                             float jet_pt_min,
+                                             float jet_y_max,
                                              float mu1_pt,
                                              float mu2_pt,
                                              float mZ_window,
@@ -132,6 +160,8 @@ ZplusJetsGenSelection::ZplusJetsGenSelection(uhh2::Context & ctx,
                                              const std::string & genmuon_name):
     genJets_handle(ctx.get_handle<std::vector<GenJet>>(genjet_name)),
     zMuons_handle(ctx.get_handle<std::vector<GenParticle>>(genmuon_name)),
+    jet_pt_min_(jet_pt_min),
+    jet_y_max_(jet_y_max),
     mu1_pt_(mu1_pt),
     mu2_pt_(mu2_pt),
     mZ_window_(mZ_window),
@@ -143,6 +173,8 @@ ZplusJetsGenSelection::ZplusJetsGenSelection(uhh2::Context & ctx,
         // Remember to update when you update passes() ! Yes is horrible
         std::vector<std::string> descriptions = {
             "nGenJets>=1",
+            "jet_pt_min",
+            "jet_y_max",
             "nZMuons>=2",
             "muon1_pt",
             "muon2_pt",
@@ -172,6 +204,18 @@ bool ZplusJetsGenSelection::passes(const Event & event){
     cutflow_weighted->Fill(i, event.weight);
 
     if (jets.size() < 1) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
+
+    const auto & jet1 = jets.at(0);
+
+    if (jet1.pt() < jet_pt_min_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
+
+    if (fabs(jet1.Rapidity()) > jet_y_max_) return false;
     i++;
     cutflow_raw->Fill(i);
     cutflow_weighted->Fill(i, event.weight);
@@ -215,7 +259,6 @@ bool ZplusJetsGenSelection::passes(const Event & event){
     cutflow_raw->Fill(i);
     cutflow_weighted->Fill(i, event.weight);
 
-    const auto & jet1 = jets.at(0);
     if (fabs(deltaPhi(jet1, z_cand)) < dphi_jet_z_min_) return false;
     i++;
     cutflow_raw->Fill(i);

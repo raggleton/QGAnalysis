@@ -20,7 +20,10 @@ namespace uhh2examples {
  */
 class ZplusJetsSelection: public uhh2::Selection {
 public:
-    ZplusJetsSelection(uhh2::Context & ctx, const std::string & zLabel_,
+    ZplusJetsSelection(uhh2::Context & ctx,
+                       const std::string & zLabel_,
+                       float jet_pt_min=30.,
+                       float jet_y_max=1.7, // 2.5-0.8 = 1.7
                        float mu1_pt=20.,
                        float mu2_pt=20.,
                        float mZ_window=20., // NB also in conjunction with ZFinder cuts
@@ -32,7 +35,7 @@ public:
     virtual bool passes(const uhh2::Event & event) override;
 private:
     uhh2::Event::Handle<std::vector<Muon>> hndlZ;
-    float mu1_pt_, mu2_pt_, mZ_window_, dphi_jet_z_min_, second_jet_frac_max_, z_pt_min_, z_jet_asym_max_;
+    float jet_pt_min_, jet_y_max_, mu1_pt_, mu2_pt_, mZ_window_, dphi_jet_z_min_, second_jet_frac_max_, z_pt_min_, z_jet_asym_max_;
     TH1D * cutflow_raw, * cutflow_weighted; // owned by Context
 };
 
@@ -43,6 +46,8 @@ private:
 class ZplusJetsGenSelection: public uhh2::Selection {
 public:
     ZplusJetsGenSelection(uhh2::Context & ctx,
+                          float jet_pt_min=30.,
+                          float jet_y_max=1.7, // 2.5-0.8 = 1.7
                           float mu1_pt=20.,
                           float mu2_pt=20.,
                           float mZ_window=20.,
@@ -57,7 +62,7 @@ public:
 private:
     uhh2::Event::Handle<std::vector<GenJet> > genJets_handle;
     uhh2::Event::Handle<std::vector<GenParticle>> zMuons_handle;
-    float mu1_pt_, mu2_pt_, mZ_window_, dphi_jet_z_min_, second_jet_frac_max_, z_pt_min_, z_jet_asym_max_;
+    float jet_pt_min_, jet_y_max_, mu1_pt_, mu2_pt_, mZ_window_, dphi_jet_z_min_, second_jet_frac_max_, z_pt_min_, z_jet_asym_max_;
     TH1D * cutflow_raw, * cutflow_weighted; // owned by Context
 };
 
