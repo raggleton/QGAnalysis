@@ -535,6 +535,13 @@ public:
 
 
 /**
+ * Methods to create sum of constituents
+ */
+LorentzVector jet_constit_4vec(const Jet & jet, const std::vector<PFParticle> & pfparticles, bool doPuppi);
+
+LorentzVector genjet_constit_4vec(const GenJet & jet, const std::vector<GenParticle> & genparticles);
+
+/**
  * Cluster GenJets with anti-kT
  */
 class GenJetClusterer : public uhh2::AnalysisModule {
