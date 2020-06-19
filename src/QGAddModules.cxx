@@ -1113,6 +1113,36 @@ void QGAnalysisJetLambda::shift_photon_pfparticles(std::vector<PFParticle> & pfp
 }
 
 
+JetLambdaCopier::JetLambdaCopier(uhh2::Context & ctx,
+                                 const std::string & jet_coll_name,
+                                 const std::string & lambda_coll_name,
+                                 const std::string & output_coll_name):
+  jet_handle_(ctx.get_handle<std::vector<Jet>>(jet_coll_name)),
+  lambda_handle_(ctx.get_handle<std::vector<JetLambdaBundle>>(lambda_coll_name)),
+  output_handle_(ctx.get_handle<std::vector<JetLambdaBundle>>(output_coll_name))
+{}
+
+bool JetLambdaCopier::process(uhh2::Event & event) {
+  std::vector<JetLambdaBundle> output = {};
+  auto & bundles = event.get(lambda_handle_);
+  auto & jets = event.get(jet_handle_);
+  bool foundMatch = false;
+  for (auto & bundle : bundles) {
+    for (auto & jet : jets) {
+      // check if any of the jets match the jet in this bundle
+      if (deltaRUsingY(jet, bundle.jet) < 0.01) {
+        JetLambdaBundle newBundle = bundle;
+        newBundle.jet = jet;
+        output.push_back(newBundle);
+        foundMatch = true;
+      }
+    }
+  }
+  event.set(output_handle_, output);
+  return foundMatch;
+}
+
+
 QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx,
                                                float jetRadius,
                                                int nJetsMax,
@@ -1319,6 +1349,36 @@ std::vector<GenParticle> QGAnalysisGenJetLambda::get_jet_genparticles(const GenJ
     gp.push_back(genparticles->at(i)); // TODO store copy incase we shift it?
   }
   return gp;
+}
+
+
+GenJetLambdaCopier::GenJetLambdaCopier(uhh2::Context & ctx,
+                                       const std::string & jet_coll_name,
+                                       const std::string & lambda_coll_name,
+                                       const std::string & output_coll_name):
+  genjet_handle_(ctx.get_handle<std::vector<GenJet>>(jet_coll_name)),
+  lambda_handle_(ctx.get_handle<std::vector<GenJetLambdaBundle>>(lambda_coll_name)),
+  output_handle_(ctx.get_handle<std::vector<GenJetLambdaBundle>>(output_coll_name))
+{}
+
+bool GenJetLambdaCopier::process(uhh2::Event & event) {
+  std::vector<GenJetLambdaBundle> output = {};
+  auto & bundles = event.get(lambda_handle_);
+  auto & jets = event.get(genjet_handle_);
+  bool foundMatch = false;
+  for (auto & bundle : bundles) {
+    for (auto & jet : jets) {
+      // check if any of the jets match the jet in this bundle
+      if (deltaRUsingY(jet, bundle.jet) < 0.01) {
+        GenJetLambdaBundle newBundle = bundle;
+        newBundle.jet = jet;
+        output.push_back(newBundle);
+        foundMatch = true;
+      }
+    }
+  }
+  event.set(output_handle_, output);
+  return foundMatch;
 }
 
 

@@ -59,8 +59,10 @@ private:
     std::unique_ptr<TrackingEfficiency> tracking_eff;
     std::unique_ptr<JetCleaner> jet_pf_id;
 
-    std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreatorPtSorted, jetLambdaCreatorForward, jetLambdaCreatorCentral;
-    std::unique_ptr<QGAnalysisGenJetLambda> genjetLambdaCreatorPtSorted, genjetLambdaCreatorForward, genjetLambdaCreatorCentral;
+    std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreatorPtSorted;
+    std::unique_ptr<JetLambdaCopier> jetLambdaCopierForward, jetLambdaCopierCentral;
+    std::unique_ptr<QGAnalysisGenJetLambda> genjetLambdaCreatorPtSorted;
+    std::unique_ptr<GenJetLambdaCopier> genjetLambdaCopierForward, genjetLambdaCopierCentral;
 
     // For doing reco/gen jet matching e.g. after forward/central eta split
     std::unique_ptr<JetMatcher> jetMatcherPtOrdered, jetMatcherForward, jetMatcherCentral;
@@ -241,25 +243,30 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
                                                                  PtEtaCut(genConstitPtMin, genConstitEtaMax),
                                                                  genjet_handle_name, gen_jetlambda_handle_name));
 
+    // create forward & central (Gen)JetLambda bundles by copying from the main ones
     std::string reco_jetlambda_forward_handle_name = "JetLambdasForward";
-    jetLambdaCreatorForward.reset(new QGAnalysisJetLambda(ctx, jetRadius, 1, doPuppi,
-                                                          PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
-                                                          dijet_forward_handle_name, reco_jetlambda_forward_handle_name));
+    jetLambdaCopierForward.reset(new JetLambdaCopier(ctx,
+                                                     dijet_forward_handle_name,
+                                                     reco_jetlambda_handle_name,
+                                                     reco_jetlambda_forward_handle_name));
 
     std::string gen_jetlambda_forward_handle_name = "GoodGenJetLambdasForward";
-    genjetLambdaCreatorForward.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 1,
-                                                                PtEtaCut(genConstitPtMin, genConstitEtaMax),
-                                                                dijet_gen_forward_handle_name, gen_jetlambda_forward_handle_name));
+    genjetLambdaCopierForward.reset(new GenJetLambdaCopier(ctx,
+                                                           dijet_gen_forward_handle_name,
+                                                           gen_jetlambda_handle_name,
+                                                           gen_jetlambda_forward_handle_name));
 
     std::string reco_jetlambda_central_handle_name = "JetLambdasCentral";
-    jetLambdaCreatorCentral.reset(new QGAnalysisJetLambda(ctx, jetRadius, 1, doPuppi,
-                                                          PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
-                                                          dijet_central_handle_name, reco_jetlambda_central_handle_name));
+    jetLambdaCopierCentral.reset(new JetLambdaCopier(ctx,
+                                                     dijet_central_handle_name,
+                                                     reco_jetlambda_handle_name,
+                                                     reco_jetlambda_central_handle_name));
 
     std::string gen_jetlambda_central_handle_name = "GoodGenJetLambdasCentral";
-    genjetLambdaCreatorCentral.reset(new QGAnalysisGenJetLambda(ctx, jetRadius, 1,
-                                                                PtEtaCut(genConstitPtMin, genConstitEtaMax),
-                                                                dijet_gen_central_handle_name, gen_jetlambda_central_handle_name));
+    genjetLambdaCopierCentral.reset(new GenJetLambdaCopier(ctx,
+                                                           dijet_gen_central_handle_name,
+                                                           gen_jetlambda_handle_name,
+                                                           gen_jetlambda_central_handle_name));
 
     // Setup for systematics
     // FIXME put all this inside the ctor as it has ctx!
@@ -269,12 +276,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         // pass
     } else if (chargedHadronShift == "up") {
         jetLambdaCreatorPtSorted->set_charged_hadron_shift(1, chargedHadronShiftAmount);
-        jetLambdaCreatorCentral->set_charged_hadron_shift(1, chargedHadronShiftAmount);
-        jetLambdaCreatorForward->set_charged_hadron_shift(1, chargedHadronShiftAmount);
     } else if (chargedHadronShift == "down") {
         jetLambdaCreatorPtSorted->set_charged_hadron_shift(-1, chargedHadronShiftAmount);
-        jetLambdaCreatorCentral->set_charged_hadron_shift(-1, chargedHadronShiftAmount);
-        jetLambdaCreatorForward->set_charged_hadron_shift(-1, chargedHadronShiftAmount);
     } else {
         throw runtime_error("chargedHadronShift must be nominal, up, or down");
     }
@@ -285,12 +288,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         // pass
     } else if (neutralHadronShift == "up") {
         jetLambdaCreatorPtSorted->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
-        jetLambdaCreatorCentral->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
-        jetLambdaCreatorForward->set_neutral_hadron_shift(1, neutralHadronShiftAmount);
     } else if (neutralHadronShift == "down") {
         jetLambdaCreatorPtSorted->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
-        jetLambdaCreatorCentral->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
-        jetLambdaCreatorForward->set_neutral_hadron_shift(-1, neutralHadronShiftAmount);
     } else {
         throw runtime_error("neutralHadronShift must be nominal, up, or down");
     }
@@ -301,12 +300,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         // pass
     } else if (photonShift == "up") {
         jetLambdaCreatorPtSorted->set_photon_shift(1, photonShiftAmount);
-        jetLambdaCreatorCentral->set_photon_shift(1, photonShiftAmount);
-        jetLambdaCreatorForward->set_photon_shift(1, photonShiftAmount);
     } else if (photonShift == "down") {
         jetLambdaCreatorPtSorted->set_photon_shift(-1, photonShiftAmount);
-        jetLambdaCreatorCentral->set_photon_shift(-1, photonShiftAmount);
-        jetLambdaCreatorForward->set_photon_shift(-1, photonShiftAmount);
     } else {
         throw runtime_error("photonShift must be nominal, up, or down");
     }
@@ -895,11 +890,11 @@ bool QGAnalysisMCModule::process(Event & event) {
         // At this point, all objects should have had all necessary corrections, filtering, etc
         // Have to do outside of any if(), because we always need it to run event.set()
         // otherwise unfolding module dies
-        jetLambdaCreatorForward->process(event);
-        jetLambdaCreatorCentral->process(event);
+        jetLambdaCopierForward->process(event);
+        jetLambdaCopierCentral->process(event);
 
-        genjetLambdaCreatorForward->process(event);
-        genjetLambdaCreatorCentral->process(event);
+        genjetLambdaCopierForward->process(event);
+        genjetLambdaCopierCentral->process(event);
 
         if (hasRecoJets) {
             // flav-specific preselection hists, useful for optimising selection

@@ -69,7 +69,8 @@ private:
     std::vector<double> dj_trig_prescales, ak4dj_trig_prescales, ak8dj_trig_prescales, dj_trig_thresholds;
     float jetht_zb_pt_boundary;
 
-    std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreatorPtSorted, jetLambdaCreatorForward, jetLambdaCreatorCentral;
+    std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreatorPtSorted;
+    std::unique_ptr<JetLambdaCopier> jetLambdaCopierForward, jetLambdaCopierCentral;
 
     Event::Handle<bool> pass_zpj_sel_handle, pass_dj_sel_handle;
     Event::Handle<std::vector<Jet>> dijet_forward_handle, dijet_central_handle;
@@ -185,17 +186,18 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
                                                            PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
                                                            "jets", reco_jetlambda_handle_name));
 
-
+    // create forward & central (Gen)JetLambda bundles by copying from the main ones
     std::string reco_jetlambda_forward_handle_name = "JetLambdasForward";
-    jetLambdaCreatorForward.reset(new QGAnalysisJetLambda(ctx, jetRadius, 1, doPuppi,
-                                                          PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
-                                                          dijet_forward_handle_name, reco_jetlambda_forward_handle_name));
-
+    jetLambdaCopierForward.reset(new JetLambdaCopier(ctx,
+                                                     dijet_forward_handle_name,
+                                                     reco_jetlambda_handle_name,
+                                                     reco_jetlambda_forward_handle_name));
 
     std::string reco_jetlambda_central_handle_name = "JetLambdasCentral";
-    jetLambdaCreatorCentral.reset(new QGAnalysisJetLambda(ctx, jetRadius, 1, doPuppi,
-                                                          PtEtaCut(recoConstitPtMin, recoConstitEtaMax),
-                                                          dijet_central_handle_name, reco_jetlambda_central_handle_name));
+    jetLambdaCopierCentral.reset(new JetLambdaCopier(ctx,
+                                                     dijet_central_handle_name,
+                                                     reco_jetlambda_handle_name,
+                                                     reco_jetlambda_central_handle_name));
 
     // dummy values
     std::string gen_jetlambda_handle_name = "GoodGenJetLambdas";
@@ -568,8 +570,8 @@ bool QGAnalysisDataModule::process(Event & event) {
             // Calculate lambda vars for recojets for dijets
             // These will be used in various histogram classes
             // At this point, all objects should have had all necessary corrections, filtering, etc
-            jetLambdaCreatorForward->process(event);
-            jetLambdaCreatorCentral->process(event);
+            jetLambdaCopierForward->process(event);
+            jetLambdaCopierCentral->process(event);
 
             // apply prescale factor
             if (dataset == DATASET::JetHT) event.weight *= dj_trig_prescales.at(dj_trig_ind);

@@ -437,6 +437,24 @@ private:
   uhh2::Event::Handle<std::vector<JetLambdaBundle>> output_handle_;
 };
 
+
+/**
+ * Copy the JetLambdaBundle structs for matching jets,
+ * replacing the jet with the matching jet (e.g. if genjet ind updated)
+ */
+class JetLambdaCopier : public uhh2::AnalysisModule {
+public:
+  JetLambdaCopier(uhh2::Context & ctx,
+                  const std::string & jet_coll_name,
+                  const std::string & lambda_coll_name,
+                  const std::string & output_coll_name);
+  bool process(uhh2::Event & event);
+private:
+  uhh2::Event::Handle<std::vector<Jet>> jet_handle_;
+  uhh2::Event::Handle<std::vector<JetLambdaBundle>> lambda_handle_, output_handle_;
+};
+
+
 /**
  * Class to create GenJet, LambdaCalculator structs
  */
@@ -462,6 +480,23 @@ private:
   float neutralHadronShift_, photonShift_;
   uhh2::Event::Handle<std::vector<GenJet>> genjet_handle_;
   uhh2::Event::Handle<std::vector<GenJetLambdaBundle>> output_handle_;
+};
+
+
+/**
+ * Copy the GenJetLambdaBundle structs for matching jets,
+ * replacing the jet with the matching jet (e.g. if genjet ind updated)
+ */
+class GenJetLambdaCopier : public uhh2::AnalysisModule {
+public:
+  GenJetLambdaCopier(uhh2::Context & ctx,
+                     const std::string & jet_coll_name,
+                     const std::string & lambda_coll_name,
+                     const std::string & output_coll_name);
+  bool process(uhh2::Event & event);
+private:
+  uhh2::Event::Handle<std::vector<GenJet>> genjet_handle_;
+  uhh2::Event::Handle<std::vector<GenJetLambdaBundle>> lambda_handle_, output_handle_;
 };
 
 
