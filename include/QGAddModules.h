@@ -81,7 +81,7 @@ namespace Cuts {
   const float constit_eta_max = 5.;
 
   const float gen_jet_pt_min = 15.; // looser than reco, since massively smeared
-  const float gen_muon_pt_min = 5.;
+  const float gen_muon_pt_min = 15.;
 
 }
 
