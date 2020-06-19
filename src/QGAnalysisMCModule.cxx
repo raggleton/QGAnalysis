@@ -951,15 +951,9 @@ bool QGAnalysisMCModule::process(Event & event) {
             if (DO_KINEMATIC_HISTS) {
                 if (standard_sel) {
                     dijet_hists->fill(event);
-                    dijet_qg_hists->fill(event);
                 }
                 if (tight_sel) {
                     dijet_hists_tighter->fill(event);
-                    dijet_qg_hists_tighter->fill(event);
-                    dijet_qg_hists_central_tighter->fill(event);
-                    dijet_qg_hists_forward_tighter->fill(event);
-                    dijet_qg_hists_central_tighter_groomed->fill(event);
-                    dijet_qg_hists_forward_tighter_groomed->fill(event);
                 }
             }
 
