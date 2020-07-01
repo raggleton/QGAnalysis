@@ -78,7 +78,7 @@ private:
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists, zplusjets_qg_hists, zplusjets_qg_hists_groomed;
     std::unique_ptr<Hists> zplusjets_qg_unfold_hists, zplusjets_qg_unfold_hists_groomed;
 
-    std::unique_ptr<Hists> dijet_hists_presel, dijet_hists;
+    std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_hists_eta_ordered;
     std::unique_ptr<Hists> dijet_qg_hists, dijet_qg_hists_central_tighter, dijet_qg_hists_forward_tighter;
     std::unique_ptr<Hists> dijet_qg_hists_central_tighter_groomed, dijet_qg_hists_forward_tighter_groomed;
     std::unique_ptr<Hists> dijet_qg_unfold_hists_central_tighter, dijet_qg_unfold_hists_forward_tighter;
@@ -351,6 +351,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
         if (DO_KINEMATIC_HISTS) {
             dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
             dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
+            dijet_hists_eta_ordered.reset(new QGAnalysisDijetHists(ctx, "Dijet_eta_ordered", binning_method));
             // add in simple jet kinematic hists, for each trigger, so we can show a manually stitched plot
             int counter = 0;
             for (const auto & trg_pair : dj_trigger_bins) {
@@ -594,6 +595,20 @@ bool QGAnalysisDataModule::process(Event & event) {
                 dijet_qg_unfold_hists_forward_tighter->fill(event);
                 dijet_qg_unfold_hists_central_tighter_groomed->fill(event);
                 dijet_qg_unfold_hists_forward_tighter_groomed->fill(event);
+            }
+
+            // do eta-sorted dijet hists (where we need both jets)
+            if (DO_KINEMATIC_HISTS) {
+                // do dijet hists but sorted by eta (only one that matters about eta-ordering)
+                // get them from event.jets and not the central/forward handles,
+                // since event.jets has correct genjet_index
+                std::vector<Jet> leadingJets(event.jets->begin(), event.jets->begin()+2);
+                if (leadingJets.size() != 2) {
+                    throw std::runtime_error("Slicing jets gone wrong!");
+                }
+                sort_by_y(leadingJets);  // by descending eta, so jets[0] = fwd, jets[1] = cen
+                std::swap(*event.jets, leadingJets);
+                dijet_hists_eta_ordered->fill(event);
             }
         } else if (PRINTOUT) {
             cout << Color::BG_WHITE << Color::FG_RED << " ! Failed dijet selection" << Color::BG_DEFAULT << Color::FG_DEFAULT << endl;
