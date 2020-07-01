@@ -165,6 +165,7 @@ class ZllKFactor {
 public:
   ZllKFactor(const std::string & weightFilename_);
   virtual float getKFactor(float zPt);
+  virtual ~ZllKFactor() = default;
 private:
   std::unique_ptr<TFile> file;
   std::unique_ptr<TGraph> grNNLO;
