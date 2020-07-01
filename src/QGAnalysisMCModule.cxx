@@ -967,7 +967,7 @@ bool QGAnalysisMCModule::process(Event & event) {
 
             // do eta-sorted dijet hists (where we need both jets)
 
-            if (DO_KINEMATIC_HISTS && standard_sel) {
+            if (DO_KINEMATIC_HISTS && tight_sel) {
                 // do dijet hists but sorted by eta (only one that matters about eta-ordering)
                 // get them from event.jets and not the central/forward handles,
                 // since event.jets has correct genjet_index
