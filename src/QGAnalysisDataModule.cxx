@@ -355,8 +355,8 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
             // add in simple jet kinematic hists, for each trigger, so we can show a manually stitched plot
             int counter = 0;
             for (const auto & trg_pair : dj_trigger_bins) {
-                float pt_min = trg_pair.first;
-                float pt_max = trg_pair.second;
+                // float pt_min = trg_pair.first;
+                // float pt_max = trg_pair.second;
                 dijet_jet_hists.push_back(JetHists(ctx, TString::Format("Dijet_jet_hist_%d", counter).Data(), 2));
                 dijet_jet_hists_unweighted.push_back(JetHists(ctx, TString::Format("Dijet_jet_hist_unweighted_%d", counter).Data(), 2, "", false));
                 counter++;

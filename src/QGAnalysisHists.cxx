@@ -364,7 +364,7 @@ void QGAnalysisHists::fill(const Event & event){
 
   // extract the separate gen & reco weight components, needed for TUnfold
   double gen_weight = event.get(gen_weight_handle);
-  double reco_weight = weight / gen_weight;
+  // double reco_weight = weight / gen_weight;
 
   h_weights->Fill(weight);
 
