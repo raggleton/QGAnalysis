@@ -1258,7 +1258,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       if (doPDFvariations_ && event.genInfo->systweights().size() > 0) {
         for (int i=0; i<N_PDF_VARIATIONS; i++) {
           double pdf_weight = event.genInfo->systweights().at(i+10) / event.genInfo->systweights().at(9); // +10 as first 9 are scale variations, then comes the nominal weight again
-          double this_weight = weight * gen_weight;
+          double this_weight = pdf_weight * gen_weight;
           h_tu_gen_pt_PDF_variations.at(i)->Fill(genBinPt, this_weight);
         }
       }
