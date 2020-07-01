@@ -837,22 +837,22 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       bool thisPassRecoCharged = (passReco && recoJetCalcCharged.constits().size() > 1);
       if (!thisPassReco && !thisPassRecoCharged) continue;
 
-      float lha(0.), puppiMult(0.), ptd(0.), width(0.), thrust(0.);
+      double lha(0.), puppiMult(0.), ptd(0.), width(0.), thrust(0.);
       if (thisPassReco) {
-        lha = recoJetCalc.getLambda(1, 0.5);
-        puppiMult = recoJetCalc.getLambda(0, 0);
-        ptd = recoJetCalc.getLambda(2, 0);
-        width = recoJetCalc.getLambda(1, 1);
-        thrust = recoJetCalc.getLambda(1, 2);
+        lha = recoJetCalc.getLambda(Cuts::lha_pf_args.kappa, Cuts::lha_pf_args.beta, Cuts::lha_pf_args.id);
+        puppiMult = recoJetCalc.getLambda(Cuts::mult_pf_args.kappa, Cuts::mult_pf_args.beta, Cuts::mult_pf_args.id);
+        ptd = recoJetCalc.getLambda(Cuts::pTD_pf_args.kappa, Cuts::pTD_pf_args.beta, Cuts::pTD_pf_args.id);
+        width = recoJetCalc.getLambda(Cuts::width_pf_args.kappa, Cuts::width_pf_args.beta, Cuts::width_pf_args.id);
+        thrust = recoJetCalc.getLambda(Cuts::thrust_pf_args.kappa, Cuts::thrust_pf_args.beta, Cuts::thrust_pf_args.id);
       }
 
-      float lha_charged(0), puppiMult_charged(0), ptd_charged(0), width_charged(0), thrust_charged(0);
+      double lha_charged(0), puppiMult_charged(0), ptd_charged(0), width_charged(0), thrust_charged(0);
       if (thisPassRecoCharged) {
-        lha_charged = recoJetCalcCharged.getLambda(1, 0.5);
-        puppiMult_charged = recoJetCalcCharged.getLambda(0, 0);
-        ptd_charged = recoJetCalcCharged.getLambda(2, 0);
-        width_charged = recoJetCalcCharged.getLambda(1, 1);
-        thrust_charged = recoJetCalcCharged.getLambda(1, 2);
+        lha_charged = recoJetCalcCharged.getLambda(Cuts::lha_pf_args.kappa, Cuts::lha_pf_args.beta, Cuts::lha_pf_args.id);
+        puppiMult_charged = recoJetCalcCharged.getLambda(Cuts::mult_pf_args.kappa, Cuts::mult_pf_args.beta, Cuts::mult_pf_args.id);
+        ptd_charged = recoJetCalcCharged.getLambda(Cuts::pTD_pf_args.kappa, Cuts::pTD_pf_args.beta, Cuts::pTD_pf_args.id);
+        width_charged = recoJetCalcCharged.getLambda(Cuts::width_pf_args.kappa, Cuts::width_pf_args.beta, Cuts::width_pf_args.id);
+        thrust_charged = recoJetCalcCharged.getLambda(Cuts::thrust_pf_args.kappa, Cuts::thrust_pf_args.beta, Cuts::thrust_pf_args.id);
       }
 
       float jet_pt = useBinningValue_ ? event.get(pt_binning_reco_handle) : thisjet.pt();
@@ -1191,22 +1191,22 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
 
       float genjet_pt = useBinningValue_ ? event.get(pt_binning_gen_handle) : thisjet.pt();
 
-      float gen_lha(0.), gen_mult(0.), gen_ptd(0.), gen_width(0.), gen_thrust(0.);
+      double gen_lha(0.), gen_mult(0.), gen_ptd(0.), gen_width(0.), gen_thrust(0.);
       if (thisPassGen) {
-        gen_lha = genJetCalc.getLambda(1, 0.5);
-        gen_mult = genJetCalc.getLambda(0, 0);
-        gen_ptd = genJetCalc.getLambda(2, 0);
-        gen_width = genJetCalc.getLambda(1, 1);
-        gen_thrust = genJetCalc.getLambda(1, 2);
+        gen_lha = genJetCalc.getLambda(Cuts::lha_gen_args.kappa, Cuts::lha_gen_args.beta, Cuts::lha_gen_args.id);
+        gen_mult = genJetCalc.getLambda(Cuts::mult_gen_args.kappa, Cuts::mult_gen_args.beta, Cuts::mult_gen_args.id);
+        gen_ptd = genJetCalc.getLambda(Cuts::pTD_gen_args.kappa, Cuts::pTD_gen_args.beta, Cuts::pTD_gen_args.id);
+        gen_width = genJetCalc.getLambda(Cuts::width_gen_args.kappa, Cuts::width_gen_args.beta, Cuts::width_gen_args.id);
+        gen_thrust = genJetCalc.getLambda(Cuts::thrust_gen_args.kappa, Cuts::thrust_gen_args.beta, Cuts::thrust_gen_args.id);
       }
 
-      float gen_lha_charged(0.), gen_mult_charged(0.), gen_ptd_charged(0.), gen_width_charged(0.), gen_thrust_charged(0.);
+      double gen_lha_charged(0.), gen_mult_charged(0.), gen_ptd_charged(0.), gen_width_charged(0.), gen_thrust_charged(0.);
       if (thisPassGenCharged) {
-        gen_lha_charged = genJetCalcCharged.getLambda(1, 0.5);
-        gen_mult_charged = genJetCalcCharged.getLambda(0, 0);
-        gen_ptd_charged = genJetCalcCharged.getLambda(2, 0);
-        gen_width_charged = genJetCalcCharged.getLambda(1, 1);
-        gen_thrust_charged = genJetCalcCharged.getLambda(1, 2);
+        gen_lha_charged = genJetCalcCharged.getLambda(Cuts::lha_gen_args.kappa, Cuts::lha_gen_args.beta, Cuts::lha_gen_args.id);
+        gen_mult_charged = genJetCalcCharged.getLambda(Cuts::mult_gen_args.kappa, Cuts::mult_gen_args.beta, Cuts::mult_gen_args.id);
+        gen_ptd_charged = genJetCalcCharged.getLambda(Cuts::pTD_gen_args.kappa, Cuts::pTD_gen_args.beta, Cuts::pTD_gen_args.id);
+        gen_width_charged = genJetCalcCharged.getLambda(Cuts::width_gen_args.kappa, Cuts::width_gen_args.beta, Cuts::width_gen_args.id);
+        gen_thrust_charged = genJetCalcCharged.getLambda(Cuts::thrust_gen_args.kappa, Cuts::thrust_gen_args.beta, Cuts::thrust_gen_args.id);
       }
 
 
@@ -1381,22 +1381,22 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           thisPassReco = (passReco && recoJetCalc.constits().size() > 1);
           thisPassRecoCharged = (passReco && recoJetCalcCharged.constits().size() > 1);
 
-          float lha(0.), puppiMult(0.), ptd(0.), width(0.), thrust(0.);
+          double lha(0.), puppiMult(0.), ptd(0.), width(0.), thrust(0.);
           if (thisPassReco) {
-            lha = recoJetCalc.getLambda(1, 0.5);
-            puppiMult = recoJetCalc.getLambda(0, 0);
-            ptd = recoJetCalc.getLambda(2, 0);
-            width = recoJetCalc.getLambda(1, 1);
-            thrust = recoJetCalc.getLambda(1, 2);
+            lha = recoJetCalc.getLambda(Cuts::lha_pf_args.kappa, Cuts::lha_pf_args.beta, Cuts::lha_pf_args.id);
+            puppiMult = recoJetCalc.getLambda(Cuts::mult_pf_args.kappa, Cuts::mult_pf_args.beta, Cuts::mult_pf_args.id);
+            ptd = recoJetCalc.getLambda(Cuts::pTD_pf_args.kappa, Cuts::pTD_pf_args.beta, Cuts::pTD_pf_args.id);
+            width = recoJetCalc.getLambda(Cuts::width_pf_args.kappa, Cuts::width_pf_args.beta, Cuts::width_pf_args.id);
+            thrust = recoJetCalc.getLambda(Cuts::thrust_pf_args.kappa, Cuts::thrust_pf_args.beta, Cuts::thrust_pf_args.id);
           }
 
-          float lha_charged(0), puppiMult_charged(0), ptd_charged(0), width_charged(0), thrust_charged(0);
+          double lha_charged(0), puppiMult_charged(0), ptd_charged(0), width_charged(0), thrust_charged(0);
           if (thisPassRecoCharged) {
-            lha_charged = recoJetCalcCharged.getLambda(1, 0.5);
-            puppiMult_charged = recoJetCalcCharged.getLambda(0, 0);
-            ptd_charged = recoJetCalcCharged.getLambda(2, 0);
-            width_charged = recoJetCalcCharged.getLambda(1, 1);
-            thrust_charged = recoJetCalcCharged.getLambda(1, 2);
+            lha_charged = recoJetCalcCharged.getLambda(Cuts::lha_pf_args.kappa, Cuts::lha_pf_args.beta, Cuts::lha_pf_args.id);
+            puppiMult_charged = recoJetCalcCharged.getLambda(Cuts::mult_pf_args.kappa, Cuts::mult_pf_args.beta, Cuts::mult_pf_args.id);
+            ptd_charged = recoJetCalcCharged.getLambda(Cuts::pTD_pf_args.kappa, Cuts::pTD_pf_args.beta, Cuts::pTD_pf_args.id);
+            width_charged = recoJetCalcCharged.getLambda(Cuts::width_pf_args.kappa, Cuts::width_pf_args.beta, Cuts::width_pf_args.id);
+            thrust_charged = recoJetCalcCharged.getLambda(Cuts::thrust_pf_args.kappa, Cuts::thrust_pf_args.beta, Cuts::thrust_pf_args.id);
           }
 
           float jet_pt = useBinningValue_ ? event.get(pt_binning_reco_handle) : thisjet.pt();
