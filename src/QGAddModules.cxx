@@ -415,7 +415,7 @@ bool MCTrackScaleFactor::process(uhh2::Event & event) {
           dropped_pfparticles.push_back(pf);
         }
       }
-    } else {
+    } else if (sf > 1) {
       // Promote charged genparticle to PF particle with probability proportional to SF,
       // but only if there's no match to a PF particle already
       int genCounter = 0;
