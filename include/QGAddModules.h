@@ -1,6 +1,7 @@
 #pragma once
 
 #include <limits>       // std::numeric_limits
+#include <tuple>
 
 #include "UHH2/core/include/fwd.h"
 #include "UHH2/core/include/Selection.h"
@@ -51,6 +52,19 @@ enum PDGID {
 };
 
 
+struct PFLambdaArgs {
+  float kappa;
+  float beta;
+  PFId id;
+};
+
+struct GenLambdaArgs {
+  float kappa;
+  float beta;
+  GenId id;
+};
+
+
 /**
  * Common cuts in different modules
  */
@@ -73,13 +87,26 @@ namespace Cuts {
   const float dijet_dphi_min = 2.;
   const float jet_asym_max = 0.3;
 
-  // Constituent cuts for lambda vars
-  // - this may become a cut per variable
+  // Special gen level cuts
+  const float gen_jet_pt_min = 15.; // looser than reco, since massively smeared
+  const float gen_muon_pt_min = 15.;
+
+  // Constituent cuts for most lambda vars
   const float constit_pt_min = 0.;
   const float constit_eta_max = 5.;
 
-  const float gen_jet_pt_min = 15.; // looser than reco, since massively smeared
-  const float gen_muon_pt_min = 15.;
+  // Arguments for lambda calculations
+  const PFLambdaArgs lha_pf_args      {1, 0.5, PtYCut(constit_pt_min, constit_eta_max)};
+  const PFLambdaArgs width_pf_args    {1, 1,   PtYCut(constit_pt_min, constit_eta_max)};
+  const PFLambdaArgs thrust_pf_args   {1, 2,   PtYCut(constit_pt_min, constit_eta_max)};
+  const PFLambdaArgs pTD_pf_args      {2, 0,   PtYCut(constit_pt_min, constit_eta_max)};
+  const PFLambdaArgs mult_pf_args     {0, 0,   PtYCut(constit_pt_min, constit_eta_max)};
+
+  const GenLambdaArgs lha_gen_args    {1, 0.5, PtYCut(constit_pt_min, constit_eta_max)};
+  const GenLambdaArgs width_gen_args  {1, 1,   PtYCut(constit_pt_min, constit_eta_max)};
+  const GenLambdaArgs thrust_gen_args {1, 2,   PtYCut(constit_pt_min, constit_eta_max)};
+  const GenLambdaArgs pTD_gen_args    {2, 0,   PtYCut(constit_pt_min, constit_eta_max)};
+  const GenLambdaArgs mult_gen_args   {0, 0,   PtYCut(constit_pt_min, constit_eta_max)};
 
 }
 
@@ -310,17 +337,17 @@ private:
 template <class T> class LambdaCalculator {
 public:
   LambdaCalculator(std::vector<T> & constits, float jet_radius, const LorentzVector & jet_vector, const LorentzVector & wta_vector, bool usePuppiWeight);
-  float getLambda(float kappa, float beta);
-  void clearCache();
+  // Calculate lambda from constituents, with optional ID applied to filter constituents going into calculation
+  double getLambda(float kappa, float beta, const std::function<bool (const T &)> & constitId = PtYCut(0, 10.));
+  // void clearCache();
   std::vector<T> constits() { return constits_; }
-  float getPtSum() { return ptSum_; }
 private:
   std::vector<T> constits_;
-  float jetRadius_, ptSum_;
+  float jetRadius_;
   LorentzVector jetVector_;
   LorentzVector wtaVector_;
   bool usePuppiWeight_;
-  std::map<std::pair<float, float>, float> resultsCache_;
+  // std::map<std::tuple<float, float, std::function<bool (const T &)> >, double> resultsCache_;
 };
 
 template class LambdaCalculator<PFParticle>;

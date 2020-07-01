@@ -763,104 +763,106 @@ template<class T>
 LambdaCalculator<T>::LambdaCalculator(std::vector<T> & constits, float jet_radius, const LorentzVector & jet_vector, const LorentzVector & wta_vector, bool usePuppiWeight):
   constits_(constits),
   jetRadius_(jet_radius),
-  ptSum_(0),
   jetVector_(jet_vector),
   wtaVector_(wta_vector),
   usePuppiWeight_(usePuppiWeight)
-{
-  // cache pt_sum
-  for (auto & dtr : constits_) {
-    float weight = usePuppiWeight_ ? dtr.puppiWeight() : 1.;
-    ptSum_ += weight*dtr.pt();
-  }
-}
+{}
 
 template<>
 LambdaCalculator<GenParticle>::LambdaCalculator(std::vector<GenParticle> & constits, float jet_radius, const LorentzVector & jet_vector, const LorentzVector & wta_vector, bool usePuppiWeight):
   constits_(constits),
   jetRadius_(jet_radius),
-  ptSum_(0),
   jetVector_(jet_vector),
   wtaVector_(wta_vector),
   usePuppiWeight_(usePuppiWeight)
-{
-  // cache pt_sum
-  for (auto & dtr : constits_) {
-    ptSum_ += dtr.pt();
-  }
-}
+{}
 
-// TODO: unify this into one calculation, otherwise kinda useless
-template<class T>
-float LambdaCalculator<T>::getLambda(float kappa, float beta)
+template<>
+double LambdaCalculator<PFParticle>::getLambda(float kappa, float beta, const PFId & constitId)
 {
+  // DISABLE CACHING
+  // since it requires storing the std::function, which requires operator<,
+  // which isn't easy (or possible)
+
   // Check if result already exists in cache
-  auto thisArgs = std::make_pair(kappa, beta);
-  auto findRes = resultsCache_.find(thisArgs);
-  if (findRes != resultsCache_.end()) {
-    return findRes->second;
-  }
+  // auto thisArgs = std::make_tuple(kappa, beta, constitId);
+  // do it manuallly since map::find not easy with std::function
+  // for (const it : resultsCache_) {
+  //   if (it.first == thisArgs)
+  //     return it.second;
+  // }
 
   // If not, calculate it and store in cache
   // Special case if both 0 ie multiplicity
   // Do it this way to ensure puppi weights correctly accounted for
-  float result = 0.;
+  double result = 0.;
   if (kappa == 0 && beta == 0) {
-    if (usePuppiWeight_) {
-      for (auto dtr : constits_) {
+    for (const auto & dtr : constits_) {
+      if (!constitId(dtr)) continue;
+      if (usePuppiWeight_) {
         result += dtr.puppiWeight();
+      } else {
+        result += 1;
       }
-    } else {
-      result = constits_.size();
     }
-    resultsCache_[thisArgs] = result;
+    // resultsCache_[thisArgs] = result;
     return result;
   }
 
-  for (auto dtr : constits_) {
-    float weight = usePuppiWeight_ ? dtr.puppiWeight() : 1.;
-    float z = (kappa != 0) ? dtr.pt() / ptSum_ : 1.;
-    z *= weight;
+  double numerator(0.), ptSum(0.);
+  for (const auto & dtr : constits_) {
+    if (!constitId(dtr))
+      continue;
+
+    double weight = usePuppiWeight_ ? dtr.puppiWeight() : 1.;
+    double thisPt = (kappa != 0) ? dtr.pt() : 1.;
+    thisPt *= weight;
     // for the reference jet vector for deltaR, we use the WTA vector
     // if beta <=1, and the normal jet vector otherwise
-    float theta = (beta != 0) ? deltaRUsingY(dtr.v4(), (beta <= 1) ? wtaVector_ : jetVector_) / jetRadius_ : 1.; // 1 as puppi doesn't change direction
-    result += (pow(z, kappa) * pow(theta, beta));
+    // Note: better compute (dist^2)^(beta/2) to avoid an extra square root
+    double theta2 = (beta != 0) ? deltaR2UsingY(dtr.v4(), (beta <= 1) ? wtaVector_ : jetVector_) : 1.; // 1 as puppi shouldn't change direction
+    numerator += (pow(thisPt, kappa) * pow(theta2, 0.5*beta));
+    ptSum += thisPt;
   }
-  resultsCache_[thisArgs] = result;
+  result = numerator / (pow(ptSum, kappa) * pow(jetRadius_, beta));
+  // resultsCache_[thisArgs] = result;
   return result;
 }
 
 template<>
-float LambdaCalculator<GenParticle>::getLambda(float kappa, float beta)
+double LambdaCalculator<GenParticle>::getLambda(float kappa, float beta, const GenId & constitId)
 {
   // Check if result already exists in cache
-  auto thisArgs = std::make_pair(kappa, beta);
-  auto findRes = resultsCache_.find(thisArgs);
-  if (findRes != resultsCache_.end()) {
-    return findRes->second;
-  }
+  // auto thisArgs = std::make_tuple(kappa, beta, constitId);
+  // do it manuallly since map::find not easy with std::function
+  // for (const it : resultsCache_) {
+  //   if (it.first == thisArgs)
+  //     return it.second;
+  // }
 
   // If not, calculate it and store in cache
-  float result = 0.;
-  for (auto dtr : constits_) {
-    float z = (kappa != 0) ? dtr.pt() / ptSum_ : 1.;
+  double result = 0.;
+  double numerator(0.), ptSum(0.);
+  for (const auto & dtr : constits_) {
+    if (!constitId(dtr)) continue;
+    double thisPt = dtr.pt();
     // for the reference jet vector for deltaR, we use the WTA vector
     // if beta <=1, and the normal jet vector otherwise
-    float theta = (beta != 0) ? deltaRUsingY(dtr.v4(), (beta <= 1) ? wtaVector_ : jetVector_) / jetRadius_ : 1.;
-    // cout << "    adding z= " << z << " theta: " << theta << " for constit " << dtr.pdgId() << " : " << dtr.pt() << " : " << dtr.eta() << " : " << dtr.phi() << endl;
-    // cout << "    => " << pow(z, kappa) << " * " << pow(theta, beta) << " = " << pow(z, kappa) * pow(theta, beta) << endl;
-    result += (pow(z, kappa) * pow(theta, beta));
+    // Note: better compute (dist^2)^(beta/2) to avoid an extra square root
+    double theta2 = (beta != 0) ? deltaR2UsingY(dtr.v4(), (beta <= 1) ? wtaVector_ : jetVector_) / jetRadius_ : 1.;
+    numerator += (pow(thisPt, kappa) * pow(theta2, 0.5*beta));
+    ptSum += thisPt;
   }
-  resultsCache_[thisArgs] = result;
-  // cout << "  result = " << result << endl;
+  result = numerator / (pow(ptSum, kappa) * pow(jetRadius_, beta));
+  // resultsCache_[thisArgs] = result;
   return result;
 }
 
-template<class T>
-void LambdaCalculator<T>::clearCache()
-{
-  resultsCache_.clear();
-}
+// template<class T>
+// void LambdaCalculator<T>::clearCache()
+// {
+//   resultsCache_.clear();
+// }
 
 
 
