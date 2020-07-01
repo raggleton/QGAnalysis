@@ -91,7 +91,7 @@ namespace Cuts {
 
   // Special gen level cuts
   const float gen_jet_pt_min = 15.; // looser than reco, since massively smeared
-  const float gen_muon_pt_min = 15.;
+  const float gen_muon_pt_min = reco_muon_pt_min;
 
   // Constituent cuts for most lambda vars
   const float constit_pt_min = 0.;
