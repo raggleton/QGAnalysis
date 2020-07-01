@@ -100,13 +100,13 @@ namespace Cuts {
   const PFLambdaArgs width_pf_args    {1, 1,   PtYCut(constit_pt_min, constit_eta_max)};
   const PFLambdaArgs thrust_pf_args   {1, 2,   PtYCut(constit_pt_min, constit_eta_max)};
   const PFLambdaArgs pTD_pf_args      {2, 0,   PtYCut(constit_pt_min, constit_eta_max)};
-  const PFLambdaArgs mult_pf_args     {0, 0,   PtYCut(constit_pt_min, constit_eta_max)};
+  const PFLambdaArgs mult_pf_args     {0, 0,   PtYCut(1., constit_eta_max)}; //special for multiplicity
 
   const GenLambdaArgs lha_gen_args    {1, 0.5, PtYCut(constit_pt_min, constit_eta_max)};
   const GenLambdaArgs width_gen_args  {1, 1,   PtYCut(constit_pt_min, constit_eta_max)};
   const GenLambdaArgs thrust_gen_args {1, 2,   PtYCut(constit_pt_min, constit_eta_max)};
   const GenLambdaArgs pTD_gen_args    {2, 0,   PtYCut(constit_pt_min, constit_eta_max)};
-  const GenLambdaArgs mult_gen_args   {0, 0,   PtYCut(constit_pt_min, constit_eta_max)};
+  const GenLambdaArgs mult_gen_args   {0, 0,   PtYCut(1., constit_eta_max)}; //special for multiplicity
 
 }
 
