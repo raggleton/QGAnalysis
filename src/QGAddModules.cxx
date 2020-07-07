@@ -333,8 +333,10 @@ bool PtReweight::process(uhh2::Event & event) {
 MCTrackScaleFactor::MCTrackScaleFactor(uhh2::Context & ctx, const std::string & direction):
   eta_regions{0.00, 0.80, 1.50, 2.5},
   SF{
-    {1.01, 1.08, 0.93}, // Run B to F
-    {1.04, 1.07, 1.12}  // Run G, H
+    // {1.01, 1.08, 0.93}, // Run B to F
+    // {1.04, 1.07, 1.12}  // Run G, H
+    {1, 1, 1}, // Run B to F
+    {1, 1, 1}  // Run G, H
   },
   SF_uncert{
     {0.03, 0.04, 0.04}, // Run B to F
