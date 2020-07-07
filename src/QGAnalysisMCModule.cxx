@@ -175,12 +175,12 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     common_setup.reset(new GeneralEventSetup(ctx));
     bool update4vec = false;
     tracking_eff.reset(new TrackingEfficiency(ctx, update4vec));
-    bool doJetId = true; // if have tracking SF, need False - do it AFTER the tracking SF and not before - could have some promoted particles
+    bool doJetId = false; // if have tracking SF, need False - do it AFTER the tracking SF and not before - could have some promoted particles
     float largeY = 5.; // dummy value
     recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, Cuts::reco_jet_pt_min, largeY, doJetId)); // set y large here, do y selection as part of dijet selection
 
     // another jet ID check after tracking SFs applied (basically constituent check)
-    // jet_pf_id.reset(new JetCleaner(ctx, JetPFID(Cuts::RECO_JET_ID)));
+    jet_pf_id.reset(new JetCleaner(ctx, JetPFID(Cuts::RECO_JET_ID)));
 
     // Setup Gen objects
     std::string genjet_handle_name = "GoodGenJets";
@@ -730,10 +730,10 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // Apply tracking SFs, but only after JECs, etc applied
     // - we want to use the original jet pT
-    // tracking_eff->process(event);
+    tracking_eff->process(event);
 
     // Apply Jet PF ID since the jet constituents changes
-    // jet_pf_id->process(event);
+    jet_pf_id->process(event);
 
     if (PRINTOUT || printout_event_sel) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets after tracking SF");
 
