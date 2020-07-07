@@ -435,8 +435,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         std::string binning_method = "ave";
         if (DO_KINEMATIC_HISTS) {
             dijet_gen_hists.reset(new QGAnalysisDijetGenHists(ctx, "Dijet_gen"));
-            dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
-            dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet", binning_method));
+            // dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
+            // dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet", binning_method));
             dijet_hists_eta_ordered.reset(new QGAnalysisDijetHists(ctx, "Dijet_eta_ordered", binning_method));
             dijet_hists_tighter.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
         }
@@ -463,10 +463,10 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         // note that each of these does neutral+charged, and charged-only
         std::string dj_sel = "dijet";
         if (DO_LAMBDA_HISTS) {
-            dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG",
-                                                     NJETS_DIJET, false, dj_sel,
-                                                     pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
-                                                     reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+            // dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG",
+            //                                          NJETS_DIJET, false, dj_sel,
+            //                                          pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
+            //                                          reco_jetlambda_handle_name, gen_jetlambda_handle_name));
             dijet_qg_hists_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter",
                                                              NJETS_DIJET, false, dj_sel,
                                                              pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
@@ -717,7 +717,7 @@ bool QGAnalysisMCModule::process(Event & event) {
         // if (hasGenJets && (event.get(genjets_handle)[0].pt() / ptHat > 2)) return false;
     }
 
-    genjet_hists->fill(event);
+   if (DO_KINEMATIC_HISTS) genjet_hists->fill(event);
 
     // Get matching GenJets for reco jets
     // -------------------------------------------------------------------------
@@ -783,8 +783,8 @@ bool QGAnalysisMCModule::process(Event & event) {
                     event.set(pass_zpj_sel_handle, pass_zpj_reco);
                     if (pass_zpj_reco) {
 
-                        genjet_hists_passZpJReco->fill(event);
                         if (DO_KINEMATIC_HISTS) {
+                            genjet_hists_passZpJReco->fill(event);
                             zplusjets_gen_sel_passReco->passes(event); // this plots gen cutflow as well
                             zplusjets_hists->fill(event);
                         }
@@ -902,7 +902,7 @@ bool QGAnalysisMCModule::process(Event & event) {
             uint flav2 = event.jets->at(1).flavor();
 
             // Fill hists
-            if (DO_KINEMATIC_HISTS) dijet_hists_presel->fill(event);
+            // if (DO_KINEMATIC_HISTS) dijet_hists_presel->fill(event);
             // if (DO_FLAVOUR_HISTS) {
             //     if (flav1 == PDGID::GLUON) {
             //         if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {
@@ -933,7 +933,7 @@ bool QGAnalysisMCModule::process(Event & event) {
 
             if (pass_dj_reco) {
                 dijet_gen_sel_passReco->passes(event); // this plots cutflow as well - only if we pass dijet reco selection
-                genjet_hists_passDijetReco->fill(event);
+                if (DO_KINEMATIC_HISTS) genjet_hists_passDijetReco->fill(event);
             }
 
             if (pass_dj_gen) {
@@ -944,18 +944,18 @@ bool QGAnalysisMCModule::process(Event & event) {
             bool standard_sel = dijet_sel->passes(event);
             bool tight_sel = dijet_sel_tighter->passes(event); // aka passReco
             if (DO_KINEMATIC_HISTS) {
-                if (standard_sel) {
-                    dijet_hists->fill(event);
-                }
+                // if (standard_sel) {
+                //     dijet_hists->fill(event);
+                // }
                 if (tight_sel) {
                     dijet_hists_tighter->fill(event);
                 }
             }
 
             if (DO_LAMBDA_HISTS) {
-                if (standard_sel) {
-                    dijet_qg_hists->fill(event);
-                }
+                // if (standard_sel) {
+                //     dijet_qg_hists->fill(event);
+                // }
                 if (tight_sel) {
                     dijet_qg_hists_tighter->fill(event);
                     dijet_qg_hists_central_tighter->fill(event);

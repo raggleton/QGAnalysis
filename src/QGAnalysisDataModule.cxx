@@ -349,7 +349,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
         std::string binning_method = "ave";
         std::string dj_sel = "dijet";
         if (DO_KINEMATIC_HISTS) {
-            dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
+            // dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
             dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
             dijet_hists_eta_ordered.reset(new QGAnalysisDijetHists(ctx, "Dijet_eta_ordered", binning_method));
             // add in simple jet kinematic hists, for each trigger, so we can show a manually stitched plot
@@ -545,7 +545,7 @@ bool QGAnalysisDataModule::process(Event & event) {
         }
 
     } else {
-        dijet_hists_presel->fill(event);
+        // dijet_hists_presel->fill(event);
         selected = dijet_sel->passes(event);
         event.set(pass_dj_sel_handle, selected);
         if (selected) {
