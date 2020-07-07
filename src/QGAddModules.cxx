@@ -879,6 +879,7 @@ QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx,
   jetRadius_(jetRadius),
   nJetsMax_(nJetsMax),
   doPuppi_(doPuppi),
+  do4vecCheck_(true),
   pfId_(pfId),
   chargedHadronShift_(0), // these are the fractional shift, e.g. 0.2 for 20%
   neutralHadronShift_(0), // these are the fractional shift, e.g. 0.2 for 20%
@@ -888,6 +889,10 @@ QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx,
 {
   mmdt_.set_grooming_mode();
   mmdt_.set_reclustering(true);
+
+  if (ctx.get("track_direction", "nominal") != "nominal") {
+    do4vecCheck_ = false; // since we don't update jet 4-vec necessarily
+  }
 }
 
 
@@ -967,25 +972,27 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
       throw std::runtime_error("AKx reclustering failed QGAnalysisJetLambda - no jets");
     }
 
-    LorentzVector sumv4 = jet_constit_4vec(jet, *event.pfparticles, doPuppi_);
-    if (fabs(sumv4.pt() - jet.pt()*jet.JEC_factor_raw())/(jet.pt()*jet.JEC_factor_raw()) >  0.05) {
-      cout << "Warning sumv4 - jet pt mismatch" << endl;
-      cout << "jet: " << jet.pt()*jet.JEC_factor_raw() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
-      cout << "sumv4: " << sumv4.pt() << " : " << sumv4.Rapidity() << " : " << sumv4.phi() << endl;
-    }
+    if (do4vecCheck_) {
+      LorentzVector sumv4 = jet_constit_4vec(jet, *event.pfparticles, doPuppi_);
+      if (fabs(sumv4.pt() - jet.pt()*jet.JEC_factor_raw())/(jet.pt()*jet.JEC_factor_raw()) >  0.05) {
+        cout << "Warning sumv4 - jet pt mismatch" << endl;
+        cout << "jet: " << jet.pt()*jet.JEC_factor_raw() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
+        cout << "sumv4: " << sumv4.pt() << " : " << sumv4.Rapidity() << " : " << sumv4.phi() << endl;
+      }
 
-    // Check AK jet is same as original
-    if ((fabs(akJets[0].pt() - sumv4.pt()) / akJets[0].pt() > 0.1) || (fabs(akJets[0].rap() - sumv4.Rapidity()) > 0.1)){
-      cout << "Original jet: " << sumv4.pt() << " : " << sumv4.Rapidity() << " : " << sumv4.phi() << endl;
-      for (const auto & dau : constits) {
-        cout << "   dau: " << dau.pt() << " : " << dau.Rapidity() << " : " << dau.phi() << endl;
+      // Check AK jet is same as original
+      if ((fabs(akJets[0].pt() - sumv4.pt()) / akJets[0].pt() > 0.1) || (fabs(akJets[0].rap() - sumv4.Rapidity()) > 0.1)){
+        cout << "Original jet: " << sumv4.pt() << " : " << sumv4.Rapidity() << " : " << sumv4.phi() << endl;
+        for (const auto & dau : constits) {
+          cout << "   dau: " << dau.pt() << " : " << dau.Rapidity() << " : " << dau.phi() << endl;
+        }
+        cout << "ak jet: " << akJets[0].pt() << " : " << akJets[0].rap() << " : " << akJets[0].phi() << endl;
+        for (const auto & d : akJets[0].constituents()) {
+          cout << "   constit: " << d.pt() << " : " << d.rap() << " : " << d.phi() << endl;
+        }
+        cout << "Event number : run : lumi: " << event.event << " : " << event.run << " : " << event.luminosityBlock << endl;
+        throw std::runtime_error("Reclustered AK pT/y mismatch");
       }
-      cout << "ak jet: " << akJets[0].pt() << " : " << akJets[0].rap() << " : " << akJets[0].phi() << endl;
-      for (const auto & d : akJets[0].constituents()) {
-        cout << "   constit: " << d.pt() << " : " << d.rap() << " : " << d.phi() << endl;
-      }
-      cout << "Event number : run : lumi: " << event.event << " : " << event.run << " : " << event.luminosityBlock << endl;
-      throw std::runtime_error("Reclustered AK pT/y mismatch");
     }
 
     // cout << "Original jet: " << jet.pt()*jet.JEC_factor_raw() << " : " << jet.eta() << " : " << jet.phi() << endl;

@@ -460,7 +460,7 @@ private:
   fastjet::contrib::ModifiedMassDropTagger mmdt_;
   float jetRadius_;
   int nJetsMax_;
-  bool doPuppi_;
+  bool doPuppi_, do4vecCheck_;
   PFParticleId pfId_;
   float chargedHadronShift_, neutralHadronShift_, photonShift_;
   uhh2::Event::Handle<std::vector<Jet>> jet_handle_;
