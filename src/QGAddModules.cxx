@@ -57,7 +57,8 @@ MCJetMetCorrector::MCJetMetCorrector(uhh2::Context & ctx, const std::string & pu
   std::string jec_jet_coll = jet_cone + "PF" + puName;
   std::vector<std::string> JEC_MC = JERFiles::JECFilesMC(Cuts::jec_tag_2016, Cuts::jec_ver_2016, jec_jet_coll);
   jet_corrector.reset(new JetCorrector(ctx, JEC_MC));
-  std::string resolutionFilename = "2016/Summer16_25nsV1_MC_PtResolution_" + jet_cone + "PF" + puName + ".txt";
+  std::string resolutionFilename = "common/data/2016/Summer16_25nsV1_MC_PtResolution_" + jet_cone + "PF" + puName + ".txt";
+  // cout << resolutionFilename << endl;
   jet_resolution_smearer.reset(new GenericJetResolutionSmearer(ctx, jet_coll_name, genjet_coll_name, JERSmearing::SF_13TeV_Summer16_25nsV1, resolutionFilename));
 }
 
