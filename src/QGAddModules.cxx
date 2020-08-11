@@ -75,6 +75,8 @@ GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx) {
 
   if (!is_mc) lumi_selection.reset(new LumiSelection(ctx));
 
+  auto year = extract_year(ctx);
+
   metfilters_selection.reset(new AndSelection(ctx, "metfilters"));
   metfilters_selection->add<TriggerSelection>("HBHENoiseFilter", "Flag_HBHENoiseFilter");
   metfilters_selection->add<TriggerSelection>("HBHENoiseIsoFilter", "Flag_HBHENoiseIsoFilter");
@@ -90,7 +92,7 @@ GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx) {
 
   pv_cleaner.reset(new PrimaryVertexCleaner(pvid));
 
-  electron_cleaner.reset(new ElectronCleaner(AndId<Electron>(ElectronID_Summer16_medium, PtEtaCut(20.0, 2.5))));
+  electron_cleaner.reset(new ElectronCleaner(AndId<Electron>(ElectronTagID(Electron::cutBasedElectronID_Summer16_80X_V1_medium), PtEtaCut(Cuts::reco_electron_pt_min, Cuts::electron_eta_max))));
 
   muon_cleaner.reset(new MuonCleaner(AndId<Muon>(MuonID(Muon::CutBasedIdMedium), PtEtaCut(Cuts::reco_muon_pt_min, Cuts::muon_eta_max), MuonID(Muon::PFIsoMedium))));
 }

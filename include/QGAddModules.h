@@ -93,6 +93,10 @@ namespace Cuts {
   const float gen_jet_pt_min = 15.; // looser than reco, since massively smeared
   const float gen_muon_pt_min = reco_muon_pt_min;
 
+  // Electrons
+  const float reco_electron_pt_min = 20.;
+  const float electron_eta_max = 2.5;
+
   // Constituent cuts for most lambda vars
   const float constit_pt_min = 0.;
   const float constit_eta_max = 5.;
