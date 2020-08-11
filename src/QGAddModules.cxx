@@ -661,15 +661,18 @@ bool ZFinder::process(uhh2::Event & event) {
 float calcGenHT(const std::vector<GenParticle> & genparticles) {
   // Find scalar sum of all matrix-element partons
   // Only works for Pythia8 samples due to status check
+  // Returns -1 if no partons found
   float ht = 0.;
+  int nFound = 0;
   for (const auto & itr: genparticles) {
     if (abs(itr.status()) != 23) continue;
     uint pdg = abs(itr.pdgId());
     if (( pdg <= PDGID::TOP_QUARK && pdg >= PDGID::DOWN_QUARK) || pdg == PDGID::GLUON) {
+      nFound++;
       ht += itr.pt();
     }
   }
-  return ht;
+  return (nFound > 0) ? ht : -1;
 }
 
 float calcJetKt(const std::vector<GenParticle> & genparticles) {
