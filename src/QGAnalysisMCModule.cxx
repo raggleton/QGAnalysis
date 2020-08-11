@@ -32,6 +32,15 @@
 using namespace std;
 using namespace uhh2;
 
+namespace MC {
+    enum Name {
+        MGPYTHIA_QCD,
+        PYTHIA_QCD_BINNED,
+        HERWIG_QCD,
+        MGPYTHIA_DY,
+        HERWIG_DY
+    };
+};
 namespace uhh2examples {
 
 // print out info about collections, only use for debugging
@@ -50,6 +59,8 @@ public:
     std::vector<GenParticle> getGenMuons(std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=2.5);
     std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJet> * genjets, float drMax=0.8, bool uniqueMatch=true);
     virtual void endInputData() override;
+    MC::Name matchDatasetName(const std::string & name);
+
 private:
     std::unique_ptr<GenJetClusterer> genjet_cluster; // to cluster genjets - needed for AK8 since MiniAOD starts at 150
     Event::Handle<std::vector<GenJet>> new_genjets_handle;
@@ -135,7 +146,9 @@ private:
     int NJETS_ZPJ, NJETS_DIJET;
     uint nOverlapEvents, nZPJEvents, nDijetEvents, nPassEvents;
 
-    bool isZPlusJets;
+    MC::Name dataset;
+
+    bool isZPlusJets, isZPlusJetsMuons;
 };
 
 
@@ -154,8 +167,16 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     jetRadius = get_jet_radius(jetCone);
 
     const std::string & datasetVersion = ctx.get("dataset_version");
-    isZPlusJets = (isSubstring(datasetVersion, "DYJetsToLL", true) || isSubstring(datasetVersion, "SingleMu", true) || isSubstring(datasetVersion, "ZPJ", true));
+    isZPlusJets = (isSubstring(datasetVersion, "DYJetsToLL", true) || isSubstring(datasetVersion, "ZPJ", true));
     ctx.set("isZPlusJets", bool2string(isZPlusJets));
+
+    if (isZPlusJets) {
+        const std::string & zLepton = ctx.get("ZLepton", "muon");
+        isZPlusJetsMuons = (zLepton == "muon");
+        ctx.set("isZPlusJetsMuons", bool2string(isZPlusJetsMuons));
+    }
+
+    dataset = matchDatasetName(datasetVersion);
 
     DO_PU_BINNED_HISTS = string2bool(ctx.get("DO_PU_BINNED_HISTS", "false"));
     DO_UNFOLD_HISTS = string2bool(ctx.get("DO_UNFOLD_HISTS", "true"));
@@ -163,9 +184,17 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     DO_KINEMATIC_HISTS = string2bool(ctx.get("DO_KINEMATIC_HISTS", "true"));
     DO_LAMBDA_HISTS = string2bool(ctx.get("DO_LAMBDA_HISTS", "true"));
 
+
+    cout << "DO_PU_BINNED_HISTS: " << DO_PU_BINNED_HISTS << endl;
+    cout << "DO_UNFOLD_HISTS: " << DO_UNFOLD_HISTS << endl;
+    cout << "DO_FLAVOUR_HISTS: " << DO_FLAVOUR_HISTS << endl;
+    cout << "DO_KINEMATIC_HISTS: " << DO_KINEMATIC_HISTS << endl;
+    cout << "DO_LAMBDA_HISTS: " << DO_LAMBDA_HISTS << endl;
+
     cout << "Running with jet cone: " << jetCone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
     cout << "Is Z+jets: " << isZPlusJets << endl;
+    cout << "Is muons: " << isZPlusJetsMuons << endl;
     cout << "jetRadius==0.8: " << (bool)(jetRadius == 0.8) << endl;
     if (jetCone == "AK8") {
         // FIXME add cut nonu, final state
@@ -698,18 +727,44 @@ bool QGAnalysisMCModule::process(Event & event) {
     // return true;
 
     // Cuts to throw away high-weight events from lower pT bins
-    // (e.g. where leading jet actually PU jet)
+    // or where leading jet actually PU jet
     // -------------------------------------------------------------------------
-    // 1. Cut on pt/genHt to avoid weird events
-    if (genHT > 0 && (njet_min_sel->passes(event) && ((event.jets->at(0).pt() / genHT) > 2))) { return false; }
-    if (genHT > 0 && (hasGenJets && ((event.get(genjets_handle)[0].pt() / genHT) > 2))) { return false; }
-
-    // if (jetKt > 0 && (hasGenJets && ((event.get(genjets_handle)[0].pt() / genHT) > 2))) { return false; }
-
-    if (njet_min_sel->passes(event) && ((event.jets->at(0).pt() / qScale) > 2)) { return false; }
+    // These cuts are MC-specific, after much tuning
+    float reco_jet_pt = event.jets->size() > 0 ? event.jets->at(0).pt() : 0;
+    float gen_jet_pt = event.get(genjets_handle).size() > 0 ? event.get(genjets_handle).at(0).pt() : 0;
 
     float PU_pThat = event.genInfo->PU_pT_hat_max();
-    if (genHT > 0 && njet_min_sel->passes(event) && ((PU_pThat / genHT) > 2)) { return false; }
+
+    if (dataset == MC::MGPYTHIA_QCD) {
+        if (genHT > 0 && (reco_jet_pt / genHT) > 2) return false;
+        if (genHT > 0 && (gen_jet_pt / genHT) > 2) return false;
+        if (qScale > 0 && (reco_jet_pt / qScale) > 3) return false;
+        if (genHT > 0 && (PU_pThat / genHT) > 1) return false;
+
+    } else if (dataset == MC::PYTHIA_QCD_BINNED) {
+        double ptHat = event.genInfo->binningValues().at(0); // yes this is correct. no idea why
+        if (genHT > 0 && ((reco_jet_pt / genHT) > 8)) return false;
+        if (genHT > 0 && ((gen_jet_pt / genHT) > 3)) return false;
+        if (ptHat > 0 && ((reco_jet_pt / ptHat) > 8)) return false;
+        if (ptHat > 0 && ((gen_jet_pt / ptHat) > 3)) return false;
+        if (qScale > 0 && (reco_jet_pt>200) && ((reco_jet_pt / qScale) > 3)) return false;
+        if (ptHat > 0 && (PU_pThat / ptHat) > 2 && (reco_jet_pt>200)) return false;
+
+    } else if (dataset == MC::HERWIG_QCD) {
+        double ptHat = event.genInfo->binningValues().at(0);
+        if (ptHat > 0 && ((reco_jet_pt / ptHat) > 5)) return false;
+        if (ptHat > 0 && ((gen_jet_pt / ptHat) > 4)) return false;
+        if (ptHat > 0 && (PU_pThat / ptHat) > 2 && (reco_jet_pt>200)) return false;
+
+    } else if (dataset == MC::MGPYTHIA_DY) {
+        if (genHT > 0 && (reco_jet_pt / genHT) > 10) return false;
+        if (genHT > 0 && (gen_jet_pt / genHT) > 10) return false;
+        if (qScale > 0 && (reco_jet_pt / qScale) > 10) return false;
+        if (genHT > 0 && (PU_pThat / genHT) > 10) return false;
+    } else if (dataset == MC::HERWIG_DY) {
+        if (qScale > 0 && (reco_jet_pt / qScale) > 10) return false;
+        if (genHT > 0 && (PU_pThat / genHT) > 10) return false;
+    }
 
     // cout << "*** EVENT:" << endl;
     // cout << "genHT: " << genHT << endl;
@@ -719,15 +774,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     // cout << "weight: " << event.weight << endl;
     // if (njet_min_sel->passes(event)) cout << "jet1pt: " << event.jets->at(0).pt() << endl;
 
-    // 2. Check event weight is sensible based on pthat - but isn't always available
-    if (event.genInfo->binningValues().size() > 0) {
-        // double ptHat = event.genInfo->binningValues().at(0); // yes this is correct. no idea why
-        // cout << "ptHAt: " << ptHat << endl;
-        // if (hasRecoJets && (event.jets->at(0).pt() / ptHat > 2)) return false;
-        // if (hasGenJets && (event.get(genjets_handle)[0].pt() / ptHat > 2)) return false;
-    }
-
-    genjet_hists->fill(event);
+    if (DO_KINEMATIC_HISTS) genjet_hists->fill(event);
 
     // Get matching GenJets for reco jets
     // -------------------------------------------------------------------------
@@ -1185,6 +1232,22 @@ std::vector<Jet> QGAnalysisMCModule::getMatchedJets(std::vector<Jet> * jets, std
     return goodJets;
 }
 
+
+MC::Name QGAnalysisMCModule::matchDatasetName(const std::string & name) {
+    if (name.find("MGPYTHIA_QCD") != string::npos) {
+        return MC::MGPYTHIA_QCD;
+    } else if (name.find("PYTHIA-QCD-Pt") != string::npos) {
+        return MC::PYTHIA_QCD_BINNED;
+    } else if (name.find("HERWIG_QCD") != string::npos) {
+        return MC::HERWIG_QCD;
+    } else if (name.find("MGPYTHIA_DYJetsToLL") != string::npos) {
+        return MC::MGPYTHIA_DY;
+    } else if (name.find("HERWIG_DYJetsToLL") != string::npos) {
+        return MC::HERWIG_DY;
+    } else {
+        throw std::runtime_error("Cannot understand dataset with name " + name);
+    }
+}
 
 // as we want to run the ExampleCycleNew directly with AnalysisModuleRunner,
 // make sure the QGAnalysisMCModule is found by class name. This is ensured by this macro:
