@@ -4,20 +4,19 @@
     <!ENTITY NEVT "-1">
 
     <!-- Output directories -->
-    <!ENTITY ODIR-HERWIG "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/Herwig">
+    <!ENTITY ODIR-HERWIG "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/Herwig">
 
     <!-- Full datasets -->
     <!-- My extra stats sample at high pt -->
-    <!-- <!ENTITY HERWIG-DY-EXTRA SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/HerwigOnly/MC_Herwig_DYJetsToLL_JetKtMin170.xml"> -->
-    <!ENTITY HERWIG-DY-EXTRA SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/HerwigOnly/MC_Herwigpp_DYJetsToLL_JetKtMin170_physical.xml">
+    <!ENTITY HERWIG-DY-EXTRA SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/DYJetsToLL_M-50_JetKtMin170_TuneCUETHS1_13TeV-herwigpp_NoTopJet_AllGP.xml">
 
-    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/commonMC.xml">
+    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/commonMC.xml">
 
     <!-- Jet config snippets -->
-    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
-    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
-    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
-    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
+    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
+    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
+    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
+    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
 ]>
 
 
@@ -27,7 +26,7 @@
 <!-- split 15 -->
 <!--
    <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="10" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_herwig_target0p5_ZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto_noPtHatCut_noPtReweight_noZjet2Cut_zPt30_trkSF_wtaAK_passGenRsp_sameGenCuts_PartonKtCut"/>
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_herwig_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_weightHists_betterWeightCuts"/>
 -->
 
 
@@ -39,7 +38,7 @@
     <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-HERWIG;/" PostFix="" TargetLumi="35918" >
 
 
-        <InputData Lumi="546235.486" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_DYJetsToLL_JetKtMin170_PartonKtMin300" Cacheable="False">
+        <InputData Lumi="546235.486" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_DYJetsToLL_JetKtMin170_PartonKtMin300_2016v2" Cacheable="False">
         &HERWIG-DY-EXTRA;
         <InputTree Name="AnalysisTree"/>
         </InputData>
@@ -66,8 +65,8 @@
             <!-- <Item Name="pt_reweight_file" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_dijet_only_weights_ak4puppi.root" /> -->
             <!-- <Item Name="pt_reweight_file" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_dijet_only_weights_ak4puppi_noPtHatCut_noPtReweight_noZjet2Cut_zPt30_newBinning.root" /> -->
 
-            <!-- <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/> -->
-            <Item Name="z_reweight_file" Value=""/>
+            <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
+            <!-- <Item Name="z_reweight_file" Value=""/> -->
 
             <Item Name="neutralHadronShift" Value="nominal"/>
             <!-- <Item Name="neutralHadronShift" Value="down"/> -->
@@ -79,12 +78,6 @@
 
             <!-- <Item Name="ScaleVariationMuR" Value="up"/> -->
             <!-- <Item Name="ScaleVariationMuF" Value="down"/> -->
-
-            <Item Name="DO_PU_BINNED_HISTS" Value="false"/>
-            <Item Name="DO_UNFOLD_HISTS" Value="true"/>
-            <Item Name="DO_FLAVOUR_HISTS" Value="false"/>
-            <Item Name="DO_KINEMATIC_HISTS" Value="true"/>
-            <Item Name="DO_LAMBDA_HISTS" Value="true"/>
 
         </UserConfig>
     </Cycle>

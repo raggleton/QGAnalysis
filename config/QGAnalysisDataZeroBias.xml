@@ -4,32 +4,29 @@
     <!ENTITY NEVT "-1">
 
     <!-- Output directories -->
-    <!ENTITY ODIR-SINGLEMU "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/SingleMu">
-    <!ENTITY ODIR-JETHT "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/JetHT">
-    <!ENTITY ODIR-ZB "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/ZeroBias">
+    <!ENTITY ODIR-ZB "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/ZeroBias">
 
-    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/commonData.xml">
+    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/commonData.xml">
 
-    <!ENTITY ZB-B SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunB.xml">
-    <!ENTITY ZB-C SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunC.xml">
-    <!ENTITY ZB-D SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunD.xml">
-    <!ENTITY ZB-E SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunE.xml">
-    <!ENTITY ZB-F SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunF.xml">
-    <!ENTITY ZB-G SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunG.xml">
-    <!ENTITY ZB-H-v2 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunH_ver2.xml">
-    <!ENTITY ZB-H-v3 SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/ZeroBias/RunH_ver3.xml">
+    <!ENTITY ZB-B SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v2/2016v3/DATA_ZeroBias_2016B.xml">
+    <!ENTITY ZB-C SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v2/2016v3/DATA_ZeroBias_2016C.xml">
+    <!ENTITY ZB-D SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v2/2016v3/DATA_ZeroBias_2016D.xml">
+    <!ENTITY ZB-E SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v2/2016v3/DATA_ZeroBias_2016E.xml">
+    <!ENTITY ZB-F SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v2/2016v3/DATA_ZeroBias_2016F.xml">
+    <!ENTITY ZB-G SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v2/2016v3/DATA_ZeroBias_2016G.xml">
+    <!ENTITY ZB-H SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v2/2016v3/DATA_ZeroBias_2016H.xml">
 
     <!-- Jet config snippets -->
-    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chsData.xml">
-    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4puppiData.xml">
-    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8chsData.xml">
-    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8puppiData.xml">
+    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4chsData.xml">
+    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4puppiData.xml">
+    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8chsData.xml">
+    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8puppiData.xml">
 ]>
 
 
 <!--
-   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="100" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_data_zb_jetAsymCut_pt1RecoConstituents_V11JEC_JER_target0p5_wta_groomed_fwdcenDijet_ptAveBinning"/>
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="200" />
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_ak8puppi_data_zb_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_debugAK8"/>
 -->
 
 
@@ -40,19 +37,50 @@
 
     <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-ZB;/" PostFix="" TargetLumi="1" >
 
-        <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_ZeroBias" Cacheable="False">
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/ZeroBias/crab_ZeroBias_Run2016E-03Feb2017-v1_26_Apr_18_newRecoJetFlav_fixPuppi_v3/180426_114626/0000/Ntuple_1.root" Lumi="0.0"/> -->
+        <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_ZeroBias_2016v3_test" Cacheable="False">
+        <!-- <In FileName="/pnfs/desy.de/cms/tier2//store/group/uhh/uhh2ntuples/RunII_102X_v2/2016v3//ZeroBias/crab_ZeroBias_2016C_v1/200619_132515/0000/Ntuple_1.root" Lumi="0.0"/> -->
+        <In FileName="/pnfs/desy.de/cms/tier2//store/group/uhh/uhh2ntuples/RunII_102X_v2/2016v3//ZeroBias/crab_ZeroBias_2016C_v1/200619_132515/0000/Ntuple_291.root" Lumi="0.0"/>
+        <InputTree Name="AnalysisTree"/>
+        <OutputTree Name="AnalysisTree"/>
+        </InputData>
+
+<!--
+        <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_ZeroBias_RunB_2016v3" Cacheable="False">
         &ZB-B;
-        &ZB-C;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+-->
+        <!-- <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_ZeroBias_RunC_2016v3" Cacheable="False"> -->
+        <!-- &ZB-C; -->
+        <!-- <InputTree Name="AnalysisTree"/> -->
+        <!-- <OutputTree Name="AnalysisTree"/> -->
+        <!-- </InputData> -->
+<!--
+        <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_ZeroBias_RunD_2016v3" Cacheable="False">
         &ZB-D;
-        &ZB-E;
-        &ZB-F;
-        &ZB-G;
-        &ZB-H-v2;
-        &ZB-H-v3;
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
+        <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_ZeroBias_RunE_2016v3" Cacheable="False">
+        &ZB-E;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_ZeroBias_RunF_2016v3" Cacheable="False">
+        &ZB-F;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_ZeroBias_RunG_2016v3" Cacheable="False">
+        &ZB-G;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_ZeroBias_RunH_2016v3" Cacheable="False">
+        &ZB-H;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+-->
 
         <UserConfig>
             &COMMON;
@@ -60,25 +88,20 @@
             <!-- Choose your jet configuration -->
 
             <!-- &AK4CHS; -->
-            &AK4PUPPI;
+            <!-- &AK4PUPPI; -->
             <!-- &AK8CHS; -->
-            <!-- &AK8PUPPI; -->
+            &AK8PUPPI;
 
             <Item Name="Dataset" Value="ZeroBias" />
 
-            <!--@SYST-->
+            <Item Name="JackknifeVariations" Value="False"/>
 
-            <Item Name="neutralHadronShift" Value="nominal"/>
-            <!-- <Item Name="neutralHadronShift" Value="down"/> -->
-            <!-- <Item Name="neutralHadronShift" Value="up"/> -->
+            <Item Name="DO_PU_BINNED_HISTS" Value="False" />
+            <Item Name="DO_UNFOLD_HISTS" Value="False" />
+            <Item Name="DO_FLAVOUR_HISTS" Value="False" />
+            <Item Name="DO_KINEMATIC_HISTS" Value="True" />
+            <Item Name="DO_LAMBDA_HISTS" Value="False" />
 
-            <Item Name="jecsmear_direction" Value="nominal"/>
-            <!-- <Item Name="jecsmear_direction" Value="down"/> -->
-            <!-- <Item Name="jecsmear_direction" Value="up"/> -->
-
-            <Item Name="jersmear_direction" Value="nominal"/>
-            <!-- <Item Name="jersmear_direction" Value="down"/> -->
-            <!-- <Item Name="jersmear_direction" Value="up"/> -->
         </UserConfig>
     </Cycle>
 

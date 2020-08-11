@@ -4,26 +4,27 @@
     <!ENTITY NEVT "-1">
 
     <!-- Output directories -->
-    <!ENTITY ODIR-MG-PYTHIA "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/MGPythia">
+    <!ENTITY ODIR-MG-PYTHIA "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/MGPythia">
 
     <!-- Full datasets -->
-    <!ENTITY MG-PYTHIA-DYJetsToLL_INCL SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Pythia/DYJetsToLL.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_INCLext1 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_P8M1_Summer16v2_ext1_v2_NoTopJet_AllGP.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_INCLext2 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_P8M1_Summer16v2_ext2_v1_NoTopJet_AllGP.xml">
 
-    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/commonMC.xml">
+    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/commonMC.xml">
 
     <!-- Jet config snippets -->
-    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
-    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
-    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
-    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
+    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
+    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
+    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
+    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
 ]>
 
 
 <!-- MUST run SFrameBatch inside QGAnalyis/config! -->
 
 <!--
-   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="35" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_mgpythia_target0p5_ZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto_noPtHatCut_noPtReweight_noZjet2Cut_zPt30_trkSF_wtaAK_passGenRsp_sameGenCuts"/>
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="50" />
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_weightHists_betterWeightCuts"/>
 -->
 
 
@@ -34,8 +35,9 @@
 
    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-MG-PYTHIA;/" PostFix="" TargetLumi="35918" >
 
-        <InputData Lumi="9890.307" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-0to70" Cacheable="False">
-        &MG-PYTHIA-DYJetsToLL_INCL;
+        <InputData Lumi="29122.67574" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-0to70_2016v2" Cacheable="False">
+        &MG-PYTHIA-DYJetsToLL_INCLext1;
+        &MG-PYTHIA-DYJetsToLL_INCLext2;
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
@@ -62,6 +64,8 @@
             <Item Name="maxHT" Value="70"/>
 
             <!--@SYST-->
+
+            <Item Name="JackknifeVariations" Value="True"/>
 
             <Item Name="neutralHadronShift" Value="nominal"/>
             <!-- <Item Name="neutralHadronShift" Value="down"/> -->

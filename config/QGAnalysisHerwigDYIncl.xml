@@ -4,19 +4,19 @@
     <!ENTITY NEVT "-1">
 
     <!-- Output directories -->
-    <!ENTITY ODIR-HERWIG "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/Herwig">
+    <!ENTITY ODIR-HERWIG "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/Herwig">
 
     <!-- Full datasets -->
     <!-- is actually herwig only, despite its CMS dataset name -->
-    <!ENTITY HERWIG-DY SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/HerwigOnly/DYJetsToLL.xml">
+    <!ENTITY HERWIG-DY SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/DYJetsToLL_M-50_TuneCUETHS1_13TeV-madgraphMLM-herwigpp_Summer16v2_v2_NoTopJet_AllGP.xml">
 
-    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/commonMC.xml">
+    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/commonMC.xml">
 
     <!-- Jet config snippets -->
-    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
-    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
-    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
-    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
+    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
+    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
+    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
+    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
 ]>
 
 
@@ -26,7 +26,7 @@
 <!-- split 15 -->
 <!--
    <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="15" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_herwig_target0p5_ZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto_noPtHatCut_noPtReweight_noZjet2Cut_zPt30_trkSF_wtaAK_passGenRsp_sameGenCuts_PartonKtCut"/>
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_herwig_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_weightHists_betterWeightCuts"/>
 -->
 
 
@@ -39,18 +39,24 @@
 
         <!-- HERWIG -->
 
-        <InputData Lumi="42202.727" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_DYJetsToLL_Incl_PartonKtMax300" Cacheable="False">
+        <InputData Lumi="42202.727" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_DYJetsToLL_Incl_PartonKtMax300_2016v2" Cacheable="False">
         &HERWIG-DY;
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
 
-<!--         <InputData Lumi="1" NEventsMax="10000" Type="MC" Version="MC_MG_HERWIG_DYJetsToLL_Test" Cacheable="False">
-        <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/DYJetsToLL_M-50_TuneCUETHS1_13TeV-madgraphMLM-herwigpp/crab_DYJetsToLL_M-50_mg-herwig_10_Feb_18_newRecoJetFlav_fixPuppi/180210_102303/0000/Ntuple_1.root" Lumi="0.0"/>
-        <InputTree Name="AnalysisTree"/>
-        <OutputTree Name="AnalysisTree"/>
-        </InputData>
- -->
+        <!-- <InputData Lumi="1" NEventsMax="10000" Type="MC" Version="MC_MG_HERWIG_DYJetsToLL_Test_2016v3" Cacheable="False"> -->
+        <!-- <In FileName="/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/core/python/Ntuple_500_HppDY_default.root" Lumi="0.0"/> -->
+        <!-- <In FileName="/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/core/python/Ntuple_500_HppDY_allGen.root" Lumi="0.0"/> -->
+        <!-- <In FileName="/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/core/python/Ntuple_default.root" Lumi="0.0"/> -->
+        <!-- <In FileName="/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/core/python/Ntuple_new.root" Lumi="0.0"/> -->
+        <!-- <In FileName="/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/core/python/Ntuple_new_hpp.root" Lumi="0.0"/> -->
+        <!-- <In FileName="/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/core/python/Ntuple_all.root" Lumi="0.0"/> -->
+        <!-- <In FileName="/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/core/python/Ntuple_bug.root" Lumi="0.0"/> -->
+        <!-- <InputTree Name="AnalysisTree"/> -->
+        <!-- <OutputTree Name="AnalysisTree"/> -->
+        <!-- </InputData> -->
+
 
         <UserConfig>
             &COMMON;
@@ -61,15 +67,15 @@
             <!-- &AK8CHS; -->
             <!-- &AK8PUPPI; -->
 
-            <Item Name="partonKtMax" Value="300"/>
+            <!-- <Item Name="partonKtMax" Value="300"/> -->
 
             <!-- If you want to reweight herwig pT spectrum to match Pythia -->
             <Item Name="pt_reweight_file" Value="" />
             <!-- <Item Name="pt_reweight_file" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_dijet_only_weights_ak4puppi.root" /> -->
             <!-- <Item Name="pt_reweight_file" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_dijet_only_weights_ak4puppi_noPtHatCut_noPtReweight_noZjet2Cut_zPt30_newBinning.root" /> -->
 
-            <!-- <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/> -->
-            <Item Name="z_reweight_file" Value=""/>
+            <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
+            <!-- <Item Name="z_reweight_file" Value=""/> -->
 
             <Item Name="neutralHadronShift" Value="nominal"/>
             <!-- <Item Name="neutralHadronShift" Value="down"/> -->
@@ -82,11 +88,6 @@
             <!-- <Item Name="ScaleVariationMuR" Value="up"/> -->
             <!-- <Item Name="ScaleVariationMuF" Value="down"/> -->
 
-            <Item Name="DO_PU_BINNED_HISTS" Value="false"/>
-            <Item Name="DO_UNFOLD_HISTS" Value="true"/>
-            <Item Name="DO_FLAVOUR_HISTS" Value="false"/>
-            <Item Name="DO_KINEMATIC_HISTS" Value="true"/>
-            <Item Name="DO_LAMBDA_HISTS" Value="true"/>
 
 
         </UserConfig>

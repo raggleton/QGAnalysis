@@ -4,22 +4,19 @@
     <!ENTITY NEVT "-1">
 
     <!-- Output directories -->
-    <!ENTITY ODIR-HERWIG "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/Herwig">
+    <!ENTITY ODIR-HERWIG "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/Herwig">
 
     <!-- Full datasets -->
-    <!ENTITY HERWIG-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/HerwigOnly/QCD_Pt15to7000_Flat_withExt.xml">
-    <!-- is actually herwig only, despite its CMS dataset name -->
-    <!ENTITY HERWIG-DY SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/HerwigOnly/DYJetsToLL.xml">
+    <!ENTITY HERWIG-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp_Summer16v2_v1_NoTopJet_AllGP.xml">
+    <!ENTITY HERWIG-QCD-EXT SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp_Summer16v2_ext1_v2_NoTopJet_AllGP.xml">
 
-    <!ENTITY MG-HERWIG-DY SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/datasets/MG-Herwig/DYJetsToLL.xml">
-
-    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/commonMC.xml">
+    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/commonMC.xml">
 
     <!-- Jet config snippets -->
-    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
-    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
-    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
-    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
+    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
+    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
+    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
+    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
 ]>
 
 
@@ -28,8 +25,8 @@
 <!-- split 3 for mgpythia -->
 <!-- split 15 -->
 <!--
-   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="20" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_ak4puppi_herwig_target0p5_ZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto_noPtHatCut_noPtReweight_noZjet2Cut_zPt30_trkSF_wtaAK_passGenRsp_sameGenCuts"/>
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="30" />
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_herwig_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_weightHists_betterWeightCuts"/>
 -->
 
 
@@ -42,23 +39,16 @@
 
         <!-- HERWIG -->
 
-        <InputData Lumi="0.006692918686" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_QCD" Cacheable="False">
+        <InputData Lumi="0.006706263489" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_QCD_2016v2" Cacheable="False">
         &HERWIG-QCD;
+        &HERWIG-QCD-EXT;
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
-
-
-        <InputData Lumi="42202.727" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_DYJetsToLL" Cacheable="False">
-        &HERWIG-DY;
-        <InputTree Name="AnalysisTree"/>
-        </InputData>
-
-
-        <InputData Lumi="2093.612" NEventsMax="&NEVT;" Type="MC" Version="MC_MG_HERWIG_DYJetsToLL" Cacheable="False">
-        &MG-HERWIG-DY;
-        <InputTree Name="AnalysisTree"/>
-        </InputData>
+        <!-- <InputData Lumi="0.006692918686" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_QCD" Cacheable="False"> -->
+        <!-- &HERWIG-EXT; -->
+        <!-- <InputTree Name="AnalysisTree"/> -->
+        <!-- </InputData> -->
 
         <!-- <InputData Lumi="1" NEventsMax="10000" Type="MC" Version="MC_MG_HERWIG_DYJetsToLL_Test" Cacheable="False"> -->
 
@@ -96,19 +86,8 @@
             <!-- <Item Name="pt_reweight_file" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_dijet_only_weights_ak4puppi.root" /> -->
             <!-- <Item Name="pt_reweight_file" Value="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/utils/herwig_dijet_only_weights_ak4puppi_noPtHatCut_noPtReweight_noZjet2Cut_zPt30_newBinning.root" /> -->
 
-            <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
-            <!-- <Item Name="z_reweight_file" Value=""/> -->
-
-            <Item Name="neutralHadronShift" Value="nominal"/>
-            <!-- <Item Name="neutralHadronShift" Value="down"/> -->
-            <!-- <Item Name="neutralHadronShift" Value="up"/> -->
-
-            <Item Name="photonShift" Value="nominal"/>
-            <!-- <Item Name="photonShift" Value="down"/> -->
-            <!-- <Item Name="photonShift" Value="up"/> -->
-
-            <!-- <Item Name="ScaleVariationMuR" Value="up"/> -->
-            <!-- <Item Name="ScaleVariationMuF" Value="down"/> -->
+            <!-- <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/> -->
+            <Item Name="z_reweight_file" Value=""/>
 
         </UserConfig>
     </Cycle>

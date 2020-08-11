@@ -1,6 +1,6 @@
 <!-- ak8 PUPPI jets -->
 <Item Name="JetCone" Value="AK8" />
-<Item Name="GenJetCollection" Value="slimmedGenJetsAK8" />
+<Item Name="GenJetCollection" Value="ak8GenJetsFat" />
 <Item Name="JetCollection" Value="jetsAk8Puppi" />
 <Item Name="METName" Value="slimmedMETsPuppi" />
 <Item Name="PURemoval" Value="PUPPI" />
