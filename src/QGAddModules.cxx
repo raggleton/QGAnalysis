@@ -98,7 +98,11 @@ GeneralEventSetup::GeneralEventSetup(uhh2::Context & ctx) {
 
   electron_cleaner.reset(new ElectronCleaner(AndId<Electron>(ElectronTagID(Electron::cutBasedElectronID_Summer16_80X_V1_medium), PtEtaCut(Cuts::reco_electron_pt_min, Cuts::electron_eta_max))));
 
-  muon_cleaner.reset(new MuonCleaner(AndId<Muon>(MuonID(Muon::CutBasedIdMedium), PtEtaCut(Cuts::reco_muon_pt_min, Cuts::muon_eta_max), MuonID(Muon::PFIsoMedium))));
+  if (year == Year::is2016v2) {
+    muon_cleaner.reset(new MuonCleaner(AndId<Muon>(MuonID(Muon::Medium), PtEtaCut(Cuts::reco_muon_pt_min, Cuts::muon_eta_max), MuonIso(0.2))));
+  } else {
+    muon_cleaner.reset(new MuonCleaner(AndId<Muon>(MuonID(Muon::CutBasedIdMedium), PtEtaCut(Cuts::reco_muon_pt_min, Cuts::muon_eta_max), MuonID(Muon::PFIsoMedium))));
+  }
 }
 
 bool GeneralEventSetup::process(uhh2::Event & event) {
