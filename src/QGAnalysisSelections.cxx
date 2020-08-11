@@ -82,6 +82,8 @@ bool ZplusJetsSelection::passes(const Event & event){
     cutflow_raw->Fill(i);
     cutflow_weighted->Fill(i, event.weight);
 
+    if (!event.is_valid(hndlZ)) return false;
+
     auto & zMuons = event.get(hndlZ);
     if (zMuons.size() < 2) return false;
     i++;
