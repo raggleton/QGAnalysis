@@ -27,6 +27,7 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisTheoryHists.h"
 #include "UHH2/QGAnalysis/include/QGAddModules.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisPrinters.h"
+#include "UHH2/QGAnalysis/include/QGAnalysisWeightHists.h"
 
 using namespace std;
 using namespace uhh2;
@@ -76,6 +77,8 @@ private:
     std::unique_ptr<ZFinder> zFinder;
     std::unique_ptr<Selection> njet_min_sel, ngenjet_min_sel, ngenjet_good_sel;
     std::unique_ptr<Selection> zplusjets_sel, zplusjets_sel_passGen, zplusjets_presel, dijet_sel, dijet_sel_tighter, dijet_sel_tighter_passGen;
+
+    std::unique_ptr<Hists> weight_hists, weight_hists_reco_sel;
 
     std::unique_ptr<Hists> zplusjets_gen_hists;
     std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists;
@@ -364,6 +367,9 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     // Hists
     // -------------------------------------------------------------------------
+    weight_hists.reset(new QGAnalysisWeightHists(ctx, "Weight_Presel"));
+    weight_hists_reco_sel.reset(new QGAnalysisWeightHists(ctx, "Weight_Reco_sel"));
+
     std::string zpj_sel = "zplusjets";
     if (isZPlusJets) {
         // Z+JETS hists
@@ -685,7 +691,11 @@ bool QGAnalysisMCModule::process(Event & event) {
     if (!(njet_min_sel->passes(event) || hasGenJets)) return false;
 
     // MC-specific parts like reweighting for SF, for muR/F scale, etc
+    // -------------------------------------------------------------------------
     mc_reweight->process(event); // also responsible for setting gen weight, so do after scale variations
+
+    weight_hists->fill(event);
+    // return true;
 
     // Cuts to throw away high-weight events from lower pT bins
     // (e.g. where leading jet actually PU jet)
@@ -784,6 +794,8 @@ bool QGAnalysisMCModule::process(Event & event) {
                     if (pass_zpj_reco) {
 
                         genjet_hists_passZpJReco->fill(event);
+                        weight_hists_reco_sel->fill(event);
+
                         if (DO_KINEMATIC_HISTS) {
                             zplusjets_gen_sel_passReco->passes(event); // this plots gen cutflow as well
                             zplusjets_hists->fill(event);
@@ -951,6 +963,8 @@ bool QGAnalysisMCModule::process(Event & event) {
                     dijet_hists_tighter->fill(event);
                 }
             }
+
+            if (tight_sel) weight_hists_reco_sel->fill(event);
 
             if (DO_LAMBDA_HISTS) {
                 if (standard_sel) {
