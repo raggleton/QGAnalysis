@@ -49,7 +49,7 @@
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
-        <InputData Lumi="69997.52374" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-100to200_2016v2" Cacheable="False">
+        <InputData Lumi="69861.70285" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-100to200_2016v2" Cacheable="False">
         &MG-PYTHIA-DYJetsToLL_HT100to200;
         &MG-PYTHIA-DYJetsToLL_HT100to200ext;
         <InputTree Name="AnalysisTree"/>
