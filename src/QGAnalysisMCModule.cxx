@@ -803,8 +803,10 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Calculate lambda vars
     // At this point, all objects should have had all necessary corrections, filtering, etc
     // -------------------------------------------------------------------------
-    jetLambdaCreatorPtSorted->process(event);
-    genjetLambdaCreatorPtSorted->process(event);
+    if (DO_LAMBDA_HISTS || DO_UNFOLD_HISTS || DO_PU_BINNED_HISTS) {
+        jetLambdaCreatorPtSorted->process(event);
+        genjetLambdaCreatorPtSorted->process(event);
+    }
 
     if (isZPlusJets) {
         // Do Z+Jet hists & selection
@@ -949,11 +951,13 @@ bool QGAnalysisMCModule::process(Event & event) {
         // At this point, all objects should have had all necessary corrections, filtering, etc
         // Have to do outside of any if(), because we always need it to run event.set()
         // otherwise unfolding module dies
-        jetLambdaCopierForward->process(event);
-        jetLambdaCopierCentral->process(event);
+        if (DO_LAMBDA_HISTS || DO_UNFOLD_HISTS || DO_PU_BINNED_HISTS) {
+            jetLambdaCopierForward->process(event);
+            jetLambdaCopierCentral->process(event);
 
-        genjetLambdaCopierForward->process(event);
-        genjetLambdaCopierCentral->process(event);
+            genjetLambdaCopierForward->process(event);
+            genjetLambdaCopierCentral->process(event);
+        }
 
         if (hasRecoJets) {
             // flav-specific preselection hists, useful for optimising selection
@@ -992,7 +996,7 @@ bool QGAnalysisMCModule::process(Event & event) {
 
             if (pass_dj_reco) {
                 dijet_gen_sel_passReco->passes(event); // this plots cutflow as well - only if we pass dijet reco selection
-                genjet_hists_passDijetReco->fill(event);
+                if (DO_KINEMATIC_HISTS) genjet_hists_passDijetReco->fill(event);
             }
 
             if (pass_dj_gen) {
