@@ -140,6 +140,7 @@ private:
     bool DO_FLAVOUR_HISTS;
     bool DO_KINEMATIC_HISTS;
     bool DO_LAMBDA_HISTS;
+    bool DO_WEIGHT_HISTS;
 
     std::unique_ptr<EventNumberSelection> event_sel, event_sel_printout;
 
@@ -183,13 +184,14 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     DO_FLAVOUR_HISTS = string2bool(ctx.get("DO_FLAVOUR_HISTS", "false"));
     DO_KINEMATIC_HISTS = string2bool(ctx.get("DO_KINEMATIC_HISTS", "true"));
     DO_LAMBDA_HISTS = string2bool(ctx.get("DO_LAMBDA_HISTS", "true"));
-
+    DO_WEIGHT_HISTS = string2bool(ctx.get("DO_WEIGHT_HISTS", "true"));
 
     cout << "DO_PU_BINNED_HISTS: " << DO_PU_BINNED_HISTS << endl;
     cout << "DO_UNFOLD_HISTS: " << DO_UNFOLD_HISTS << endl;
     cout << "DO_FLAVOUR_HISTS: " << DO_FLAVOUR_HISTS << endl;
     cout << "DO_KINEMATIC_HISTS: " << DO_KINEMATIC_HISTS << endl;
     cout << "DO_LAMBDA_HISTS: " << DO_LAMBDA_HISTS << endl;
+    cout << "DO_WEIGHT_HISTS: " << DO_WEIGHT_HISTS << endl;
 
     cout << "Running with jet cone: " << jetCone << endl;
     cout << "Running with PUS: " << pu_removal << endl;
@@ -396,8 +398,10 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     // Hists
     // -------------------------------------------------------------------------
-    weight_hists.reset(new QGAnalysisWeightHists(ctx, "Weight_Presel"));
-    weight_hists_reco_sel.reset(new QGAnalysisWeightHists(ctx, "Weight_Reco_sel"));
+    if (DO_WEIGHT_HISTS) {
+        weight_hists.reset(new QGAnalysisWeightHists(ctx, "Weight_Presel"));
+        weight_hists_reco_sel.reset(new QGAnalysisWeightHists(ctx, "Weight_Reco_sel"));
+    }
 
     std::string zpj_sel = "zplusjets";
     if (isZPlusJets) {
@@ -723,7 +727,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     // -------------------------------------------------------------------------
     mc_reweight->process(event); // also responsible for setting gen weight, so do after scale variations
 
-    weight_hists->fill(event);
+    if (DO_WEIGHT_HISTS) weight_hists->fill(event);
     // return true;
 
     // Cuts to throw away high-weight events from lower pT bins
@@ -842,10 +846,10 @@ bool QGAnalysisMCModule::process(Event & event) {
                     event.set(pass_zpj_sel_handle, pass_zpj_reco);
                     if (pass_zpj_reco) {
 
-                        genjet_hists_passZpJReco->fill(event);
-                        weight_hists_reco_sel->fill(event);
+                        if (DO_WEIGHT_HISTS) weight_hists_reco_sel->fill(event);
 
                         if (DO_KINEMATIC_HISTS) {
+                            genjet_hists_passZpJReco->fill(event);
                             zplusjets_gen_sel_passReco->passes(event); // this plots gen cutflow as well
                             zplusjets_hists->fill(event);
                         }
@@ -1015,7 +1019,7 @@ bool QGAnalysisMCModule::process(Event & event) {
                 }
             }
 
-            if (tight_sel) weight_hists_reco_sel->fill(event);
+            if (DO_WEIGHT_HISTS && tight_sel) weight_hists_reco_sel->fill(event);
 
             if (DO_LAMBDA_HISTS) {
                 if (standard_sel) {
