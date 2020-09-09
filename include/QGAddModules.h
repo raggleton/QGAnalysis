@@ -705,13 +705,13 @@ namespace Binning {
   // for non-TUnfold things, need all bins together, plus extra underflow bins
   // also need to remove duplicate bin at start of signal region,
   // hence the inplace ctor with begin()+1
-  const std::vector<double> pt_bin_edges_gen_all = sum_vectors({0., 15.},
+  const std::vector<double> pt_bin_edges_gen_all = sum_vectors({0.},
                                                                sum_vectors(pt_bin_edges_gen_underflow,
                                                                            std::vector<double>(pt_bin_edges_gen.begin()+1, pt_bin_edges_gen.end()) )
                                                               );
   const int nbins_pt_gen_all(pt_bin_edges_gen_all.size() - 1);
 
-  const std::vector<double> pt_bin_edges_reco_all = sum_vectors({0., 15.},
+  const std::vector<double> pt_bin_edges_reco_all = sum_vectors({0.},
                                                                 sum_vectors(pt_bin_edges_reco_underflow,
                                                                             std::vector<double>(pt_bin_edges_reco.begin()+1, pt_bin_edges_reco.end()) )
                                                                );
