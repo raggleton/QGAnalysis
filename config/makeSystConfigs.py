@@ -59,13 +59,15 @@ def write_updated_file(contents, new_xml_filename, radius, systematic_names=None
             # elif systematic_names and "<!--@SYST-->" in line:
             elif "<!--@SYST-->" in line:
                 # Turn off the standard hists, we only care about lambda & unfolding ones (currently)
+                new_line = ""
                 if systematic_names:
                     for key in ["DO_PU_BINNED_HISTS", "DO_FLAVOUR_HISTS", "DO_KINEMATIC_HISTS"]:
                         new_line = '            <Item Name="%s" Value="False"/>\n' % (key)
                         f.write(new_line)
 
-                new_line = '            <Item Name="DO_LAMBDA_HISTS" Value="True"/>\n'
-                new_line += '            <Item Name="DO_UNFOLD_HISTS" Value="True"/>\n'
+                # new_line = '            <Item Name="DO_LAMBDA_HISTS" Value="False"/>\n'
+                # new_line += '            <Item Name="DO_UNFOLD_HISTS" Value="False"/>\n'
+                new_line += '            <Item Name="DO_WEIGHT_HISTS" Value="False"/>\n'
                 f.write(new_line)
 
                 # Write out systematics
