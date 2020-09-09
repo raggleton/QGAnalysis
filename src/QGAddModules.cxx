@@ -860,6 +860,7 @@ double LambdaCalculator<PFParticle>::getLambda(float kappa, float beta, const PF
     // for the reference jet vector for deltaR, we use the WTA vector
     // if beta <=1, and the normal jet vector otherwise
     // Note: better compute (dist^2)^(beta/2) to avoid an extra square root
+    // Taken from Gregory
     double theta2 = (beta != 0) ? deltaR2UsingY(dtr.v4(), (beta <= 1) ? wtaVector_ : jetVector_) : 1.; // 1 as puppi shouldn't change direction
     numerator += (pow(thisPt, kappa) * pow(theta2, 0.5*beta));
     ptSum += thisPt;
@@ -894,7 +895,8 @@ double LambdaCalculator<GenParticle>::getLambda(float kappa, float beta, const G
     // for the reference jet vector for deltaR, we use the WTA vector
     // if beta <=1, and the normal jet vector otherwise
     // Note: better compute (dist^2)^(beta/2) to avoid an extra square root
-    double theta2 = (beta != 0) ? deltaR2UsingY(dtr.v4(), (beta <= 1) ? wtaVector_ : jetVector_) / jetRadius_ : 1.;
+    // Taken from Gregory
+    double theta2 = (beta != 0) ? deltaR2UsingY(dtr.v4(), (beta <= 1) ? wtaVector_ : jetVector_) : 1.;
     numerator += (pow(thisPt, kappa) * pow(theta2, 0.5*beta));
     ptSum += thisPt;
   }
