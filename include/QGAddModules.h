@@ -26,6 +26,16 @@
 #include "fastjet/contrib/ModifiedMassDropTagger.hh"
 #pragma GCC diagnostic pop
 
+// save diagnostic state
+#pragma GCC diagnostic push
+// turn off the specific warning. Can also use "-Wall"
+#pragma GCC diagnostic ignored "-Wignored-qualifiers"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#include "LHAPDF/LHAPDF.h"
+// turn the warnings back on
+#pragma GCC diagnostic pop
+
 #include "TFile.h"
 #include "TGraph.h"
 #include "TRandom3.h"
@@ -282,6 +292,19 @@ private:
 
 
 /**
+ * Class to apply new weight to convert to a different nominal PDF
+ */
+class PDFReweight : public uhh2::AnalysisModule {
+public:
+  PDFReweight(uhh2::Context & ctx);
+  virtual bool process(uhh2::Event & event) override;
+private:
+  bool skip_;
+  LHAPDF::PDF * pdf_, * original_pdf_;
+};
+
+
+/**
  * Apply weights/SF specifically for MC
  */
 class MCReweighting : public uhh2::AnalysisModule {
@@ -297,6 +320,7 @@ private:
   std::unique_ptr<ZkFactorReweight> z_reweighter;
   std::unique_ptr<PtReweight> pt_reweighter;
   std::unique_ptr<MCScaleVariation> mc_scalevar;
+  std::unique_ptr<PDFReweight> pdf_reweighter;
   bool doMuons, is_DY;
 };
 

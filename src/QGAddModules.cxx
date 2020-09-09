@@ -9,6 +9,7 @@
 
 #include "UHH2/core/include/Utils.h"
 
+#include "TSystem.h"
 
 using namespace std;
 using namespace uhh2;
@@ -545,6 +546,56 @@ bool TrackingEfficiency::process(uhh2::Event & event) {
 }
 
 
+PDFReweight::PDFReweight(uhh2::Context & ctx) {
+  if (ctx.get("pdf_reweight", "") == "") {
+    skip_ = true;
+    return;
+  }
+
+  if (gSystem->Load("libLHAPDF") == -1) {
+    skip_ = true;
+    std::cerr << "libLHAPDF not found, no pdf weights will be applied. To apply pdf re-weighting, add path to libLHAPDF.so to LD_LIBRARY_PATH" << std::endl;
+    return;
+  }
+  skip_ = false;
+
+  const std::string & pdfname = ctx.get("pdf_reweight");
+  cout << "Using " << pdfname << " as new PDF set" << endl;
+  pdf_ = LHAPDF::mkPDF(pdfname, 0);
+
+  const std::string & original_pdfname = ctx.get("original_pdf", "NNPDF30_lo_as_0130");
+  cout << "Using " << original_pdfname << " as original PDF" << endl;
+  original_pdf_ = LHAPDF::mkPDF(original_pdfname, 0);
+}
+
+bool PDFReweight::process(uhh2::Event & event) {
+  if (skip_) return true;
+
+  double x1 = event.genInfo->pdf_x1();
+  double x2 = event.genInfo->pdf_x2();
+
+  int id1 = event.genInfo->pdf_id1();
+  int id2 = event.genInfo->pdf_id2();
+
+  double q = event.genInfo->pdf_scalePDF();
+
+  // Get new PDF weights
+  double xpdf1 = pdf_->xfxQ(id1, x1, q);
+  double xpdf2 = pdf_->xfxQ(id2, x2, q);
+
+  // Get original PDF weights
+  // Have to recalculate ourselves, since the ones in the ntuple are 0 annoyingly
+  double xpdf_orig1 = original_pdf_->xfxQ(id1, x1, q);
+  double xpdf_orig2 = original_pdf_->xfxQ(id2, x2, q);
+  // std::cout << "xpdf1 " << xpdf1 << " xpdf2 " << xpdf2 << std::endl;
+  // std::cout << "xpdf_orig1 " << xpdf_orig1 << " xpdf_orig2 " << xpdf_orig2 << std::endl;
+
+  event.weight *= (xpdf1 * xpdf2) / (xpdf_orig1 * xpdf_orig2);
+
+  return true;
+}
+
+
 MCReweighting::MCReweighting(uhh2::Context & ctx, const std::string & genjet_name, const std::string & genmuon_name) {
   gen_weight_handle = ctx.get_handle<double>("gen_weight");
 
@@ -586,6 +637,8 @@ MCReweighting::MCReweighting(uhh2::Context & ctx, const std::string & genjet_nam
   pt_reweighter.reset(new PtReweight(ctx, genjet_name, pt_filename, region));
 
   mc_scalevar.reset(new MCScaleVariation(ctx));
+
+  pdf_reweighter.reset(new PDFReweight(ctx));
 }
 
 
@@ -601,6 +654,7 @@ bool MCReweighting::process(uhh2::Event & event) {
     }
     pt_reweighter->process(event);
     mc_scalevar->process(event);
+    pdf_reweighter->process(event);
 
     // ONLY DO THIS AFTER ALL GEN-SPECIFIC REWEIGHTING
     // Take the existing gen_weight, and update it with the gen bits we just did
