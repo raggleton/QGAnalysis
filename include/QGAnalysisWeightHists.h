@@ -45,7 +45,11 @@ protected:
          *weight_vs_pt_vs_PU_ptHat_genHT_ratio,
          *weight_vs_pt_vs_PU_ptHat_genHT_ratio_unweighted,
          *weight_vs_pt_vs_PU_ptHat_ptHat_ratio,
-         *weight_vs_pt_vs_PU_ptHat_ptHat_ratio_unweighted;
+         *weight_vs_pt_vs_PU_ptHat_ptHat_ratio_unweighted,
+         *weight_vs_pt_vs_PU_ptHat_jetkT_ratio,
+         *weight_vs_pt_vs_PU_ptHat_jetkT_ratio_unweighted,
+         *weight_vs_pt_vs_pt_jet_jetkT_ratio,
+         *weight_vs_pt_vs_pt_jet_jetkT_ratio_unweighted;
 
     bool is_mc_;
 };
