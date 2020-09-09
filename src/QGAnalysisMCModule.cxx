@@ -740,34 +740,25 @@ bool QGAnalysisMCModule::process(Event & event) {
     float PU_pThat = event.genInfo->PU_pT_hat_max();
 
     if (dataset == MC::MGPYTHIA_QCD) {
-        if (genHT > 0 && (reco_jet_pt / genHT) > 2) return false;
-        if (genHT > 0 && (gen_jet_pt / genHT) > 2) return false;
-        if (qScale > 0 && (reco_jet_pt / qScale) > 3) return false;
         if (genHT > 0 && (PU_pThat / genHT) > 1) return false;
+        if (genHT > 0 && (reco_jet_pt / genHT) > 1) return false;
 
     } else if (dataset == MC::PYTHIA_QCD_BINNED) {
         double ptHat = event.genInfo->binningValues().at(0); // yes this is correct. no idea why
-        if (genHT > 0 && ((reco_jet_pt / genHT) > 8)) return false;
-        if (genHT > 0 && ((gen_jet_pt / genHT) > 3)) return false;
-        if (ptHat > 0 && ((reco_jet_pt / ptHat) > 8)) return false;
-        if (ptHat > 0 && ((gen_jet_pt / ptHat) > 3)) return false;
-        if (qScale > 0 && (reco_jet_pt>200) && ((reco_jet_pt / qScale) > 3)) return false;
-        if (ptHat > 0 && (PU_pThat / ptHat) > 2 && (reco_jet_pt>200)) return false;
+        if (ptHat > 0 && ((reco_jet_pt / ptHat) > 2)) return false;
+        if (ptHat > 0 && (PU_pThat / ptHat) > 1) return false;
 
     } else if (dataset == MC::HERWIG_QCD) {
         double ptHat = event.genInfo->binningValues().at(0);
-        if (ptHat > 0 && ((reco_jet_pt / ptHat) > 5)) return false;
-        if (ptHat > 0 && ((gen_jet_pt / ptHat) > 4)) return false;
-        if (ptHat > 0 && (PU_pThat / ptHat) > 2 && (reco_jet_pt>200)) return false;
+        if (ptHat > 0 && ((reco_jet_pt / ptHat) > 2)) return false;
+        if (ptHat > 0 && (PU_pThat / ptHat) > 1) return false;
 
     } else if (dataset == MC::MGPYTHIA_DY) {
-        if (genHT > 0 && (reco_jet_pt / genHT) > 10) return false;
-        if (genHT > 0 && (gen_jet_pt / genHT) > 10) return false;
-        if (qScale > 0 && (reco_jet_pt / qScale) > 10) return false;
-        if (genHT > 0 && (PU_pThat / genHT) > 10) return false;
+        if (genHT > 0 && (PU_pThat / genHT) > 1) return false;
+
     } else if (dataset == MC::HERWIG_DY) {
-        if (qScale > 0 && (reco_jet_pt / qScale) > 10) return false;
-        if (genHT > 0 && (PU_pThat / genHT) > 10) return false;
+        double ptHat = event.genInfo->binningValues().at(0); // this sometimes gives weird values tho
+        if (ptHat > 0 && (PU_pThat / ptHat) > 1) return false;
     }
 
     // cout << "*** EVENT:" << endl;
