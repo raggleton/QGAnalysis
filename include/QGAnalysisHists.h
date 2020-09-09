@@ -42,7 +42,7 @@ protected:
     TH1F * h_weights;
     TH2F * h_weights_vs_pt, *h_pthat_vs_weight, *h_pthat_vs_jet_pt;
 
-    TH1F *h_jet_pt, *h_jet_pt_unweighted, *h_jet_eta, *h_jet_flavour;
+    TH1F *h_jet_pt, *h_jet_pt_unweighted, *h_jet_eta, *h_jet_y, *h_jet_flavour;
     TH1F *h_jet_multiplicity, *h_jet_puppiMultiplicity, *h_jet_LHA, *h_jet_pTD, *h_jet_width, *h_jet_thrust;
     TH1F *h_jet_multiplicity_charged, *h_jet_puppiMultiplicity_charged, *h_jet_LHA_charged, *h_jet_pTD_charged, *h_jet_width_charged, *h_jet_thrust_charged;
     TH1F *h_qjet_multiplicity, *h_qjet_LHA, *h_qjet_pTD, *h_qjet_width, *h_qjet_thrust;

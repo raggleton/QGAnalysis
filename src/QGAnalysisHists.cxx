@@ -58,7 +58,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
 
   int nEtaBins = 50;
   float etaMin(-5), etaMax(5);
-  h_jet_eta = book<TH1F>("jet_eta", ";y^{j};", nEtaBins, etaMin, etaMax);
+  h_jet_y = book<TH1F>("jet_y", ";y^{j};", nEtaBins, etaMin, etaMax);
+  h_jet_eta = book<TH1F>("jet_eta", ";#eta^{j};", nEtaBins, etaMin, etaMax);
 
   h_jet_flavour = book<TH1F>("jet_flavour", "jet flavour;PDGID;", 23, -0.5, 22.5);
 
@@ -418,7 +419,8 @@ void QGAnalysisHists::fill(const Event & event){
       }
       h_jet_pt_unweighted->Fill(jet_pt);
       h_jet_pt->Fill(jet_pt, weight);
-      h_jet_eta->Fill(thisjet.Rapidity(), weight);
+      h_jet_y->Fill(thisjet.Rapidity(), weight);
+      h_jet_eta->Fill(thisjet.eta(), weight);
 
       float puppiMult(0.), mult(0.), lha(0.), ptd(0.), width(0.), thrust(0.);
 
