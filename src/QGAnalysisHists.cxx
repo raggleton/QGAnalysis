@@ -27,6 +27,13 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   recoDauPtCut_(1.)
   {
 
+  string jetCone = ctx.get("JetCone", "AK4");
+  string pu_removal = ctx.get("PURemoval", "CHS");
+  if (pu_removal != "CHS" && pu_removal != "PUPPI") {
+      throw runtime_error("Only PURemoval == CHS, PUPPI supported for now");
+  }
+  jetRadius = get_jet_radius(jetCone);
+
   is_mc_ = ctx.get("dataset_type") == "MC";
   doPuppi_ = (ctx.get("PURemoval") == "PUPPI");
 
@@ -512,7 +519,8 @@ void QGAnalysisHists::fill(const Event & event){
           bool thisPassGenCharged = passGen && (matchedGenJetCalcCharged.constits().size() > 1);
 
           genjet_pt = genjet.pt();
-          genjet_flav = abs(genjet.partonFlavour());
+          // genjet_flav = abs(genjet.partonFlavour());
+          genjet_flav = abs(get_jet_flavour(genjet, event.genparticles, jetRadius/2., true));
           response = jet_pt/genjet_pt;
           h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
 
@@ -605,8 +613,8 @@ void QGAnalysisHists::fill(const Event & event){
           }
         } // end if matchedgenjet
 
-        // int jet_flav = get_jet_flavour(thisjet, event.genparticles);
-        int jet_flav = abs(thisjet.partonFlavour());
+        int jet_flav = abs(get_jet_flavour(thisjet, event.genparticles, jetRadius/2., true));
+        // int jet_flav = abs(thisjet.partonFlavour());
 
         // Split by actual jet flavour - these only make sense for MC
         if (thisPassReco) {
@@ -798,6 +806,32 @@ void QGAnalysisHists::fill_lambda_rsp_hists(float reco_val, float gen_val, float
 //   }
 //   return gp;
 // }
+
+
+/**
+ * Get object flavour based on closest genparticle
+ * @param  obj          [description]
+ * @param  genparticles [description]
+ * @param  dr_max       [description]
+ * @param  pythiaMode   [description]
+ * @return              [description]
+ */
+int QGAnalysisHists::get_jet_flavour(const Particle & obj, std::vector<GenParticle>* genparticles, float dr_max, bool pythiaMode) {
+
+  // cout << "obj:" << obj.pt() << " : " << obj.eta() << " : " << obj.phi() << endl;
+  float smallest_dr = dr_max;
+  int pdgid = 0;
+  for (const auto& gp : *genparticles) {
+    if (pythiaMode && abs(gp.status()) != 23) continue;
+    float dr = deltaR(obj.v4(), gp.v4());
+    if (dr < smallest_dr) {
+      pdgid = gp.pdgId();
+      smallest_dr = dr;
+      // cout << gp.pt() << " : " << gp.eta() << " : " << gp.phi() << " : " << gp.pdgId() << " : " << gp.status() << " : " << deltaR(obj.v4(), gp.v4()) << endl;
+    }
+  }
+  return pdgid;
+}
 
 
 /**

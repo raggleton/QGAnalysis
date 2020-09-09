@@ -30,15 +30,15 @@ public:
     virtual ~QGAnalysisHists();
 protected:
     // std::vector<GenParticle*> get_genjet_genparticles(const GenJet &, std::vector<GenParticle>*);
+    int get_jet_flavour(const Particle & obj, std::vector<GenParticle>* genparticles, float dr_max, bool pythiaMode);
     std::vector<PFParticle*> get_jet_pfparticles(const Jet &, std::vector<PFParticle>*);
     void fill_lambda_rsp_hists(float reco_val, float gen_val, float weight,
                                TH2F * response, TH2F * rel_response,
                                float jet_pt,
                                TH2F * response_lowPt, TH2F * response_midPt, TH2F * response_highPt,
                                TH2F * rel_response_lowPt, TH2F * rel_response_midPt, TH2F * rel_response_highPt);
-
     // reco jet hists
-    float jetRadius, LHA_rescale, width_rescale, thrust_rescale;
+    float jetRadius;
     TH1F * h_weights;
     TH2F * h_weights_vs_pt, *h_pthat_vs_weight, *h_pthat_vs_jet_pt;
 
