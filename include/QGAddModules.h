@@ -23,7 +23,8 @@
 #include "fastjet/JetDefinition.hh"
 #include "fastjet/ClusterSequence.hh"
 #include "fastjet/tools/Recluster.hh"
-#include "fastjet/contrib/ModifiedMassDropTagger.hh"
+// #include "fastjet/contrib/ModifiedMassDropTagger.hh"
+#include "fastjet/contrib/SoftDrop.hh"
 #pragma GCC diagnostic pop
 
 // save diagnostic state
@@ -107,11 +108,12 @@ namespace Cuts {
   const float reco_electron_pt_min = 20.;
   const float electron_eta_max = 2.5;
 
-  // Constituent cuts for most lambda vars
+  // Constituent cuts for lambda vars
   const float constit_pt_min = 0.;
   const float constit_eta_max = 5.;
 
   // Arguments for lambda calculations
+  // Note that any constituent cuts here override the constit_pt_min and constit_eta_max above
   const PFLambdaArgs lha_pf_args      {1, 0.5, PtYCut(constit_pt_min, constit_eta_max)};
   const PFLambdaArgs width_pf_args    {1, 1,   PtYCut(constit_pt_min, constit_eta_max)};
   const PFLambdaArgs thrust_pf_args   {1, 2,   PtYCut(constit_pt_min, constit_eta_max)};
@@ -357,15 +359,15 @@ private:
  * as an argument. This is so we can customise the constituents separately
  * (e.g. shift constituents' energy, rejecting some).
  *
- * We also have 2 jet axes: the standard axis (jet_vector),
- * and the WTA axis (wta_vector).
+ * We also have 2 jet axes: the standard axis with E-scheme (jet_vector),
+ * and the WTA-scheme axis (wta_vector).
+ * The latter is used for beta <= 1, whilst the E-scheme one is used for beta > 1
  */
 template <class T> class LambdaCalculator {
 public:
   LambdaCalculator(std::vector<T> & constits, float jet_radius, const LorentzVector & jet_vector, const LorentzVector & wta_vector, bool usePuppiWeight);
   // Calculate lambda from constituents, with optional ID applied to filter constituents going into calculation
   double getLambda(float kappa, float beta, const std::function<bool (const T &)> & constitId = PtYCut(0, 10.));
-  // void clearCache();
   std::vector<T> constits() { return constits_; }
 private:
   std::vector<T> constits_;
@@ -483,7 +485,7 @@ public:
 private:
   fastjet::Recluster wta_cluster_;
   // fastjet::Recluster ca_cluster_;
-  fastjet::contrib::ModifiedMassDropTagger mmdt_;
+  // fastjet::contrib::ModifiedMassDropTagger mmdt_;
   float jetRadius_;
   int nJetsMax_;
   bool doPuppi_;
@@ -529,7 +531,7 @@ public:
 private:
   fastjet::Recluster wta_cluster_;
   // fastjet::Recluster ca_cluster_;
-  fastjet::contrib::ModifiedMassDropTagger mmdt_;
+  // fastjet::contrib::ModifiedMassDropTagger mmdt_;
   float jetRadius_;
   int nJetsMax_;
   GenParticleId genId_;
