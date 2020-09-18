@@ -806,7 +806,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
     passGen = event.get(pass_gen_handle);
   }
 
-  const std::vector<JetLambdaBundle> jetLambdas = event.get(jetsLambda_handle);
+  const std::vector<JetLambdaBundle> & jetLambdas = event.get(jetsLambda_handle);
 
   // cout << "***" << event.event << endl;
 
@@ -825,15 +825,15 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
     for (int i = 0; i < useNJets_; i++) {
       const Jet & thisjet = jetLambdas.at(i).jet;
 
-      LambdaCalculator<PFParticle> recoJetCalc = jetLambdas.at(i).getLambdaCalculator(false, doGroomed_); // can't be const as getLambda() modifies it
+      const LambdaCalculator<PFParticle> & recoJetCalc = jetLambdas.at(i).getLambdaCalculator(false, doGroomed_);
 
-      // To account for Lambda Caclulators with 1 constituent from charged-only or grooming,
+      // To account for Lambda Calculators with 1 constituent from charged-only or grooming,
       // (which isn't really a jet) we test per jet, and treat it otherwise as a fail
       // TODO: should this be done outside?
       bool thisPassReco = (passReco && recoJetCalc.constits().size() > 1);
 
       // FIXME check this corresponds to same jet as normal lambdas?
-      LambdaCalculator<PFParticle> recoJetCalcCharged = jetLambdas.at(i).getLambdaCalculator(true, doGroomed_);
+      const LambdaCalculator<PFParticle> & recoJetCalcCharged = jetLambdas.at(i).getLambdaCalculator(true, doGroomed_);
       bool thisPassRecoCharged = (passReco && recoJetCalcCharged.constits().size() > 1);
       if (!thisPassReco && !thisPassRecoCharged) continue;
 
@@ -1181,10 +1181,10 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
   if (is_mc_ && passGen) {
     for (int i = 0; i < useNJets_; i++) {
       const GenJet & thisjet = genjetLambdas->at(i).jet;
-      LambdaCalculator<GenParticle> genJetCalc = genjetLambdas->at(i).getLambdaCalculator(false, doGroomed_); // can't be const as getLambda() modifies it
+      const LambdaCalculator<GenParticle> & genJetCalc = genjetLambdas->at(i).getLambdaCalculator(false, doGroomed_);
       bool thisPassGen = (passGen && genJetCalc.constits().size() > 1);
       // FIXME check this corresponds to same jet as normal lambdas?
-      LambdaCalculator<GenParticle> genJetCalcCharged = genjetLambdas->at(i).getLambdaCalculator(true, doGroomed_);
+      const LambdaCalculator<GenParticle> & genJetCalcCharged = genjetLambdas->at(i).getLambdaCalculator(true, doGroomed_);
       bool thisPassGenCharged = (passGen && genJetCalcCharged.constits().size() > 1);
 
       if (!thisPassGen && !thisPassGenCharged) continue;
@@ -1363,7 +1363,9 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
         for (int j=0; j<useNJets_; j++) {
           if (jetLambdas.at(j).jet.genjet_index() == i) { recoInd = j; break; }
         }
+
         if (recoInd < 0) {
+          // out of interest, try to figure out which is the match
           for (uint j=0; j<jetLambdas.size(); j++) {
             if (jetLambdas.at(j).jet.genjet_index() == i) {
               cout << "Match for genjet " << i << " actually found with reco jet " << j << endl;
@@ -1372,11 +1374,12 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
             }
           }
         }
+
         if (recoInd >= 0) {
           const Jet & thisjet = jetLambdas.at(recoInd).jet;
-          LambdaCalculator<PFParticle> recoJetCalc = jetLambdas.at(recoInd).getLambdaCalculator(false, doGroomed_); // can't be const as getLambda() modifies it
+          const LambdaCalculator<PFParticle> & recoJetCalc = jetLambdas.at(recoInd).getLambdaCalculator(false, doGroomed_);
           // FIXME check this corresponds to same jet as normal lambdas?
-          LambdaCalculator<PFParticle> recoJetCalcCharged = jetLambdas.at(recoInd).getLambdaCalculator(true, doGroomed_);
+          const LambdaCalculator<PFParticle> & recoJetCalcCharged = jetLambdas.at(recoInd).getLambdaCalculator(true, doGroomed_);
 
           thisPassReco = (passReco && recoJetCalc.constits().size() > 1);
           thisPassRecoCharged = (passReco && recoJetCalcCharged.constits().size() > 1);

@@ -113,6 +113,7 @@ namespace Cuts {
   const float constit_eta_max = 5.;
 
   // Arguments for lambda calculations
+  // Separate ones for PF & GEN since in theory we might want separate cuts
   // Note that any constituent cuts here override the constit_pt_min and constit_eta_max above
   const PFLambdaArgs lha_pf_args      {1, 0.5, PtYCut(constit_pt_min, constit_eta_max)};
   const PFLambdaArgs width_pf_args    {1, 1,   PtYCut(constit_pt_min, constit_eta_max)};
@@ -370,8 +371,8 @@ template <class T> class LambdaCalculator {
 public:
   LambdaCalculator(std::vector<T> & constits, float jet_radius, const LorentzVector & jet_vector, const LorentzVector & wta_vector, bool usePuppiWeight);
   // Calculate lambda from constituents, with optional ID applied to filter constituents going into calculation
-  double getLambda(float kappa, float beta, const std::function<bool (const T &)> & constitId = PtYCut(0, 10.));
-  std::vector<T> constits() { return constits_; }
+  double getLambda(float kappa, float beta, const std::function<bool (const T &)> & constitId = PtYCut(0, 10.)) const;
+  const std::vector<T> & constits() const { return constits_; }
 private:
   std::vector<T> constits_;
   float jetRadius_;
@@ -400,7 +401,7 @@ struct JetLambdaBundle {
   LambdaCalculator<PFParticle> groomedLambda;
   LambdaCalculator<PFParticle> groomedChargedLambda;
 
-  LambdaCalculator<PFParticle> getLambdaCalculator(const bool isCharged, const bool isGroomed) const {
+  const LambdaCalculator<PFParticle> & getLambdaCalculator(bool isCharged, bool isGroomed) const {
     if (isCharged) {
       if (isGroomed) {
         return groomedChargedLambda;
@@ -435,7 +436,7 @@ struct GenJetLambdaBundle {
   LambdaCalculator<GenParticle> groomedLambda;
   LambdaCalculator<GenParticle> groomedChargedLambda;
 
-  LambdaCalculator<GenParticle> getLambdaCalculator(const bool isCharged, const bool isGroomed) const {
+  const LambdaCalculator<GenParticle> & getLambdaCalculator(bool isCharged, bool isGroomed) const {
     if (isCharged) {
       if (isGroomed) {
         return groomedChargedLambda;

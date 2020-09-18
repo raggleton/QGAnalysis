@@ -815,7 +815,7 @@ LambdaCalculator<GenParticle>::LambdaCalculator(std::vector<GenParticle> & const
 {}
 
 template<>
-double LambdaCalculator<PFParticle>::getLambda(float kappa, float beta, const PFId & constitId)
+double LambdaCalculator<PFParticle>::getLambda(float kappa, float beta, const PFId & constitId) const
 {
   // special case if no constits
   if (constits_.size() == 0) {
@@ -864,7 +864,7 @@ double LambdaCalculator<PFParticle>::getLambda(float kappa, float beta, const PF
 }
 
 template<>
-double LambdaCalculator<GenParticle>::getLambda(float kappa, float beta, const GenId & constitId)
+double LambdaCalculator<GenParticle>::getLambda(float kappa, float beta, const GenId & constitId) const
 {
   // special case if no constits
   if (constits_.size() == 0) {

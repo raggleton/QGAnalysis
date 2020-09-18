@@ -410,8 +410,8 @@ void QGAnalysisHists::fill(const Event & event){
 
     for (int i = 0; i < useNJets_; i++) {
       const Jet & thisjet = jetLambdas.at(i).jet;
-      LambdaCalculator<PFParticle> recoJetCalc = jetLambdas.at(i).getLambdaCalculator(false, doGroomed_);
-      LambdaCalculator<PFParticle> recoJetCalcCharged = jetLambdas.at(i).getLambdaCalculator(true, doGroomed_);
+      const LambdaCalculator<PFParticle> & recoJetCalc = jetLambdas.at(i).getLambdaCalculator(false, doGroomed_);
+      const LambdaCalculator<PFParticle> & recoJetCalcCharged = jetLambdas.at(i).getLambdaCalculator(true, doGroomed_);
 
       // To account for Lambda Calculators with 1 constituent from charged-only or grooming,
       // (which isn't really a jet) we test per jet, and treat it otherwise as a fail
@@ -514,8 +514,8 @@ void QGAnalysisHists::fill(const Event & event){
             cout << "WARNING: wanted genjet_index " << thisInd << " but only have " << genjetLambdas->size() << " in genjetLambdas" << endl;
           }
           const GenJet & genjet = genjetLambdas->at(thisInd).jet;
-          LambdaCalculator<GenParticle> matchedGenJetCalc = genjetLambdas->at(thisInd).getLambdaCalculator(false, doGroomed_);
-          LambdaCalculator<GenParticle> matchedGenJetCalcCharged = genjetLambdas->at(thisInd).getLambdaCalculator(true, doGroomed_);
+          const LambdaCalculator<GenParticle> & matchedGenJetCalc = genjetLambdas->at(thisInd).getLambdaCalculator(false, doGroomed_);
+          const LambdaCalculator<GenParticle> & matchedGenJetCalcCharged = genjetLambdas->at(thisInd).getLambdaCalculator(true, doGroomed_);
 
           bool thisPassGen = passGen && (matchedGenJetCalc.constits().size() > 1);
           bool thisPassGenCharged = passGen && (matchedGenJetCalcCharged.constits().size() > 1);
@@ -723,9 +723,9 @@ void QGAnalysisHists::fill(const Event & event){
 
     for (int i = 0; i < useNJets_; i++) {
       const GenJet & thisjet = genjetLambdas->at(i).jet;
-      LambdaCalculator<GenParticle> genJetCalc = genjetLambdas->at(i).getLambdaCalculator(false, doGroomed_);
+      const LambdaCalculator<GenParticle> & genJetCalc = genjetLambdas->at(i).getLambdaCalculator(false, doGroomed_);
       // FIXME check this corresponds to same jet as normal lambdas?
-      LambdaCalculator<GenParticle> genJetCalcCharged = genjetLambdas->at(i).getLambdaCalculator(true, doGroomed_);
+      const LambdaCalculator<GenParticle> & genJetCalcCharged = genjetLambdas->at(i).getLambdaCalculator(true, doGroomed_);
 
       float genjet_pt = thisjet.pt();
 
