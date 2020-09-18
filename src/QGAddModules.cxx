@@ -800,7 +800,8 @@ LambdaCalculator<T>::LambdaCalculator(std::vector<T> & constits, float jet_radiu
   jetRadius_(jet_radius),
   jetVector_(jet_vector),
   wtaVector_(wta_vector),
-  usePuppiWeight_(usePuppiWeight)
+  usePuppiWeight_(usePuppiWeight),
+  minNumConstits_(2)
 {}
 
 template<>
@@ -809,7 +810,8 @@ LambdaCalculator<GenParticle>::LambdaCalculator(std::vector<GenParticle> & const
   jetRadius_(jet_radius),
   jetVector_(jet_vector),
   wtaVector_(wta_vector),
-  usePuppiWeight_(usePuppiWeight)
+  usePuppiWeight_(usePuppiWeight), // Not used for GenParticles
+  minNumConstits_(2)
 {}
 
 template<>
@@ -823,6 +825,7 @@ double LambdaCalculator<PFParticle>::getLambda(float kappa, float beta, const PF
   // Special case if both 0 ie multiplicity
   // Do it this way to ensure puppi weights correctly accounted for
   double result = 0.;
+  uint numConstits = 0;
   if (kappa == 0 && beta == 0) {
     for (const auto & dtr : constits_) {
       if (!constitId(dtr)) continue;
@@ -831,8 +834,9 @@ double LambdaCalculator<PFParticle>::getLambda(float kappa, float beta, const PF
       } else {
         result += 1;
       }
+      numConstits++;
     }
-    // resultsCache_[thisArgs] = result;
+    if (!(numConstits >= minNumConstits_)) return -1;
     return result;
   }
 
@@ -842,17 +846,19 @@ double LambdaCalculator<PFParticle>::getLambda(float kappa, float beta, const PF
       continue;
 
     double weight = usePuppiWeight_ ? dtr.puppiWeight() : 1.;
-    double thisPt = (kappa != 0) ? dtr.pt() : 1.;
-    thisPt *= weight;
+    double thisPt = (kappa != 0) ? dtr.pt() * weight : 1.;
     // for the reference jet vector for deltaR, we use the WTA vector
     // if beta <=1, and the normal jet vector otherwise
     // Note: better compute (dist^2)^(beta/2) to avoid an extra square root
     // Taken from Gregory
     auto referenceAxis = (beta <= 1) ? wtaVector_ : jetVector_;
-    double theta2 = (beta != 0) ? deltaR2UsingY(dtr.v4(), referenceAxis) : 1.; // 1 as puppi shouldn't change direction
+    double theta2 = (beta != 0) ? deltaR2UsingY(dtr.v4(), referenceAxis) : 1.;
+    // 1 as puppi shouldn't change direction
     numerator += (pow(thisPt, kappa) * pow(theta2, 0.5*beta));
     ptSum += thisPt;
+    numConstits++;
   }
+  if (!(numConstits >= minNumConstits_)) return -1;
   result = numerator / (pow(ptSum, kappa) * pow(jetRadius_, beta));
   return result;
 }
@@ -865,9 +871,21 @@ double LambdaCalculator<GenParticle>::getLambda(float kappa, float beta, const G
     return -1.;
   }
 
-  // If not, calculate it and store in cache
+  // Special case if both 0 ie multiplicity
+  // Do it this way to save time
   double result = 0.;
+  if (kappa == 0 && beta == 0) {
+    for (const auto & dtr : constits_) {
+      if (!constitId(dtr)) continue;
+      result++;
+    }
+    if (!(result >= minNumConstits_)) return -1;
+    return result;
+  }
+
+  // If not, calculate it and store in cache
   double numerator(0.), ptSum(0.);
+  uint numConstits = 0;
   for (const auto & dtr : constits_) {
     if (!constitId(dtr)) continue;
     double thisPt = dtr.pt();
@@ -879,7 +897,9 @@ double LambdaCalculator<GenParticle>::getLambda(float kappa, float beta, const G
     double theta2 = (beta != 0) ? deltaR2UsingY(dtr.v4(), referenceAxis) : 1.;
     numerator += (pow(thisPt, kappa) * pow(theta2, 0.5*beta));
     ptSum += thisPt;
+    numConstits++;
   }
+  if (!(numConstits >= minNumConstits_)) return -1;
   result = numerator / (pow(ptSum, kappa) * pow(jetRadius_, beta));
   return result;
 }

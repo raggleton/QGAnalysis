@@ -362,6 +362,9 @@ private:
  * We also have 2 jet axes: the standard axis with E-scheme (jet_vector),
  * and the WTA-scheme axis (wta_vector).
  * The latter is used for beta <= 1, whilst the E-scheme one is used for beta > 1
+ *
+ * We also check to see if at least minNumConstits_ contribute to the result,
+ * if not it returns -1 (unphysical value).
  */
 template <class T> class LambdaCalculator {
 public:
@@ -375,7 +378,7 @@ private:
   LorentzVector jetVector_;
   LorentzVector wtaVector_;
   bool usePuppiWeight_;
-  // std::map<std::tuple<float, float, std::function<bool (const T &)> >, double> resultsCache_;
+  uint minNumConstits_;
 };
 
 template class LambdaCalculator<PFParticle>;
