@@ -21,7 +21,7 @@ namespace uhh2examples {
 class QGAnalysisHists: public uhh2::Hists {
 public:
     QGAnalysisHists(uhh2::Context & ctx, const std::string & dirname,
-                    int useNJets, bool doGroomed,
+                    int useNJets, bool doGroomed, bool useStatus23Flavour,
                     const std::string & selection,
                     const std::string & reco_sel_handle_name, const std::string & gen_sel_handle_name,
                     const std::string & reco_jetlambda_handle_name, const std::string & gen_jetlambda_handle_name);
@@ -118,6 +118,7 @@ protected:
     bool is_mc_;
     float rsp_lowPt_cut_, rsp_midPt_cut_, rsp_highPt_cut_;
     float recoDauPtCut_;
+    bool useStatus23Flavour_;
 };
 
 

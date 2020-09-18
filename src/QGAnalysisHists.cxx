@@ -13,6 +13,7 @@ using namespace uhh2examples;
 QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
                                  int useNJets,
                                  bool doGroomed,
+                                 bool useStatus23Flavour,
                                  const string & selection,
                                  const string & reco_sel_handle_name, const string & gen_sel_handle_name,
                                  const string & reco_jetlambda_handle_name, const string & gen_jetlambda_handle_name
@@ -24,7 +25,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   rsp_lowPt_cut_(30.),
   rsp_midPt_cut_(100.),
   rsp_highPt_cut_(250.),
-  recoDauPtCut_(1.)
+  recoDauPtCut_(1.),
+  useStatus23Flavour_(useStatus23Flavour)
   {
 
   string jetCone = ctx.get("JetCone", "AK4");
@@ -519,8 +521,8 @@ void QGAnalysisHists::fill(const Event & event){
           bool thisPassGenCharged = passGen && (matchedGenJetCalcCharged.constits().size() > 1);
 
           genjet_pt = genjet.pt();
-          // genjet_flav = abs(genjet.partonFlavour());
-          genjet_flav = abs(get_jet_flavour(genjet, event.genparticles, jetRadius/2., true));
+          genjet_flav = (useStatus23Flavour_) ? get_jet_flavour(genjet, event.genparticles, jetRadius/2., true) : genjet.partonFlavour();
+          genjet_flav = abs(genjet_flav);
           response = jet_pt/genjet_pt;
           h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
 
@@ -613,8 +615,8 @@ void QGAnalysisHists::fill(const Event & event){
           }
         } // end if matchedgenjet
 
-        int jet_flav = abs(get_jet_flavour(thisjet, event.genparticles, jetRadius/2., true));
-        // int jet_flav = abs(thisjet.partonFlavour());
+        int jet_flav = (useStatus23Flavour_) ? get_jet_flavour(thisjet, event.genparticles, jetRadius/2., true) : thisjet.partonFlavour();
+        jet_flav = abs(jet_flav);
 
         // Split by actual jet flavour - these only make sense for MC
         if (thisPassReco) {

@@ -326,11 +326,11 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
         std::string zpj_sel = "zplusjets";
         if (DO_LAMBDA_HISTS) {
             zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG",
-                                                         NJETS_ZPJ, false, zpj_sel,
+                                                         NJETS_ZPJ, false, false, zpj_sel,
                                                          pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
                                                          reco_jetlambda_handle_name, gen_jetlambda_handle_name));
             zplusjets_qg_hists_groomed.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG_groomed",
-                                                                 NJETS_ZPJ, true, zpj_sel,
+                                                                 NJETS_ZPJ, true, false, zpj_sel,
                                                                  pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
                                                                  reco_jetlambda_handle_name, gen_jetlambda_handle_name));
         }
@@ -365,24 +365,24 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
 
         if (DO_LAMBDA_HISTS) {
             dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter",
-                                                     NJETS_DIJET, false, dj_sel,
+                                                     NJETS_DIJET, false, false, dj_sel,
                                                      pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
                                                      reco_jetlambda_handle_name, gen_jetlambda_handle_name));
             dijet_qg_hists_central_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_central_tighter",
-                                                                     1, false, dj_sel,
+                                                                     1, false, false, dj_sel,
                                                                      pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
                                                                      reco_jetlambda_central_handle_name, gen_jetlambda_central_handle_name));
             dijet_qg_hists_forward_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_forward_tighter",
-                                                                     1, false, dj_sel,
+                                                                     1, false, false, dj_sel,
                                                                      pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
                                                                      reco_jetlambda_forward_handle_name, gen_jetlambda_forward_handle_name));
 
             dijet_qg_hists_central_tighter_groomed.reset(new QGAnalysisHists(ctx, "Dijet_QG_central_tighter_groomed",
-                                                                             1, true, dj_sel,
+                                                                             1, true, false, dj_sel,
                                                                              pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
                                                                              reco_jetlambda_central_handle_name, gen_jetlambda_central_handle_name));
             dijet_qg_hists_forward_tighter_groomed.reset(new QGAnalysisHists(ctx, "Dijet_QG_forward_tighter_groomed",
-                                                                             1, true, dj_sel,
+                                                                             1, true, false, dj_sel,
                                                                              pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
                                                                              reco_jetlambda_forward_handle_name, gen_jetlambda_forward_handle_name));
         }
