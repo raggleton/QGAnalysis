@@ -1487,9 +1487,9 @@ LorentzVector jet_constit_4vec(const Jet & jet, const std::vector<PFParticle> & 
   LorentzVector sumv4;
   for (const uint i : jet.pfcand_indexs()) {
     if (!doPuppi) {
-    sumv4 += pfparticles.at(i).v4();
+      sumv4 += pfparticles.at(i).v4();
     } else {
-    LorentzVectorXYZE v4XYZ = toXYZ(pfparticles.at(i).v4());
+      LorentzVectorXYZE v4XYZ = toXYZ(pfparticles.at(i).v4());
       v4XYZ *= pfparticles.at(i).puppiWeight();
       sumv4 += toPtEtaPhi(v4XYZ);
     }
