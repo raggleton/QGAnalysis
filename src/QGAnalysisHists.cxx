@@ -501,7 +501,7 @@ void QGAnalysisHists::fill(const Event & event){
         h_jet_thrust_charged_vs_pt->Fill(thrust_charged, jet_pt, weight);
       }
 
-      if (is_mc_) { // TODO: should there be a && passGen?
+      if (is_mc_ && passGen) {
         // Store variables for matched GenJet
         bool matchedGenJet = (thisjet.genjet_index() > -1 && thisjet.genjet_index() < 3); // put upper limit to avoid weird matches
         float genjet_pt = -1.;
