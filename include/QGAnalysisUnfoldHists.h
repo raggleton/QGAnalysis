@@ -209,11 +209,11 @@ public:
                       const GenLambdaArgs & genLambdaArgs,
                       TUnfoldBinning * genBinning);
     // setup for particular reco, gen jets - recalculate variable and TUnfold bin numbers
-    void setPassReco(bool passReco) { passReco_ = passReco; }
+    void setPassReco(bool passReco);
     void setupReco(float recoJetPt,
                    const LambdaCalculator<PFParticle> & recoJetCalc,
                    bool passReco);
-    void setPassGen(bool passGen) { passGen_ = passGen; }
+    void setPassGen(bool passGen);
     void setupGen(float genJetPt,
                   const LambdaCalculator<GenParticle> & genJetCalc,
                   bool passGen);

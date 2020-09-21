@@ -1417,6 +1417,14 @@ recoJetPt_(0),
 genJetPt_(0)
 {}
 
+void LambdaHistsFiller::setPassReco(bool passReco) {
+  passReco_ = passReco;
+  if (!passReco_) {
+    // if fail, then reset bins
+    recoBin_ = 0;
+    recoBinGenBinning_ = 0;
+  }
+}
 
 void LambdaHistsFiller::setupReco(float recoJetPt,
                                   const LambdaCalculator<PFParticle> & recoJetCalc,
@@ -1449,6 +1457,14 @@ void LambdaHistsFiller::setupReco(float recoJetPt,
       if (thisGenBinning == nullptr) throw std::runtime_error("Cannot find TUnfoldBinning node with name " + nodeName);
       recoBinGenBinning_ = thisGenBinning->GetGlobalBinNumber(recoLambda, recoJetPt_);
     }
+  }
+}
+
+void LambdaHistsFiller::setPassGen(bool passGen) {
+  passGen_ = passGen;
+  if (!passGen_) {
+    // if fail, then reset bin
+    genBin_ = 0;
   }
 }
 
