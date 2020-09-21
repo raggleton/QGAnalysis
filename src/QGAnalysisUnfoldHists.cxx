@@ -1281,19 +1281,19 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           }
         }
 
-        if (recoInd >= 0) {
+        if (recoInd >= 0 && recoInd < useNJets_) {
           const Jet & thisjet = jetLambdas.at(recoInd).jet;
           float jet_pt = useBinningValue_ ? event.get(pt_binning_reco_handle) : thisjet.pt();
 
           for (auto filler : chargedPlusNeutralHistFillers) {
-            // check if the reco jet already in this filler is the same one
+            // check if the reco jet already in this filler is the same one (saves time)
             // and if not, update it
             if (filler->recoJetPt() != jet_pt) {
               filler->setupReco(jet_pt, jetLambdas.at(recoInd).getLambdaCalculator(false, doGroomed_), passReco);
             }
           }
           for (auto filler : chargedOnlyHistFillers) {
-            // check if the reco jet already in this filler is the same one
+            // check if the reco jet already in this filler is the same one (Saves time)
             // and if not, update it
             if (filler->recoJetPt() != jet_pt) {
               filler->setupReco(jet_pt, jetLambdas.at(recoInd).getLambdaCalculator(true, doGroomed_), passReco);
@@ -1306,6 +1306,11 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
             recBinPt = detector_distribution_underflow_pt->GetGlobalBinNumber(jet_pt);
           } else {
             recBinPt = detector_distribution_pt->GetGlobalBinNumber(jet_pt);
+          }
+        } else {
+          // mark as failed, since we didn't get a match
+          for (auto filler : allHistFillers) {
+            filler->setPassReco(false);
           }
         } // end if recoInd >= 0
       } else {
