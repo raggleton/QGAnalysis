@@ -240,8 +240,6 @@ public:
     void fillRecoTH1(TH1 * h, double weight);
     void fillRecoTH1GenBinning(TH1 * h, double weight);
     void fillGenTH1(TH1 * h, double weight);
-    void fillFakesTH1(TH1 * h, double weight);
-    void fillFakesTH1GenBinning(TH1 * h, double weight);
     void fillResponseTH2(TH2 * h, double recoWeight, double genWeight);
 
     // getters

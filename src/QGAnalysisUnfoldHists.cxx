@@ -1141,15 +1141,15 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           }
           for (auto filler : chargedOnlyHistFillers) {
             filler->setupGen(genjetLambdas->at(thisjet.genjet_index()).jet.pt(),
-                            genjetLambdas->at(thisjet.genjet_index()).getLambdaCalculator(true, doGroomed_),
-                            passGen);
+                             genjetLambdas->at(thisjet.genjet_index()).getLambdaCalculator(true, doGroomed_),
+                             passGen);
           }
         }
 
         for (auto filler: allHistFillers) {
           if (!passGen || (thisjet.genjet_index() < 0 || thisjet.genjet_index() >= useNJets_) || !filler->passGen()) {
-            filler->fillFakesTH1(filler->recoHistFakes(), weight);
-            filler->fillFakesTH1GenBinning(filler->recoHistFakesGenBinning(), weight);
+            filler->fillRecoTH1(filler->recoHistFakes(), weight);
+            filler->fillRecoTH1GenBinning(filler->recoHistFakesGenBinning(), weight);
             if (!onlyFillResponse && doMCsplit_) { filler->fillRecoTH1(filler->recoSplitHistFakes(), weight); }
           }
         }
@@ -1549,18 +1549,6 @@ void LambdaHistsFiller::fillRecoTH1GenBinning(TH1 * h, double weight) {
 void LambdaHistsFiller::fillGenTH1(TH1 * h, double weight) {
   if (h != nullptr && passGen()) {
     h->Fill(genBin_, weight);
-  }
-}
-
-void LambdaHistsFiller::fillFakesTH1(TH1 * h, double weight) {
-  if (h != nullptr && passReco() && !passGen()) {
-    h->Fill(recoBin_, weight);
-  }
-}
-
-void LambdaHistsFiller::fillFakesTH1GenBinning(TH1 * h, double weight) {
-  if (h != nullptr && passReco() && !passGen()) {
-    h->Fill(recoBinGenBinning_, weight);
   }
 }
 
