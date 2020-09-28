@@ -806,7 +806,7 @@ namespace Binning {
     // 0.0, 4.0, 6.0, 9.0, 12.0, 16.0, 23.0, 150.0 // target 0.6, forward
     // 0.0, 2.0, 3.0, 4.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0, 18.0, 21.0, 25.0, 32.0, 91, 150.0 // target 0.5, cen+fwd, 91 added as halfway between 32 and 150
    // 0.0, 3.0, 5.0, 8.0, 11.0, 14.0, 18.0, 22.0, 26.0, 31.0, 37.0, 45.0, 150.0 // target 0.5, cen+fwd groomed, AK axis, added 30, 50, 75, 100 manually
-   2, 5.0, 8.0, 11.0, 14.0, 18.0, 22.0, 26.0, 31.0, 37.0, 45.0, 150.0 // target 0.5, cen+fwd groomed, AK axis, pt > 1, start at 2 since >=2 constits required.
+   0, 3.0, 5.0, 8.0, 11.0, 14.0, 18.0, 22.0, 26.0, 31.0, 37.0, 45.0, 150.0 // target 0.5, cen+fwd groomed, highPt, AK axis, pt > 1, >=2 constits
   };
   const int nbins_puppiMultiplicity_charged_gen(puppiMultiplicity_charged_bin_edges_gen.size() - 1);
 
