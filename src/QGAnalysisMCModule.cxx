@@ -616,6 +616,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     bool printout_event_sel = false;
     // bool printout_event_sel = event_sel_printout->passes(event);
     // if (!printout_event_sel) return false;
+    bool printout_this_event = (PRINTOUT || printout_event_sel);
 
     event.set(gen_weight_handle, event.weight); // need to set this at the start
     event.set(pt_binning_reco_handle, 0); // need to set this at the start
@@ -639,7 +640,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     event.set(dijet_gen_forward_handle, std::vector<GenJet>());
     event.set(dijet_gen_central_handle, std::vector<GenJet>());
 
-    if (PRINTOUT || printout_event_sel) cout << Color::BG_RED << "-- Event: " << event.event << " : " << event.luminosityBlock << " : " << event.run << Color::BG_DEFAULT << endl;
+    if (printout_this_event) cout << Color::BG_RED << "-- Event: " << event.event << " : " << event.luminosityBlock << " : " << event.run << Color::BG_DEFAULT << endl;
     // cout << "-- Event: " << event.event << endl;
 
     // Redo AK8 genjet clustering
@@ -669,11 +670,11 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     if (!(njet_min_sel->passes(event) || ngenjet_min_sel->passes(event))) return false;
 
-    if (PRINTOUT || printout_event_sel) printGenParticles(*event.genparticles);
-    if (PRINTOUT || printout_event_sel) printPFParticles(*event.pfparticles);
-    if (PRINTOUT || printout_event_sel) printMuons(*event.muons, "Precleaning");
-    if (PRINTOUT || printout_event_sel) printElectrons(*event.electrons, "Precleaning");
-    if (PRINTOUT || printout_event_sel) printJets(*event.jets, "Precleaning");
+    // if (printout_this_event) printGenParticles(*event.genparticles);
+    // if (printout_this_event) printPFParticles(*event.pfparticles);
+    if (printout_this_event) printMuons(*event.muons, "Precleaning");
+    if (printout_this_event) printElectrons(*event.electrons, "Precleaning");
+    if (printout_this_event) printJets(*event.jets, "Precleaning");
 
     // Gen-level HT cut if necessary
     // -------------------------------------------------------------------------
@@ -696,16 +697,17 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Note that we only care about this for reco-specific bits,
     // not gen-specific (only false if fails MET filters)
     bool passCommonRecoSetup = common_setup->process(event);
+    if (printout_this_event && !passCommonRecoSetup) cout << "... Failed common_setup" << endl;
     recojet_setup->process(event);
 
-    if (PRINTOUT || printout_event_sel) printMuons(*event.muons);
-    if (PRINTOUT || printout_event_sel) printElectrons(*event.electrons);
-    if (PRINTOUT || printout_event_sel) printJets(*event.jets, "Postcleaning");
+    if (printout_this_event) printMuons(*event.muons);
+    if (printout_this_event) printElectrons(*event.electrons);
+    if (printout_this_event) printJets(*event.jets, "Postcleaning");
 
     // Get Gen muons
     // -------------------------------------------------------------------------
     genMuon_selector->process(event);
-    if (PRINTOUT || printout_event_sel) printGenParticles(event.get(genMuons_handle), "GenMuons", Color::FG_CYAN);
+    if (printout_this_event) printGenParticles(event.get(genMuons_handle), "GenMuons", Color::FG_CYAN);
 
     // Get good GenJets, store in event
     // -------------------------------------------------------------------------
@@ -768,10 +770,10 @@ bool QGAnalysisMCModule::process(Event & event) {
     // -------------------------------------------------------------------------
     jetMatcherPtOrdered->process(event);
 
-    if (PRINTOUT || printout_event_sel) printJets(*event.jets, "Matched Jets");
-    // if (PRINTOUT || printout_event_sel) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets");
-    // if (PRINTOUT || printout_event_sel) printGenJets(event.get(genJets_handle), "GoodGenJets");
-    if (PRINTOUT || printout_event_sel) printGenJetsWithParts(event.get(genJets_handle), event.genparticles, "GoodGenJets");
+    if (printout_this_event) printJets(*event.jets, "Matched Jets");
+    // if (printout_this_event) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets");
+    // if (printout_this_event) printGenJets(event.get(genJets_handle), "GoodGenJets");
+    if (printout_this_event) printGenJetsWithParts(event.get(genJets_handle), event.genparticles, "GoodGenJets");
 
     // Apply tracking SFs, but only after JECs, etc applied
     // - we want to use the original jet pT
@@ -780,7 +782,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Apply Jet PF ID since the jet constituents changes
     // jet_pf_id->process(event);
 
-    if (PRINTOUT || printout_event_sel) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets after tracking SF");
+    if (printout_this_event) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets after tracking SF");
 
     // Do AFTER all things that could affect number of jets e.g. track SF, IDs
     bool hasRecoJets = njet_min_sel->passes(event) && passCommonRecoSetup; // commonReco bit here as common for all reco parts
