@@ -95,6 +95,7 @@ namespace Cuts {
   const float mZ_window = 20.;
   const float dphi_jet_z_min = 2.;
   const float z_pt_min = 30.;
+  const float z_asym_max = 0.3;
 
   // Dijet selection criteria
   const float dijet_dphi_min = 2.;

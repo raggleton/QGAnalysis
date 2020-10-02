@@ -159,7 +159,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
 
         float second_jet_frac_max_zpj = 1000.3;
         float z_jet_asym_max = 100.4;
-        zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, Cuts::reco_jet_pt_min, Cuts::jet_y_max, Cuts::reco_muon_pt_min, Cuts::reco_muon_pt_min, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max, "ZPlusJetsSel"));
+        zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLabel, Cuts::reco_jet_pt_min, Cuts::jet_y_max, Cuts::reco_muon_pt_min, Cuts::reco_muon_pt_min, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, Cuts::z_asym_max, "ZPlusJetsSel"));
 
         // Preselection for Z+J - only 2 muons to reco Z, no other event cuts
         float dphi_jet_z_min = 0.;

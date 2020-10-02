@@ -137,7 +137,7 @@ bool ZplusJetsSelection::passes(const Event & event){
     cutflow_raw->Fill(i);
     cutflow_weighted->Fill(i, event.weight);
 
-    float asym = (jet1.pt() - z_cand.pt()) / (jet1.pt() + z_cand.pt());
+    float asym = fabs(jet1.pt() - z_cand.pt()) / (jet1.pt() + z_cand.pt());
     if (asym > z_jet_asym_max_) return false;
     i++;
     cutflow_raw->Fill(i);
@@ -275,7 +275,7 @@ bool ZplusJetsGenSelection::passes(const Event & event){
     cutflow_raw->Fill(i);
     cutflow_weighted->Fill(i, event.weight);
 
-    float asym = (jet1.pt() - z_cand.pt()) / (jet1.pt() + z_cand.pt());
+    float asym = fabs(jet1.pt() - z_cand.pt()) / (jet1.pt() + z_cand.pt());
     if (asym > z_jet_asym_max_) return false;
     i++;
     cutflow_raw->Fill(i);
