@@ -680,6 +680,23 @@ private:
 };
 
 
+/**
+ * Class to identify final-state generator muons from all genparticles
+ */
+class GenMuonSelector : public uhh2::AnalysisModule {
+public:
+  explicit GenMuonSelector(uhh2::Context & ctx,
+                           float pt_min,
+                           float eta_max,
+                           const std::string & out_genmuon_coll_name="GoodGenMuons");
+  virtual bool process(uhh2::Event & event) override;
+private:
+  float muon_pt_min_;
+  float muon_eta_max_;
+  uhh2::Event::Handle<std::vector<GenParticle>> out_genmuon_handle_;
+};
+
+
 namespace Binning {
   // For unfolding, the "coarse" binning is the binning used for the final unfolded plots
   // The "fine" binning is each of the coarse bins divided by 2, which is better for TUnfold

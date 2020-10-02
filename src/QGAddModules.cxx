@@ -1625,6 +1625,38 @@ std::vector<GenParticle> GenJetSelector::get_jet_genparticles(const GenJet & gen
   return gp;
 }
 
+
+GenMuonSelector::GenMuonSelector(uhh2::Context & ctx,
+                                 float pt_min,
+                                 float eta_max,
+                                 const std::string & output_genmuon_coll_name):
+  muon_pt_min_(pt_min),
+  muon_eta_max_(eta_max),
+  out_genmuon_handle_(ctx.get_handle<std::vector<GenParticle>>(output_genmuon_coll_name))
+{}
+
+bool GenMuonSelector::process(uhh2::Event & event) {
+  std::vector<GenParticle> muons;
+  // Do in reverse order to pick up most evolved muons first
+  for (auto itr = event.genparticles->rbegin(); itr != event.genparticles->rend(); ++itr){
+    // We check to see if we already have a very similar, but not exact, muon
+    // since the MC "evolves" the particle and slightly changes pt/eta/phi
+    // Status check may not be reliable for e.g. herwig
+    bool alreadyFound = std::any_of(muons.begin(), muons.end(), [&itr] (const GenParticle & mtr) { return deltaR(*itr, mtr) < 0.05 && itr->charge() == mtr.charge(); });
+    if ((abs(itr->pdgId()) == PDGID::MUON)
+        && (itr->status() == 1)
+        && (itr->pt() > muon_pt_min_)
+        && (fabs(itr->eta()) < muon_eta_max_)
+        && !alreadyFound) {
+      muons.push_back(*itr);
+    }
+  }
+  sort_by_pt(muons);
+  event.set(out_genmuon_handle_, muons);
+  return true;
+}
+
+
 std::vector<double> Binning::calculate_fine_binning(const std::vector<double> & coarse_bin_edges)
 {
   std::vector<double> fine_bin_edges;

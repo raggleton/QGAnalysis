@@ -55,8 +55,6 @@ public:
 
     explicit QGAnalysisMCModule(Context & ctx);
     virtual bool process(Event & event) override;
-    std::vector<GenJet> getGenJets(std::vector<GenJet> * jets, std::vector<GenParticle> * genparticles, float pt_min=5., float y_max=1.5, float lepton_overlap_dr=0.2);
-    std::vector<GenParticle> getGenMuons(std::vector<GenParticle> * genparticles, float pt_min=5., float eta_max=2.5);
     std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJet> * genjets, float drMax=0.8, bool uniqueMatch=true);
     virtual void endInputData() override;
     MC::Name matchDatasetName(const std::string & name);
@@ -67,6 +65,7 @@ private:
     std::unique_ptr<GeneralEventSetup> common_setup;
     std::unique_ptr<RecoJetSetup> recojet_setup;
     std::unique_ptr<GenJetSelector> genJet_selector;
+    std::unique_ptr<GenMuonSelector> genMuon_selector;
     std::unique_ptr<MCReweighting> mc_reweight;
     std::unique_ptr<TrackingEfficiency> tracking_eff;
     std::unique_ptr<JetCleaner> jet_pf_id;
@@ -80,7 +79,7 @@ private:
     std::unique_ptr<JetMatcher> jetMatcherPtOrdered, jetMatcherForward, jetMatcherCentral;
 
     Event::Handle<std::vector<GenJet>> genjets_handle;
-    Event::Handle<std::vector<GenParticle>> genmuons_handle;
+    Event::Handle<std::vector<GenParticle>> genMuons_handle;
     Event::Handle<std::vector<Jet>> dijet_forward_handle, dijet_central_handle;
     Event::Handle<std::vector<GenJet>> dijet_gen_forward_handle, dijet_gen_central_handle;
 
@@ -225,9 +224,11 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // Setup Gen objects
     std::string genjet_handle_name = "GoodGenJets";
     genJet_selector.reset(new GenJetSelector(ctx, Cuts::gen_jet_pt_min, largeY, jetRadius, "genjets", genjet_handle_name, "genparticles")); // set y large here, do y selection as part of dijet selection
-    std::string genmuon_handle_name = "GoodGenMuons";
     genjets_handle = ctx.get_handle< std::vector<GenJet> > (genjet_handle_name);
-    genmuons_handle = ctx.get_handle< std::vector<GenParticle> > (genmuon_handle_name);
+
+    std::string genmuon_handle_name = "GoodGenMuons";
+    genMuon_selector.reset(new GenMuonSelector(ctx, Cuts::gen_muon_pt_min, Cuts::muon_eta_max, genmuon_handle_name));
+    genMuons_handle = ctx.get_handle< std::vector<GenParticle> > (genmuon_handle_name);
 
     mc_reweight.reset(new MCReweighting(ctx, genjet_handle_name, genmuon_handle_name));
 
@@ -717,9 +718,8 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // Get Gen muons
     // -------------------------------------------------------------------------
-    std::vector<GenParticle> goodGenMuons = getGenMuons(event.genparticles, Cuts::gen_muon_pt_min, Cuts::muon_eta_max);
-    if (PRINTOUT || printout_event_sel) printGenParticles(goodGenMuons, "GenMuons", Color::FG_CYAN);
-    event.set(genmuons_handle, std::move(goodGenMuons));
+    genMuon_selector->process(event);
+    if (PRINTOUT || printout_event_sel) printGenParticles(event.get(genMuons_handle), "GenMuons", Color::FG_CYAN);
 
     // Get good GenJets, store in event
     // -------------------------------------------------------------------------
@@ -1173,27 +1173,6 @@ void QGAnalysisMCModule::endInputData(){
     cout << " # dijet && z+j reco: " << nOverlapEvents << endl;
 }
 
-
-
-/**
- * Select gen muons from all genparticles, that have some minimum pt and maximum eta
- */
-std::vector<GenParticle> QGAnalysisMCModule::getGenMuons(std::vector<GenParticle> * genparticles, float pt_min, float eta_max) {
-    std::vector<GenParticle> muons;
-    // Do in reverse order to pick up most evolved muons first
-    for (auto itr = genparticles->rbegin(); itr != genparticles->rend(); ++itr){
-        // We check to see if we already have a very similar, but not exact, muon
-        // since the MC "evolves" the particle and slightly changes pt/eta/phi
-        // status check may not be reliable for e.g. herwig
-        bool alreadyFound = std::any_of(muons.begin(), muons.end(), [&itr] (const GenParticle & mtr) { return deltaR(*itr, mtr) < 0.05 && itr->charge() == mtr.charge(); });
-        if ((abs(itr->pdgId()) == PDGID::MUON) && (itr->status() == 1) && (itr->pt() > pt_min) && (fabs(itr->eta()) < eta_max) && !alreadyFound) {
-        // if ((abs(itr->pdgId()) == PDGID::MUON) && (itr->pt() > pt_min) && (fabs(itr->eta()) < eta_max)) {
-            muons.push_back(*itr);
-        }
-    }
-    sort_by_pt(muons);
-    return muons;
-}
 
 /**
  * Select reco jets that have a matching GenJet within some DR
