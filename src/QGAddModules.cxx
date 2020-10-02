@@ -1596,11 +1596,18 @@ bool GenJetSelector::process(uhh2::Event & event) {
     // i.e. look for overlapping ones, and check their pT fraction
     bool leptonOverlap = false;
     for (const auto & gp : genparticles) {
-      bool isLepton = ((abs(gp.pdgId()) == PDGID::MUON) || (abs(gp.pdgId()) == PDGID::ELECTRON) || (abs(gp.pdgId()) == PDGID::TAU));
+      bool isLepton = (gp.status() == 1 && ((abs(gp.pdgId()) == PDGID::MUON) || (abs(gp.pdgId()) == PDGID::ELECTRON) || (abs(gp.pdgId()) == PDGID::TAU)));
       if (!isLepton) continue;
       bool thisLeptonOverlap = isLepton && (deltaRUsingY(gp.v4(), jet.v4()) < lepton_overlap_dr_) && ((gp.pt() / jet.pt()) > 0.5);
-      leptonOverlap = leptonOverlap || thisLeptonOverlap;
+      leptonOverlap = thisLeptonOverlap;
+      // if (leptonOverlap) {
+      //   cout << "Lepton overlap: jet: " << jet.pt() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
+      //   cout << "Lepton overlap: lepton: " << gp.pt() << " : " << gp.Rapidity() << " : " << gp.phi() << " : " << gp.pdgId() << " : " << gp.status() << endl;
+      // }
+      if (leptonOverlap) break;
     }
+    if (leptonOverlap) continue;
+
     // check constituents
     // occasionally get one with 0 pt so skip those
     // Get constituents
