@@ -643,31 +643,6 @@ bool QGAnalysisMCModule::process(Event & event) {
     if (printout_this_event) cout << Color::BG_RED << "-- Event: " << event.event << " : " << event.luminosityBlock << " : " << event.run << Color::BG_DEFAULT << endl;
     // cout << "-- Event: " << event.event << endl;
 
-    // Redo AK8 genjet clustering
-    // Do before any ngenjet cuts
-    // This is so we can get all gen jets, since the ntuple only had pt > 170
-    // -------------------------------------------------------------------------
-    if (jetCone == "AK8") {
-        // for (const auto & itr : *(event.genjets)) {
-        //     cout << "Original gj: " << itr.pt() << " : " << itr.Rapidity() << " : " << itr.phi() << " : " << itr.genparticles_indices().size() << endl;
-        //     for (const auto & citr : itr.genparticles_indices()) {
-        //         auto constit = event.genparticles->at(citr);
-        //         cout << "    constit: " << constit.pt() << " : " << constit.Rapidity() << " : " << constit.phi() << " : " << constit.pdgId() << " : " << constit.status() << " : " << constit.daughter1() << " : " << constit.daughter2() << endl;
-        //     }
-        // }
-        // genjet_cluster->process(event);
-        // std::vector<GenJet> newGenJets = event.get(new_genjets_handle);
-        // std::swap(*event.genjets, newGenJets);
-        // for (const auto & itr : *(event.genjets)) {
-        //     cout << "New gj: " << itr.pt() << " : " << itr.Rapidity() << " : " << itr.phi() << " : " << itr.genparticles_indices().size() << endl;
-        //     for (const auto & citr : itr.genparticles_indices()) {
-        //         auto constit = event.genparticles->at(citr);
-        //         cout << "    constit: " << constit.pt() << " : " << constit.Rapidity() << " : " << constit.phi() << " : " << constit.pdgId() << " : " << constit.status() << " : " << constit.daughter1() << " : " << constit.daughter2() << endl;
-        //     }
-        // }
-
-    }
-
     if (!(njet_min_sel->passes(event) || ngenjet_min_sel->passes(event))) return false;
 
     // if (printout_this_event) printGenParticles(*event.genparticles);
