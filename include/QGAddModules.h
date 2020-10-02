@@ -659,6 +659,8 @@ private:
 
 /**
  * Class to do cuts on GenJets, and other selection criteria
+ *
+ * Can optionally veto jets that overlap with a gen lepton (taken from genparticles_coll_name)
  */
 class GenJetSelector : public uhh2::AnalysisModule {
 public:
@@ -666,8 +668,8 @@ public:
                           float pt_min,
                           float y_max,
                           float lepton_overlap_dr,
-                          const std::string & genjet_coll_name="genjets",
-                          const std::string & out_genjet_coll_name="GoodGenJets",
+                          const std::string & genjet_coll_name="genjets", // input collection to filter
+                          const std::string & out_genjet_coll_name="GoodGenJets", // output collection name
                           const std::string & genparticles_coll_name="genparticles");
   virtual bool process(uhh2::Event & event) override;
   std::vector<GenParticle> get_jet_genparticles(const GenJet & genjet, uhh2::Event & event);

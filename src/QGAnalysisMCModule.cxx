@@ -60,8 +60,6 @@ public:
     MC::Name matchDatasetName(const std::string & name);
 
 private:
-    std::unique_ptr<GenJetClusterer> genjet_cluster; // to cluster genjets - needed for AK8 since MiniAOD starts at 150
-    Event::Handle<std::vector<GenJet>> new_genjets_handle;
     std::unique_ptr<GeneralEventSetup> common_setup;
     std::unique_ptr<RecoJetSetup> recojet_setup;
     std::unique_ptr<GenJetSelector> genJet_selector;
@@ -78,7 +76,7 @@ private:
     // For doing reco/gen jet matching e.g. after forward/central eta split
     std::unique_ptr<JetMatcher> jetMatcherPtOrdered, jetMatcherForward, jetMatcherCentral;
 
-    Event::Handle<std::vector<GenJet>> genjets_handle;
+    Event::Handle<std::vector<GenJet>> genJets_handle;
     Event::Handle<std::vector<GenParticle>> genMuons_handle;
     Event::Handle<std::vector<Jet>> dijet_forward_handle, dijet_central_handle;
     Event::Handle<std::vector<GenJet>> dijet_gen_forward_handle, dijet_gen_central_handle;
@@ -203,12 +201,6 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     cout << "jetRadius==0.8: " << (bool)(jetRadius == 0.8) << endl;
     cout << "useStatus23Flavour: " << useStatus23Flavour << endl;
 
-    if (jetCone == "AK8") {
-        // FIXME add cut nonu, final state
-        string new_genjet_name = "newgenjets";
-        genjet_cluster.reset(new GenJetClusterer(ctx, new_genjet_name, 0.8, "genparticles"));
-        new_genjets_handle = ctx.get_handle< std::vector<GenJet> > (new_genjet_name);
-    }
 
     // FIXME: get everything from ctx not extra args
     common_setup.reset(new GeneralEventSetup(ctx));
@@ -224,7 +216,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // Setup Gen objects
     std::string genjet_handle_name = "GoodGenJets";
     genJet_selector.reset(new GenJetSelector(ctx, Cuts::gen_jet_pt_min, largeY, jetRadius, "genjets", genjet_handle_name, "genparticles")); // set y large here, do y selection as part of dijet selection
-    genjets_handle = ctx.get_handle< std::vector<GenJet> > (genjet_handle_name);
+    genJets_handle = ctx.get_handle< std::vector<GenJet> > (genjet_handle_name);
 
     std::string genmuon_handle_name = "GoodGenMuons";
     genMuon_selector.reset(new GenMuonSelector(ctx, Cuts::gen_muon_pt_min, Cuts::muon_eta_max, genmuon_handle_name));
@@ -264,7 +256,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     int minNJets = isZPlusJets ? NJETS_ZPJ : NJETS_DIJET;
     njet_min_sel.reset(new NJetSelection(minNJets));
     ngenjet_min_sel.reset(new NGenJetSelection(minNJets));
-    ngenjet_good_sel.reset(new NGenJetSelection(minNJets, -1, boost::none, genjets_handle));
+    ngenjet_good_sel.reset(new NGenJetSelection(minNJets, -1, boost::none, genJets_handle));
 
     // Lambda calculators
     bool doPuppi = (pu_removal == "PUPPI");
@@ -693,12 +685,6 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // Gen-level cut (Herwig samples)
     // -------------------------------------------------------------------------
-    float qScale = event.genInfo->qScale();
-    // if ((qScaleMax>0) || (qScaleMin>0)) {
-    //     if ((qScaleMax > 0) && (qScale > qScaleMax)) return false;
-    //     if ((qScaleMin > 0) && (qScale < qScaleMin)) return false;
-    // }
-
     float partonKt = calcJetKt(*event.genparticles);
     if ((partonKtMax>0) || (partonKtMin>0)) {
         if ((partonKtMax > 0) && (partonKt > partonKtMax)) return false;
@@ -741,9 +727,10 @@ bool QGAnalysisMCModule::process(Event & event) {
     // -------------------------------------------------------------------------
     // These cuts are MC-specific, after much tuning
     float reco_jet_pt = event.jets->size() > 0 ? event.jets->at(0).pt() : 0;
-    float gen_jet_pt = event.get(genjets_handle).size() > 0 ? event.get(genjets_handle).at(0).pt() : 0;
+    float gen_jet_pt = event.get(genJets_handle).size() > 0 ? event.get(genJets_handle).at(0).pt() : 0;
 
     float PU_pThat = event.genInfo->PU_pT_hat_max();
+    // float qScale = event.genInfo->qScale();
 
     if (dataset == MC::MGPYTHIA_QCD) {
         if (genHT > 0 && (PU_pThat / genHT) > 1) return false;
@@ -783,8 +770,8 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     if (PRINTOUT || printout_event_sel) printJets(*event.jets, "Matched Jets");
     // if (PRINTOUT || printout_event_sel) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets");
-    // if (PRINTOUT || printout_event_sel) printGenJets(event.get(genjets_handle), "GoodGenJets");
-    if (PRINTOUT || printout_event_sel) printGenJetsWithParts(event.get(genjets_handle), event.genparticles, "GoodGenJets");
+    // if (PRINTOUT || printout_event_sel) printGenJets(event.get(genJets_handle), "GoodGenJets");
+    if (PRINTOUT || printout_event_sel) printGenJetsWithParts(event.get(genJets_handle), event.genparticles, "GoodGenJets");
 
     // Apply tracking SFs, but only after JECs, etc applied
     // - we want to use the original jet pT
@@ -817,7 +804,7 @@ bool QGAnalysisMCModule::process(Event & event) {
         bool found_reco_z = zFinder->process(event);
 
         if (pass_zpj_gen) {
-            event.set(pt_binning_gen_handle, event.get(genjets_handle)[0].pt());
+            event.set(pt_binning_gen_handle, event.get(genJets_handle)[0].pt());
             zplusjets_sel_passGen->passes(event); // just to plot cutflow, need the if since it uses handle internally
             if (DO_KINEMATIC_HISTS) zplusjets_gen_hists->fill(event);
         }
@@ -926,7 +913,7 @@ bool QGAnalysisMCModule::process(Event & event) {
 
         if (hasGenJets) {
             // Save forward/central genjets to own handles
-            std::vector<GenJet> leadingGenJets(event.get(genjets_handle).begin(), event.get(genjets_handle).begin()+2);
+            std::vector<GenJet> leadingGenJets(event.get(genJets_handle).begin(), event.get(genJets_handle).begin()+2);
             if (leadingGenJets.size() != 2) {
                 throw std::runtime_error("Slicing genjets gone wrong!");
             }
