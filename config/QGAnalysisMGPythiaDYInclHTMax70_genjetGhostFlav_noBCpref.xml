@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE JobConfiguration PUBLIC "" "JobConfig.dtd" [
+
+    <!ENTITY NEVT "-1">
+
+    <!-- Output directories -->
+    <!ENTITY ODIR-MG-PYTHIA "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/MGPythia">
+
+    <!-- Full datasets -->
+    <!ENTITY MG-PYTHIA-DYJetsToLL_INCLext1 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_M-50_P8M1_Summer16v2_ext1_v2_23_Sep_20_NoTopJet_AllGP_genjetGhostFlavour_noBCpref.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_INCLext2 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_M-50_P8M1_Summer16v2_ext2_v1_23_Sep_20_NoTopJet_AllGP_genjetGhostFlavour_noBCpref.xml">
+
+    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/commonMC.xml">
+
+    <!-- Jet config snippets -->
+    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
+    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
+    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
+    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
+]>
+
+
+<!-- MUST run SFrameBatch inside QGAnalyis/config! -->
+
+<!--
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="60" />
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_fixLambda_newBinning2_genjetGhostFlav_noBCpref"/>
+-->
+
+
+<!-- OutputLevel controls which messages are printed; set to VERBOSE or DEBUG for more verbosity, to WARNING or ERROR for less -->
+<JobConfiguration JobName="ExampleCycleJob" OutputLevel="INFO">
+    <Library Name="libSUHH2QGAnalysis"/>
+    <Package Name="SUHH2QGAnalysis.par" />
+
+   <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-MG-PYTHIA;/" PostFix="" TargetLumi="35918" >
+
+        <InputData Lumi="28949.75131" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-0to70_2016v2" Cacheable="False">
+        &MG-PYTHIA-DYJetsToLL_INCLext1;
+        &MG-PYTHIA-DYJetsToLL_INCLext2;
+        <InputTree Name="AnalysisTree"/>
+        </InputData>
+
+        <!-- TEST FILES -->
+
+        <!-- <InputData Lumi="1" NEventsMax="100000" NEventsSkip="0" Type="MC" Version="MC_Test" Cacheable="False"> -->
+        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/QCD_HT50to100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/crab_QCD_HT50to100_mg-pythia_10_Feb_18_newRecoJetFlav_fixPuppi/180210_101942/0000/Ntuple_213.root" Lumi="0.0"/> -->
+        <!-- <InputTree Name="AnalysisTree"/> -->
+        <!-- <OutputTree Name="AnalysisTree"/> -->
+        <!-- </InputData> -->
+
+        <UserConfig>
+            &COMMON;
+
+            <!-- Choose your jet configuration -->
+
+            <!-- &AK4CHS; -->
+            &AK4PUPPI;
+            <!-- &AK8CHS; -->
+            <!-- &AK8PUPPI; -->
+
+            <!-- <Item Name="z_reweight_file" Value=""/> -->
+            <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
+            <Item Name="maxHT" Value="70"/>
+            <!-- <Item Name="orignal_pdf" Value="NNPDF30_lo_as_0130"/> -->
+
+            <!--@SYST-->
+
+            <Item Name="JackknifeVariations" Value="False"/>
+
+        </UserConfig>
+    </Cycle>
+</JobConfiguration>
