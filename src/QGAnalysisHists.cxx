@@ -825,6 +825,9 @@ int QGAnalysisHists::get_jet_flavour(const Particle & obj, std::vector<GenPartic
   int pdgid = 0;
   for (const auto& gp : *genparticles) {
     if (pythiaMode && abs(gp.status()) != 23) continue;
+    int absid = abs(gp.pdgId());
+    if (absid > PDGID::GLUON) continue;
+    if (absid > PDGID::TOP_QUARK && absid != PDGID::GLUON) continue;
     float dr = deltaR(obj.v4(), gp.v4());
     if (dr < smallest_dr) {
       pdgid = gp.pdgId();
