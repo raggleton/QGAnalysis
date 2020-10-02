@@ -688,17 +688,16 @@ private:
 
 
 /**
- * Class to identify final-state generator photons from all genparticles
+ * Class to identify final-state generator objects from all genparticles
  */
-class GenPhotonSelector : public uhh2::AnalysisModule {
+class FinalStateGenObjSelector : public uhh2::AnalysisModule {
 public:
-  explicit GenPhotonSelector(uhh2::Context & ctx,
-                             float pt_min,
-                             float eta_max,
-                             const std::string & output_coll_name="GoodGenPhotons");
+  explicit FinalStateGenObjSelector(uhh2::Context & ctx,
+                                    const GenId & genId,
+                                    const std::string & output_coll_name);
   virtual bool process(uhh2::Event & event) override;
 private:
-  float pt_min_, eta_max_;
+  GenId genId_;
   uhh2::Event::Handle<std::vector<GenParticle>> out_handle_;
 };
 
@@ -716,10 +715,6 @@ public:
 private:
   float pt_min_, eta_max_;
   uhh2::Event::Handle<std::vector<GenParticle>> out_handle_;
-  // for dressing with photons
-  // float dressing_dr_;
-  // std::unique_ptr<GenPhotonSelector> genPhoton_selector_;
-  // uhh2::Event::Handle<std::vector<GenParticle>> genPhoton_handle_;
 };
 
 
