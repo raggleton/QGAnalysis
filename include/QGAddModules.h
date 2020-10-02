@@ -104,6 +104,11 @@ namespace Cuts {
   const float gen_jet_pt_min = 15.; // looser than reco, since massively smeared
   const float gen_muon_pt_min = reco_muon_pt_min;
 
+  // const float gen_muon_dressing_dr = 0.1;
+
+  const float gen_photon_pt_min = 0;
+  const float gen_photon_eta_max = 5;
+
   // Electrons
   const float reco_electron_pt_min = 20.;
   const float electron_eta_max = 2.5;
@@ -683,6 +688,22 @@ private:
 
 
 /**
+ * Class to identify final-state generator photons from all genparticles
+ */
+class GenPhotonSelector : public uhh2::AnalysisModule {
+public:
+  explicit GenPhotonSelector(uhh2::Context & ctx,
+                             float pt_min,
+                             float eta_max,
+                             const std::string & output_coll_name="GoodGenPhotons");
+  virtual bool process(uhh2::Event & event) override;
+private:
+  float pt_min_, eta_max_;
+  uhh2::Event::Handle<std::vector<GenParticle>> out_handle_;
+};
+
+
+/**
  * Class to identify final-state generator muons from all genparticles
  */
 class GenMuonSelector : public uhh2::AnalysisModule {
@@ -690,12 +711,15 @@ public:
   explicit GenMuonSelector(uhh2::Context & ctx,
                            float pt_min,
                            float eta_max,
-                           const std::string & out_genmuon_coll_name="GoodGenMuons");
+                           const std::string & output_coll_name);
   virtual bool process(uhh2::Event & event) override;
 private:
-  float muon_pt_min_;
-  float muon_eta_max_;
-  uhh2::Event::Handle<std::vector<GenParticle>> out_genmuon_handle_;
+  float pt_min_, eta_max_;
+  uhh2::Event::Handle<std::vector<GenParticle>> out_handle_;
+  // for dressing with photons
+  // float dressing_dr_;
+  // std::unique_ptr<GenPhotonSelector> genPhoton_selector_;
+  // uhh2::Event::Handle<std::vector<GenParticle>> genPhoton_handle_;
 };
 
 

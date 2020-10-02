@@ -1626,14 +1626,53 @@ std::vector<GenParticle> GenJetSelector::get_jet_genparticles(const GenJet & gen
 }
 
 
+
+GenPhotonSelector::GenPhotonSelector(uhh2::Context & ctx,
+                                     float pt_min,
+                                     float eta_max,
+                                     const std::string & output_coll_name):
+  pt_min_(pt_min),
+  eta_max_(eta_max),
+  out_handle_(ctx.get_handle<std::vector<GenParticle>>(output_coll_name))
+{}
+
+bool GenPhotonSelector::process(uhh2::Event & event) {
+  std::vector<GenParticle> photons;
+  // Do in reverse order to pick up most evolved photons first
+  for (auto itr = event.genparticles->rbegin(); itr != event.genparticles->rend(); ++itr){
+    // We check to see if we already have a very similar, but not exact, muon
+    // since the MC "evolves" the particle and slightly changes pt/eta/phi
+    // Status check may not be reliable for e.g. herwig
+    bool alreadyFound = std::any_of(photons.begin(), photons.end(), [&itr] (const GenParticle & mtr) { return deltaR(*itr, mtr) < 0.05; });
+    if ((abs(itr->pdgId()) == PDGID::PHOTON)
+        && (itr->status() == 1)
+        && (itr->pt() > pt_min_)
+        && (fabs(itr->eta()) < eta_max_)
+        && !alreadyFound) {
+      photons.push_back(*itr);
+    }
+  }
+  sort_by_pt(photons);
+  event.set(out_handle_, photons);
+  return true;
+}
+
+
 GenMuonSelector::GenMuonSelector(uhh2::Context & ctx,
                                  float pt_min,
                                  float eta_max,
-                                 const std::string & output_genmuon_coll_name):
-  muon_pt_min_(pt_min),
-  muon_eta_max_(eta_max),
-  out_genmuon_handle_(ctx.get_handle<std::vector<GenParticle>>(output_genmuon_coll_name))
-{}
+                                 const std::string & output_coll_name):
+  pt_min_(pt_min),
+  eta_max_(eta_max),
+  out_handle_(ctx.get_handle<std::vector<GenParticle>>(output_coll_name))
+{
+  // if (dressing_dr_ > 0 ) {
+  //   const std::string genPhoton_coll_name = "GoodGenPhotons";
+  //   genPhoton_selector_.reset(new GenPhotonSelector(ctx, Cuts::gen_photon_pt_min, Cuts::gen_photon_eta_max, genPhoton_coll_name));
+  //   genPhoton_handle_ = ctx.get_handle<std::vector<GenParticle>>(genPhoton_coll_name);
+  // }
+
+}
 
 bool GenMuonSelector::process(uhh2::Event & event) {
   std::vector<GenParticle> muons;
@@ -1645,14 +1684,14 @@ bool GenMuonSelector::process(uhh2::Event & event) {
     bool alreadyFound = std::any_of(muons.begin(), muons.end(), [&itr] (const GenParticle & mtr) { return deltaR(*itr, mtr) < 0.05 && itr->charge() == mtr.charge(); });
     if ((abs(itr->pdgId()) == PDGID::MUON)
         && (itr->status() == 1)
-        && (itr->pt() > muon_pt_min_)
-        && (fabs(itr->eta()) < muon_eta_max_)
+        && (itr->pt() > pt_min_)
+        && (fabs(itr->eta()) < eta_max_)
         && !alreadyFound) {
       muons.push_back(*itr);
     }
   }
   sort_by_pt(muons);
-  event.set(out_genmuon_handle_, muons);
+  event.set(out_handle_, muons);
   return true;
 }
 
