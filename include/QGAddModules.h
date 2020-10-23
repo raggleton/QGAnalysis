@@ -831,7 +831,8 @@ namespace Binning {
     // 0.0, 11.0, 18.0, 25.0, 150.0 // target 0.6, central
     // 0.0, 10, 15, 20, 27, 50, 75, 100, 150 // target 0.5, cen+fwd
     // 0.0, 10, 15, 20, 30, 50, 75, 100, 150 // target 0.5, cen+fwd, AK axis. 30, 50, 75, 100 added by hand otherwise no granulairty
-    0, 10, 15, 20, 30, 50, 75, 100, 150 // based on target 0.5, cen+fwd, but rounded to nearest multiple of 5. 30, 50, 75, 100 added by hand otherwise no granulairty, >= 2 constits
+    // 0, 10, 15, 20, 30, 50, 75, 100, 150 // based on target 0.5, cen+fwd, but rounded to nearest multiple of 5. 30, 50, 75, 100 added by hand otherwise no granulairty, >= 2 constits
+    -0.5, 9.5, 15.5, 21.5, 29.5, 39.5, 59.5, 99.5 // based on target 0.5, cen+fwd, ensuring even interval between bins. values above 22 added by hand otherwise no granularity, >= 2 constits. upper limit set to 100 manually. subtract 0.5 as mostly integers
   };
   const int nbins_puppiMultiplicity_gen(puppiMultiplicity_bin_edges_gen.size() - 1);
 
@@ -845,7 +846,8 @@ namespace Binning {
     // 0.0, 4.0, 6.0, 9.0, 12.0, 16.0, 23.0, 150.0 // target 0.6, forward
     // 0.0, 2.0, 3.0, 4.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0, 18.0, 21.0, 25.0, 32.0, 91, 150.0 // target 0.5, cen+fwd, 91 added as halfway between 32 and 150
    // 0.0, 3.0, 5.0, 8.0, 11.0, 14.0, 18.0, 22.0, 26.0, 31.0, 37.0, 45.0, 150.0 // target 0.5, cen+fwd groomed, AK axis, added 30, 50, 75, 100 manually
-   0, 3.0, 5.0, 8.0, 11.0, 14.0, 18.0, 22.0, 26.0, 31.0, 37.0, 45.0, 150.0 // target 0.5, cen+fwd groomed, highPt, AK axis, pt > 1, >=2 constits
+   // 0, 3.0, 5.0, 8.0, 11.0, 14.0, 18.0, 22.0, 26.0, 31.0, 37.0, 45.0, 150.0 // target 0.5, cen+fwd groomed, highPt, AK axis, pt > 1, >=2 constits
+   -0.5, 3.5, 5.5, 9.5, 13.5, 17.5, 21.5, 25.5, 31.5, 37.5, 45.5, 59.5, 99.5 // target 0.5, cen+fwd groomed, highPt, AK axis, pt > 1, >=2 constits, ensuring even interval between bins. 60 added manually. upper limit set to 100 manually
   };
   const int nbins_puppiMultiplicity_charged_gen(puppiMultiplicity_charged_bin_edges_gen.size() - 1);
 
