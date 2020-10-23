@@ -80,8 +80,14 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
     nbins_pt_gen_underflow = Binning::nbins_pt_zpj_gen_underflow;
   }
 
-  // remove the first 2 bins (15, 22) since we have no entries there in reco
-  std::vector<double> pt_bin_edges_reco_underflow_unfold(pt_bin_edges_reco_underflow.begin()+2, pt_bin_edges_reco_underflow.end());
+  // remove the bin which fall below reco cut
+  auto pt_start = std::find(pt_bin_edges_reco_underflow.begin(), pt_bin_edges_reco_underflow.end(), Cuts::reco_jet_pt_min);
+  std::vector<double> pt_bin_edges_reco_underflow_unfold(pt_start, pt_bin_edges_reco_underflow.end());
+  cout << "Pt reco bin edges underflow: ";
+  for (auto x : pt_bin_edges_reco_underflow_unfold) {
+    cout << x << " ";
+  }
+  cout << endl;
   nbins_pt_reco_underflow = pt_bin_edges_reco_underflow_unfold.size()-1;
 
   // Remember to update
@@ -227,6 +233,27 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   // for fakes, gen binning
   h_tu_reco_LHA_fake_gen_binning = copy_book_th1d(h_tu_gen_LHA, "hist_LHA_reco_fake_gen_binning");
 
+  LHA_hist_filler.reset(new LambdaHistsFiller(Cuts::lha_pf_args,
+                                              detector_tu_binning_LHA,
+                                              Cuts::lha_gen_args,
+                                              generator_tu_binning_LHA));
+  LHA_hist_filler->assignRecoHists(h_tu_reco_LHA,
+                                   h_tu_reco_LHA_split,
+                                   h_tu_reco_LHA_gen_binning,
+                                   h_tu_reco_LHA_gen_binning_split,
+                                   h_tu_reco_LHA_fake,
+                                   h_tu_reco_LHA_fake_split,
+                                   h_tu_reco_LHA_fake_gen_binning,
+                                   &h_tu_reco_LHA_jackknife_variations,
+                                   &h_tu_reco_LHA_PDF_variations);
+  LHA_hist_filler->assignGenHists(h_tu_gen_LHA,
+                                  h_tu_gen_LHA_split,
+                                  &h_tu_gen_LHA_jackknife_variations,
+                                  &h_tu_gen_LHA_PDF_variations);
+  LHA_hist_filler->assignResponseHists(h_tu_response_LHA,
+                                       h_tu_response_LHA_split,
+                                       &h_tu_response_LHA_jackknife_variations,
+                                       &h_tu_response_LHA_PDF_variations);
 
   // Charged LHA
   // -------------------------------------
@@ -284,6 +311,29 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_reco_LHA_charged_gen_binning = copy_book_th1d(h_tu_gen_LHA_charged, "hist_LHA_charged_reco_gen_binning");
   h_tu_reco_LHA_charged_gen_binning_split = copy_book_th1d(h_tu_gen_LHA_charged, "hist_LHA_charged_reco_gen_binning_split");
   h_tu_reco_LHA_charged_fake_gen_binning = copy_book_th1d(h_tu_gen_LHA_charged, "hist_LHA_charged_reco_fake_gen_binning");
+
+  LHA_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::lha_pf_args,
+                                                      detector_tu_binning_LHA_charged,
+                                                      Cuts::lha_gen_args,
+                                                      generator_tu_binning_LHA_charged));
+  LHA_charged_hist_filler->assignRecoHists(h_tu_reco_LHA_charged,
+                                           h_tu_reco_LHA_charged_split,
+                                           h_tu_reco_LHA_charged_gen_binning,
+                                           h_tu_reco_LHA_charged_gen_binning_split,
+                                           h_tu_reco_LHA_charged_fake,
+                                           h_tu_reco_LHA_charged_fake_split,
+                                           h_tu_reco_LHA_charged_fake_gen_binning,
+                                           &h_tu_reco_LHA_charged_jackknife_variations,
+                                           &h_tu_reco_LHA_charged_PDF_variations);
+  LHA_charged_hist_filler->assignResponseHists(h_tu_response_LHA_charged,
+                                               h_tu_response_LHA_charged_split,
+                                               &h_tu_response_LHA_charged_jackknife_variations,
+                                               &h_tu_response_LHA_charged_PDF_variations);
+
+  LHA_charged_hist_filler->assignGenHists(h_tu_gen_LHA_charged,
+                                          h_tu_gen_LHA_charged_split,
+                                          &h_tu_gen_LHA_charged_jackknife_variations,
+                                          &h_tu_gen_LHA_charged_PDF_variations);
 
   // puppi multiplicity
   // -------------------------------------
@@ -343,6 +393,28 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
 
   h_tu_reco_puppiMultiplicity_fake_gen_binning = copy_book_th1d(h_tu_gen_puppiMultiplicity, "hist_puppiMultiplicity_reco_fake_gen_binning");
 
+  puppiMultiplicity_hist_filler.reset(new LambdaHistsFiller(Cuts::mult_pf_args,
+                                                            detector_tu_binning_puppiMultiplicity,
+                                                            Cuts::mult_gen_args,
+                                                            generator_tu_binning_puppiMultiplicity));
+  puppiMultiplicity_hist_filler->assignRecoHists(h_tu_reco_puppiMultiplicity,
+                                                 h_tu_reco_puppiMultiplicity_split,
+                                                 h_tu_reco_puppiMultiplicity_gen_binning,
+                                                 h_tu_reco_puppiMultiplicity_gen_binning_split,
+                                                 h_tu_reco_puppiMultiplicity_fake,
+                                                 h_tu_reco_puppiMultiplicity_fake_split,
+                                                 h_tu_reco_puppiMultiplicity_fake_gen_binning,
+                                                 &h_tu_reco_puppiMultiplicity_jackknife_variations,
+                                                 &h_tu_reco_puppiMultiplicity_PDF_variations);
+  puppiMultiplicity_hist_filler->assignGenHists(h_tu_gen_puppiMultiplicity,
+                                                h_tu_gen_puppiMultiplicity_split,
+                                                &h_tu_gen_puppiMultiplicity_jackknife_variations,
+                                                &h_tu_gen_puppiMultiplicity_PDF_variations);
+  puppiMultiplicity_hist_filler->assignResponseHists(h_tu_response_puppiMultiplicity,
+                                                     h_tu_response_puppiMultiplicity_split,
+                                                     &h_tu_response_puppiMultiplicity_jackknife_variations,
+                                                     &h_tu_response_puppiMultiplicity_PDF_variations);
+
   // Charged PUPPI multiplicity
   // -------------------------------------
   detector_tu_binning_puppiMultiplicity_charged = new TUnfoldBinning("detectorall");
@@ -400,6 +472,28 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_reco_puppiMultiplicity_charged_gen_binning_split = copy_book_th1d(h_tu_gen_puppiMultiplicity_charged, "hist_puppiMultiplicity_charged_reco_gen_binning_split");
 
   h_tu_reco_puppiMultiplicity_charged_fake_gen_binning = copy_book_th1d(h_tu_gen_puppiMultiplicity_charged, "hist_puppiMultiplicity_charged_reco_fake_gen_binning");
+
+  puppiMultiplicity_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::mult_pf_args,
+                                                                    detector_tu_binning_puppiMultiplicity_charged,
+                                                                    Cuts::mult_gen_args,
+                                                                    generator_tu_binning_puppiMultiplicity_charged));
+  puppiMultiplicity_charged_hist_filler->assignRecoHists(h_tu_reco_puppiMultiplicity_charged,
+                                                         h_tu_reco_puppiMultiplicity_charged_split,
+                                                         h_tu_reco_puppiMultiplicity_charged_gen_binning,
+                                                         h_tu_reco_puppiMultiplicity_charged_gen_binning_split,
+                                                         h_tu_reco_puppiMultiplicity_charged_fake,
+                                                         h_tu_reco_puppiMultiplicity_charged_fake_split,
+                                                         h_tu_reco_puppiMultiplicity_charged_fake_gen_binning,
+                                                         &h_tu_reco_puppiMultiplicity_charged_jackknife_variations,
+                                                         &h_tu_reco_puppiMultiplicity_charged_PDF_variations);
+  puppiMultiplicity_charged_hist_filler->assignGenHists(h_tu_gen_puppiMultiplicity_charged,
+                                                        h_tu_gen_puppiMultiplicity_charged_split,
+                                                        &h_tu_gen_puppiMultiplicity_charged_jackknife_variations,
+                                                        &h_tu_gen_puppiMultiplicity_charged_PDF_variations);
+  puppiMultiplicity_charged_hist_filler->assignResponseHists(h_tu_response_puppiMultiplicity_charged,
+                                                             h_tu_response_puppiMultiplicity_charged_split,
+                                                             &h_tu_response_puppiMultiplicity_charged_jackknife_variations,
+                                                             &h_tu_response_puppiMultiplicity_charged_PDF_variations);
 
   // pTD
   // -------------------------------------
@@ -459,6 +553,28 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
 
   h_tu_reco_pTD_fake_gen_binning = copy_book_th1d(h_tu_gen_pTD, "hist_pTD_reco_fake_gen_binning");
 
+  pTD_hist_filler.reset(new LambdaHistsFiller(Cuts::pTD_pf_args,
+                                              detector_tu_binning_pTD,
+                                              Cuts::pTD_gen_args,
+                                              generator_tu_binning_pTD));
+  pTD_hist_filler->assignRecoHists(h_tu_reco_pTD,
+                                  h_tu_reco_pTD_split,
+                                  h_tu_reco_pTD_gen_binning,
+                                  h_tu_reco_pTD_gen_binning_split,
+                                  h_tu_reco_pTD_fake,
+                                  h_tu_reco_pTD_fake_split,
+                                  h_tu_reco_pTD_fake_gen_binning,
+                                  &h_tu_reco_pTD_jackknife_variations,
+                                  &h_tu_reco_pTD_PDF_variations);
+  pTD_hist_filler->assignGenHists(h_tu_gen_pTD,
+                                  h_tu_gen_pTD_split,
+                                  &h_tu_gen_pTD_jackknife_variations,
+                                  &h_tu_gen_pTD_PDF_variations);
+  pTD_hist_filler->assignResponseHists(h_tu_response_pTD,
+                                       h_tu_response_pTD_split,
+                                       &h_tu_response_pTD_jackknife_variations,
+                                       &h_tu_response_pTD_PDF_variations);
+
   // Charged pTD
   // -------------------------------------
   detector_tu_binning_pTD_charged = new TUnfoldBinning("detectorall");
@@ -516,6 +632,28 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_reco_pTD_charged_gen_binning_split = copy_book_th1d(h_tu_gen_pTD_charged, "hist_pTD_charged_reco_gen_binning_split");
 
   h_tu_reco_pTD_charged_fake_gen_binning = copy_book_th1d(h_tu_gen_pTD_charged, "hist_pTD_charged_reco_fake_gen_binning");
+
+  pTD_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::pTD_pf_args,
+                                                      detector_tu_binning_pTD_charged,
+                                                      Cuts::pTD_gen_args,
+                                                      generator_tu_binning_pTD_charged));
+  pTD_charged_hist_filler->assignRecoHists(h_tu_reco_pTD_charged,
+                                           h_tu_reco_pTD_charged_split,
+                                           h_tu_reco_pTD_charged_gen_binning,
+                                           h_tu_reco_pTD_charged_gen_binning_split,
+                                           h_tu_reco_pTD_charged_fake,
+                                           h_tu_reco_pTD_charged_fake_split,
+                                           h_tu_reco_pTD_charged_fake_gen_binning,
+                                           &h_tu_reco_pTD_charged_jackknife_variations,
+                                           &h_tu_reco_pTD_charged_PDF_variations);
+  pTD_charged_hist_filler->assignGenHists(h_tu_gen_pTD_charged,
+                                          h_tu_gen_pTD_charged_split,
+                                          &h_tu_gen_pTD_charged_jackknife_variations,
+                                          &h_tu_gen_pTD_charged_PDF_variations);
+  pTD_charged_hist_filler->assignResponseHists(h_tu_response_pTD_charged,
+                                               h_tu_response_pTD_charged_split,
+                                               &h_tu_response_pTD_charged_jackknife_variations,
+                                               &h_tu_response_pTD_charged_PDF_variations);
 
   // thrust
   // -------------------------------------
@@ -575,6 +713,28 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
 
   h_tu_reco_thrust_fake_gen_binning = copy_book_th1d(h_tu_gen_thrust, "hist_thrust_reco_fake_gen_binning");
 
+  thrust_hist_filler.reset(new LambdaHistsFiller(Cuts::thrust_pf_args,
+                                                 detector_tu_binning_thrust,
+                                                 Cuts::thrust_gen_args,
+                                                 generator_tu_binning_thrust));
+  thrust_hist_filler->assignRecoHists(h_tu_reco_thrust,
+                                     h_tu_reco_thrust_split,
+                                     h_tu_reco_thrust_gen_binning,
+                                     h_tu_reco_thrust_gen_binning_split,
+                                     h_tu_reco_thrust_fake,
+                                     h_tu_reco_thrust_fake_split,
+                                     h_tu_reco_thrust_fake_gen_binning,
+                                     &h_tu_reco_thrust_jackknife_variations,
+                                     &h_tu_reco_thrust_PDF_variations);
+  thrust_hist_filler->assignGenHists(h_tu_gen_thrust,
+                                     h_tu_gen_thrust_split,
+                                     &h_tu_gen_thrust_jackknife_variations,
+                                     &h_tu_gen_thrust_PDF_variations);
+  thrust_hist_filler->assignResponseHists(h_tu_response_thrust,
+                                          h_tu_response_thrust_split,
+                                          &h_tu_response_thrust_jackknife_variations,
+                                          &h_tu_response_thrust_PDF_variations);
+
   // Charged thrust
   // -------------------------------------
   detector_tu_binning_thrust_charged = new TUnfoldBinning("detectorall");
@@ -632,6 +792,28 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_reco_thrust_charged_gen_binning_split = copy_book_th1d(h_tu_gen_thrust_charged, "hist_thrust_charged_reco_gen_binning_split");
 
   h_tu_reco_thrust_charged_fake_gen_binning = copy_book_th1d(h_tu_gen_thrust_charged, "hist_thrust_charged_reco_fake_gen_binning");
+
+  thrust_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::thrust_pf_args,
+                                                         detector_tu_binning_thrust_charged,
+                                                         Cuts::thrust_gen_args,
+                                                         generator_tu_binning_thrust_charged));
+  thrust_charged_hist_filler->assignRecoHists(h_tu_reco_thrust_charged,
+                                              h_tu_reco_thrust_charged_split,
+                                              h_tu_reco_thrust_charged_gen_binning,
+                                              h_tu_reco_thrust_charged_gen_binning_split,
+                                              h_tu_reco_thrust_charged_fake,
+                                              h_tu_reco_thrust_charged_fake_split,
+                                              h_tu_reco_thrust_charged_fake_gen_binning,
+                                              &h_tu_reco_thrust_charged_jackknife_variations,
+                                              &h_tu_reco_thrust_charged_PDF_variations);
+  thrust_charged_hist_filler->assignGenHists(h_tu_gen_thrust_charged,
+                                             h_tu_gen_thrust_charged_split,
+                                             &h_tu_gen_thrust_charged_jackknife_variations,
+                                             &h_tu_gen_thrust_charged_PDF_variations);
+  thrust_charged_hist_filler->assignResponseHists(h_tu_response_thrust_charged,
+                                                  h_tu_response_thrust_charged_split,
+                                                  &h_tu_response_thrust_charged_jackknife_variations,
+                                                  &h_tu_response_thrust_charged_PDF_variations);
 
   // width
   // -------------------------------------
@@ -691,6 +873,28 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
 
   h_tu_reco_width_fake_gen_binning = copy_book_th1d(h_tu_gen_width, "hist_width_reco_fake_gen_binning");
 
+  width_hist_filler.reset(new LambdaHistsFiller(Cuts::width_pf_args,
+                                                detector_tu_binning_width,
+                                                Cuts::width_gen_args,
+                                                generator_tu_binning_width));
+  width_hist_filler->assignRecoHists(h_tu_reco_width,
+                                    h_tu_reco_width_split,
+                                    h_tu_reco_width_gen_binning,
+                                    h_tu_reco_width_gen_binning_split,
+                                    h_tu_reco_width_fake,
+                                    h_tu_reco_width_fake_split,
+                                    h_tu_reco_width_fake_gen_binning,
+                                    &h_tu_reco_width_jackknife_variations,
+                                    &h_tu_reco_width_PDF_variations);
+  width_hist_filler->assignGenHists(h_tu_gen_width,
+                                    h_tu_gen_width_split,
+                                    &h_tu_gen_width_jackknife_variations,
+                                    &h_tu_gen_width_PDF_variations);
+  width_hist_filler->assignResponseHists(h_tu_response_width,
+                                         h_tu_response_width_split,
+                                         &h_tu_response_width_jackknife_variations,
+                                         &h_tu_response_width_PDF_variations);
+
   // Charged width
   // -------------------------------------
   detector_tu_binning_width_charged = new TUnfoldBinning("detectorall");
@@ -749,223 +953,6 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
 
   h_tu_reco_width_charged_fake_gen_binning = copy_book_th1d(h_tu_gen_width_charged, "hist_width_charged_reco_fake_gen_binning");
 
-  if (is_mc_) {
-    genJetsLambda_handle = ctx.get_handle< std::vector<GenJetLambdaBundle> > (gen_jetlambda_handle_name);
-    pass_gen_handle = ctx.get_handle<bool> (gen_sel_handle_name);
-  }
-
-  jetsLambda_handle = ctx.get_handle< std::vector<JetLambdaBundle> > (reco_jetlambda_handle_name);
-
-  pass_reco_handle = ctx.get_handle<bool> (reco_sel_handle_name);
-
-  // TODO: automate setting up of hists - let the LambdaHistsFiller own them?
-  LHA_hist_filler.reset(new LambdaHistsFiller(Cuts::lha_pf_args,
-                                              detector_tu_binning_LHA,
-                                              Cuts::lha_gen_args,
-                                              generator_tu_binning_LHA));
-  LHA_hist_filler->assignRecoHists(h_tu_reco_LHA,
-                                   h_tu_reco_LHA_split,
-                                   h_tu_reco_LHA_gen_binning,
-                                   h_tu_reco_LHA_gen_binning_split,
-                                   h_tu_reco_LHA_fake,
-                                   h_tu_reco_LHA_fake_split,
-                                   h_tu_reco_LHA_fake_gen_binning,
-                                   &h_tu_reco_LHA_jackknife_variations,
-                                   &h_tu_reco_LHA_PDF_variations);
-  LHA_hist_filler->assignGenHists(h_tu_gen_LHA,
-                                  h_tu_gen_LHA_split,
-                                  &h_tu_gen_LHA_jackknife_variations,
-                                  &h_tu_gen_LHA_PDF_variations);
-  LHA_hist_filler->assignResponseHists(h_tu_response_LHA,
-                                       h_tu_response_LHA_split,
-                                       &h_tu_response_LHA_jackknife_variations,
-                                       &h_tu_response_LHA_PDF_variations);
-
-  puppiMultiplicity_hist_filler.reset(new LambdaHistsFiller(Cuts::mult_pf_args,
-                                                            detector_tu_binning_puppiMultiplicity,
-                                                            Cuts::mult_gen_args,
-                                                            generator_tu_binning_puppiMultiplicity));
-  puppiMultiplicity_hist_filler->assignRecoHists(h_tu_reco_puppiMultiplicity,
-                                                 h_tu_reco_puppiMultiplicity_split,
-                                                 h_tu_reco_puppiMultiplicity_gen_binning,
-                                                 h_tu_reco_puppiMultiplicity_gen_binning_split,
-                                                 h_tu_reco_puppiMultiplicity_fake,
-                                                 h_tu_reco_puppiMultiplicity_fake_split,
-                                                 h_tu_reco_puppiMultiplicity_fake_gen_binning,
-                                                 &h_tu_reco_puppiMultiplicity_jackknife_variations,
-                                                 &h_tu_reco_puppiMultiplicity_PDF_variations);
-  puppiMultiplicity_hist_filler->assignGenHists(h_tu_gen_puppiMultiplicity,
-                                                h_tu_gen_puppiMultiplicity_split,
-                                                &h_tu_gen_puppiMultiplicity_jackknife_variations,
-                                                &h_tu_gen_puppiMultiplicity_PDF_variations);
-  puppiMultiplicity_hist_filler->assignResponseHists(h_tu_response_puppiMultiplicity,
-                                                     h_tu_response_puppiMultiplicity_split,
-                                                     &h_tu_response_puppiMultiplicity_jackknife_variations,
-                                                     &h_tu_response_puppiMultiplicity_PDF_variations);
-
-  pTD_hist_filler.reset(new LambdaHistsFiller(Cuts::pTD_pf_args,
-                                              detector_tu_binning_pTD,
-                                              Cuts::pTD_gen_args,
-                                              generator_tu_binning_pTD));
-  pTD_hist_filler->assignRecoHists(h_tu_reco_pTD,
-                                  h_tu_reco_pTD_split,
-                                  h_tu_reco_pTD_gen_binning,
-                                  h_tu_reco_pTD_gen_binning_split,
-                                  h_tu_reco_pTD_fake,
-                                  h_tu_reco_pTD_fake_split,
-                                  h_tu_reco_pTD_fake_gen_binning,
-                                  &h_tu_reco_pTD_jackknife_variations,
-                                  &h_tu_reco_pTD_PDF_variations);
-  pTD_hist_filler->assignGenHists(h_tu_gen_pTD,
-                                  h_tu_gen_pTD_split,
-                                  &h_tu_gen_pTD_jackknife_variations,
-                                  &h_tu_gen_pTD_PDF_variations);
-  pTD_hist_filler->assignResponseHists(h_tu_response_pTD,
-                                       h_tu_response_pTD_split,
-                                       &h_tu_response_pTD_jackknife_variations,
-                                       &h_tu_response_pTD_PDF_variations);
-
-  thrust_hist_filler.reset(new LambdaHistsFiller(Cuts::thrust_pf_args,
-                                                 detector_tu_binning_thrust,
-                                                 Cuts::thrust_gen_args,
-                                                 generator_tu_binning_thrust));
-  thrust_hist_filler->assignRecoHists(h_tu_reco_thrust,
-                                     h_tu_reco_thrust_split,
-                                     h_tu_reco_thrust_gen_binning,
-                                     h_tu_reco_thrust_gen_binning_split,
-                                     h_tu_reco_thrust_fake,
-                                     h_tu_reco_thrust_fake_split,
-                                     h_tu_reco_thrust_fake_gen_binning,
-                                     &h_tu_reco_thrust_jackknife_variations,
-                                     &h_tu_reco_thrust_PDF_variations);
-  thrust_hist_filler->assignGenHists(h_tu_gen_thrust,
-                                     h_tu_gen_thrust_split,
-                                     &h_tu_gen_thrust_jackknife_variations,
-                                     &h_tu_gen_thrust_PDF_variations);
-  thrust_hist_filler->assignResponseHists(h_tu_response_thrust,
-                                          h_tu_response_thrust_split,
-                                          &h_tu_response_thrust_jackknife_variations,
-                                          &h_tu_response_thrust_PDF_variations);
-
-  width_hist_filler.reset(new LambdaHistsFiller(Cuts::width_pf_args,
-                                                detector_tu_binning_width,
-                                                Cuts::width_gen_args,
-                                                generator_tu_binning_width));
-  width_hist_filler->assignRecoHists(h_tu_reco_width,
-                                    h_tu_reco_width_split,
-                                    h_tu_reco_width_gen_binning,
-                                    h_tu_reco_width_gen_binning_split,
-                                    h_tu_reco_width_fake,
-                                    h_tu_reco_width_fake_split,
-                                    h_tu_reco_width_fake_gen_binning,
-                                    &h_tu_reco_width_jackknife_variations,
-                                    &h_tu_reco_width_PDF_variations);
-  width_hist_filler->assignGenHists(h_tu_gen_width,
-                                    h_tu_gen_width_split,
-                                    &h_tu_gen_width_jackknife_variations,
-                                    &h_tu_gen_width_PDF_variations);
-  width_hist_filler->assignResponseHists(h_tu_response_width,
-                                         h_tu_response_width_split,
-                                         &h_tu_response_width_jackknife_variations,
-                                         &h_tu_response_width_PDF_variations);
-
-  chargedPlusNeutralHistFillers = {
-    LHA_hist_filler.get(), // use .get() to get raw ptr, since we don't want to own the object
-    puppiMultiplicity_hist_filler.get(),
-    pTD_hist_filler.get(),
-    thrust_hist_filler.get(),
-    width_hist_filler.get(),
-  };
-
-  LHA_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::lha_pf_args,
-                                                      detector_tu_binning_LHA_charged,
-                                                      Cuts::lha_gen_args,
-                                                      generator_tu_binning_LHA_charged));
-  LHA_charged_hist_filler->assignRecoHists(h_tu_reco_LHA_charged,
-                                           h_tu_reco_LHA_charged_split,
-                                           h_tu_reco_LHA_charged_gen_binning,
-                                           h_tu_reco_LHA_charged_gen_binning_split,
-                                           h_tu_reco_LHA_charged_fake,
-                                           h_tu_reco_LHA_charged_fake_split,
-                                           h_tu_reco_LHA_charged_fake_gen_binning,
-                                           &h_tu_reco_LHA_charged_jackknife_variations,
-                                           &h_tu_reco_LHA_charged_PDF_variations);
-  LHA_charged_hist_filler->assignResponseHists(h_tu_response_LHA_charged,
-                                               h_tu_response_LHA_charged_split,
-                                               &h_tu_response_LHA_charged_jackknife_variations,
-                                               &h_tu_response_LHA_charged_PDF_variations);
-
-  LHA_charged_hist_filler->assignGenHists(h_tu_gen_LHA_charged,
-                                          h_tu_gen_LHA_charged_split,
-                                          &h_tu_gen_LHA_charged_jackknife_variations,
-                                          &h_tu_gen_LHA_charged_PDF_variations);
-
-  puppiMultiplicity_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::mult_pf_args,
-                                                                    detector_tu_binning_puppiMultiplicity_charged,
-                                                                    Cuts::mult_gen_args,
-                                                                    generator_tu_binning_puppiMultiplicity_charged));
-  puppiMultiplicity_charged_hist_filler->assignRecoHists(h_tu_reco_puppiMultiplicity_charged,
-                                                         h_tu_reco_puppiMultiplicity_charged_split,
-                                                         h_tu_reco_puppiMultiplicity_charged_gen_binning,
-                                                         h_tu_reco_puppiMultiplicity_charged_gen_binning_split,
-                                                         h_tu_reco_puppiMultiplicity_charged_fake,
-                                                         h_tu_reco_puppiMultiplicity_charged_fake_split,
-                                                         h_tu_reco_puppiMultiplicity_charged_fake_gen_binning,
-                                                         &h_tu_reco_puppiMultiplicity_charged_jackknife_variations,
-                                                         &h_tu_reco_puppiMultiplicity_charged_PDF_variations);
-  puppiMultiplicity_charged_hist_filler->assignGenHists(h_tu_gen_puppiMultiplicity_charged,
-                                                        h_tu_gen_puppiMultiplicity_charged_split,
-                                                        &h_tu_gen_puppiMultiplicity_charged_jackknife_variations,
-                                                        &h_tu_gen_puppiMultiplicity_charged_PDF_variations);
-  puppiMultiplicity_charged_hist_filler->assignResponseHists(h_tu_response_puppiMultiplicity_charged,
-                                                             h_tu_response_puppiMultiplicity_charged_split,
-                                                             &h_tu_response_puppiMultiplicity_charged_jackknife_variations,
-                                                             &h_tu_response_puppiMultiplicity_charged_PDF_variations);
-
-  pTD_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::pTD_pf_args,
-                                                      detector_tu_binning_pTD_charged,
-                                                      Cuts::pTD_gen_args,
-                                                      generator_tu_binning_pTD_charged));
-  pTD_charged_hist_filler->assignRecoHists(h_tu_reco_pTD_charged,
-                                           h_tu_reco_pTD_charged_split,
-                                           h_tu_reco_pTD_charged_gen_binning,
-                                           h_tu_reco_pTD_charged_gen_binning_split,
-                                           h_tu_reco_pTD_charged_fake,
-                                           h_tu_reco_pTD_charged_fake_split,
-                                           h_tu_reco_pTD_charged_fake_gen_binning,
-                                           &h_tu_reco_pTD_charged_jackknife_variations,
-                                           &h_tu_reco_pTD_charged_PDF_variations);
-  pTD_charged_hist_filler->assignGenHists(h_tu_gen_pTD_charged,
-                                          h_tu_gen_pTD_charged_split,
-                                          &h_tu_gen_pTD_charged_jackknife_variations,
-                                          &h_tu_gen_pTD_charged_PDF_variations);
-  pTD_charged_hist_filler->assignResponseHists(h_tu_response_pTD_charged,
-                                               h_tu_response_pTD_charged_split,
-                                               &h_tu_response_pTD_charged_jackknife_variations,
-                                               &h_tu_response_pTD_charged_PDF_variations);
-
-  thrust_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::thrust_pf_args,
-                                                         detector_tu_binning_thrust_charged,
-                                                         Cuts::thrust_gen_args,
-                                                         generator_tu_binning_thrust_charged));
-  thrust_charged_hist_filler->assignRecoHists(h_tu_reco_thrust_charged,
-                                              h_tu_reco_thrust_charged_split,
-                                              h_tu_reco_thrust_charged_gen_binning,
-                                              h_tu_reco_thrust_charged_gen_binning_split,
-                                              h_tu_reco_thrust_charged_fake,
-                                              h_tu_reco_thrust_charged_fake_split,
-                                              h_tu_reco_thrust_charged_fake_gen_binning,
-                                              &h_tu_reco_thrust_charged_jackknife_variations,
-                                              &h_tu_reco_thrust_charged_PDF_variations);
-  thrust_charged_hist_filler->assignGenHists(h_tu_gen_thrust_charged,
-                                             h_tu_gen_thrust_charged_split,
-                                             &h_tu_gen_thrust_charged_jackknife_variations,
-                                             &h_tu_gen_thrust_charged_PDF_variations);
-  thrust_charged_hist_filler->assignResponseHists(h_tu_response_thrust_charged,
-                                                  h_tu_response_thrust_charged_split,
-                                                  &h_tu_response_thrust_charged_jackknife_variations,
-                                                  &h_tu_response_thrust_charged_PDF_variations);
-
   width_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::width_pf_args,
                                                         detector_tu_binning_width_charged,
                                                         Cuts::width_gen_args,
@@ -987,6 +974,28 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
                                                  h_tu_response_width_charged_split,
                                                  &h_tu_response_width_charged_jackknife_variations,
                                                  &h_tu_response_width_charged_PDF_variations);
+
+  // Setup other things
+  // ---------------------------------------------------------------------------
+  if (is_mc_) {
+    genJetsLambda_handle = ctx.get_handle< std::vector<GenJetLambdaBundle> > (gen_jetlambda_handle_name);
+    pass_gen_handle = ctx.get_handle<bool> (gen_sel_handle_name);
+  }
+
+  jetsLambda_handle = ctx.get_handle< std::vector<JetLambdaBundle> > (reco_jetlambda_handle_name);
+
+  pass_reco_handle = ctx.get_handle<bool> (reco_sel_handle_name);
+
+  // TODO: automate setting up of hists - let the LambdaHistsFiller own them?
+
+  chargedPlusNeutralHistFillers = {
+    LHA_hist_filler.get(), // use .get() to get raw ptr, since we don't want to own the object
+    puppiMultiplicity_hist_filler.get(),
+    pTD_hist_filler.get(),
+    thrust_hist_filler.get(),
+    width_hist_filler.get(),
+  };
+
   chargedOnlyHistFillers = {
     LHA_charged_hist_filler.get(),
     puppiMultiplicity_charged_hist_filler.get(),
@@ -1260,9 +1269,6 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
       // whereas a recojet & no genjet is a fake, which we don't want in our migration matrix
       int recBinPt(0);
       int recoInd = -1;
-      float lha, jet_pt;
-      bool thisPassReco = passReco;
-      bool thisPassRecoCharged = passReco;
       if (passReco) { // only valid match if reco selection also passed
         // First find matching recojet - annoyingly matches are held in the Jet class, not GenJet
         // default to -1 for underflow
@@ -1404,175 +1410,3 @@ TH2D * QGAnalysisUnfoldHists::copy_book_th2d(TH2 * h, const std::string & newNam
 
 
 QGAnalysisUnfoldHists::~QGAnalysisUnfoldHists(){}
-
-LambdaHistsFiller::LambdaHistsFiller(const PFLambdaArgs & pfLambdaArgs,
-                                     TUnfoldBinning * recoBinning,
-                                     const GenLambdaArgs & genLambdaArgs,
-                                     TUnfoldBinning * genBinning):
-pfLambdaArgs_(pfLambdaArgs),
-recoBinning_(recoBinning),
-passReco_(false),
-genLambdaArgs_(genLambdaArgs),
-genBinning_(genBinning),
-passGen_(false),
-recoBin_(0),
-recoBinGenBinning_(0),
-genBin_(0),
-recoJetPt_(0),
-genJetPt_(0)
-{}
-
-void LambdaHistsFiller::setPassReco(bool passReco) {
-  passReco_ = passReco;
-  if (!passReco_) {
-    // if fail, then reset bins
-    recoBin_ = 0;
-    recoBinGenBinning_ = 0;
-  }
-}
-
-void LambdaHistsFiller::setupReco(float recoJetPt,
-                                  const LambdaCalculator<PFParticle> & recoJetCalc,
-                                  bool passReco) {
-  // reset bin numbers, bools
-  recoBin_ = 0;
-  recoBinGenBinning_ = 0;
-  setPassReco(passReco);
-  recoJetPt_ = recoJetPt;
-
-  // calculate reco lambda variable, if those selections passed
-  // if value is < 0 then indicates not enough constituents, so fail that selection
-  // Get the correct TUnfoldBinning node (ie if underflow or not)
-  // also calculate global bin numbers for TUnfold hists
-  if (passReco_) {
-    double recoLambda = recoJetCalc.getLambda(pfLambdaArgs_.kappa, pfLambdaArgs_.beta, pfLambdaArgs_.id);
-    if (recoLambda < 0) {
-      setPassReco(false);
-    } else {
-      bool isUnderflow = recoJetPt_ < Binning::pt_bin_edges_reco[0];
-      if (recoBinning_ == nullptr) throw std::runtime_error("LambdaHistsFiller::recoBinning is nullptr");
-      std::string nodeName = isUnderflow ? "detector_underflow" : "detector";
-      const TUnfoldBinning * thisRecoBinning = recoBinning_->FindNode(nodeName.c_str());
-      if (thisRecoBinning == nullptr) throw std::runtime_error("Cannot find TUnfoldBinning node with name " + nodeName);
-      recoBin_ = thisRecoBinning->GetGlobalBinNumber(recoLambda, recoJetPt_);
-
-      nodeName = isUnderflow ? "signal_underflow" : "signal";
-      if (genBinning_ == nullptr) throw std::runtime_error("LambdaHistsFiller::genBinning is nullptr");
-      const TUnfoldBinning * thisGenBinning = genBinning_->FindNode(nodeName.c_str());
-      if (thisGenBinning == nullptr) throw std::runtime_error("Cannot find TUnfoldBinning node with name " + nodeName);
-      recoBinGenBinning_ = thisGenBinning->GetGlobalBinNumber(recoLambda, recoJetPt_);
-    }
-  }
-}
-
-void LambdaHistsFiller::setPassGen(bool passGen) {
-  passGen_ = passGen;
-  if (!passGen_) {
-    // if fail, then reset bin
-    genBin_ = 0;
-  }
-}
-
-void LambdaHistsFiller::setupGen(float genJetPt,
-                                 const LambdaCalculator<GenParticle> & genJetCalc,
-                                 bool passGen) {
-  // reset bin numbers, bools
-  genBin_ = 0;
-  setPassGen(passGen);
-  genJetPt_ = genJetPt;
-
-  // calculate gen lambda variable, if those selections passed
-  // if value is < 0 then indicates not enough constituents, so fail that selection
-  // Get the correct TUnfoldBinning node (ie if underflow or not)
-  // also calculate global bin numbers for TUnfold hists
-  if (passGen_) {
-    double genLambda = genJetCalc.getLambda(genLambdaArgs_.kappa, genLambdaArgs_.beta, genLambdaArgs_.id);
-    if (genLambda < 0) {
-      setPassGen(false);
-    } else {
-      bool isUnderflow = genJetPt_ < Binning::pt_bin_edges_gen[0];
-      std::string nodeName = isUnderflow ? "signal_underflow" : "signal";
-      const TUnfoldBinning * thisGenBinning = genBinning_->FindNode(nodeName.c_str());
-      if (thisGenBinning == nullptr) throw std::runtime_error("Cannot find TUnfoldBinning node with name " + nodeName);
-      genBin_ = thisGenBinning->GetGlobalBinNumber(genLambda, genJetPt_);
-    }
-  }
-}
-
-void LambdaHistsFiller::assignRecoHists(TH1D * allReco,
-                                        TH1D * splitReco,
-                                        TH1D * allRecoGenBinning,
-                                        TH1D * splitRecoGenBinning,
-                                        TH1D * allRecoFakes,
-                                        TH1D * splitRecoFakes,
-                                        TH1D * allRecoFakesGenBinning,
-                                        std::vector<TH1D*> * jackknifeVariations,
-                                        std::vector<TH1D*> * PDFVariations) {
-  recoHist_ = allReco;
-  recoSplitHist_ = splitReco;
-  recoHistGenBinning_ = allRecoGenBinning;
-  recoSplitHistGenBinning_ = splitRecoGenBinning;
-  recoHistFakes_ = allRecoFakes;
-  recoSplitHistFakes_ = splitRecoFakes;
-  recoHistFakesGenBinning_ = allRecoFakesGenBinning;
-  recoJackknifeVariations_ = jackknifeVariations;
-  recoPDFVariations_ = PDFVariations;
-}
-
-void LambdaHistsFiller::assignGenHists(TH1D * allGen,
-                                       TH1D * splitGen,
-                                       std::vector<TH1D*> * jackknifeVariations,
-                                       std::vector<TH1D*> * PDFVariations) {
-  genHist_ = allGen;
-  genSplitHist_ = splitGen;
-  genJackknifeVariations_ = jackknifeVariations;
-  genPDFVariations_ = PDFVariations;
-}
-
-void LambdaHistsFiller::assignResponseHists(TH2D * allResponse,
-                                            TH2D * splitResponse,
-                                            std::vector<TH2D*> * jackknifeVariations,
-                                            std::vector<TH2D*> * PDFVariations) {
-  responseHist_ = allResponse;
-  responseSplitHist_ = splitResponse;
-  responseJackknifeVariations_ = jackknifeVariations;
-  responsePDFVariations_ = PDFVariations;
-}
-
-void LambdaHistsFiller::fillRecoTH1(TH1 * h, double weight) {
-  if (h != nullptr && passReco()) {
-    h->Fill(recoBin_, weight);
-  }
-}
-
-void LambdaHistsFiller::fillRecoTH1GenBinning(TH1 * h, double weight) {
-  if (h != nullptr && passReco()) {
-    h->Fill(recoBinGenBinning_, weight);
-  }
-}
-
-void LambdaHistsFiller::fillGenTH1(TH1 * h, double weight) {
-  if (h != nullptr && passGen()) {
-    h->Fill(genBin_, weight);
-  }
-}
-
-void LambdaHistsFiller::fillResponseTH2(TH2 * h, double recoWeight, double genWeight) {
-  // How to handle the fact that the matching reco jet may not be the one stored?
-  // Assume the user has re-called setupReco with the matched reco jet
-  if (h != nullptr && passGen()) {
-    // fill if we pass gen requirements, irrespective of reco requirements
-    // (will be bin 0 if fail)
-    // fill twice: once normally with total event weight,
-    // then again but in global underflow with (gen weight - total event weight).
-    // This ensures that the projection on the gen axis matches the 1D gen distribution
-    // (which would only have the gen weight)
-    double totalWeight = recoWeight * genWeight;
-    h->Fill(genBin_, recoBin_, totalWeight);
-    double corrWeight = genWeight - totalWeight;
-    int underflowBin = 0;
-    // this is the underflow bin, since the histogram's bin edges are the global bin numbers,
-    // not physical values
-    h->Fill(genBin_, underflowBin, corrWeight);
-  }
-}
