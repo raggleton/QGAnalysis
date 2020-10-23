@@ -601,7 +601,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     }
 
     // event_sel.reset(new EventNumberSelection({65406240}));
-    event_sel_printout.reset(new EventNumberSelection({65406240, 98686924}));
+    // event_sel_printout.reset(new EventNumberSelection({65406240, 98686924}));
 
     nOverlapEvents = 0;
     nZPJEvents = 0;
@@ -685,6 +685,7 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // Get good GenJets, store in event
     // -------------------------------------------------------------------------
+    if (printout_this_event) printGenJets(*event.genjets, "Precleaning");
     genJet_selector->process(event);
     // Need these as loosest possible requirement to run reco- or gen-specific bits
     bool hasGenJets = ngenjet_good_sel->passes(event);
@@ -703,7 +704,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     // -------------------------------------------------------------------------
     // These cuts are MC-specific, after much tuning
     float reco_jet_pt = event.jets->size() > 0 ? event.jets->at(0).pt() : 0;
-    float gen_jet_pt = event.get(genJets_handle).size() > 0 ? event.get(genJets_handle).at(0).pt() : 0;
+    // float gen_jet_pt = event.get(genJets_handle).size() > 0 ? event.get(genJets_handle).at(0).pt() : 0;
 
     float PU_pThat = event.genInfo->PU_pT_hat_max();
     // float qScale = event.genInfo->qScale();
@@ -755,13 +756,13 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // Apply Jet PF ID since the jet constituents changes
     // jet_pf_id->process(event);
-
-    if (printout_this_event) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets after tracking SF");
+    // if (printout_this_event) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets after tracking SF");
 
     // Do AFTER all things that could affect number of jets e.g. track SF, IDs
     bool hasRecoJets = njet_min_sel->passes(event) && passCommonRecoSetup; // commonReco bit here as common for all reco parts
 
-    // We need recojets and/or genjets (want both fakes and miss-recos)
+    // We need recojets and/or genjets (want both fakes and miss-recos),
+    // but event is useless if both missing
     if (!(hasRecoJets || hasGenJets)) return false;
 
     // Calculate lambda vars

@@ -374,7 +374,6 @@ void QGAnalysisHists::fill(const Event & event){
 
   // extract the separate gen & reco weight components, needed for TUnfold
   double gen_weight = event.get(gen_weight_handle);
-  double reco_weight = weight / gen_weight;
 
   h_weights->Fill(weight);
 
@@ -725,7 +724,7 @@ void QGAnalysisHists::fill(const Event & event){
       const GenJet & thisjet = genjetLambdas->at(i).jet;
       const LambdaCalculator<GenParticle> & genJetCalc = genjetLambdas->at(i).getLambdaCalculator(false, doGroomed_);
       // FIXME check this corresponds to same jet as normal lambdas?
-      const LambdaCalculator<GenParticle> & genJetCalcCharged = genjetLambdas->at(i).getLambdaCalculator(true, doGroomed_);
+      // const LambdaCalculator<GenParticle> & genJetCalcCharged = genjetLambdas->at(i).getLambdaCalculator(true, doGroomed_);
 
       float genjet_pt = thisjet.pt();
 
