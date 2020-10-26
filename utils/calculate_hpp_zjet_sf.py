@@ -19,6 +19,8 @@ ROOT.TH1.SetDefaultSumw2()
 
 
 def calc_sf(inclusive_hist, high_pt_hist, pt_min, pt_max):
+    """Calculate the scale factor to be applied to the high_pt_hist,
+    based on the ratio of integrals between pt_min and pt_max"""
     xax = inclusive_hist.GetXaxis()
     first_bin = xax.FindBin(pt_min)
     last_bin = xax.FindBin(pt_max)
@@ -88,6 +90,9 @@ if __name__ == "__main__":
     inclusive_filename = "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/Herwig/workdir_ak4puppi_herwig_target0p5_ZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto_noPtHatCut_noPtReweight_noZjet2Cut_zPt30_trkSF_wtaAK_passGenRsp_sameGenCuts_mySamples/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_DYJetsToLL_Incl.root"
     high_pt_filename = "/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/QGAnalysis/Selection/Herwig/workdir_ak4puppi_herwig_target0p5_ZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto_noPtHatCut_noPtReweight_noZjet2Cut_zPt30_trkSF_wtaAK_passGenRsp_sameGenCuts_mySamples/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_DYJetsToLL_JetKtMin170.root"
 
+    inclusive_filename = "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/workdir_102X_v3data_v2mc_ak4puppi_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_fixLambda/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_DYJetsToLL_Incl_all.root"
+    high_pt_filename = "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/workdir_102X_v3data_v2mc_ak4puppi_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_fixLambda/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_DYJetsToLL_JetKtMin170_PartonKtMin300.root"
+
     hist_name = "ZPlusJets_gen/jet_kt"
 
     inclusive_tfile = ROOT.TFile(inclusive_filename)
@@ -101,12 +106,21 @@ if __name__ == "__main__":
     inclusive_hist.Rebin(rebin)
     high_pt_hist.Rebin(rebin)
 
+    output_filename = "herwigpp_unscaled%s.pdf" % (append)
+    plot_hists(inclusive_hist=inclusive_hist,
+               high_pt_hist=high_pt_hist,
+               output_filename=output_filename,
+               title="Unscaled histograms")
+
     pt_min, pt_max = 300, 700
     sf, sf_err = calc_sf(inclusive_hist, high_pt_hist, pt_min, pt_max)
     print("Integral:", pt_min, "to", pt_max, "gives scale factor for high pT sample:", sf, "+/-", sf_err)
     print("You should scale your cross section by this value")
     print("i.e. you should **divide** your Lumi argument by this value")
 
+    # Test convergence of the scale factor,
+    # by testing different lower bounds on the integral range
+    # The idea being that at a certain point it should ~converge
     pt_mins = np.arange(200, 520, 20)
     sfs = [calc_sf(inclusive_hist, high_pt_hist, pt, pt_max) for pt in pt_mins]
     print(pt_mins)
