@@ -40,7 +40,7 @@ void LambdaHistsFiller::setupReco(float recoJetPt,
   // Get the correct TUnfoldBinning node (ie if underflow or not)
   // also calculate global bin numbers for TUnfold hists
   if (passReco_) {
-    double recoLambda = recoJetCalc.getLambda(pfLambdaArgs_.kappa, pfLambdaArgs_.beta, pfLambdaArgs_.id);
+    double recoLambda = recoJetCalc.getLambda(pfLambdaArgs_.kappa, pfLambdaArgs_.beta, pfLambdaArgs_.id, pfLambdaArgs_.minNumConstits);
     if (recoLambda < 0) {
       setPassReco(false);
     } else {
@@ -81,7 +81,7 @@ void LambdaHistsFiller::setupGen(float genJetPt,
   // Get the correct TUnfoldBinning node (ie if underflow or not)
   // also calculate global bin numbers for TUnfold hists
   if (passGen_) {
-    double genLambda = genJetCalc.getLambda(genLambdaArgs_.kappa, genLambdaArgs_.beta, genLambdaArgs_.id);
+    double genLambda = genJetCalc.getLambda(genLambdaArgs_.kappa, genLambdaArgs_.beta, genLambdaArgs_.id, genLambdaArgs_.minNumConstits);
     if (genLambda < 0) {
       setPassGen(false);
     } else {

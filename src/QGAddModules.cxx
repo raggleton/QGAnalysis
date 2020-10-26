@@ -800,8 +800,7 @@ LambdaCalculator<T>::LambdaCalculator(std::vector<T> & constits, float jet_radiu
   jetRadius_(jet_radius),
   jetVector_(jet_vector),
   wtaVector_(wta_vector),
-  usePuppiWeight_(usePuppiWeight),
-  minNumConstits_(2)
+  usePuppiWeight_(usePuppiWeight)
 {}
 
 template<>
@@ -810,12 +809,11 @@ LambdaCalculator<GenParticle>::LambdaCalculator(std::vector<GenParticle> & const
   jetRadius_(jet_radius),
   jetVector_(jet_vector),
   wtaVector_(wta_vector),
-  usePuppiWeight_(usePuppiWeight), // Not used for GenParticles
-  minNumConstits_(2)
+  usePuppiWeight_(usePuppiWeight) // Not used for GenParticles
 {}
 
 template<>
-double LambdaCalculator<PFParticle>::getLambda(float kappa, float beta, const PFId & constitId) const
+double LambdaCalculator<PFParticle>::getLambda(float kappa, float beta, const PFId & constitId, uint minNumConstits) const
 {
   // special case if no constits
   if (constits_.size() == 0) {
@@ -836,7 +834,7 @@ double LambdaCalculator<PFParticle>::getLambda(float kappa, float beta, const PF
       }
       numConstits++;
     }
-    if (!(numConstits >= minNumConstits_)) return -1;
+    if (!(numConstits >= minNumConstits)) return -1;
     return result;
   }
 
@@ -858,13 +856,13 @@ double LambdaCalculator<PFParticle>::getLambda(float kappa, float beta, const PF
     ptSum += thisPt;
     numConstits++;
   }
-  if (!(numConstits >= minNumConstits_)) return -1;
+  if (!(numConstits >= minNumConstits)) return -1;
   result = numerator / (pow(ptSum, kappa) * pow(jetRadius_, beta));
   return result;
 }
 
 template<>
-double LambdaCalculator<GenParticle>::getLambda(float kappa, float beta, const GenId & constitId) const
+double LambdaCalculator<GenParticle>::getLambda(float kappa, float beta, const GenId & constitId, uint minNumConstits) const
 {
   // special case if no constits
   if (constits_.size() == 0) {
@@ -879,7 +877,7 @@ double LambdaCalculator<GenParticle>::getLambda(float kappa, float beta, const G
       if (!constitId(dtr)) continue;
       result++;
     }
-    if (!(result >= minNumConstits_)) return -1;
+    if (!(result >= minNumConstits)) return -1;
     return result;
   }
 
@@ -899,7 +897,7 @@ double LambdaCalculator<GenParticle>::getLambda(float kappa, float beta, const G
     ptSum += thisPt;
     numConstits++;
   }
-  if (!(numConstits >= minNumConstits_)) return -1;
+  if (!(numConstits >= minNumConstits)) return -1;
   result = numerator / (pow(ptSum, kappa) * pow(jetRadius_, beta));
   return result;
 }
