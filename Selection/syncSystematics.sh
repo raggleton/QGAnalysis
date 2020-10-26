@@ -2,6 +2,8 @@
 #
 # Sync systematics files from indiv folders to one big one
 
+set -u
+
 VARIATIONS=("Up" "Down")
 SYSTS=("chargedHadronShift" "neutralHadronShift" "photonShift" "jecsmear_direction" "jersmear_direction" "pileup_direction" "track_direction")
 # SYSTS=("pileup_direction")
@@ -63,17 +65,34 @@ OUTPUTDIR="workdir_ak4puppi_data_target0p5_ZReweight_wta_groomed_fwdcenDijet_noP
 STEMSRCDIR="MGPythia/workdir_ak4puppi_mgpythia_target0p5_ZReweight_wta_groomed_fwdcenDijet_noPtHatCut_noZjet2Cut_zPt30_sameGenCuts_jackknife25_rapidity1p7_trkSFonlyLambda_constitPt1_fixGroomingConstitCheck"
 OUTPUTDIR="workdir_ak4puppi_data_target0p5_ZReweight_wta_groomed_fwdcenDijet_noPtHatCut_noZjet2Cut_zPt30_sameGenCuts_jackknife25_rapidity1p7_trkSFonlyLambda_constitPt1_fixGroomingConstitCheck"
 
-# CMD="rsync -ahvzP"
-CMD="cp"
-CMD="rsync -avhPt"
+STEMSRCDIR="MGPythia/workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_fixLambda_newBinning2_zjAsym"
+OUTPUTDIR="workdir_102X_v3data_v2mc_ak4puppi_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_fixLambda_newBinning2_zjAsym"
+
+# STEMSRCDIR="MGPythia/workdir_102X_v2_ak8puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_fixLambda_newBinning2_zjAsym"
+# OUTPUTDIR="workdir_102X_v3data_v2mc_ak8puppi_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_fixLambda_newBinning2_zjAsym"
+
+# STEMSRCDIR="MGPythia/workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_fixLambda_newBinning2_genjetGhostFlav_noBCpref"
+# OUTPUTDIR="workdir_102X_v3data_v2mc_ak4puppi_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_fixLambda_newBinning2_genjetGhostFlav_noBCpref"
+
+# STEMSRCDIR="MGPythia/workdir_102X_v2_ak8puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_fixLambda_newBinning2_genjetGhostFlav_noBCpref"
+# OUTPUTDIR="workdir_102X_v3data_v2mc_ak8puppi_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_fixLambda_newBinning2_genjetGhostFlav_noBCpref"
+
+
+function copy {
+    src="$1"
+    dest="$2"
+    rsync -avhPt "${src}" "${dest}" || echo -e "Missing ${src} \n"
+}
 
 echo "------------------------------------------------------------------"
-echo ">>> Main files"
+echo ">>> MG+PYTHIA files"
 echo "------------------------------------------------------------------"
 ODIR="${OUTPUTDIR}/"
 mkdir -p "${ODIR}"
-$CMD "${STEMSRCDIR}/uhh2.AnalysisModuleRunner.MC.MC_QCD.root" "${ODIR}/"
-$CMD "${STEMSRCDIR}/uhh2.AnalysisModuleRunner.MC.MC_DYJetsToLL.root" "${ODIR}/"
+copy "${STEMSRCDIR}/uhh2.AnalysisModuleRunner.MC.MC_QCD.root" "${ODIR}/"
+copy "${STEMSRCDIR}/uhh2.AnalysisModuleRunner.MC.MC_DYJetsToLL.root" "${ODIR}/"
+
+# exit 0
 
 echo "------------------------------------------------------------------"
 echo ">>> HERWIG++"
@@ -81,8 +100,8 @@ echo "------------------------------------------------------------------"
 base=$(basename $STEMSRCDIR)
 base=${base/mgpythia/herwig}
 echo $base
-$CMD "Herwig/$base/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_QCD.root" "${ODIR}/"
-$CMD "Herwig/$base/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_DYJetsToLL_merged_PartonKtMin300.root" "${ODIR}/"
+copy "Herwig/$base/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_QCD.root" "${ODIR}/"
+copy "Herwig/$base/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_DYJetsToLL_merged_PartonKtMin300.root" "${ODIR}/"
 
 echo "------------------------------------------------------------------"
 echo ">>> PYTHIA8"
@@ -90,7 +109,7 @@ echo "------------------------------------------------------------------"
 base=$(basename $STEMSRCDIR)
 base=${base/mgpythia/pythia}
 echo $base
-$CMD "PythiaOnlyFlat/$base/uhh2.AnalysisModuleRunner.MC.MC_PYTHIA-QCD.root" "${ODIR}/"
+copy "Pythia/$base/uhh2.AnalysisModuleRunner.MC.MC_PYTHIA-QCD.root" "${ODIR}/"
 
 for syst in ${SYSTS[@]}; do
     for var in ${VARIATIONS[@]}; do
@@ -99,17 +118,17 @@ for syst in ${SYSTS[@]}; do
         echo "------------------------------------------------------------------"
         ODIR="${OUTPUTDIR}/systematics_files/${syst}${var}"
         mkdir -p "${ODIR}"
-        $CMD "${STEMSRCDIR}_${syst}${var}/uhh2.AnalysisModuleRunner.MC.MC_QCD.root" "${ODIR}/"
-        $CMD "${STEMSRCDIR}_${syst}${var}/uhh2.AnalysisModuleRunner.MC.MC_DYJetsToLL.root" "${ODIR}/"
+        copy "${STEMSRCDIR}_${syst}${var}/uhh2.AnalysisModuleRunner.MC.MC_QCD.root" "${ODIR}/"
+        copy "${STEMSRCDIR}_${syst}${var}/uhh2.AnalysisModuleRunner.MC.MC_DYJetsToLL.root" "${ODIR}/"
     done
 done
 
 # Just list these ones explicitly, cba to write a loop
 SYSTS=(
-    "ScaleVariationMuRNom_ScaleVariationMuFUp"
-    "ScaleVariationMuRNom_ScaleVariationMuFDown"
-    "ScaleVariationMuRUp_ScaleVariationMuFNom"
-    "ScaleVariationMuRDown_ScaleVariationMuFNom"
+    "ScaleVariationMuRNominal_ScaleVariationMuFUp"
+    "ScaleVariationMuRNominal_ScaleVariationMuFDown"
+    "ScaleVariationMuRUp_ScaleVariationMuFNominal"
+    "ScaleVariationMuRDown_ScaleVariationMuFNominal"
     "ScaleVariationMuRUp_ScaleVariationMuFUp"
     "ScaleVariationMuRDown_ScaleVariationMuFDown"
     "PDFvariationsTrue"
@@ -121,7 +140,7 @@ for syst in ${SYSTS[@]}; do
     echo "------------------------------------------------------------------"
     ODIR="${OUTPUTDIR}/systematics_files/${syst}"
     mkdir -p "${ODIR}"
-    $CMD "${STEMSRCDIR}_${syst}/uhh2.AnalysisModuleRunner.MC.MC_QCD.root" "${ODIR}/"
-    $CMD "${STEMSRCDIR}_${syst}/uhh2.AnalysisModuleRunner.MC.MC_DYJetsToLL.root" "${ODIR}/"
+    copy "${STEMSRCDIR}_${syst}/uhh2.AnalysisModuleRunner.MC.MC_QCD.root" "${ODIR}/"
+    copy "${STEMSRCDIR}_${syst}/uhh2.AnalysisModuleRunner.MC.MC_DYJetsToLL.root" "${ODIR}/"
 done
 
