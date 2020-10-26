@@ -64,18 +64,10 @@ enum PDGID {
   W = 24
 };
 
-
-struct PFLambdaArgs {
+struct LambdaArgs {
   float kappa;
   float beta;
-  PFId id;
-  uint minNumConstits;
-};
-
-struct GenLambdaArgs {
-  float kappa;
-  float beta;
-  GenId id;
+  ParticleId id;
   uint minNumConstits;
 };
 
@@ -121,19 +113,15 @@ namespace Cuts {
   const float constit_eta_max = 5.;
 
   // Arguments for lambda calculations
-  // Separate ones for PF & GEN since in theory we might want separate cuts
+  // Same for gen & reco atm since consistency better for unfolding (more diagonal)
+  // and easier to have one getLambda method.
+  // But could in theory have separate ones for gen & reco
   // Note that any constituent cuts here override the constit_pt_min and constit_eta_max above
-  const PFLambdaArgs lha_pf_args      {1, 0.5, PtYCut(constit_pt_min, constit_eta_max), 0};
-  const PFLambdaArgs width_pf_args    {1, 1,   PtYCut(constit_pt_min, constit_eta_max), 0};
-  const PFLambdaArgs thrust_pf_args   {1, 2,   PtYCut(constit_pt_min, constit_eta_max), 0};
-  const PFLambdaArgs pTD_pf_args      {2, 0,   PtYCut(constit_pt_min, constit_eta_max), 2};
-  const PFLambdaArgs mult_pf_args     {0, 0,   PtYCut(1., constit_eta_max), 0}; //special for multiplicity
-
-  const GenLambdaArgs lha_gen_args    {1, 0.5, PtYCut(constit_pt_min, constit_eta_max), 0};
-  const GenLambdaArgs width_gen_args  {1, 1,   PtYCut(constit_pt_min, constit_eta_max), 0};
-  const GenLambdaArgs thrust_gen_args {1, 2,   PtYCut(constit_pt_min, constit_eta_max), 0};
-  const GenLambdaArgs pTD_gen_args    {2, 0,   PtYCut(constit_pt_min, constit_eta_max), 2};
-  const GenLambdaArgs mult_gen_args   {0, 0,   PtYCut(1., constit_eta_max), 0}; //special for multiplicity
+  const LambdaArgs lha_args      {1, 0.5, PtYCut(constit_pt_min, constit_eta_max), 0};
+  const LambdaArgs width_args    {1, 1,   PtYCut(constit_pt_min, constit_eta_max), 0};
+  const LambdaArgs thrust_args   {1, 2,   PtYCut(constit_pt_min, constit_eta_max), 0};
+  const LambdaArgs pTD_args      {2, 0,   PtYCut(constit_pt_min, constit_eta_max), 2}; // need minNumConstits=2 to stop spike at 1, other vars OK
+  const LambdaArgs mult_args     {0, 0,   PtYCut(1., constit_eta_max),             0}; // higher pT cut for multiplicity as messy below that
 
 }
 
@@ -379,7 +367,8 @@ template <class T> class LambdaCalculator {
 public:
   LambdaCalculator(std::vector<T> & constits, float jet_radius, const LorentzVector & jet_vector, const LorentzVector & wta_vector, bool usePuppiWeight);
   // Calculate lambda from constituents, with optional ID applied to filter constituents going into calculation
-  double getLambda(float kappa, float beta, const std::function<bool (const T &)> & constitId = PtYCut(0, 10.), uint minNumConstits = 0) const;
+  // double getLambda(float kappa, float beta, const std::function<bool (const T &)> & constitId = PtYCut(0, 10.), uint minNumConstits = 0) const;
+  double getLambda(LambdaArgs lambdaArgs) const;
   const std::vector<T> & constits() const { return constits_; }
 private:
   std::vector<T> constits_;

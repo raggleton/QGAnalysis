@@ -233,9 +233,9 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   // for fakes, gen binning
   h_tu_reco_LHA_fake_gen_binning = copy_book_th1d(h_tu_gen_LHA, "hist_LHA_reco_fake_gen_binning");
 
-  LHA_hist_filler.reset(new LambdaHistsFiller(Cuts::lha_pf_args,
+  LHA_hist_filler.reset(new LambdaHistsFiller(Cuts::lha_args,
                                               detector_tu_binning_LHA,
-                                              Cuts::lha_gen_args,
+                                              Cuts::lha_args,
                                               generator_tu_binning_LHA));
   LHA_hist_filler->assignRecoHists(h_tu_reco_LHA,
                                    h_tu_reco_LHA_split,
@@ -312,9 +312,9 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   h_tu_reco_LHA_charged_gen_binning_split = copy_book_th1d(h_tu_gen_LHA_charged, "hist_LHA_charged_reco_gen_binning_split");
   h_tu_reco_LHA_charged_fake_gen_binning = copy_book_th1d(h_tu_gen_LHA_charged, "hist_LHA_charged_reco_fake_gen_binning");
 
-  LHA_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::lha_pf_args,
+  LHA_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::lha_args,
                                                       detector_tu_binning_LHA_charged,
-                                                      Cuts::lha_gen_args,
+                                                      Cuts::lha_args,
                                                       generator_tu_binning_LHA_charged));
   LHA_charged_hist_filler->assignRecoHists(h_tu_reco_LHA_charged,
                                            h_tu_reco_LHA_charged_split,
@@ -393,9 +393,9 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
 
   h_tu_reco_puppiMultiplicity_fake_gen_binning = copy_book_th1d(h_tu_gen_puppiMultiplicity, "hist_puppiMultiplicity_reco_fake_gen_binning");
 
-  puppiMultiplicity_hist_filler.reset(new LambdaHistsFiller(Cuts::mult_pf_args,
+  puppiMultiplicity_hist_filler.reset(new LambdaHistsFiller(Cuts::mult_args,
                                                             detector_tu_binning_puppiMultiplicity,
-                                                            Cuts::mult_gen_args,
+                                                            Cuts::mult_args,
                                                             generator_tu_binning_puppiMultiplicity));
   puppiMultiplicity_hist_filler->assignRecoHists(h_tu_reco_puppiMultiplicity,
                                                  h_tu_reco_puppiMultiplicity_split,
@@ -473,9 +473,9 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
 
   h_tu_reco_puppiMultiplicity_charged_fake_gen_binning = copy_book_th1d(h_tu_gen_puppiMultiplicity_charged, "hist_puppiMultiplicity_charged_reco_fake_gen_binning");
 
-  puppiMultiplicity_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::mult_pf_args,
+  puppiMultiplicity_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::mult_args,
                                                                     detector_tu_binning_puppiMultiplicity_charged,
-                                                                    Cuts::mult_gen_args,
+                                                                    Cuts::mult_args,
                                                                     generator_tu_binning_puppiMultiplicity_charged));
   puppiMultiplicity_charged_hist_filler->assignRecoHists(h_tu_reco_puppiMultiplicity_charged,
                                                          h_tu_reco_puppiMultiplicity_charged_split,
@@ -553,9 +553,9 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
 
   h_tu_reco_pTD_fake_gen_binning = copy_book_th1d(h_tu_gen_pTD, "hist_pTD_reco_fake_gen_binning");
 
-  pTD_hist_filler.reset(new LambdaHistsFiller(Cuts::pTD_pf_args,
+  pTD_hist_filler.reset(new LambdaHistsFiller(Cuts::pTD_args,
                                               detector_tu_binning_pTD,
-                                              Cuts::pTD_gen_args,
+                                              Cuts::pTD_args,
                                               generator_tu_binning_pTD));
   pTD_hist_filler->assignRecoHists(h_tu_reco_pTD,
                                   h_tu_reco_pTD_split,
@@ -633,9 +633,9 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
 
   h_tu_reco_pTD_charged_fake_gen_binning = copy_book_th1d(h_tu_gen_pTD_charged, "hist_pTD_charged_reco_fake_gen_binning");
 
-  pTD_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::pTD_pf_args,
+  pTD_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::pTD_args,
                                                       detector_tu_binning_pTD_charged,
-                                                      Cuts::pTD_gen_args,
+                                                      Cuts::pTD_args,
                                                       generator_tu_binning_pTD_charged));
   pTD_charged_hist_filler->assignRecoHists(h_tu_reco_pTD_charged,
                                            h_tu_reco_pTD_charged_split,
@@ -713,9 +713,9 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
 
   h_tu_reco_thrust_fake_gen_binning = copy_book_th1d(h_tu_gen_thrust, "hist_thrust_reco_fake_gen_binning");
 
-  thrust_hist_filler.reset(new LambdaHistsFiller(Cuts::thrust_pf_args,
+  thrust_hist_filler.reset(new LambdaHistsFiller(Cuts::thrust_args,
                                                  detector_tu_binning_thrust,
-                                                 Cuts::thrust_gen_args,
+                                                 Cuts::thrust_args,
                                                  generator_tu_binning_thrust));
   thrust_hist_filler->assignRecoHists(h_tu_reco_thrust,
                                      h_tu_reco_thrust_split,
@@ -793,9 +793,9 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
 
   h_tu_reco_thrust_charged_fake_gen_binning = copy_book_th1d(h_tu_gen_thrust_charged, "hist_thrust_charged_reco_fake_gen_binning");
 
-  thrust_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::thrust_pf_args,
+  thrust_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::thrust_args,
                                                          detector_tu_binning_thrust_charged,
-                                                         Cuts::thrust_gen_args,
+                                                         Cuts::thrust_args,
                                                          generator_tu_binning_thrust_charged));
   thrust_charged_hist_filler->assignRecoHists(h_tu_reco_thrust_charged,
                                               h_tu_reco_thrust_charged_split,
@@ -873,9 +873,9 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
 
   h_tu_reco_width_fake_gen_binning = copy_book_th1d(h_tu_gen_width, "hist_width_reco_fake_gen_binning");
 
-  width_hist_filler.reset(new LambdaHistsFiller(Cuts::width_pf_args,
+  width_hist_filler.reset(new LambdaHistsFiller(Cuts::width_args,
                                                 detector_tu_binning_width,
-                                                Cuts::width_gen_args,
+                                                Cuts::width_args,
                                                 generator_tu_binning_width));
   width_hist_filler->assignRecoHists(h_tu_reco_width,
                                     h_tu_reco_width_split,
@@ -953,9 +953,9 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
 
   h_tu_reco_width_charged_fake_gen_binning = copy_book_th1d(h_tu_gen_width_charged, "hist_width_charged_reco_fake_gen_binning");
 
-  width_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::width_pf_args,
+  width_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::width_args,
                                                         detector_tu_binning_width_charged,
-                                                        Cuts::width_gen_args,
+                                                        Cuts::width_args,
                                                         generator_tu_binning_width_charged));
   width_charged_hist_filler->assignRecoHists(h_tu_reco_width_charged,
                                              h_tu_reco_width_charged_split,

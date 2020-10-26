@@ -14,9 +14,9 @@
  */
 class LambdaHistsFiller {
 public:
-    LambdaHistsFiller(const PFLambdaArgs & pfLambdaArgs,
+    LambdaHistsFiller(const LambdaArgs & pfLambdaArgs,
                       TUnfoldBinning * recoBinning,
-                      const GenLambdaArgs & genLambdaArgs,
+                      const LambdaArgs & genLambdaArgs,
                       TUnfoldBinning * genBinning);
     // setup for particular reco, gen jets - recalculate variable and TUnfold bin numbers
     void setPassReco(bool passReco);
@@ -80,10 +80,10 @@ public:
     std::vector<TH2D*> *responsePDFVariations() { return responsePDFVariations_; }
 
 private:
-    PFLambdaArgs pfLambdaArgs_;
+    LambdaArgs pfLambdaArgs_;
     TUnfoldBinning *recoBinning_;
     bool passReco_;
-    GenLambdaArgs genLambdaArgs_;
+    LambdaArgs genLambdaArgs_;
     TUnfoldBinning *genBinning_;
     bool passGen_;
     int recoBin_, recoBinGenBinning_, genBin_;

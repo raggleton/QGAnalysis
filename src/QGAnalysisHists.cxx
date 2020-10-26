@@ -433,12 +433,12 @@ void QGAnalysisHists::fill(const Event & event){
       float puppiMult(0.), mult(0.), lha(0.), ptd(0.), width(0.), thrust(0.);
 
       if (thisPassReco) {
-        puppiMult = recoJetCalc.getLambda(Cuts::mult_pf_args.kappa, Cuts::mult_pf_args.beta, Cuts::mult_pf_args.id, Cuts::mult_pf_args.minNumConstits);
-        mult = recoJetCalc.getLambda(Cuts::mult_pf_args.kappa, Cuts::mult_pf_args.beta, Cuts::mult_pf_args.id, Cuts::mult_pf_args.minNumConstits);
-        lha = recoJetCalc.getLambda(Cuts::lha_pf_args.kappa, Cuts::lha_pf_args.beta, Cuts::lha_pf_args.id, Cuts::lha_pf_args.minNumConstits);
-        ptd = recoJetCalc.getLambda(Cuts::pTD_pf_args.kappa, Cuts::pTD_pf_args.beta, Cuts::pTD_pf_args.id, Cuts::pTD_pf_args.minNumConstits);
-        width = recoJetCalc.getLambda(Cuts::width_pf_args.kappa, Cuts::width_pf_args.beta, Cuts::width_pf_args.id, Cuts::width_pf_args.minNumConstits);
-        thrust = recoJetCalc.getLambda(Cuts::thrust_pf_args.kappa, Cuts::thrust_pf_args.beta, Cuts::thrust_pf_args.id, Cuts::thrust_pf_args.minNumConstits);
+        puppiMult = recoJetCalc.getLambda(Cuts::mult_args);
+        mult = recoJetCalc.getLambda(Cuts::mult_args);
+        lha = recoJetCalc.getLambda(Cuts::lha_args);
+        ptd = recoJetCalc.getLambda(Cuts::pTD_args);
+        width = recoJetCalc.getLambda(Cuts::width_args);
+        thrust = recoJetCalc.getLambda(Cuts::thrust_args);
 
         if (ptd > 1){
           cout << "ptd > 1: " << ptd << endl;
@@ -510,12 +510,12 @@ void QGAnalysisHists::fill(const Event & event){
       float puppiMult_charged(0.), mult_charged(0.), lha_charged(0.), ptd_charged(0.), width_charged(0.), thrust_charged(0.);
 
       if (thisPassRecoCharged) {
-        puppiMult_charged = recoJetCalcCharged.getLambda(Cuts::mult_pf_args.kappa, Cuts::mult_pf_args.beta, Cuts::mult_pf_args.id, Cuts::mult_pf_args.minNumConstits);
-        mult_charged = recoJetCalcCharged.getLambda(Cuts::mult_pf_args.kappa, Cuts::mult_pf_args.beta, Cuts::mult_pf_args.id, Cuts::mult_pf_args.minNumConstits);
-        lha_charged = recoJetCalcCharged.getLambda(Cuts::lha_pf_args.kappa, Cuts::lha_pf_args.beta, Cuts::lha_pf_args.id, Cuts::lha_pf_args.minNumConstits);
-        ptd_charged = recoJetCalcCharged.getLambda(Cuts::pTD_pf_args.kappa, Cuts::pTD_pf_args.beta, Cuts::pTD_pf_args.id, Cuts::pTD_pf_args.minNumConstits);
-        width_charged = recoJetCalcCharged.getLambda(Cuts::width_pf_args.kappa, Cuts::width_pf_args.beta, Cuts::width_pf_args.id, Cuts::width_pf_args.minNumConstits);
-        thrust_charged = recoJetCalcCharged.getLambda(Cuts::thrust_pf_args.kappa, Cuts::thrust_pf_args.beta, Cuts::thrust_pf_args.id, Cuts::thrust_pf_args.minNumConstits);
+        puppiMult_charged = recoJetCalcCharged.getLambda(Cuts::mult_args);
+        mult_charged = recoJetCalcCharged.getLambda(Cuts::mult_args);
+        lha_charged = recoJetCalcCharged.getLambda(Cuts::lha_args);
+        ptd_charged = recoJetCalcCharged.getLambda(Cuts::pTD_args);
+        width_charged = recoJetCalcCharged.getLambda(Cuts::width_args);
+        thrust_charged = recoJetCalcCharged.getLambda(Cuts::thrust_args);
 
         // if (ptd_charged > 0.5 && ptd_charged < 0.501){
         //   cout << "+++++ ptd_charged 0.5: " << ptd_charged << endl;
@@ -592,7 +592,7 @@ void QGAnalysisHists::fill(const Event & event){
 
           if (thisPassGen && thisPassReco) {
             // Response hists over all pt, and high/low pt split ones
-            float gen_mult = matchedGenJetCalc.getLambda(Cuts::mult_gen_args.kappa, Cuts::mult_gen_args.beta, Cuts::mult_gen_args.id, Cuts::mult_gen_args.minNumConstits);
+            float gen_mult = matchedGenJetCalc.getLambda(Cuts::mult_args);
             fill_lambda_rsp_hists(mult, gen_mult, weight,
               h_jet_multiplicity_response, h_jet_multiplicity_rel_response,
               jet_pt,
@@ -605,28 +605,28 @@ void QGAnalysisHists::fill(const Event & event){
               h_jet_puppiMultiplicity_lowPt_response, h_jet_puppiMultiplicity_midPt_response, h_jet_puppiMultiplicity_highPt_response,
               h_jet_puppiMultiplicity_lowPt_rel_response, h_jet_puppiMultiplicity_midPt_rel_response, h_jet_puppiMultiplicity_highPt_rel_response);
 
-            float gen_lha = matchedGenJetCalc.getLambda(Cuts::lha_gen_args.kappa, Cuts::lha_gen_args.beta, Cuts::lha_gen_args.id, Cuts::lha_gen_args.minNumConstits);
+            float gen_lha = matchedGenJetCalc.getLambda(Cuts::lha_args);
             fill_lambda_rsp_hists(lha, gen_lha, weight,
               h_jet_LHA_response, h_jet_LHA_rel_response,
               jet_pt,
               h_jet_LHA_lowPt_response, h_jet_LHA_midPt_response, h_jet_LHA_highPt_response,
               h_jet_LHA_lowPt_rel_response, h_jet_LHA_midPt_rel_response, h_jet_LHA_highPt_rel_response);
 
-            float gen_ptd = matchedGenJetCalc.getLambda(Cuts::pTD_gen_args.kappa, Cuts::pTD_gen_args.beta, Cuts::pTD_gen_args.id, Cuts::pTD_gen_args.minNumConstits);
+            float gen_ptd = matchedGenJetCalc.getLambda(Cuts::pTD_args);
             fill_lambda_rsp_hists(ptd, gen_ptd, weight,
               h_jet_pTD_response, h_jet_pTD_rel_response,
               jet_pt,
               h_jet_pTD_lowPt_response, h_jet_pTD_midPt_response, h_jet_pTD_highPt_response,
               h_jet_pTD_lowPt_rel_response, h_jet_pTD_midPt_rel_response, h_jet_pTD_highPt_rel_response);
 
-            float gen_width = matchedGenJetCalc.getLambda(Cuts::width_gen_args.kappa, Cuts::width_gen_args.beta, Cuts::width_gen_args.id, Cuts::width_gen_args.minNumConstits);
+            float gen_width = matchedGenJetCalc.getLambda(Cuts::width_args);
             fill_lambda_rsp_hists(width, gen_width, weight,
               h_jet_width_response, h_jet_width_rel_response,
               jet_pt,
               h_jet_width_lowPt_response, h_jet_width_midPt_response, h_jet_width_highPt_response,
               h_jet_width_lowPt_rel_response, h_jet_width_midPt_rel_response, h_jet_width_highPt_rel_response);
 
-            float gen_thrust = matchedGenJetCalc.getLambda(Cuts::thrust_gen_args.kappa, Cuts::thrust_gen_args.beta, Cuts::thrust_gen_args.id, Cuts::thrust_gen_args.minNumConstits);
+            float gen_thrust = matchedGenJetCalc.getLambda(Cuts::thrust_args);
             fill_lambda_rsp_hists(thrust, gen_thrust, weight,
               h_jet_thrust_response, h_jet_thrust_rel_response,
               jet_pt,
@@ -636,7 +636,7 @@ void QGAnalysisHists::fill(const Event & event){
 
           if (thisPassGenCharged && thisPassRecoCharged) {
             // Do charged-only daughters version
-            float gen_mult_charged = matchedGenJetCalcCharged.getLambda(Cuts::mult_gen_args.kappa, Cuts::mult_gen_args.beta, Cuts::mult_gen_args.id, Cuts::mult_gen_args.minNumConstits);
+            float gen_mult_charged = matchedGenJetCalcCharged.getLambda(Cuts::mult_args);
             fill_lambda_rsp_hists(mult_charged, gen_mult_charged, weight,
               h_jet_multiplicity_charged_response, h_jet_multiplicity_charged_rel_response,
               jet_pt,
@@ -649,28 +649,28 @@ void QGAnalysisHists::fill(const Event & event){
               h_jet_puppiMultiplicity_charged_lowPt_response, h_jet_puppiMultiplicity_charged_midPt_response, h_jet_puppiMultiplicity_charged_highPt_response,
               h_jet_puppiMultiplicity_charged_lowPt_rel_response, h_jet_puppiMultiplicity_charged_midPt_rel_response, h_jet_puppiMultiplicity_charged_highPt_rel_response);
 
-            float gen_lha_charged = matchedGenJetCalcCharged.getLambda(Cuts::lha_gen_args.kappa, Cuts::lha_gen_args.beta, Cuts::lha_gen_args.id, Cuts::lha_gen_args.minNumConstits);
+            float gen_lha_charged = matchedGenJetCalcCharged.getLambda(Cuts::lha_args);
             fill_lambda_rsp_hists(lha_charged, gen_lha_charged, weight,
               h_jet_LHA_charged_response, h_jet_LHA_charged_rel_response,
               jet_pt,
               h_jet_LHA_charged_lowPt_response, h_jet_LHA_charged_midPt_response, h_jet_LHA_charged_highPt_response,
               h_jet_LHA_charged_lowPt_rel_response, h_jet_LHA_charged_midPt_rel_response, h_jet_LHA_charged_highPt_rel_response);
 
-            float gen_ptd_charged = matchedGenJetCalcCharged.getLambda(Cuts::pTD_gen_args.kappa, Cuts::pTD_gen_args.beta, Cuts::pTD_gen_args.id, Cuts::pTD_gen_args.minNumConstits);
+            float gen_ptd_charged = matchedGenJetCalcCharged.getLambda(Cuts::pTD_args);
             fill_lambda_rsp_hists(ptd_charged, gen_ptd_charged, weight,
               h_jet_pTD_charged_response, h_jet_pTD_charged_rel_response,
               jet_pt,
               h_jet_pTD_charged_lowPt_response, h_jet_pTD_charged_midPt_response, h_jet_pTD_charged_highPt_response,
               h_jet_pTD_charged_lowPt_rel_response, h_jet_pTD_charged_midPt_rel_response, h_jet_pTD_charged_highPt_rel_response);
 
-            float gen_width_charged = matchedGenJetCalcCharged.getLambda(Cuts::width_gen_args.kappa, Cuts::width_gen_args.beta, Cuts::width_gen_args.id, Cuts::width_gen_args.minNumConstits);
+            float gen_width_charged = matchedGenJetCalcCharged.getLambda(Cuts::width_args);
             fill_lambda_rsp_hists(width_charged, gen_width_charged, weight,
               h_jet_width_charged_response, h_jet_width_charged_rel_response,
               jet_pt,
               h_jet_width_charged_lowPt_response, h_jet_width_charged_midPt_response, h_jet_width_charged_highPt_response,
               h_jet_width_charged_lowPt_rel_response, h_jet_width_charged_midPt_rel_response, h_jet_width_charged_highPt_rel_response);
 
-            float gen_thrust_charged = matchedGenJetCalcCharged.getLambda(Cuts::thrust_gen_args.kappa, Cuts::thrust_gen_args.beta, Cuts::thrust_gen_args.id, Cuts::thrust_gen_args.minNumConstits);
+            float gen_thrust_charged = matchedGenJetCalcCharged.getLambda(Cuts::thrust_args);
             fill_lambda_rsp_hists(thrust_charged, gen_thrust_charged, weight,
               h_jet_thrust_charged_response, h_jet_thrust_charged_rel_response,
               jet_pt,
@@ -796,11 +796,11 @@ void QGAnalysisHists::fill(const Event & event){
       h_genjet_pt->Fill(genjet_pt, gen_weight);
       h_genjet_eta->Fill(thisjet.Rapidity(), gen_weight);
 
-      float gen_mult = genJetCalc.getLambda(Cuts::mult_gen_args.kappa, Cuts::mult_gen_args.beta, Cuts::mult_gen_args.id);
-      float gen_lha = genJetCalc.getLambda(Cuts::lha_gen_args.kappa, Cuts::lha_gen_args.beta, Cuts::lha_gen_args.id);
-      float gen_ptd = genJetCalc.getLambda(Cuts::pTD_gen_args.kappa, Cuts::pTD_gen_args.beta, Cuts::pTD_gen_args.id);
-      float gen_width = genJetCalc.getLambda(Cuts::width_gen_args.kappa, Cuts::width_gen_args.beta, Cuts::width_gen_args.id);
-      float gen_thrust = genJetCalc.getLambda(Cuts::thrust_gen_args.kappa, Cuts::thrust_gen_args.beta, Cuts::thrust_gen_args.id);
+      float gen_mult = genJetCalc.getLambda(Cuts::mult_args);
+      float gen_lha = genJetCalc.getLambda(Cuts::lha_args);
+      float gen_ptd = genJetCalc.getLambda(Cuts::pTD_args);
+      float gen_width = genJetCalc.getLambda(Cuts::width_args);
+      float gen_thrust = genJetCalc.getLambda(Cuts::thrust_args);
 
       h_genjet_multiplicity->Fill(gen_mult, gen_weight);
       h_genjet_LHA->Fill(gen_lha, gen_weight);

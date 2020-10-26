@@ -813,12 +813,17 @@ LambdaCalculator<GenParticle>::LambdaCalculator(std::vector<GenParticle> & const
 {}
 
 template<>
-double LambdaCalculator<PFParticle>::getLambda(float kappa, float beta, const PFId & constitId, uint minNumConstits) const
+double LambdaCalculator<PFParticle>::getLambda(LambdaArgs lambdaArgs) const
 {
   // special case if no constits
   if (constits_.size() == 0) {
     return -1.;
   }
+
+  float kappa = lambdaArgs.kappa;
+  float beta = lambdaArgs.beta;
+  ParticleId constitId = lambdaArgs.id;
+  uint minNumConstits = lambdaArgs.minNumConstits;
 
   // Special case if both 0 ie multiplicity
   // Do it this way to ensure puppi weights correctly accounted for
@@ -862,12 +867,17 @@ double LambdaCalculator<PFParticle>::getLambda(float kappa, float beta, const PF
 }
 
 template<>
-double LambdaCalculator<GenParticle>::getLambda(float kappa, float beta, const GenId & constitId, uint minNumConstits) const
+double LambdaCalculator<GenParticle>::getLambda(LambdaArgs lambdaArgs) const
 {
   // special case if no constits
   if (constits_.size() == 0) {
     return -1.;
   }
+
+  float kappa = lambdaArgs.kappa;
+  float beta = lambdaArgs.beta;
+  ParticleId constitId = lambdaArgs.id;
+  uint minNumConstits = lambdaArgs.minNumConstits;
 
   // Special case if both 0 ie multiplicity
   // Do it this way to save time
