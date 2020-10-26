@@ -833,7 +833,7 @@ namespace Binning {
     // 0.0, 10, 15, 20, 27, 50, 75, 100, 150 // target 0.5, cen+fwd
     // 0.0, 10, 15, 20, 30, 50, 75, 100, 150 // target 0.5, cen+fwd, AK axis. 30, 50, 75, 100 added by hand otherwise no granulairty
     // 0, 10, 15, 20, 30, 50, 75, 100, 150 // based on target 0.5, cen+fwd, but rounded to nearest multiple of 5. 30, 50, 75, 100 added by hand otherwise no granulairty, >= 2 constits
-    -0.5, 9.5, 15.5, 21.5, 29.5, 39.5, 59.5, 99.5 // based on target 0.5, cen+fwd, ensuring even interval between bins. values above 22 added by hand otherwise no granularity, >= 2 constits. upper limit set to 100 manually. subtract 0.5 as mostly integers
+    -0.5, 9.5, 15.5, 21.5, 29.5, 39.5, 59.5, 99.5, 149.5 // based on target 0.5, cen+fwd, ensuring even interval between bins. values above 22 added by hand otherwise no granularity, >= 2 constits. upper limit set to 100 manually. subtract 0.5 as mostly integers
   };
   const int nbins_puppiMultiplicity_gen(puppiMultiplicity_bin_edges_gen.size() - 1);
 
