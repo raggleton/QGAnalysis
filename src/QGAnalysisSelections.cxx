@@ -21,7 +21,7 @@ ZplusJetsSelection::ZplusJetsSelection(uhh2::Context & ctx,
                                        float z_pt_min,
                                        float z_jet_asym_max,
                                        const std::string & cutflow_hname):
-    hndlZ(ctx.get_handle<std::vector<Muon>>(zLabel_)),
+    zMuons_handle(ctx.get_handle<std::vector<Muon>>(zLabel_)),
     jet_pt_min_(jet_pt_min),
     jet_y_max_(jet_y_max),
     mu1_pt_(mu1_pt),
@@ -82,9 +82,9 @@ bool ZplusJetsSelection::passes(const Event & event){
     cutflow_raw->Fill(i);
     cutflow_weighted->Fill(i, event.weight);
 
-    if (!event.is_valid(hndlZ)) return false;
+    if (!event.is_valid(zMuons_handle)) return false;
 
-    auto & zMuons = event.get(hndlZ);
+    auto & zMuons = event.get(zMuons_handle);
     if (zMuons.size() < 2) return false;
     i++;
     cutflow_raw->Fill(i);

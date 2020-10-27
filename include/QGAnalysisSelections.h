@@ -34,7 +34,7 @@ public:
                        const std::string & cutflow_hname="_ZplusJets");
     virtual bool passes(const uhh2::Event & event) override;
 private:
-    uhh2::Event::Handle<std::vector<Muon>> hndlZ;
+    uhh2::Event::Handle<std::vector<Muon>> zMuons_handle;
     float jet_pt_min_, jet_y_max_, mu1_pt_, mu2_pt_, mZ_window_, dphi_jet_z_min_, second_jet_frac_max_, z_pt_min_, z_jet_asym_max_;
     TH1D * cutflow_raw, * cutflow_weighted; // owned by Context
 };

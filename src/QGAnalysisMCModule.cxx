@@ -67,6 +67,7 @@ private:
     std::unique_ptr<MCReweighting> mc_reweight;
     std::unique_ptr<TrackingEfficiency> tracking_eff;
     std::unique_ptr<JetCleaner> jet_pf_id;
+    std::unique_ptr<GenZFinder> genZFinder;
 
     std::unique_ptr<QGAnalysisJetLambda> jetLambdaCreatorPtSorted;
     std::unique_ptr<JetLambdaCopier> jetLambdaCopierForward, jetLambdaCopierCentral;
@@ -170,11 +171,12 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     isZPlusJets = (isSubstring(datasetVersion, "DYJetsToLL", true) || isSubstring(datasetVersion, "ZPJ", true));
     ctx.set("isZPlusJets", bool2string(isZPlusJets));
 
+    bool isZPlusJetsMuons = false;
     if (isZPlusJets) {
         const std::string & zLepton = ctx.get("ZLepton", "muon");
         isZPlusJetsMuons = (zLepton == "muon");
-        ctx.set("isZPlusJetsMuons", bool2string(isZPlusJetsMuons));
     }
+    ctx.set("isZPlusJetsMuons", bool2string(isZPlusJetsMuons));
 
     dataset = matchDatasetName(datasetVersion);
 
@@ -201,28 +203,35 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     cout << "jetRadius==0.8: " << (bool)(jetRadius == 0.8) << endl;
     cout << "useStatus23Flavour: " << useStatus23Flavour << endl;
 
+    std::string zLeptonLabel = isZPlusJets ? "zMuonCand" : "";  // turn off to not do Z/J overlap
 
     // FIXME: get everything from ctx not extra args
     common_setup.reset(new GeneralEventSetup(ctx));
     bool update4vec = false;
     tracking_eff.reset(new TrackingEfficiency(ctx, update4vec));
     bool doJetId = true; // if have tracking SF, need False - do it AFTER the tracking SF and not before - could have some promoted particles
-    float largeY = 5.; // dummy value
-    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, Cuts::reco_jet_pt_min, largeY, doJetId)); // set y large here, do y selection as part of dijet selection
+    float largeY = 5.; // set y large here, do y selection as part of dijet selection
+    recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, Cuts::reco_jet_pt_min, largeY, doJetId, zLeptonLabel));
 
     // another jet ID check after tracking SFs applied (basically constituent check)
     // jet_pf_id.reset(new JetCleaner(ctx, JetPFID(Cuts::RECO_JET_ID)));
 
     // Setup Gen objects
+    // Do Z first since we need leptons to veto jet
+    std::string genmuon_handle_name = "GoodGenMuons"; // set to empty to disable Z k-factor reweight in MCReweighting
+    std::string genZLabel("GenZ"), genZLeptonLabel("GenZLeptons");
+    if (isZPlusJets) {
+        genMuon_selector.reset(new GenMuonSelector(ctx, Cuts::gen_muon_pt_min, Cuts::muon_eta_max, genmuon_handle_name));
+        genMuons_handle = ctx.get_handle<std::vector<GenParticle>> (genmuon_handle_name);
+        genZFinder.reset(new GenZFinder(ctx, genmuon_handle_name, genZLabel, genZLeptonLabel));
+        zFinder.reset(new ZFinder(ctx, "muons", zLeptonLabel));
+    }
+
     std::string genjet_handle_name = "GoodGenJets";
-    genJet_selector.reset(new GenJetSelector(ctx, Cuts::gen_jet_pt_min, largeY, jetRadius, "genjets", genjet_handle_name, "genparticles")); // set y large here, do y selection as part of dijet selection
+    genJet_selector.reset(new GenJetSelector(ctx, Cuts::gen_jet_pt_min, largeY, jetRadius, "genjets", genjet_handle_name, genZLeptonLabel)); // set y large here, do y selection as part of dijet selection
     genJets_handle = ctx.get_handle< std::vector<GenJet> > (genjet_handle_name);
 
-    std::string genmuon_handle_name = "GoodGenMuons";
-    genMuon_selector.reset(new GenMuonSelector(ctx, Cuts::gen_muon_pt_min, Cuts::muon_eta_max, genmuon_handle_name));
-    genMuons_handle = ctx.get_handle< std::vector<GenParticle> > (genmuon_handle_name);
-
-    mc_reweight.reset(new MCReweighting(ctx, genjet_handle_name, genmuon_handle_name));
+    mc_reweight.reset(new MCReweighting(ctx, genjet_handle_name, isZPlusJets? genZLabel : ""));
 
     gen_weight_handle = ctx.get_handle<double>("gen_weight");
     pt_binning_reco_handle = ctx.get_handle<double>("pt_binning_reco_value"); // the value to use for reco pt bin e.g dijet average
@@ -339,34 +348,31 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         throw runtime_error("photonShift must be nominal, up, or down");
     }
 
-    std::string zLabel = "zMuonCand";
 
     // Note that Gen selections have basically same cuts as reco,
     // to avoid over-reliance on MC to extrapolate to wider gen phase space
     // A lot of variables are very well-measured anyway
 
     if (isZPlusJets) {
-        zFinder.reset(new ZFinder(ctx, "muons", zLabel));
-
         // Z+JETS selection
         float mu1_pt = Cuts::reco_muon_pt_min;
         float mu2_pt = Cuts::reco_muon_pt_min;
         float second_jet_frac_max_zpj = 1000.3;
-        zplusjets_sel.reset(            new ZplusJetsSelection(ctx, zLabel, Cuts::reco_jet_pt_min, Cuts::jet_y_max,mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, Cuts::z_asym_max, "ZPlusJetsSelCutFlow"));
+        zplusjets_sel.reset(            new ZplusJetsSelection(ctx, zLeptonLabel, Cuts::reco_jet_pt_min, Cuts::jet_y_max,mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, Cuts::z_asym_max, "ZPlusJetsSelCutFlow"));
         // just to plot cutflow only when passGen==true
-        zplusjets_sel_passGen.reset(    new ZplusJetsSelection(ctx, zLabel, Cuts::reco_jet_pt_min, Cuts::jet_y_max, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, Cuts::z_asym_max, "ZPlusJetsSelPassGenCutFlow"));
+        zplusjets_sel_passGen.reset(    new ZplusJetsSelection(ctx, zLeptonLabel, Cuts::reco_jet_pt_min, Cuts::jet_y_max, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, Cuts::z_asym_max, "ZPlusJetsSelPassGenCutFlow"));
 
         zplusjets_gen_sel.reset(        new ZplusJetsGenSelection(ctx, Cuts::gen_jet_pt_min, Cuts::jet_y_max, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, Cuts::z_asym_max,
-                                                          "ZPlusJetsGenSelCutFlow", genjet_handle_name, genmuon_handle_name));
+                                                                  "ZPlusJetsGenSelCutFlow", genjet_handle_name, genZLeptonLabel));
         // just to plot gen cutflow only when passReco==true
         zplusjets_gen_sel_passReco.reset(new ZplusJetsGenSelection(ctx, Cuts::gen_jet_pt_min, Cuts::jet_y_max, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, Cuts::z_asym_max,
-                                                                   "ZPlusJetsGenSelPassRecoCutFlow", genjet_handle_name, genmuon_handle_name));
+                                                                   "ZPlusJetsGenSelPassRecoCutFlow", genjet_handle_name, genZLeptonLabel));
 
         // Preselection for Z+J - only 2 muons to reco Z
         // dphi_jet_z_min = 0.;
         // second_jet_frac_max_zpj = 999.;
         // z_jet_asym_max = 1.;
-        // zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLabel, mu1_pt, mu2_pt, Cuts::mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max));
+        // zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLeptonLabel, mu1_pt, mu2_pt, Cuts::mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max));
 
     } else {
 
@@ -406,19 +412,19 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         // Z+JETS hists
         if (DO_KINEMATIC_HISTS) {
             zplusjets_gen_hists.reset(new QGAnalysisZPlusJetsGenHists(ctx, "ZPlusJets_gen"));
-            zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLabel));
-            zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLabel));
+            zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLeptonLabel));
+            zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLeptonLabel));
         }
 
         if (DO_FLAVOUR_HISTS) {
             // preselection hists, if jet is quark, or gluon
-            // zplusjets_hists_presel_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_q", zLabel));
-            // zplusjets_hists_presel_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_g", zLabel));
-            // zplusjets_hists_presel_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown", zLabel));
+            // zplusjets_hists_presel_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_q", zLeptonLabel));
+            // zplusjets_hists_presel_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_g", zLeptonLabel));
+            // zplusjets_hists_presel_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel_unknown", zLeptonLabel));
 
-            zplusjets_hists_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_q", zLabel));
-            zplusjets_hists_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_g", zLabel));
-            zplusjets_hists_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_unknown", zLabel));
+            zplusjets_hists_q.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_q", zLeptonLabel));
+            zplusjets_hists_g.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_g", zLeptonLabel));
+            zplusjets_hists_unknown.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_unknown", zLeptonLabel));
         }
 
         // Lambda variables, used for e.g. response, determine binning
@@ -638,6 +644,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     event.set(dijet_central_handle, std::vector<Jet>());
     event.set(dijet_gen_forward_handle, std::vector<GenJet>());
     event.set(dijet_gen_central_handle, std::vector<GenJet>());
+    event.set(dijet_gen_central_handle, std::vector<GenJet>());
 
     if (printout_this_event) cout << Color::BG_RED << "-- Event: " << event.event << " : " << event.luminosityBlock << " : " << event.run << Color::BG_DEFAULT << endl;
     // cout << "-- Event: " << event.event << endl;
@@ -668,6 +675,10 @@ bool QGAnalysisMCModule::process(Event & event) {
 
     // Common things
     // -------------------------------------------------------------------------
+    bool found_reco_z = false;
+    // process Z first since need to do jet/muon overlap
+    if (isZPlusJets) found_reco_z = zFinder->process(event);
+
     // Note that we only care about this for reco-specific bits,
     // not gen-specific (only false if fails MET filters)
     bool passCommonRecoSetup = common_setup->process(event);
@@ -678,10 +689,13 @@ bool QGAnalysisMCModule::process(Event & event) {
     if (printout_this_event) printElectrons(*event.electrons);
     if (printout_this_event) printJets(*event.jets, "Postcleaning");
 
-    // Get Gen muons
+    // Get Gen muons, Z
     // -------------------------------------------------------------------------
-    genMuon_selector->process(event);
-    if (printout_this_event) printGenParticles(event.get(genMuons_handle), "GenMuons", Color::FG_CYAN);
+    if (isZPlusJets) {
+        genMuon_selector->process(event);
+        if (printout_this_event) printGenParticles(event.get(genMuons_handle), "GenMuons", Color::FG_CYAN);
+        genZFinder->process(event);
+    }
 
     // Get good GenJets, store in event
     // -------------------------------------------------------------------------
@@ -777,8 +791,6 @@ bool QGAnalysisMCModule::process(Event & event) {
         // Do Z+Jet hists & selection
         pass_zpj_gen = zplusjets_gen_sel->passes(event);
         event.set(pass_zpj_gen_sel_handle, pass_zpj_gen);
-
-        bool found_reco_z = zFinder->process(event);
 
         if (pass_zpj_gen) {
             event.set(pt_binning_gen_handle, event.get(genJets_handle)[0].pt());

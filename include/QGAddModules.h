@@ -173,7 +173,7 @@ private:
  */
 class RecoJetSetup : public uhh2::AnalysisModule {
 public:
-  RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min, float jet_y_max, bool doJetId=true);
+  RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min, float jet_y_max, bool doJetId=true, const std::string & muonHandleName="muons");
   virtual bool process(uhh2::Event & event) override;
 private:
   std::unique_ptr<JetCleaner> jet_pf_id;
@@ -185,16 +185,28 @@ private:
 
 
 /**
- * Find generator dilepton invariant object - could be Z, or gamma
+ * find the Z->mumu
  */
-class GenZllFinder : public uhh2::AnalysisModule {
+class ZFinder : public uhh2::AnalysisModule {
 public:
-  GenZllFinder(uhh2::Context & ctx, bool onlyStatus23, const std::string & genZhandle="genZ", const std::string & genZLeptonhandle="genZleptons");
+  ZFinder(uhh2::Context & ctx, const std::string & inputLabel, const std::string & zLeptonLabel);
   virtual bool process(uhh2::Event & event) override;
 private:
-  bool onlyStatus23_;
-  uhh2::Event::Handle<GenParticle> gen_z_handle;
-  uhh2::Event::Handle<std::vector<GenParticle>> gen_z_leptons_handle;
+  uhh2::Event::Handle<std::vector<Muon>> input_handle, z_leptons_handle;
+};
+
+
+/**
+ * Find generator dilepton invariant object - could be Z, or gamma
+ */
+class GenZFinder : public uhh2::AnalysisModule {
+public:
+  GenZFinder(uhh2::Context & ctx, const std::string & inputLabel, const std::string & genZLabel="GenZ", const std::string & genZLeptonLabel="GenZLeptons");
+  virtual bool process(uhh2::Event & event) override;
+private:
+  uhh2::Event::Handle<std::vector<GenParticle>> input_handle;
+  uhh2::Event::Handle<GenParticle> z_handle;
+  uhh2::Event::Handle<std::vector<GenParticle>> z_leptons_handle;
 };
 
 
@@ -217,11 +229,11 @@ private:
  */
 class ZkFactorReweight : public uhh2::AnalysisModule {
 public:
-  ZkFactorReweight(uhh2::Context & ctx, const std::string & weightFilename_="", const std::string & genMuonName="");
+  ZkFactorReweight(uhh2::Context & ctx, const std::string & weightFilename_="", const std::string & genZLabel="");
   virtual bool process(uhh2::Event & event) override;
 private:
   uhh2::Event::Handle<double> z_weight_handle;
-  uhh2::Event::Handle<std::vector<GenParticle>> gen_muon_handle;
+  uhh2::Event::Handle<GenParticle> gen_z_handle;
   std::unique_ptr<ZllKFactor> zReweight;
 };
 
@@ -308,7 +320,7 @@ private:
  */
 class MCReweighting : public uhh2::AnalysisModule {
 public:
-  MCReweighting(uhh2::Context & ctx, const std::string & genjet_name="", const std::string & genmuon_name="");
+  MCReweighting(uhh2::Context & ctx, const std::string & genjet_name="", const std::string & genZ_name="");
   virtual bool process(uhh2::Event & event) override;
 private:
   Event::Handle<double> gen_weight_handle;
@@ -323,17 +335,6 @@ private:
   bool doMuons, is_DY;
 };
 
-
-/**
- * find the Z->mumu
- */
-class ZFinder : public uhh2::AnalysisModule {
-public:
-  ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std::string & outputLabel_);
-  virtual bool process(uhh2::Event & event) override;
-private:
-  uhh2::Event::Handle<std::vector<Muon>> hndlInput, hndlZ;
-};
 
 /**
  * reweight event based on jet pt

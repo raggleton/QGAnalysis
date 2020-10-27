@@ -123,7 +123,7 @@ bool GeneralEventSetup::process(uhh2::Event & event) {
 }
 
 
-RecoJetSetup::RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min, float jet_y_max, bool doJetID) {
+RecoJetSetup::RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone, float jet_radius, float jet_pt_min, float jet_y_max, bool doJetID, const std::string & muonHandleName) {
   bool is_mc = ctx.get("dataset_type") == "MC";
 
   if (doJetID) jet_pf_id.reset(new JetCleaner(ctx, JetPFID(Cuts::RECO_JET_ID)));
@@ -137,9 +137,11 @@ RecoJetSetup::RecoJetSetup(uhh2::Context & ctx, const std::string & pu_removal, 
   // note we cut on y not eta, since our jets can be massive
   jet_cleaner.reset(new JetCleaner(ctx, PtYCut(jet_pt_min, jet_y_max)));
 
-  jet_ele_cleaner.reset(new JetElectronOverlapRemoval(jet_radius));
+  // jet_ele_cleaner.reset(new JetElectronOverlapRemoval(ctx, jet_radius));
 
-  jet_mu_cleaner.reset(new JetMuonOverlapRemoval(jet_radius));
+  if (string2bool(ctx.get("isZPlusJetsMuons")) && (muonHandleName != "")) {
+    jet_mu_cleaner.reset(new JetMuonOverlapRemoval(ctx, jet_radius, muonHandleName));
+  }
 }
 
 bool RecoJetSetup::process(uhh2::Event & event) {
@@ -150,109 +152,107 @@ bool RecoJetSetup::process(uhh2::Event & event) {
 
   jet_cleaner->process(event);
 
-  jet_ele_cleaner->process(event);
+  // jet_ele_cleaner->process(event);
 
-  jet_mu_cleaner->process(event);
+  if (jet_mu_cleaner) jet_mu_cleaner->process(event);
 
   sort_by_pt(*event.jets);
 
   return true;
 }
 
-GenZllFinder::GenZllFinder(uhh2::Context & ctx, bool onlyStatus23, const std::string & genZhandle, const std::string & genZLeptonhandle):
-  onlyStatus23_(onlyStatus23),
-  gen_z_handle(ctx.get_handle<GenParticle>(genZhandle)),
-  gen_z_leptons_handle(ctx.get_handle<std::vector<GenParticle>>(genZLeptonhandle))
-{
-}
 
-bool GenZllFinder::process(uhh2::Event & event) {
-  bool foundFirstLepton = false;
-  GenParticle firstLepton, secondLepton;
-  for (const auto & itr : *event.genparticles) {
-    bool goodPDGID = (abs(itr.pdgId()) == PDGID::ELECTRON || abs(itr.pdgId()) == PDGID::MUON || abs(itr.pdgId()) == PDGID::TAU);
-    bool goodStatus = onlyStatus23_ ? itr.status() == 23 : true;
-    if (goodPDGID && goodStatus) {
-      if (!foundFirstLepton) {
-        foundFirstLepton = true;
-        firstLepton.set_pdgId(itr.pdgId());
-        firstLepton.set_v4(itr.v4());
-        firstLepton.set_status(itr.status());
-      } else if (itr.pdgId() == -1*firstLepton.pdgId()) {
-        secondLepton.set_pdgId(itr.pdgId());
-        secondLepton.set_v4(itr.v4());
-        secondLepton.set_status(itr.status());
-        break;
-      }
-    }
-  }
+ZFinder::ZFinder(uhh2::Context & ctx, const std::string & inputLabel, const std::string & zLeptonLabel):
+  input_handle(ctx.get_handle<vector<Muon>>(inputLabel)),
+  z_leptons_handle(ctx.get_handle<vector<Muon>>(zLeptonLabel))
+{}
 
-  if (firstLepton.pt() != 0 && secondLepton.pt() != 0) {
-    // int counter = 0;
-    // for (const auto & itr : *event.genparticles) {
-    //   counter++;
-    //   cout << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << " : " << itr.v4().px() << " : " << itr.v4().py() << " : " << itr.v4().pz() << endl;
-    //   if (counter == 100) break;
-    // }
-    // cout << " 1st lepton: " << firstLepton.pdgId() << " : " << firstLepton.status() << " : " << firstLepton.pt() << " : " << firstLepton.v4().px() << " : " << firstLepton.v4().py() << " : " << firstLepton.v4().pz() << endl;
-    // cout << " 2nd lepton: " << secondLepton.pdgId() << " : " << secondLepton.status() << " : " << secondLepton.pt() << " : " << secondLepton.v4().px() << " : " << secondLepton.v4().py() << " : " << secondLepton.v4().pz() << endl;
-    GenParticle genZ;
-    genZ.set_v4(firstLepton.v4() + secondLepton.v4());
-    genZ.set_pdgId(PDGID::Z); // in reality could be a photon
-    event.set(gen_z_handle, genZ);
-    std::vector<GenParticle> leptons = {firstLepton, secondLepton};
-    event.set(gen_z_leptons_handle, leptons);
+bool ZFinder::process(uhh2::Event & event) {
+  event.set(z_leptons_handle, std::vector<Muon>()); // set handle to empty vector if fails later
+
+  // Look for a reconstructed Z using inputs
+  auto inputs = event.get(input_handle);
+  if (inputs.size() < 2) return false;
+  // Do we also want to consider more than leading & subleading?
+  // Prob v.v.litle diff as not often > 2 leptons that pass selection
+  auto zCand = inputs[0].v4() + inputs[1].v4();
+  if ((fabs(zCand.M() - 90) < Cuts::mZ_window) && (inputs[0].charge() * inputs[1].charge() < 0)) {
+    std::vector<Muon> cands = {inputs[0], inputs[1]};
+    event.set(z_leptons_handle, cands);
     return true;
-  }
-
-  cout << "**** No Z event: ****" << endl;
-  int counter = 0;
-  for (const auto & itr : *event.genparticles) {
-    counter++;
-    cout << itr.pdgId() << " : " << itr.status() << " : " << itr.pt() << " : " << itr.v4().px() << " : " << itr.v4().py() << " : " << itr.v4().pz() << endl;
-    if (counter == 100) break;
   }
   return false;
 }
 
-ZkFactorReweight::ZkFactorReweight(uhh2::Context & ctx, const std::string & weightFilename_, const std::string & genmuon_name):
+
+GenZFinder::GenZFinder(uhh2::Context & ctx, const std::string & inputLabel, const std::string & genZLabel, const std::string & genZLeptonLabel):
+  input_handle(ctx.get_handle<std::vector<GenParticle>>(inputLabel)),
+  z_handle(ctx.get_handle<GenParticle>(genZLabel)),
+  z_leptons_handle(ctx.get_handle<std::vector<GenParticle>>(genZLeptonLabel))
+{}
+
+
+bool GenZFinder::process(uhh2::Event & event) {
+  event.set(z_handle, GenParticle()); // set handle to empty if fails later
+  event.set(z_leptons_handle, std::vector<GenParticle>()); // set handle to empty vector if fails later
+
+  // Look for a Z using inputs
+  auto inputs = event.get(input_handle);
+  if (inputs.size() < 2) return false;
+  // Do we also want to consider more than leading & subleading?
+  // Prob v.v.litle diff as not often > 2 leptons that pass selection
+  auto zCand = inputs[0].v4() + inputs[1].v4();
+  if ((fabs(zCand.M() - 90) < Cuts::mZ_window) && (inputs[0].charge() * inputs[1].charge() < 0)) {
+    std::vector<GenParticle> cands = {inputs[0], inputs[1]};
+    GenParticle genZ;
+    genZ.set_v4(zCand);
+    genZ.set_pdgId(PDGID::Z); // in reality could be a photon
+    event.set(z_handle, genZ);
+    event.set(z_leptons_handle, cands);
+    return true;
+  }
+  return false;
+}
+
+
+ZllKFactor::ZllKFactor(const std::string & weightFilename_)
+{
+  file.reset(TFile::Open(locate_file(weightFilename_).c_str()));
+  grNNLO.reset((TGraph*) file->Get("kNNLO"));
+}
+
+float ZllKFactor::getKFactor(float zPt) {
+  float factor = 1.;
+  if (zPt > grNNLO->GetXaxis()->GetXmin() && zPt < grNNLO->GetXaxis()->GetXmax()) {
+    factor = grNNLO->Eval(zPt);
+  } else if (zPt < grNNLO->GetXaxis()->GetXmin()) {
+    factor = grNNLO->Eval(grNNLO->GetXaxis()->GetXmin());
+  } else {
+    factor = grNNLO->Eval(grNNLO->GetXaxis()->GetXmax());
+  }
+  return factor;
+}
+
+
+ZkFactorReweight::ZkFactorReweight(uhh2::Context & ctx, const std::string & weightFilename_, const std::string & genZLabel):
   z_weight_handle(ctx.get_handle<double>("z_weight"))
 {
   if (weightFilename_ != "") {
     zReweight.reset(new ZllKFactor(weightFilename_));
   }
-  if (genmuon_name != "") {
-    gen_muon_handle = ctx.get_handle<vector<GenParticle>>(genmuon_name);
+  if (genZLabel != "") {
+    gen_z_handle = ctx.get_handle<GenParticle>(genZLabel);
   }
 }
 
 bool ZkFactorReweight::process(uhh2::Event & event) {
   if (zReweight) {
-    double realZPt = 0;
     // the k factor uses the Z as reconstructed by muons
     // TODO: dress them with photons?
-    vector<GenParticle> genMuons = event.get(gen_muon_handle);
-    if (genMuons.size() >= 2) {
-      const auto & muon1 = genMuons.at(0);
-      const auto & muon2 = genMuons.at(1);
-      // cout << "muon1 mum1: " << muon1.mother1() << endl;
-      // cout << "muon1 mum2: " << muon1.mother2() << endl;
-      // cout << "muon2 mum1: " << muon2.mother1() << endl;
-      // cout << "muon2 mum2: " << muon2.mother2() << endl;
-      // TODO: some way to check if these are actually from the Z?
-      const auto z_cand = muon1.v4() + muon2.v4();
-      float z_pt = z_cand.pt();
-      float z_mass = z_cand.M();
-      // cout << "Z pt: " << z_pt << " Z mass: " << z_mass << endl;
-      // z_mass and z_pt cuts are as per in paper, to avoid phase space with
-      // large Sudakov contributions
-      if (muon1.charge() != muon2.charge() && z_mass > 30 && z_pt > 30) {
-        realZPt = z_pt;
-      }
-    }
-
+    GenParticle genZ = event.get(gen_z_handle);
+    double zPt = genZ.pt();
     double zWeight = 1;
-    if (realZPt > 0) zWeight = zReweight->getKFactor(realZPt);
+    if (zPt > 0) zWeight = zReweight->getKFactor(zPt);
     event.set(z_weight_handle, zWeight);
     // cout << "z k factor: " << zWeight << endl;
     event.weight *= zWeight;
@@ -596,7 +596,7 @@ bool PDFReweight::process(uhh2::Event & event) {
 }
 
 
-MCReweighting::MCReweighting(uhh2::Context & ctx, const std::string & genjet_name, const std::string & genmuon_name) {
+MCReweighting::MCReweighting(uhh2::Context & ctx, const std::string & genjet_name, const std::string & genZ_name) {
   gen_weight_handle = ctx.get_handle<double>("gen_weight");
 
   lumi_weighter.reset(new MCLumiWeight(ctx));
@@ -626,7 +626,7 @@ MCReweighting::MCReweighting(uhh2::Context & ctx, const std::string & genjet_nam
     muon_trk_reweighter.reset(new MCMuonTrkScaleFactor(ctx, trk_path_name, 100));
   }
 
-  if (is_DY) z_reweighter.reset(new ZkFactorReweight(ctx, ctx.get("z_reweight_file", ""), genmuon_name));
+  if (is_DY) z_reweighter.reset(new ZkFactorReweight(ctx, ctx.get("z_reweight_file", ""), genZ_name));
 
   std::string pt_filename = ctx.get("pt_reweight_file", "");
   if (doMuons && ! is_DY) {
@@ -689,28 +689,6 @@ float get_jet_radius(const std::string & jet_cone) {
 }
 
 
-ZFinder::ZFinder(uhh2::Context & ctx, const std::string & inputLabel_, const std::string & outputLabel_):
-  // Would like more generic FlavourParticle handle, but may need to do additional declare_event_input?
-  hndlInput(ctx.get_handle<vector<Muon>>(inputLabel_)),
-  hndlZ(ctx.get_handle<vector<Muon>>(outputLabel_))
-{}
-
-bool ZFinder::process(uhh2::Event & event) {
-  // Reweight to higher order cross-section using gen level Z pT
-  // Now look for a reconstructed Z using inputs
-  auto inputs = event.get(hndlInput);
-  if (inputs.size() < 2) return false;
-  // Do we also want to consider more than leading & subleading?
-  // Prob v.v.litle diff as not often > 2 leptons that pass selection
-  auto zCand = inputs[0].v4() + inputs[1].v4();
-  if ((fabs(zCand.M() - 90) < Cuts::mZ_window) && (inputs[0].charge() * inputs[1].charge() < 0)) {
-    std::vector<Muon> cands = {inputs[0], inputs[1]};
-    event.set(hndlZ, cands);
-    return true;
-  }
-  return false;
-}
-
 
 float calcGenHT(const std::vector<GenParticle> & genparticles) {
   // Find scalar sum of all matrix-element partons
@@ -742,25 +720,6 @@ float calcJetKt(const std::vector<GenParticle> & genparticles) {
   }
   return highestPt;
 }
-
-ZllKFactor::ZllKFactor(const std::string & weightFilename_)
-{
-  file.reset(TFile::Open(locate_file(weightFilename_).c_str()));
-  grNNLO.reset((TGraph*) file->Get("kNNLO"));
-}
-
-float ZllKFactor::getKFactor(float zPt) {
-  float factor = 1.;
-  if (zPt > grNNLO->GetXaxis()->GetXmin() && zPt < grNNLO->GetXaxis()->GetXmax()) {
-    factor = grNNLO->Eval(zPt);
-  } else if (zPt < grNNLO->GetXaxis()->GetXmin()) {
-    factor = grNNLO->Eval(grNNLO->GetXaxis()->GetXmin());
-  } else {
-    factor = grNNLO->Eval(grNNLO->GetXaxis()->GetXmax());
-  }
-  return factor;
-}
-
 
 
 // PtReweight::PtReweight(uhh2::Context & ctx, const std::string & selection, const std::string & weightFilename):
