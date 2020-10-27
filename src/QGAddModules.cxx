@@ -1597,24 +1597,26 @@ GenJetSelector::GenJetSelector(uhh2::Context & ctx,
 
 bool GenJetSelector::process(uhh2::Event & event) {
   std::vector<GenJet> genjets_out;
-  const std::vector<GenParticle> & genparticles = event.get(genparticle_handle_);
   for (const auto jet : event.get(genjet_handle_)) {
     bool found = (std::find(genjets_out.begin(), genjets_out.end(), jet) != genjets_out.end()); // avoid duplicate genjets
     // avoid jets that are just leptons + a few spurious gluons,
     // i.e. look for overlapping ones, and check their pT fraction
     bool leptonOverlap = false;
-    for (const auto & gp : genparticles) {
-      bool isLepton = (gp.status() == 1 && ((abs(gp.pdgId()) == PDGID::MUON) || (abs(gp.pdgId()) == PDGID::ELECTRON) || (abs(gp.pdgId()) == PDGID::TAU)));
-      if (!isLepton) continue;
-      bool thisLeptonOverlap = isLepton && (deltaRUsingY(gp.v4(), jet.v4()) < lepton_overlap_dr_) && ((gp.pt() / jet.pt()) > 0.5);
-      leptonOverlap = thisLeptonOverlap;
-      // if (leptonOverlap) {
-      //   cout << "Lepton overlap: jet: " << jet.pt() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
-      //   cout << "Lepton overlap: lepton: " << gp.pt() << " : " << gp.Rapidity() << " : " << gp.phi() << " : " << gp.pdgId() << " : " << gp.status() << endl;
-      // }
-      if (leptonOverlap) break;
+
+    if (event.is_valid(genparticle_handle_)) {
+      for (const auto & gp : event.get(genparticle_handle_)) {
+        bool isLepton = (gp.status() == 1 && ((abs(gp.pdgId()) == PDGID::MUON) || (abs(gp.pdgId()) == PDGID::ELECTRON) || (abs(gp.pdgId()) == PDGID::TAU)));
+        if (!isLepton) continue;
+        bool thisLeptonOverlap = isLepton && (deltaRUsingY(gp.v4(), jet.v4()) < lepton_overlap_dr_);
+        leptonOverlap = thisLeptonOverlap;
+        // if (leptonOverlap) {
+        //   cout << "Lepton overlap: jet: " << jet.pt() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
+        //   cout << "Lepton overlap: lepton: " << gp.pt() << " : " << gp.Rapidity() << " : " << gp.phi() << " : " << gp.pdgId() << " : " << gp.status() << endl;
+        // }
+        if (leptonOverlap) break;
+      }
+      if (leptonOverlap) continue;
     }
-    if (leptonOverlap) continue;
 
     // check constituents
     // occasionally get one with 0 pt so skip those
