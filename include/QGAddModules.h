@@ -367,8 +367,6 @@ private:
 template <class T> class LambdaCalculator {
 public:
   LambdaCalculator(std::vector<T> & constits, float jet_radius, const LorentzVector & jet_vector, const LorentzVector & wta_vector, bool usePuppiWeight);
-  // Calculate lambda from constituents, with optional ID applied to filter constituents going into calculation
-  // double getLambda(float kappa, float beta, const std::function<bool (const T &)> & constitId = PtYCut(0, 10.), uint minNumConstits = 0) const;
   double getLambda(LambdaArgs lambdaArgs) const;
   const std::vector<T> & constits() const { return constits_; }
 private:

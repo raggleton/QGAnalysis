@@ -820,7 +820,8 @@ double LambdaCalculator<PFParticle>::getLambda(LambdaArgs lambdaArgs) const
     ptSum += thisPt;
     numConstits++;
   }
-  if (!(numConstits >= minNumConstits)) return -1;
+  if (numConstits == 1) return 0; // special case if 1 constituent: must return 0 to cancel divergences for thoerists
+  else if (!(numConstits >= minNumConstits)) return -1;
   result = numerator / (pow(ptSum, kappa) * pow(jetRadius_, beta));
   return result;
 }
@@ -866,7 +867,8 @@ double LambdaCalculator<GenParticle>::getLambda(LambdaArgs lambdaArgs) const
     ptSum += thisPt;
     numConstits++;
   }
-  if (!(numConstits >= minNumConstits)) return -1;
+  if (numConstits == 1) return 0; // special case if 1 constituent: must return 0 to cancel divergences for thoerists
+  else if (!(numConstits >= minNumConstits)) return -1;
   result = numerator / (pow(ptSum, kappa) * pow(jetRadius_, beta));
   return result;
 }

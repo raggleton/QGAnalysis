@@ -412,11 +412,9 @@ void QGAnalysisHists::fill(const Event & event){
       const LambdaCalculator<PFParticle> & recoJetCalc = jetLambdas.at(i).getLambdaCalculator(false, doGroomed_);
       const LambdaCalculator<PFParticle> & recoJetCalcCharged = jetLambdas.at(i).getLambdaCalculator(true, doGroomed_);
 
-      // To account for Lambda Calculators with 1 constituent from charged-only or grooming,
-      // (which isn't really a jet) we test per jet, and treat it otherwise as a fail
-      // TODO: should this be done outside?
-      bool thisPassReco = (passReco && recoJetCalc.constits().size() > 1);
-      bool thisPassRecoCharged = (passReco && recoJetCalcCharged.constits().size() > 1);
+      // FIXME unify with UnfoldHists
+      bool thisPassReco = passReco;
+      bool thisPassRecoCharged = passReco;
       if (!thisPassReco && !thisPassRecoCharged) continue;
 
       float jet_pt = thisjet.pt();
@@ -581,8 +579,8 @@ void QGAnalysisHists::fill(const Event & event){
           const LambdaCalculator<GenParticle> & matchedGenJetCalc = genjetLambdas->at(thisInd).getLambdaCalculator(false, doGroomed_);
           const LambdaCalculator<GenParticle> & matchedGenJetCalcCharged = genjetLambdas->at(thisInd).getLambdaCalculator(true, doGroomed_);
 
-          bool thisPassGen = passGen && (matchedGenJetCalc.constits().size() > 1);
-          bool thisPassGenCharged = passGen && (matchedGenJetCalcCharged.constits().size() > 1);
+          bool thisPassGen = passGen;
+          bool thisPassGenCharged = passGen;
 
           genjet_pt = genjet.pt();
           genjet_flav = (useStatus23Flavour_) ? get_jet_flavour(genjet, event.genparticles, jetRadius/2., true) : genjet.partonFlavour();
@@ -838,7 +836,7 @@ void QGAnalysisHists::fill_lambda_rsp_hists(float reco_val, float gen_val, float
                                             float jet_pt,
                                             TH2F * response_lowPt, TH2F * response_midPt, TH2F * response_highPt,
                                             TH2F * rel_response_lowPt, TH2F * rel_response_midPt, TH2F * rel_response_highPt) {
-  float rsp = reco_val / gen_val; // TODO handle infs
+  float rsp = (gen_val != 0) ? reco_val / gen_val : 999999; // TODO handle infs
   response->Fill(gen_val, reco_val, weight);
   rel_response->Fill(gen_val, rsp, weight);
   if (response_lowPt != nullptr && response_midPt != nullptr && response_highPt != nullptr) {
