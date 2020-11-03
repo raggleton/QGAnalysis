@@ -638,14 +638,18 @@ LorentzVector genjet_constit_4vec(const GenJet & jet, const std::vector<GenParti
  */
 class GenJetClusterer : public uhh2::AnalysisModule {
 public:
-  GenJetClusterer(uhh2::Context & ctx, const std::string & genjet_coll_name, float radius, const std::string & genparticles_coll_name="genparticles");
+  GenJetClusterer(uhh2::Context & ctx,
+                  const std::string & genjet_coll_name, // output collection name
+                  float radius,
+                  const std::string & genparticles_coll_name="genparticles",
+                  const std::string & genparticles_exclude_coll_name=""); // name of collection to veto particles from, leave as "" to disable this
   virtual bool process(uhh2::Event & event) override;
   fastjet::PseudoJet convert_uhh_genparticle_to_pseudojet(const GenParticle & particle);
   GenJet convert_pseudojet_to_uhh_genjet(const fastjet::PseudoJet & jet);
   inline bool floatMatch(float a, float b) { return (fabs(a-b) < (1E-6 * std::max(a, b))); }
 private:
   uhh2::Event::Handle<std::vector<GenJet>> genjet_handle_;
-  uhh2::Event::Handle<std::vector<GenParticle>> genparticle_handle_;
+  uhh2::Event::Handle<std::vector<GenParticle>> genparticle_handle_, genparticle_exclude_handle_;
   fastjet::JetDefinition jet_def_;
   GenParticleId gpId_;
 };
@@ -655,25 +659,20 @@ private:
 /**
  * Class to do cuts on GenJets, and other selection criteria
  *
- * Can optionally veto jets that overlap with a gen lepton (taken from genparticles_coll_name)
  */
 class GenJetSelector : public uhh2::AnalysisModule {
 public:
   explicit GenJetSelector(uhh2::Context & ctx,
                           float pt_min,
                           float y_max,
-                          float lepton_overlap_dr,
                           const std::string & genjet_coll_name="genjets", // input collection to filter
-                          const std::string & out_genjet_coll_name="GoodGenJets", // output collection name
-                          const std::string & genparticles_coll_name="genparticles");
+                          const std::string & out_genjet_coll_name="GoodGenJets"); // output collection name
   virtual bool process(uhh2::Event & event) override;
   std::vector<GenParticle> get_jet_genparticles(const GenJet & genjet, uhh2::Event & event);
 private:
   float jet_pt_min_;
   float jet_y_max_;
-  float lepton_overlap_dr_;
   uhh2::Event::Handle<std::vector<GenJet>> genjet_handle_, out_genjet_handle_;
-  uhh2::Event::Handle<std::vector<GenParticle>> genparticle_handle_;
 };
 
 

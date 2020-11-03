@@ -1476,11 +1476,18 @@ LorentzVector genjet_constit_4vec(const GenJet & jet, const std::vector<GenParti
 }
 
 
-GenJetClusterer::GenJetClusterer(uhh2::Context & ctx, const std::string & genjet_coll_name, float radius, const std::string & genparticles_coll_name):
+GenJetClusterer::GenJetClusterer(uhh2::Context & ctx,
+                                 const std::string & genjet_coll_name,
+                                 float radius,
+                                 const std::string & genparticles_coll_name,
+                                 const std::string & genparticles_exclude_coll_name):
   genjet_handle_(ctx.get_handle<std::vector<GenJet>>(genjet_coll_name)),
   genparticle_handle_(ctx.get_handle<std::vector<GenParticle>>(genparticles_coll_name)),
   jet_def_(antikt_algorithm, radius)
 {
+  if (genparticles_exclude_coll_name != "") {
+    genparticle_exclude_handle_ = ctx.get_handle<std::vector<GenParticle>>(genparticles_exclude_coll_name);
+  }
   gpId_ = AndId<GenParticle>(NoNeutrinoCut(), FinalStateCut());
 }
 
@@ -1503,6 +1510,10 @@ GenJet GenJetClusterer::convert_pseudojet_to_uhh_genjet(const PseudoJet & jet) {
 bool GenJetClusterer::process(uhh2::Event & event) {
   // Get GenParticles, convert to Pseudojets, ready for clustering
   vector<GenParticle> gps = event.get(genparticle_handle_);
+  vector<GenParticle> * gps_reject = nullptr;
+  if (event.is_valid(genparticle_exclude_handle_)) {
+    gps_reject = & event.get(genparticle_exclude_handle_);
+  }
 
   vector<PseudoJet> pjs;
   int gpCounter = -1;
@@ -1510,6 +1521,13 @@ bool GenJetClusterer::process(uhh2::Event & event) {
     gpCounter++;
     // Keep status = 1, no neutrinos
     if (!gpId_(gp, event)) continue;
+    // Reject any veto particles
+    if (gps_reject && gps_reject->size() > 0) {
+      if (std::find(gps_reject->begin(), gps_reject->end(), gp) != gps_reject->end()) {
+        // cout << "Found my reject " << gp.pt() << " : " << gp.eta() << " : " << gp.status() << " : " << gp.pdgId() << endl;
+        continue;
+      }
+    }
     PseudoJet pj = convert_uhh_genparticle_to_pseudojet(gp);
     pj.set_user_index(gpCounter); // keep link to original GP
     // ignore duplicates - bug in how I stored genparticles originally
@@ -1544,48 +1562,24 @@ bool GenJetClusterer::process(uhh2::Event & event) {
 GenJetSelector::GenJetSelector(uhh2::Context & ctx,
                                float pt_min,
                                float y_max,
-                               float lepton_overlap_dr,
                                const std::string & genjet_coll_name,
-                               const std::string & output_genjet_coll_name,
-                               const std::string & genparticles_coll_name):
+                               const std::string & output_genjet_coll_name):
   jet_pt_min_(pt_min),
   jet_y_max_(y_max),
-  lepton_overlap_dr_(lepton_overlap_dr),
   genjet_handle_(ctx.get_handle<std::vector<GenJet>>(genjet_coll_name)),
-  out_genjet_handle_(ctx.get_handle<std::vector<GenJet>>(output_genjet_coll_name)),
-  genparticle_handle_(ctx.get_handle<std::vector<GenParticle>>(genparticles_coll_name))
+  out_genjet_handle_(ctx.get_handle<std::vector<GenJet>>(output_genjet_coll_name))
 {}
 
 bool GenJetSelector::process(uhh2::Event & event) {
   std::vector<GenJet> genjets_out;
   for (const auto jet : event.get(genjet_handle_)) {
-    bool found = (std::find(genjets_out.begin(), genjets_out.end(), jet) != genjets_out.end()); // avoid duplicate genjets
-    // avoid jets that are just leptons + a few spurious gluons,
-    // i.e. look for overlapping ones, and check their pT fraction
-    bool leptonOverlap = false;
-
-    if (event.is_valid(genparticle_handle_)) {
-      for (const auto & gp : event.get(genparticle_handle_)) {
-        bool isLepton = (gp.status() == 1 && ((abs(gp.pdgId()) == PDGID::MUON) || (abs(gp.pdgId()) == PDGID::ELECTRON) || (abs(gp.pdgId()) == PDGID::TAU)));
-        if (!isLepton) continue;
-        bool thisLeptonOverlap = isLepton && (deltaRUsingY(gp.v4(), jet.v4()) < lepton_overlap_dr_);
-        leptonOverlap = thisLeptonOverlap;
-        // if (leptonOverlap) {
-        //   cout << "Lepton overlap: jet: " << jet.pt() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
-        //   cout << "Lepton overlap: lepton: " << gp.pt() << " : " << gp.Rapidity() << " : " << gp.phi() << " : " << gp.pdgId() << " : " << gp.status() << endl;
-        // }
-        if (leptonOverlap) break;
-      }
-      if (leptonOverlap) continue;
-    }
-
     // check constituents
     // occasionally get one with 0 pt so skip those
     // Get constituents
-    std::vector<GenParticle> constits = get_jet_genparticles(jet, event);
-    clean_collection<GenParticle>(constits, event, PtEtaCut(1E-8, 10.)); // basic cut to remove weird 0 pt constits
+    // std::vector<GenParticle> constits = get_jet_genparticles(jet, event);
+    // clean_collection<GenParticle>(constits, event, PtEtaCut(1E-8, 10.)); // basic cut to remove weird 0 pt constits
 
-    if ((jet.pt() > jet_pt_min_) && (fabs(jet.Rapidity()) < jet_y_max_) && !found && !leptonOverlap && (constits.size()>1)) {
+    if ((jet.pt() > jet_pt_min_) && (fabs(jet.Rapidity()) < jet_y_max_)){ // && (constits.size()>1)) {
       genjets_out.push_back(jet);
     }
   }

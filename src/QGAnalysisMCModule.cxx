@@ -62,6 +62,7 @@ public:
 private:
     std::unique_ptr<GeneralEventSetup> common_setup;
     std::unique_ptr<RecoJetSetup> recojet_setup;
+    std::unique_ptr<GenJetClusterer> genJet_noZ_clusterer;
     std::unique_ptr<GenJetSelector> genJet_selector;
     std::unique_ptr<GenMuonSelector> genMuon_selector;
     std::unique_ptr<MCReweighting> mc_reweight;
@@ -227,9 +228,16 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         zFinder.reset(new ZFinder(ctx, "muons", zLeptonLabel));
     }
 
+    // Recluster genjets, eliminating Z muons from input particles
+    std::string genjet_noMu_handle_name = "GenJetsNoMu";
     std::string genjet_handle_name = "GoodGenJets";
-    genJet_selector.reset(new GenJetSelector(ctx, Cuts::gen_jet_pt_min, largeY, jetRadius, "genjets", genjet_handle_name, genZLeptonLabel)); // set y large here, do y selection as part of dijet selection
-    genJets_handle = ctx.get_handle< std::vector<GenJet> > (genjet_handle_name);
+    std::string genjet_input_handle_name = "genjets";
+    if (isZPlusJets) {
+        genJet_noZ_clusterer.reset(new GenJetClusterer(ctx, genjet_noMu_handle_name, jetRadius, "genparticles", genZLeptonLabel));
+        genjet_input_handle_name = genjet_noMu_handle_name;
+    }
+    genJet_selector.reset(new GenJetSelector(ctx, Cuts::gen_jet_pt_min, largeY, genjet_input_handle_name, genjet_handle_name)); // set y large here, do y selection as part of dijet selection
+    genJets_handle = ctx.get_handle<std::vector<GenJet>>(genjet_handle_name);
 
     mc_reweight.reset(new MCReweighting(ctx, genjet_handle_name, isZPlusJets? genZLabel : ""));
 
@@ -700,6 +708,7 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Get good GenJets, store in event
     // -------------------------------------------------------------------------
     if (printout_this_event) printGenJets(*event.genjets, "Precleaning");
+    if (isZPlusJets) genJet_noZ_clusterer->process(event);
     genJet_selector->process(event);
     // Need these as loosest possible requirement to run reco- or gen-specific bits
     bool hasGenJets = ngenjet_good_sel->passes(event);
