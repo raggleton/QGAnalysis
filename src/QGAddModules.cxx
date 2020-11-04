@@ -1372,11 +1372,20 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
 
 std::vector<GenParticle> QGAnalysisGenJetLambda::get_jet_genparticles(const GenJet & genjet, uhh2::Event & event) {
   std::vector<GenParticle> * genparticles = event.genparticles;
-  std::vector<GenParticle> gp;
+  std::vector<GenParticle> gps;
+  bool firstTime = false;
   for (const uint i : genjet.genparticles_indices()) {
-    gp.push_back(genparticles->at(i)); // TODO store copy incase we shift it?
+    auto gp = genparticles->at(i);
+    if (gp.pt() <  1E-7) {
+      if (!firstTime) {
+        cout << "Low pT GP in this GenJet: " << genjet.pt() << " : " << genjet.Rapidity() << " : " << genjet.phi() << " : " << genjet.genparticles_indices().size() << " : " << genjet.partonFlavour() << endl;
+        firstTime = true;
+      }
+      cout << "Low pT GP: " << gp.pt() << " : " << gp.Rapidity() << " : " << gp.phi() << " : " << gp.status() << " : " << gp.pdgId() << endl;
+    }
+    gps.push_back(genparticles->at(i)); // TODO store copy incase we shift it?
   }
-  return gp;
+  return gps;
 }
 
 
