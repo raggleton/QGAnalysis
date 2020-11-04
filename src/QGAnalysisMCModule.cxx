@@ -19,6 +19,7 @@
 
 #include "UHH2/QGAnalysis/include/QGAnalysisSelections.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisHists.h"
+#include "UHH2/QGAnalysis/include/QGAnalysisGenHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisUnfoldHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisZPlusJetsHists.h"
 #include "UHH2/QGAnalysis/include/QGAnalysisZPlusJetsGenHists.h"
@@ -95,6 +96,7 @@ private:
     std::unique_ptr<Hists> zplusjets_hists_presel_q, zplusjets_hists_presel_g, zplusjets_hists_presel_unknown;
     std::unique_ptr<Hists> zplusjets_hists_q, zplusjets_hists_g, zplusjets_hists_unknown;
     std::unique_ptr<Hists> zplusjets_qg_hists, zplusjets_qg_hists_groomed;
+    std::unique_ptr<Hists> zplusjets_qg_genhists, zplusjets_qg_genhists_groomed;
     std::unique_ptr<Hists> zplusjets_qg_unfold_hists, zplusjets_qg_unfold_hists_groomed;
 
     std::unique_ptr<Hists> dijet_gen_hists;
@@ -103,6 +105,7 @@ private:
     std::unique_ptr<Hists> dijet_hists_eta_ordered_gg, dijet_hists_eta_ordered_qg, dijet_hists_eta_ordered_gq, dijet_hists_eta_ordered_qq;
     std::unique_ptr<Hists> dijet_hists_presel_q_unknown, dijet_hists_presel_g_unknown, dijet_hists_presel_unknown_unknown, dijet_hists_presel_unknown_q, dijet_hists_presel_unknown_g;
     std::unique_ptr<Hists> dijet_qg_hists, dijet_qg_hists_tighter, dijet_qg_hists_central_tighter, dijet_qg_hists_forward_tighter, dijet_qg_hists_central_tighter_groomed, dijet_qg_hists_forward_tighter_groomed;
+    std::unique_ptr<Hists> dijet_qg_genhists, dijet_qg_genhists_central, dijet_qg_genhists_forward, dijet_qg_genhists_central_groomed, dijet_qg_genhists_forward_groomed;
     std::unique_ptr<Hists> dijet_qg_unfold_hists_central_tighter, dijet_qg_unfold_hists_forward_tighter;
     std::unique_ptr<Hists> dijet_qg_unfold_hists_central_tighter_groomed, dijet_qg_unfold_hists_forward_tighter_groomed;
 
@@ -446,6 +449,14 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
                                                                  NJETS_ZPJ, true, useStatus23Flavour, zpj_sel,
                                                                  pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
                                                                  reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+            zplusjets_qg_genhists.reset(new QGAnalysisGenHists(ctx, "ZPlusJets_QG_gen",
+                                                               NJETS_ZPJ, false, useStatus23Flavour, zpj_sel,
+                                                               pass_zpj_gen_sel_handle_name,
+                                                               gen_jetlambda_handle_name));
+            zplusjets_qg_genhists_groomed.reset(new QGAnalysisGenHists(ctx, "ZPlusJets_QG_gen_groomed",
+                                                                       NJETS_ZPJ, true, useStatus23Flavour, zpj_sel,
+                                                                       pass_zpj_gen_sel_handle_name,
+                                                                       gen_jetlambda_handle_name));
         }
 
         // With special binning for unfolding
@@ -539,6 +550,28 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
                                                                              1, true, useStatus23Flavour, dj_sel,
                                                                              pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
                                                                              reco_jetlambda_forward_handle_name, gen_jetlambda_forward_handle_name));
+
+            dijet_qg_genhists.reset(new QGAnalysisGenHists(ctx, "Dijet_QG_gen",
+                                                           NJETS_DIJET, false, useStatus23Flavour, dj_sel,
+                                                           pass_dj_gen_sel_handle_name,
+                                                           gen_jetlambda_handle_name));
+            dijet_qg_genhists_central.reset(new QGAnalysisGenHists(ctx, "Dijet_QG_gen_central",
+                                                                   1, false, useStatus23Flavour, dj_sel,
+                                                                   pass_dj_gen_sel_handle_name,
+                                                                   gen_jetlambda_central_handle_name));
+            dijet_qg_genhists_forward.reset(new QGAnalysisGenHists(ctx, "Dijet_QG_gen_forward",
+                                                                   1, false, useStatus23Flavour, dj_sel,
+                                                                   pass_dj_gen_sel_handle_name,
+                                                                   gen_jetlambda_forward_handle_name));
+
+            dijet_qg_genhists_central_groomed.reset(new QGAnalysisGenHists(ctx, "Dijet_QG_gen_central_groomed",
+                                                                           1, true, useStatus23Flavour, dj_sel,
+                                                                           pass_dj_gen_sel_handle_name,
+                                                                           gen_jetlambda_central_handle_name));
+            dijet_qg_genhists_forward_groomed.reset(new QGAnalysisGenHists(ctx, "Dijet_QG_gen_forward_groomed",
+                                                                           1, true, useStatus23Flavour, dj_sel,
+                                                                           pass_dj_gen_sel_handle_name,
+                                                                           gen_jetlambda_forward_handle_name));
         }
 
         if (DO_UNFOLD_HISTS) {
@@ -805,6 +838,10 @@ bool QGAnalysisMCModule::process(Event & event) {
             event.set(pt_binning_gen_handle, event.get(genJets_handle)[0].pt());
             zplusjets_sel_passGen->passes(event); // just to plot cutflow, need the if since it uses handle internally
             if (DO_KINEMATIC_HISTS) zplusjets_gen_hists->fill(event);
+            if (DO_LAMBDA_HISTS) {
+                zplusjets_qg_genhists->fill(event);
+                zplusjets_qg_genhists_groomed->fill(event);
+            }
         }
 
         if (hasRecoJets) {
@@ -943,6 +980,16 @@ bool QGAnalysisMCModule::process(Event & event) {
 
             genjetLambdaCopierForward->process(event);
             genjetLambdaCopierCentral->process(event);
+        }
+
+        if (pass_dj_gen) {
+            if (DO_LAMBDA_HISTS) {
+                dijet_qg_genhists->fill(event);
+                dijet_qg_genhists_central->fill(event);
+                dijet_qg_genhists_forward->fill(event);
+                dijet_qg_genhists_central_groomed->fill(event);
+                dijet_qg_genhists_forward_groomed->fill(event);
+            }
         }
 
         if (hasRecoJets) {

@@ -25,7 +25,6 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   rsp_lowPt_cut_(30.),
   rsp_midPt_cut_(100.),
   rsp_highPt_cut_(250.),
-  recoDauPtCut_(1.),
   useStatus23Flavour_(useStatus23Flavour),
   N_PARTONS_MAX(4)
   {
@@ -46,8 +45,6 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   if (selection != "dijet" && selection != "zplusjets") {
     throw runtime_error("selection must be dijet or zplusjets");
   }
-
-  gen_weight_handle = ctx.get_handle<double>("gen_weight");
 
   // book all histograms here
   int nWeightBins = 25;
@@ -82,25 +79,6 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
     float rsp_max = 5.;
     int nBinsNormRsp = 500;
     // hist names must always end in _response or _rel_response
-    h_jet_multiplicity_response = book<TH2F>("jet_multiplicity_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
-    h_jet_multiplicity_charged_response = book<TH2F>("jet_multiplicity_charged_response", ";# of constituents (#lambda_{0}^{0}) (GEN, charged only);# of constituents (#lambda_{0}^{0}) (RECO), charged only", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
-    h_jet_multiplicity_rel_response = book<TH2F>("jet_multiplicity_rel_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
-    h_jet_multiplicity_charged_rel_response = book<TH2F>("jet_multiplicity_charged_rel_response", ";# of constituents (#lambda_{0}^{0}) (GEN, charged only);# of constituents (#lambda_{0}^{0}) (RECO / GEN, charged only)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
-
-    h_jet_multiplicity_lowPt_response = book<TH2F>("jet_multiplicity_lowPt_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
-    h_jet_multiplicity_charged_lowPt_response = book<TH2F>("jet_multiplicity_charged_lowPt_response", ";# of constituents (#lambda_{0}^{0}) (GEN, charged only);# of constituents (#lambda_{0}^{0}) (RECO), charged only", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
-    h_jet_multiplicity_lowPt_rel_response = book<TH2F>("jet_multiplicity_lowPt_rel_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
-    h_jet_multiplicity_charged_lowPt_rel_response = book<TH2F>("jet_multiplicity_charged_lowPt_rel_response", ";# of constituents (#lambda_{0}^{0}) (GEN, charged only);# of constituents (#lambda_{0}^{0}) (RECO / GEN, charged only)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
-
-    h_jet_multiplicity_midPt_response = book<TH2F>("jet_multiplicity_midPt_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
-    h_jet_multiplicity_charged_midPt_response = book<TH2F>("jet_multiplicity_charged_midPt_response", ";# of constituents (#lambda_{0}^{0}) (GEN, charged only);# of constituents (#lambda_{0}^{0}) (RECO), charged only", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
-    h_jet_multiplicity_midPt_rel_response = book<TH2F>("jet_multiplicity_midPt_rel_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
-    h_jet_multiplicity_charged_midPt_rel_response = book<TH2F>("jet_multiplicity_charged_midPt_rel_response", ";# of constituents (#lambda_{0}^{0}) (GEN, charged only);# of constituents (#lambda_{0}^{0}) (RECO / GEN, charged only)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
-
-    h_jet_multiplicity_highPt_response = book<TH2F>("jet_multiplicity_highPt_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
-    h_jet_multiplicity_charged_highPt_response = book<TH2F>("jet_multiplicity_charged_highPt_response", ";# of constituents (#lambda_{0}^{0}) (GEN, charged only);# of constituents (#lambda_{0}^{0}) (RECO), charged only", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
-    h_jet_multiplicity_highPt_rel_response = book<TH2F>("jet_multiplicity_highPt_rel_response", ";# of constituents (#lambda_{0}^{0}) (GEN);# of constituents (#lambda_{0}^{0}) (RECO / GEN)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
-    h_jet_multiplicity_charged_highPt_rel_response = book<TH2F>("jet_multiplicity_charged_highPt_rel_response", ";# of constituents (#lambda_{0}^{0}) (GEN, charged only);# of constituents (#lambda_{0}^{0}) (RECO / GEN, charged only)", nMultBins, 0, nMultBins, nBinsNormRsp, 0, rsp_max);
 
     // PUPPI multiplicity
     h_jet_puppiMultiplicity_response = book<TH2F>("jet_puppiMultiplicity_response", ";# of PUPPI-weighted constituents (#lambda_{0}^{0}) (GEN);# of PUPPI-weighted constituents (#lambda_{0}^{0}) (RECO)", nMultBins, 0, nMultBins, nMultBins, 0, nMultBins);
@@ -208,33 +186,18 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
     h_jet_thrust_charged_highPt_response = book<TH2F>("jet_thrust_charged_highPt_response", ";Thrust (#lambda_{2}^{1}) (GEN, charged);Thrust (#lambda_{2}^{1}) (RECO, charged only)", nBinsFine, 0, 1, nBinsFine, 0, 1);
     h_jet_thrust_highPt_rel_response = book<TH2F>("jet_thrust_highPt_rel_response", ";Thrust (#lambda_{2}^{1}) (GEN);Thrust (#lambda_{2}^{1}) (RECO / GEN)", nBinsFine, 0, 1, nBinsNormRsp, 0, rsp_max);
     h_jet_thrust_charged_highPt_rel_response = book<TH2F>("jet_thrust_charged_highPt_rel_response", ";Thrust (#lambda_{2}^{1}) (GEN, charged);Thrust (#lambda_{2}^{1}) (RECO / GEN, charged only)", nBinsFine, 0, 1, nBinsNormRsp, 0, rsp_max);
-
-    // q jet only
-    h_qjet_multiplicity = book<TH1F>("qjet_multiplicity", "q-flavour;# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
-    h_qjet_LHA = book<TH1F>("qjet_LHA", "q-flavour;LHA (#lambda_{0.5}^{1});", nBins, 0, 1);
-    h_qjet_pTD = book<TH1F>("qjet_pTD", "q-flavour;p_{T}^{D} (#lambda_{0}^{2});", nBins, 0, 1);
-    h_qjet_width = book<TH1F>("qjet_width", "q-flavour;Width (#lambda_{1}^{1});", nBins, 0, 1);
-    h_qjet_thrust = book<TH1F>("qjet_thrust", "q-flavour jet;Thrust (#lambda_{2}^{1});", nBins, 0, 1);
-
-    // g jet only
-    h_gjet_multiplicity = book<TH1F>("gjet_multiplicity", "g-flavour;# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
-    h_gjet_LHA = book<TH1F>("gjet_LHA", "g-flavour;LHA (#lambda_{0.5}^{1});", nBins, 0, 1);
-    h_gjet_pTD = book<TH1F>("gjet_pTD", "g-flavour;p_{T}^{D} (#lambda_{0}^{2});", nBins, 0, 1);
-    h_gjet_width = book<TH1F>("gjet_width", "g-flavour;Width (#lambda_{1}^{1});", nBins, 0, 1);
-    h_gjet_thrust = book<TH1F>("gjet_thrust", "g-flavour jet;Thrust (#lambda_{2}^{1});", nBins, 0, 1);
   }
+
   // 2D versions vs PT
   // -----------------
   // All flavs
   h_jet_puppiMultiplicity_vs_pt = book<TH2F>("jet_puppiMultiplicity_vs_pt", ";# of constituents, PUPPI weighted (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
-  h_jet_multiplicity_vs_pt = book<TH2F>("jet_multiplicity_vs_pt", ";# of constituents (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
   h_jet_LHA_vs_pt = book<TH2F>("jet_LHA_vs_pt", ";LHA (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_jet_pTD_vs_pt = book<TH2F>("jet_pTD_vs_pt", ";p_{T}^{D} (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_jet_width_vs_pt = book<TH2F>("jet_width_vs_pt", ";Width (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_jet_thrust_vs_pt = book<TH2F>("jet_thrust_vs_pt", ";Thrust (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
 
   h_jet_puppiMultiplicity_charged_vs_pt = book<TH2F>("jet_puppiMultiplicity_charged_vs_pt", ";# of charged constituents, PUPPI weighted (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
-  h_jet_multiplicity_charged_vs_pt = book<TH2F>("jet_multiplicity_charged_vs_pt", ";# of charged constituents (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
   h_jet_LHA_charged_vs_pt = book<TH2F>("jet_LHA_charged_vs_pt", ";LHA charged (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_jet_pTD_charged_vs_pt = book<TH2F>("jet_pTD_charged_vs_pt", ";p_{T}^{D} charged (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
   h_jet_width_charged_vs_pt = book<TH2F>("jet_width_charged_vs_pt", ";Width charged (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
@@ -245,9 +208,11 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
     float rspMax = 5;
     h_jet_response_vs_genjet_pt = book<TH2F>("jet_response_vs_genjet_pt", ";response;GenJet p_{T} [GeV]", rspNbins, 0, rspMax, nPtBins, ptMin, ptMax);
 
-    h_jet_flavour_vs_pt = book<TH2F>("jet_flavour_vs_pt", "jet flavour;PDGID;Jet p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
-    h_jet1_flavour_vs_pt = book<TH2F>("jet1_flavour_vs_pt", "jet1 flavour;PDGID;Jet1 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
-    h_jet2_flavour_vs_pt = book<TH2F>("jet2_flavour_vs_pt", "jet2 flavour;PDGID;Jet2 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
+    // deactivate for now as jets dont have proper flavour calculation
+    // h_jet_flavour_vs_pt = book<TH2F>("jet_flavour_vs_pt", "jet flavour;PDGID;Jet p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
+    // h_jet1_flavour_vs_pt = book<TH2F>("jet1_flavour_vs_pt", "jet1 flavour;PDGID;Jet1 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
+    // h_jet2_flavour_vs_pt = book<TH2F>("jet2_flavour_vs_pt", "jet2 flavour;PDGID;Jet2 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
+    // h_jet_flavour_vs_eta = book<TH2F>("jet_flavour_vs_eta", "jet flavour;PDGID;Jet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
 
     h_genjet_flavour_vs_pt = book<TH2F>("genjet_flavour_vs_pt", "genjet flavour;PDGID;GenJet p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
     h_genjet1_flavour_vs_pt = book<TH2F>("genjet1_flavour_vs_pt", "genjet1 flavour;PDGID;GenJet1 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
@@ -263,98 +228,52 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
       h_genjet2_flavour_vs_pt_nPartons.at(n) = book<TH2F>(TString::Format("genjet2_flavour_vs_pt_npartons_%d", n), TString::Format("genjet2 flavour for %d parton;PDGID;GenJet2 p_{T} [GeV]", n), 23, -0.5, 22.5, nPtBins, ptMin, ptMax);;
     }
 
-    h_jet_flavour_vs_eta = book<TH2F>("jet_flavour_vs_eta", "jet flavour;PDGID;Jet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
-
     h_genjet_flavour_vs_eta = book<TH2F>("genjet_flavour_vs_eta", "genjet flavour;PDGID;GenJet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
-
-    // q jet only
-    h_qjet_puppiMultiplicity_vs_pt = book<TH2F>("qjet_puppiMultiplicity_vs_pt", "q-flavour;# of constituents, PUPPI weighted (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
-    h_qjet_multiplicity_vs_pt = book<TH2F>("qjet_multiplicity_vs_pt", "q-flavour;# of constituents (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
-    h_qjet_LHA_vs_pt = book<TH2F>("qjet_LHA_vs_pt", "q-flavour;LHA (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
-    h_qjet_pTD_vs_pt = book<TH2F>("qjet_pTD_vs_pt", "q-flavour;p_{T}^{D} (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
-    h_qjet_width_vs_pt = book<TH2F>("qjet_width_vs_pt", "q-flavour;Width (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
-    h_qjet_thrust_vs_pt = book<TH2F>("qjet_thrust_vs_pt", "q-flavour jet;Thrust (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
-    h_qjet_response_vs_genjet_pt = book<TH2F>("qjet_response_vs_genjet_pt", ";response;GenJet p_{T} [GeV]", rspNbins, 0, rspMax, nPtBins, ptMin, ptMax);
 
     // g jet only
     h_gjet_puppiMultiplicity_vs_pt = book<TH2F>("gjet_puppiMultiplicity_vs_pt", "g-flavour;# of constituents, PUPPI weighted (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
-    h_gjet_multiplicity_vs_pt = book<TH2F>("gjet_multiplicity_vs_pt", "g-flavour;# of constituents (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
     h_gjet_LHA_vs_pt = book<TH2F>("gjet_LHA_vs_pt", "g-flavour;LHA (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
     h_gjet_pTD_vs_pt = book<TH2F>("gjet_pTD_vs_pt", "g-flavour;p_{T}^{D} (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
     h_gjet_width_vs_pt = book<TH2F>("gjet_width_vs_pt", "g-flavour;Width (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
     h_gjet_thrust_vs_pt = book<TH2F>("gjet_thrust_vs_pt", "g-flavour jet;Thrust (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
-    h_gjet_response_vs_genjet_pt = book<TH2F>("gjet_response_vs_genjet_pt", ";response;GenJet p_{T} [GeV]", rspNbins, 0, rspMax, nPtBins, ptMin, ptMax);
 
-    // Variable correlation hists
-    // --------------------------
-    // All flavs
-    // h_jet_multiplicity_vs_LHA = book<TH2F>("jet_multiplicity_vs_LHA", ";multiplicity (#lambda_{0}^{0});LHA (#lambda_{0.5}^{1})", nMultBins, 0, nMultBins, nBins, 0, 1);
-    // h_jet_multiplicity_vs_pTD = book<TH2F>("jet_multiplicity_vs_pTD", ";multiplicity (#lambda_{0}^{0});{p_{T}^{D}}^2 (#lambda_{0}^{2})", nMultBins, 0, nMultBins, nBins, 0, 1);
-    // h_jet_multiplicity_vs_width = book<TH2F>("jet_multiplicity_vs_width", ";multiplicity (#lambda_{0}^{0});width (#lambda_{1}^{1})", nMultBins, 0, nMultBins, nBins, 0, 1);
-    // h_jet_multiplicity_vs_thrust = book<TH2F>("jet_multiplicity_vs_thrust", ";multiplicity (#lambda_{0}^{0});thrust (#lambda_{2}^{1})", nMultBins, 0, nMultBins, nBins, 0, 1);
-    // h_jet_LHA_vs_pTD = book<TH2F>("jet_LHA_vs_pTD", ";LHA (#lambda_{0.5}^{1});{p_{T}^{D}}^2 (#lambda_{0}^{2})", nBins, 0, 1, nBins, 0, 1);
-    // h_jet_LHA_vs_width = book<TH2F>("jet_LHA_vs_width", ";LHA (#lambda_{0.5}^{1});width (#lambda_{1}^{1})", nBins, 0, 1, nBins, 0, 1);
-    // h_jet_LHA_vs_thrust = book<TH2F>("jet_LHA_vs_thrust", ";LHA (#lambda_{0.5}^{1});thrust (#lambda_{2}^{1})", nBins, 0, 1, nBins, 0, 1);
-    // h_jet_pTD_vs_width = book<TH2F>("jet_pTD_vs_width", ";{p_{T}^{D}}^2 (#lambda_{0}^{2});width (#lambda_{1}^{1})", nBins, 0, 1, nBins, 0, 1);
-    // h_jet_pTD_vs_thrust = book<TH2F>("jet_pTD_vs_thrust", ";{p_{T}^{D}}^2 (#lambda_{0}^{2});thrust (#lambda_{2}^{1})", nBins, 0, 1, nBins, 0, 1);
-    // h_jet_width_vs_thrust = book<TH2F>("jet_width_vs_thrust", ";width (#lambda_{1}^{1});thrust (#lambda_{2}^{1})", nBins, 0, 1, nBins, 0, 1);
+    h_gjet_puppiMultiplicity_charged_vs_pt = book<TH2F>("gjet_puppiMultiplicity_charged_vs_pt", "g-flavour;# of charged constituents, PUPPI weighted (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
+    h_gjet_LHA_charged_vs_pt = book<TH2F>("gjet_LHA_charged_vs_pt", "g-flavour;LHA charged-only (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_gjet_pTD_charged_vs_pt = book<TH2F>("gjet_pTD_charged_vs_pt", "g-flavour;p_{T}^{D} charged-only (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_gjet_width_charged_vs_pt = book<TH2F>("gjet_width_charged_vs_pt", "g-flavour;Width charged-only (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_gjet_thrust_charged_vs_pt = book<TH2F>("gjet_thrust_charged_vs_pt", "g-flavour jet;Thrust charged-only (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+
+    h_gjet_response_vs_genjet_pt = book<TH2F>("gjet_response_vs_genjet_pt", ";g-flavour response;GenJet p_{T} [GeV]", rspNbins, 0, rspMax, nPtBins, ptMin, ptMax);
 
     // q jet only
-    // h_qjet_multiplicity_vs_LHA = book<TH2F>("qjet_multiplicity_vs_LHA", "q-flavour;multiplicity (#lambda_{0}^{0});LHA (#lambda_{0.5}^{1})", nMultBins, 0, nMultBins, nBins, 0, 1);
-    // h_qjet_multiplicity_vs_pTD = book<TH2F>("qjet_multiplicity_vs_pTD", "q-flavour;multiplicity (#lambda_{0}^{0});{p_{T}^{D}}^2 (#lambda_{0}^{2})", nMultBins, 0, nMultBins, nBins, 0, 1);
-    // h_qjet_multiplicity_vs_width = book<TH2F>("qjet_multiplicity_vs_width", "q-flavour;multiplicity (#lambda_{0}^{0});width (#lambda_{1}^{1})", nMultBins, 0, nMultBins, nBins, 0, 1);
-    // h_qjet_multiplicity_vs_thrust = book<TH2F>("qjet_multiplicity_vs_thrust", "q-flavour;multiplicity (#lambda_{0}^{0});thrust (#lambda_{2}^{1})", nMultBins, 0, nMultBins, nBins, 0, 1);
-    // h_qjet_LHA_vs_pTD = book<TH2F>("qjet_LHA_vs_pTD", "q-flavour;LHA (#lambda_{0.5}^{1});{p_{T}^{D}}^2 (#lambda_{0}^{2})", nBins, 0, 1, nBins, 0, 1);
-    // h_qjet_LHA_vs_width = book<TH2F>("qjet_LHA_vs_width", "q-flavour;LHA (#lambda_{0.5}^{1});width (#lambda_{1}^{1})", nBins, 0, 1, nBins, 0, 1);
-    // h_qjet_LHA_vs_thrust = book<TH2F>("qjet_LHA_vs_thrust", "q-flavour;LHA (#lambda_{0.5}^{1});thrust (#lambda_{2}^{1})", nBins, 0, 1, nBins, 0, 1);
-    // h_qjet_pTD_vs_width = book<TH2F>("qjet_pTD_vs_width", "q-flavour;{p_{T}^{D}}^2 (#lambda_{0}^{2});width (#lambda_{1}^{1})", nBins, 0, 1, nBins, 0, 1);
-    // h_qjet_pTD_vs_thrust = book<TH2F>("qjet_pTD_vs_thrust", "q-flavour;{p_{T}^{D}}^2 (#lambda_{0}^{2});thrust (#lambda_{2}^{1})", nBins, 0, 1, nBins, 0, 1);
-    // h_qjet_width_vs_thrust = book<TH2F>("qjet_width_vs_thrust", "q-flavour;width (#lambda_{1}^{1});thrust (#lambda_{2}^{1})", nBins, 0, 1, nBins, 0, 1);
+    h_qjet_puppiMultiplicity_vs_pt = book<TH2F>("qjet_puppiMultiplicity_vs_pt", "uds-flavour;# of constituents, PUPPI weighted (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
+    h_qjet_LHA_vs_pt = book<TH2F>("qjet_LHA_vs_pt", "uds-flavour;LHA (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_qjet_pTD_vs_pt = book<TH2F>("qjet_pTD_vs_pt", "uds-flavour;p_{T}^{D} (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_qjet_width_vs_pt = book<TH2F>("qjet_width_vs_pt", "uds-flavour;Width (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_qjet_thrust_vs_pt = book<TH2F>("qjet_thrust_vs_pt", "uds-flavour jet;Thrust (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
 
-    // g jet only
-    // h_gjet_multiplicity_vs_LHA = book<TH2F>("gjet_multiplicity_vs_LHA", "g-flavour;multiplicity (#lambda_{0}^{0});LHA (#lambda_{0.5}^{1})", nMultBins, 0, nMultBins, nBins, 0, 1);
-    // h_gjet_multiplicity_vs_pTD = book<TH2F>("gjet_multiplicity_vs_pTD", "g-flavour;multiplicity (#lambda_{0}^{0});{p_{T}^{D}}^2 (#lambda_{0}^{2})", nMultBins, 0, nMultBins, nBins, 0, 1);
-    // h_gjet_multiplicity_vs_width = book<TH2F>("gjet_multiplicity_vs_width", "g-flavour;multiplicity (#lambda_{0}^{0});width (#lambda_{1}^{1})", nMultBins, 0, nMultBins, nBins, 0, 1);
-    // h_gjet_multiplicity_vs_thrust = book<TH2F>("gjet_multiplicity_vs_thrust", "g-flavour;multiplicity (#lambda_{0}^{0});thrust (#lambda_{2}^{1})", nMultBins, 0, nMultBins, nBins, 0, 1);
-    // h_gjet_LHA_vs_pTD = book<TH2F>("gjet_LHA_vs_pTD", "g-flavour;LHA (#lambda_{0.5}^{1});{p_{T}^{D}}^2 (#lambda_{0}^{2})", nBins, 0, 1, nBins, 0, 1);
-    // h_gjet_LHA_vs_width = book<TH2F>("gjet_LHA_vs_width", "g-flavour;LHA (#lambda_{0.5}^{1});width (#lambda_{1}^{1})", nBins, 0, 1, nBins, 0, 1);
-    // h_gjet_LHA_vs_thrust = book<TH2F>("gjet_LHA_vs_thrust", "g-flavour;LHA (#lambda_{0.5}^{1});thrust (#lambda_{2}^{1})", nBins, 0, 1, nBins, 0, 1);
-    // h_gjet_pTD_vs_width = book<TH2F>("gjet_pTD_vs_width", "g-flavour;{p_{T}^{D}}^2 (#lambda_{0}^{2});width (#lambda_{1}^{1})", nBins, 0, 1, nBins, 0, 1);
-    // h_gjet_pTD_vs_thrust = book<TH2F>("gjet_pTD_vs_thrust", "g-flavour;{p_{T}^{D}}^2 (#lambda_{0}^{2});thrust (#lambda_{2}^{1})", nBins, 0, 1, nBins, 0, 1);
-    // h_gjet_width_vs_thrust = book<TH2F>("gjet_width_vs_thrust", "g-flavour;width (#lambda_{1}^{1});thrust (#lambda_{2}^{1})", nBins, 0, 1, nBins, 0, 1);
+    h_qjet_puppiMultiplicity_charged_vs_pt = book<TH2F>("qjet_puppiMultiplicity_charged_vs_pt", "uds-flavour;# of charged constituents, PUPPI weighted (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
+    h_qjet_LHA_charged_vs_pt = book<TH2F>("qjet_LHA_charged_vs_pt", "uds-flavour;LHA charged-only (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_qjet_pTD_charged_vs_pt = book<TH2F>("qjet_pTD_charged_vs_pt", "uds-flavour;p_{T}^{D} charged-only (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_qjet_width_charged_vs_pt = book<TH2F>("qjet_width_charged_vs_pt", "uds-flavour;Width charged-only (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_qjet_thrust_charged_vs_pt = book<TH2F>("qjet_thrust_charged_vs_pt", "uds-flavour jet;Thrust charged-only (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
 
+    h_qjet_response_vs_genjet_pt = book<TH2F>("qjet_response_vs_genjet_pt", ";uds-flavour response;GenJet p_{T} [GeV]", rspNbins, 0, rspMax, nPtBins, ptMin, ptMax);
 
-    // GENJET hists
-    // ------------
-    // For all jets
-    h_genjet_pt = book<TH1F>("genjet_pt", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, ptMax);
-    h_genjet_eta = book<TH1F>("genjet_eta", ";y^{j};", nEtaBins, etaMin, etaMax);
+    // b/c jet only
+    h_bcjet_puppiMultiplicity_vs_pt = book<TH2F>("bcjet_puppiMultiplicity_vs_pt", "b/c-flavour;# of constituents, PUPPI weighted (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
+    h_bcjet_LHA_vs_pt = book<TH2F>("bcjet_LHA_vs_pt", "b/c-flavour;LHA (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_bcjet_pTD_vs_pt = book<TH2F>("bcjet_pTD_vs_pt", "b/c-flavour;p_{T}^{D} (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_bcjet_width_vs_pt = book<TH2F>("bcjet_width_vs_pt", "b/c-flavour;Width (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_bcjet_thrust_vs_pt = book<TH2F>("bcjet_thrust_vs_pt", "b/c-flavour jet;Thrust (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
 
-    h_genjet_multiplicity = book<TH1F>("genjet_multiplicity", ";# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
-    h_genjet_LHA = book<TH1F>("genjet_LHA", ";LHA (#lambda_{0.5}^{1});", nBins, 0, 1);
-    h_genjet_pTD = book<TH1F>("genjet_pTD", ";p_{T}^{D} (#lambda_{0}^{2});", nBins, 0, 1);
-    h_genjet_width = book<TH1F>("genjet_width", ";Width (#lambda_{1}^{1});", nBins, 0, 1);
-    h_genjet_thrust = book<TH1F>("genjet_thrust", ";Thrust (#lambda_{2}^{1});", nBins, 0, 1);
+    h_bcjet_puppiMultiplicity_charged_vs_pt = book<TH2F>("bcjet_puppiMultiplicity_charged_vs_pt", "b/c-flavour;# of charged constituents, PUPPI weighted (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
+    h_bcjet_LHA_charged_vs_pt = book<TH2F>("bcjet_LHA_charged_vs_pt", "b/c-flavour;LHA charged-only (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_bcjet_pTD_charged_vs_pt = book<TH2F>("bcjet_pTD_charged_vs_pt", "b/c-flavour;p_{T}^{D} charged-only (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_bcjet_width_charged_vs_pt = book<TH2F>("bcjet_width_charged_vs_pt", "b/c-flavour;Width charged-only (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_bcjet_thrust_charged_vs_pt = book<TH2F>("bcjet_thrust_charged_vs_pt", "b/c-flavour jet;Thrust charged-only (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
 
-    // Flavour-tagged
-    h_qgenjet_multiplicity = book<TH1F>("qgenjet_multiplicity", "q-flavour;# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
-    h_qgenjet_LHA = book<TH1F>("qgenjet_LHA", "q-flavour;LHA (#lambda_{0.5}^{1});", nBins, 0, 1);
-    h_qgenjet_pTD = book<TH1F>("qgenjet_pTD", "q-flavour;p_{T}^{D} (#lambda_{0}^{2});", nBins, 0, 1);
-    h_qgenjet_width = book<TH1F>("qgenjet_width", "q-flavour;Width (#lambda_{1}^{1});", nBins, 0, 1);
-    h_qgenjet_thrust = book<TH1F>("qgenjet_thrust", "q-flavour jet;Thrust (#lambda_{2}^{1});", nBins, 0, 1);
-
-    h_ggenjet_multiplicity = book<TH1F>("ggenjet_multiplicity", "g-flavour;# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
-    h_ggenjet_LHA = book<TH1F>("ggenjet_LHA", "g-flavour;LHA (#lambda_{0.5}^{1});", nBins, 0, 1);
-    h_ggenjet_pTD = book<TH1F>("ggenjet_pTD", "g-flavour;p_{T}^{D} (#lambda_{0}^{2});", nBins, 0, 1);
-    h_ggenjet_width = book<TH1F>("ggenjet_width", "g-flavour;Width (#lambda_{1}^{1});", nBins, 0, 1);
-    h_ggenjet_thrust = book<TH1F>("ggenjet_thrust", "g-flavour jet;Thrust (#lambda_{2}^{1});", nBins, 0, 1);
-
-    // 2D versions vs PT
-    h_genjet_multiplicity_vs_pt = book<TH2F>("genjet_multiplicity_vs_pt", ";# of constituents (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
-    h_genjet_LHA_vs_pt = book<TH2F>("genjet_LHA_vs_pt", ";LHA (#lambda_{0.5}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
-    h_genjet_pTD_vs_pt = book<TH2F>("genjet_pTD_vs_pt", ";p_{T}^{D} (#lambda_{0}^{2});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
-    h_genjet_width_vs_pt = book<TH2F>("genjet_width_vs_pt", ";Width (#lambda_{1}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
-    h_genjet_thrust_vs_pt = book<TH2F>("genjet_thrust_vs_pt", ";Thrust (#lambda_{2}^{1});Jet p_{T} [GeV]", nBins, 0, 1, nPtBins, ptMin, ptMax);
+    h_bcjet_response_vs_genjet_pt = book<TH2F>("bcjet_response_vs_genjet_pt", ";b/c-flavour response;GenJet p_{T} [GeV]", rspNbins, 0, rspMax, nPtBins, ptMin, ptMax);
   }
 
   if (is_mc_) {
@@ -371,9 +290,6 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
 
 void QGAnalysisHists::fill(const Event & event){
   double weight = event.weight;
-
-  // extract the separate gen & reco weight components, needed for TUnfold
-  double gen_weight = event.get(gen_weight_handle);
 
   h_weights->Fill(weight);
 
@@ -433,6 +349,12 @@ void QGAnalysisHists::fill(const Event & event){
       width = recoJetCalc.getLambda(Cuts::width_args);
       thrust = recoJetCalc.getLambda(Cuts::thrust_args);
 
+      h_jet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
+      h_jet_LHA_vs_pt->Fill(lha, jet_pt, weight);
+      h_jet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
+      h_jet_width_vs_pt->Fill(width, jet_pt, weight);
+      h_jet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
+
       // if (ptd > 0.5 && ptd < 0.501){
       //   cout << "+++++ ptd 0.5: " << ptd << endl;
       //   cout << "isgroomed?: " << doGroomed_ << endl;
@@ -472,6 +394,12 @@ void QGAnalysisHists::fill(const Event & event){
       ptd_charged = recoJetCalcCharged.getLambda(Cuts::pTD_args);
       width_charged = recoJetCalcCharged.getLambda(Cuts::width_args);
       thrust_charged = recoJetCalcCharged.getLambda(Cuts::thrust_args);
+
+      h_jet_puppiMultiplicity_charged_vs_pt->Fill(puppiMult_charged, jet_pt, weight);
+      h_jet_LHA_charged_vs_pt->Fill(lha_charged, jet_pt, weight);
+      h_jet_pTD_charged_vs_pt->Fill(ptd_charged, jet_pt, weight);
+      h_jet_width_charged_vs_pt->Fill(width_charged, jet_pt, weight);
+      h_jet_thrust_charged_vs_pt->Fill(thrust_charged, jet_pt, weight);
 
       // if (ptd_charged > 0.5 && ptd_charged < 0.501){
       //   cout << "+++++ ptd_charged 0.5: " << ptd_charged << endl;
@@ -514,7 +442,7 @@ void QGAnalysisHists::fill(const Event & event){
         float genjet_flav = PDGID::UNKNOWN;
         float response = -1.;
 
-        if (matchedGenJet) { // we don't care about passing the GEN selection, just looking for a match
+        if (matchedGenJet) {
           int thisInd = thisjet.genjet_index();
           if (thisInd >= (int) genjetLambdas->size()) {
             cout << "WARNING: wanted genjet_index " << thisInd << " but only have " << genjetLambdas->size() << " in genjetLambdas" << endl;
@@ -534,12 +462,6 @@ void QGAnalysisHists::fill(const Event & event){
 
           // Response hists over all pt, and high/low pt split ones
           float gen_mult = matchedGenJetCalc.getLambda(Cuts::mult_args);
-          fill_lambda_rsp_hists(mult, gen_mult, weight,
-            h_jet_multiplicity_response, h_jet_multiplicity_rel_response,
-            jet_pt,
-            h_jet_multiplicity_lowPt_response, h_jet_multiplicity_midPt_response, h_jet_multiplicity_highPt_response,
-            h_jet_multiplicity_lowPt_rel_response, h_jet_multiplicity_midPt_rel_response, h_jet_multiplicity_highPt_rel_response);
-
           fill_lambda_rsp_hists(puppiMult, gen_mult, weight,
             h_jet_puppiMultiplicity_response, h_jet_puppiMultiplicity_rel_response,
             jet_pt,
@@ -576,12 +498,6 @@ void QGAnalysisHists::fill(const Event & event){
 
           // Do charged-only daughters version
           float gen_mult_charged = matchedGenJetCalcCharged.getLambda(Cuts::mult_args);
-          fill_lambda_rsp_hists(mult_charged, gen_mult_charged, weight,
-            h_jet_multiplicity_charged_response, h_jet_multiplicity_charged_rel_response,
-            jet_pt,
-            h_jet_multiplicity_charged_lowPt_response, h_jet_multiplicity_charged_midPt_response, h_jet_multiplicity_charged_highPt_response,
-            h_jet_multiplicity_charged_lowPt_rel_response, h_jet_multiplicity_charged_midPt_rel_response, h_jet_multiplicity_charged_highPt_rel_response);
-
           fill_lambda_rsp_hists(puppiMult_charged, gen_mult_charged, weight,
             h_jet_puppiMultiplicity_charged_response, h_jet_puppiMultiplicity_charged_rel_response,
             jet_pt,
@@ -632,6 +548,52 @@ void QGAnalysisHists::fill(const Event & event){
           } else if (i == 1) {
             h_genjet2_flavour_vs_pt_nPartons.at(nPartons)->Fill(genjet_flav, genjet_pt, weight);
           }
+
+          if (genjet_flav == PDGID::GLUON) {
+            h_gjet_puppiMultiplicity_vs_pt->Fill(mult, genjet_pt, weight);
+            h_gjet_LHA_vs_pt->Fill(lha, genjet_pt, weight);
+            h_gjet_pTD_vs_pt->Fill(ptd, genjet_pt, weight);
+            h_gjet_width_vs_pt->Fill(width, genjet_pt, weight);
+            h_gjet_thrust_vs_pt->Fill(thrust, genjet_pt, weight);
+
+            h_gjet_puppiMultiplicity_charged_vs_pt->Fill(mult_charged, genjet_pt, weight);
+            h_gjet_LHA_charged_vs_pt->Fill(lha_charged, genjet_pt, weight);
+            h_gjet_pTD_charged_vs_pt->Fill(ptd_charged, genjet_pt, weight);
+            h_gjet_width_charged_vs_pt->Fill(width_charged, genjet_pt, weight);
+            h_gjet_thrust_charged_vs_pt->Fill(thrust_charged, genjet_pt, weight);
+
+            h_gjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+
+          } else if (genjet_flav >= PDGID::DOWN_QUARK && genjet_flav <= PDGID::STRANGE_QUARK) {
+            h_qjet_puppiMultiplicity_vs_pt->Fill(mult, genjet_pt, weight);
+            h_qjet_LHA_vs_pt->Fill(lha, genjet_pt, weight);
+            h_qjet_pTD_vs_pt->Fill(ptd, genjet_pt, weight);
+            h_qjet_width_vs_pt->Fill(width, genjet_pt, weight);
+            h_qjet_thrust_vs_pt->Fill(thrust, genjet_pt, weight);
+
+            h_qjet_puppiMultiplicity_charged_vs_pt->Fill(mult_charged, genjet_pt, weight);
+            h_qjet_LHA_charged_vs_pt->Fill(lha_charged, genjet_pt, weight);
+            h_qjet_pTD_charged_vs_pt->Fill(ptd_charged, genjet_pt, weight);
+            h_qjet_width_charged_vs_pt->Fill(width_charged, genjet_pt, weight);
+            h_qjet_thrust_charged_vs_pt->Fill(thrust_charged, genjet_pt, weight);
+
+            h_qjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+
+          } else if (genjet_flav == PDGID::CHARM_QUARK || genjet_flav == PDGID::BOTTOM_QUARK) {
+            h_bcjet_puppiMultiplicity_vs_pt->Fill(mult, genjet_pt, weight);
+            h_bcjet_LHA_vs_pt->Fill(lha, genjet_pt, weight);
+            h_bcjet_pTD_vs_pt->Fill(ptd, genjet_pt, weight);
+            h_bcjet_width_vs_pt->Fill(width, genjet_pt, weight);
+            h_bcjet_thrust_vs_pt->Fill(thrust, genjet_pt, weight);
+
+            h_bcjet_puppiMultiplicity_charged_vs_pt->Fill(mult_charged, genjet_pt, weight);
+            h_bcjet_LHA_charged_vs_pt->Fill(lha_charged, genjet_pt, weight);
+            h_bcjet_pTD_charged_vs_pt->Fill(ptd_charged, genjet_pt, weight);
+            h_bcjet_width_charged_vs_pt->Fill(width_charged, genjet_pt, weight);
+            h_bcjet_thrust_charged_vs_pt->Fill(thrust_charged, genjet_pt, weight);
+
+            h_bcjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+          }
         } // end if matchedgenjet
 
         // int jet_flav = (useStatus23Flavour_) ? get_jet_flavour(thisjet, event.genparticles, jetRadius/2., true) : thisjet.partonFlavour();
@@ -640,7 +602,6 @@ void QGAnalysisHists::fill(const Event & event){
 
         // // Split by actual jet flavour - these only make sense for MC
         // if (jet_flav == PDGID::GLUON) { // gluon jets
-        //   h_gjet_multiplicity_vs_pt->Fill(mult, jet_pt, weight);
         //   h_gjet_LHA_vs_pt->Fill(lha, jet_pt, weight);
         //   h_gjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
         //   h_gjet_width_vs_pt->Fill(width, jet_pt, weight);
@@ -675,102 +636,9 @@ void QGAnalysisHists::fill(const Event & event){
 
         // h_jet_flavour_vs_eta->Fill(jet_flav, thisjet.Rapidity(), weight);
 
-      } // end is_mc_
-
-      //  Do lambda correlation hists
-      // if (jet_pt > 100 && jet_pt < 200) {
-      //   h_jet_multiplicity_vs_LHA->Fill(mult, lha, weight);
-      //   h_jet_multiplicity_vs_pTD->Fill(mult, ptd, weight);
-      //   h_jet_multiplicity_vs_width->Fill(mult, width, weight);
-      //   h_jet_multiplicity_vs_thrust->Fill(mult, thrust, weight);
-      //   h_jet_LHA_vs_pTD->Fill(lha, ptd, weight);
-      //   h_jet_LHA_vs_width->Fill(lha, width, weight);
-      //   h_jet_LHA_vs_thrust->Fill(lha, thrust, weight);
-      //   h_jet_pTD_vs_width->Fill(ptd, width, weight);
-      //   h_jet_pTD_vs_thrust->Fill(ptd, thrust, weight);
-      //   h_jet_width_vs_thrust->Fill(width, thrust, weight);
-
-      //   if (abs(jet_flav) == 21) { // gluon jets
-      //     h_gjet_multiplicity_vs_LHA->Fill(mult, lha, weight);
-      //     h_gjet_multiplicity_vs_pTD->Fill(mult, ptd, weight);
-      //     h_gjet_multiplicity_vs_width->Fill(mult, width, weight);
-      //     h_gjet_multiplicity_vs_thrust->Fill(mult, thrust, weight);
-      //     h_gjet_LHA_vs_pTD->Fill(lha, ptd, weight);
-      //     h_gjet_LHA_vs_width->Fill(lha, width, weight);
-      //     h_gjet_LHA_vs_thrust->Fill(lha, thrust, weight);
-      //     h_gjet_pTD_vs_width->Fill(ptd, width, weight);
-      //     h_gjet_pTD_vs_thrust->Fill(ptd, thrust, weight);
-      //     h_gjet_width_vs_thrust->Fill(width, thrust, weight);
-      //   } else if ((abs(jet_flav) <= 3) && (abs(jet_flav) > 0)){ // uds jets
-      //     h_qjet_multiplicity_vs_LHA->Fill(mult, lha, weight);
-      //     h_qjet_multiplicity_vs_pTD->Fill(mult, ptd, weight);
-      //     h_qjet_multiplicity_vs_width->Fill(mult, width, weight);
-      //     h_qjet_multiplicity_vs_thrust->Fill(mult, thrust, weight);
-      //     h_qjet_LHA_vs_pTD->Fill(lha, ptd, weight);
-      //     h_qjet_LHA_vs_width->Fill(lha, width, weight);
-      //     h_qjet_LHA_vs_thrust->Fill(lha, thrust, weight);
-      //     h_qjet_pTD_vs_width->Fill(ptd, width, weight);
-      //     h_qjet_pTD_vs_thrust->Fill(ptd, thrust, weight);
-      //     h_qjet_width_vs_thrust->Fill(width, thrust, weight);
-      //   }
-      // }
+      } // end is_mc_ && passGen
     } // end loop over reco jets
   } //end if passReco
-
-  // Fill GenJet hists
-  // ---------------------------------------------------------------------------
-  if (is_mc_ && passGen) { // note that there may be an implicit passReco as well from where this is called in the main module
-    if (useNJets_ > (int) genjetLambdas->size()) {
-      cout << "useNJets_: " << useNJets_ << endl;
-      cout << "genjetLambdas: " << genjetLambdas->size() << endl;
-      throw runtime_error("useNJets_ > genjetLambdas.size()");
-    }
-
-    for (int i = 0; i < useNJets_; i++) {
-      const GenJet & thisjet = genjetLambdas->at(i).jet;
-      const LambdaCalculator<GenParticle> & genJetCalc = genjetLambdas->at(i).getLambdaCalculator(false, doGroomed_);
-      // FIXME check this corresponds to same jet as normal lambdas?
-      // const LambdaCalculator<GenParticle> & genJetCalcCharged = genjetLambdas->at(i).getLambdaCalculator(true, doGroomed_);
-
-      float genjet_pt = thisjet.pt();
-
-      h_genjet_pt->Fill(genjet_pt, gen_weight);
-      h_genjet_eta->Fill(thisjet.Rapidity(), gen_weight);
-
-      float gen_mult = genJetCalc.getLambda(Cuts::mult_args);
-      float gen_lha = genJetCalc.getLambda(Cuts::lha_args);
-      float gen_ptd = genJetCalc.getLambda(Cuts::pTD_args);
-      float gen_width = genJetCalc.getLambda(Cuts::width_args);
-      float gen_thrust = genJetCalc.getLambda(Cuts::thrust_args);
-
-      h_genjet_multiplicity->Fill(gen_mult, gen_weight);
-      h_genjet_LHA->Fill(gen_lha, gen_weight);
-      h_genjet_pTD->Fill(gen_ptd, gen_weight);
-      h_genjet_width->Fill(gen_width, gen_weight);
-      h_genjet_thrust->Fill(gen_thrust, gen_weight);
-
-      h_genjet_multiplicity_vs_pt->Fill(gen_mult, genjet_pt, gen_weight);
-      h_genjet_LHA_vs_pt->Fill(gen_lha, genjet_pt, gen_weight);
-      h_genjet_pTD_vs_pt->Fill(gen_ptd, genjet_pt, gen_weight);
-      h_genjet_width_vs_pt->Fill(gen_width, genjet_pt, gen_weight);
-      h_genjet_thrust_vs_pt->Fill(gen_thrust, genjet_pt, gen_weight);
-
-      // if (thisjet.partonFlavour() == PDGID::GLUON) { // gluon jets
-      //   h_ggenjet_multiplicity->Fill(gen_mult, gen_weight);
-      //   h_ggenjet_LHA->Fill(gen_lha, gen_weight);
-      //   h_ggenjet_pTD->Fill(gen_ptd, gen_weight);
-      //   h_ggenjet_width->Fill(gen_width, gen_weight);
-      //   h_ggenjet_thrust->Fill(gen_thrust, gen_weight);
-      // } else if ((abs(thisjet.partonFlavour()) <= PDGID::STRANGE_QUARK) && (abs(thisjet.partonFlavour()) > PDGID::UNKNOWN)){ // uds jets
-      //   h_qgenjet_multiplicity->Fill(gen_mult, gen_weight);
-      //   h_qgenjet_LHA->Fill(gen_lha, gen_weight);
-      //   h_qgenjet_pTD->Fill(gen_ptd, gen_weight);
-      //   h_qgenjet_width->Fill(gen_width, gen_weight);
-      //   h_qgenjet_thrust->Fill(gen_thrust, gen_weight);
-      // }
-
-    }
-  }
 }
 
 
