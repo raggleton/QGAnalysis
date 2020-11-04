@@ -74,21 +74,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   h_jet_flavour = book<TH1F>("jet_flavour", "jet flavour;PDGID;", 23, -0.5, 22.5);
 
   int nMultBins = 150;
-  h_jet_multiplicity = book<TH1F>("jet_multiplicity", ";# of constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
-  h_jet_multiplicity_charged = book<TH1F>("jet_multiplicity_charged", ";# of charged constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
-  h_jet_puppiMultiplicity = book<TH1F>("jet_puppiMultiplicity", ";# of PUPPI-weighted constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
-  h_jet_puppiMultiplicity_charged = book<TH1F>("jet_puppiMultiplicity_charged", ";# of PUPPI-weighted charged constituents (#lambda_{0}^{0});", nMultBins, 0, nMultBins);
 
   int nBins = 100;
-  h_jet_LHA = book<TH1F>("jet_LHA", ";LHA (#lambda_{0.5}^{1});", nBins, 0, 1);
-  h_jet_pTD = book<TH1F>("jet_pTD", ";p_{T}^{D} (#lambda_{0}^{2});", nBins, 0, 1);
-  h_jet_width = book<TH1F>("jet_width", ";Width (#lambda_{1}^{1});", nBins, 0, 1);
-  h_jet_thrust = book<TH1F>("jet_thrust", ";Thrust (#lambda_{2}^{1});", nBins, 0, 1);
-
-  h_jet_LHA_charged = book<TH1F>("jet_LHA_charged", ";LHA charged (#lambda_{0.5}^{1});", nBins, 0, 1);
-  h_jet_pTD_charged = book<TH1F>("jet_pTD_charged", ";p_{T}^{D} charged (#lambda_{0}^{2});", nBins, 0, 1);
-  h_jet_width_charged = book<TH1F>("jet_width_charged", ";Width charged (#lambda_{1}^{1});", nBins, 0, 1);
-  h_jet_thrust_charged = book<TH1F>("jet_thrust_charged", ";Thrust charged (#lambda_{2}^{1});", nBins, 0, 1);
 
   if (is_mc_) {
     // gen-reco response hists
@@ -425,11 +412,6 @@ void QGAnalysisHists::fill(const Event & event){
       const LambdaCalculator<PFParticle> & recoJetCalc = jetLambdas.at(i).getLambdaCalculator(false, doGroomed_);
       const LambdaCalculator<PFParticle> & recoJetCalcCharged = jetLambdas.at(i).getLambdaCalculator(true, doGroomed_);
 
-      // FIXME unify with UnfoldHists
-      bool thisPassReco = passReco;
-      bool thisPassRecoCharged = passReco;
-      if (!thisPassReco && !thisPassRecoCharged) continue;
-
       float jet_pt = thisjet.pt();
       h_weights_vs_pt->Fill(weight, jet_pt);
       if (is_mc_) {
@@ -442,139 +424,87 @@ void QGAnalysisHists::fill(const Event & event){
       h_jet_eta->Fill(thisjet.eta(), weight);
 
       float puppiMult(0.), mult(0.), lha(0.), ptd(0.), width(0.), thrust(0.);
-
-      if (thisPassReco) {
-        puppiMult = recoJetCalc.getLambda(Cuts::mult_args);
-        mult = recoJetCalc.getLambda(Cuts::mult_args);
-        lha = recoJetCalc.getLambda(Cuts::lha_args);
-        ptd = recoJetCalc.getLambda(Cuts::pTD_args);
-        width = recoJetCalc.getLambda(Cuts::width_args);
-        thrust = recoJetCalc.getLambda(Cuts::thrust_args);
-
-        if (ptd > 1){
-          cout << "ptd > 1: " << ptd << endl;
-          // cout << "ptSum: " << recoJetCalc.getPtSum() << endl;
-          cout << " jet " << thisjet.pt() << " : " << thisjet.Rapidity() << " : " << thisjet.phi() << endl;
-          cout << "calc constits: " << recoJetCalc.constits().size() << endl;
-          cout << "constits: " << endl;
-          float myptd = 0;
-          float ptsum = 0;
-          for (const auto & cind : thisjet.pfcand_indexs()) {
-            const PFParticle & pf = event.pfparticles->at(cind);
-            if (pf.pt() < 1) continue;
-            cout << pf.pt() << " : " << pf.Rapidity() << " : " << pf.phi() << " : " << pf.puppiWeight() << endl;
-            ptsum += (pf.pt() * pf.puppiWeight());
-            myptd += pow(pf.pt() * pf.puppiWeight(), 2);
-          }
-          myptd /= pow(ptsum, 2);
-          cout << "myptd: " << myptd << endl;
-          cout << "myptsum: " << ptsum << endl;
-        }
-        // if (ptd > 0.5 && ptd < 0.501){
-        //   cout << "+++++ ptd 0.5: " << ptd << endl;
-        //   cout << "isgroomed?: " << doGroomed_ << endl;
-        //   // cout << "ptSum: " << recoJetCalc.getPtSum() << endl;
-        //   cout << " jet " << thisjet.pt() << " : " << thisjet.Rapidity() << " : " << thisjet.phi() << endl;
-        //   cout << "calc constits: " << recoJetCalc.constits().size() << endl;
-        //   for (const auto & constit : recoJetCalc.constits()) {
-        //     cout << constit.pt() << " : " << constit.Rapidity() << " : " << constit.phi() << " : " << constit.puppiWeight() << endl;
-        //   }
-
-        //   cout << "jet constits: " << endl;
-        //   for (const auto & cind : thisjet.pfcand_indexs()) {
-        //     const PFParticle & pf = event.pfparticles->at(cind);
-        //     cout << pf.pt() << " : " << pf.Rapidity() << " : " << pf.phi() << " : " << pf.puppiWeight() << endl;
-        //   }
-        // }
-        // if (ptd > 0.33 && ptd < 0.335){
-        //   cout << "***** ptd 0.33: " << ptd << endl;
-        //   cout << "isgroomed?: " << doGroomed_ << endl;
-        //   // cout << "ptSum: " << recoJetCalc.getPtSum() << endl;
-        //   cout << " jet " << thisjet.pt() << " : " << thisjet.Rapidity() << " : " << thisjet.phi() << endl;
-        //   cout << "calc constits: " << recoJetCalc.constits().size() << endl;
-        //   for (const auto & constit : recoJetCalc.constits()) {
-        //     cout << constit.pt() << " : " << constit.Rapidity() << " : " << constit.phi() << " : " << constit.puppiWeight() << endl;
-        //   }
-
-        //   cout << "jet constits: " << endl;
-        //   for (const auto & cind : thisjet.pfcand_indexs()) {
-        //     const PFParticle & pf = event.pfparticles->at(cind);
-        //     cout << pf.pt() << " : " << pf.Rapidity() << " : " << pf.phi() << " : " << pf.puppiWeight() << endl;
-        //   }
-        // }
-
-        h_jet_puppiMultiplicity->Fill(puppiMult, weight);
-        h_jet_multiplicity->Fill(mult, weight);
-        h_jet_LHA->Fill(lha, weight);
-        h_jet_pTD->Fill(ptd, weight);
-        h_jet_width->Fill(width, weight);
-        h_jet_thrust->Fill(thrust, weight);
-
-        h_jet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
-        h_jet_multiplicity_vs_pt->Fill(mult, jet_pt, weight);
-        h_jet_LHA_vs_pt->Fill(lha, jet_pt, weight);
-        h_jet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
-        h_jet_width_vs_pt->Fill(width, jet_pt, weight);
-        h_jet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
-      }
-
       float puppiMult_charged(0.), mult_charged(0.), lha_charged(0.), ptd_charged(0.), width_charged(0.), thrust_charged(0.);
 
-      if (thisPassRecoCharged) {
-        puppiMult_charged = recoJetCalcCharged.getLambda(Cuts::mult_args);
-        mult_charged = recoJetCalcCharged.getLambda(Cuts::mult_args);
-        lha_charged = recoJetCalcCharged.getLambda(Cuts::lha_args);
-        ptd_charged = recoJetCalcCharged.getLambda(Cuts::pTD_args);
-        width_charged = recoJetCalcCharged.getLambda(Cuts::width_args);
-        thrust_charged = recoJetCalcCharged.getLambda(Cuts::thrust_args);
+      puppiMult = recoJetCalc.getLambda(Cuts::mult_args);
+      mult = recoJetCalc.getLambda(Cuts::mult_args);
+      lha = recoJetCalc.getLambda(Cuts::lha_args);
+      ptd = recoJetCalc.getLambda(Cuts::pTD_args);
+      width = recoJetCalc.getLambda(Cuts::width_args);
+      thrust = recoJetCalc.getLambda(Cuts::thrust_args);
 
-        // if (ptd_charged > 0.5 && ptd_charged < 0.501){
-        //   cout << "+++++ ptd_charged 0.5: " << ptd_charged << endl;
-        //   cout << "isgroomed?: " << doGroomed_ << endl;
-        //   // cout << "ptSum: " << recoJetCalc.getPtSum() << endl;
-        //   cout << " jet " << thisjet.pt() << " : " << thisjet.Rapidity() << " : " << thisjet.phi() << endl;
-        //   cout << "calc constits: " << recoJetCalc.constits().size() << endl;
-        //   for (const auto & constit : recoJetCalc.constits()) {
-        //     cout << constit.pt() << " : " << constit.Rapidity() << " : " << constit.phi() << " : " << constit.puppiWeight() << " : " << constit.charge() << endl;
-        //   }
+      // if (ptd > 0.5 && ptd < 0.501){
+      //   cout << "+++++ ptd 0.5: " << ptd << endl;
+      //   cout << "isgroomed?: " << doGroomed_ << endl;
+      //   // cout << "ptSum: " << recoJetCalc.getPtSum() << endl;
+      //   cout << " jet " << thisjet.pt() << " : " << thisjet.Rapidity() << " : " << thisjet.phi() << endl;
+      //   cout << "calc constits: " << recoJetCalc.constits().size() << endl;
+      //   for (const auto & constit : recoJetCalc.constits()) {
+      //     cout << constit.pt() << " : " << constit.Rapidity() << " : " << constit.phi() << " : " << constit.puppiWeight() << endl;
+      //   }
 
-        //   cout << "jet constits: " << endl;
-        //   for (const auto & cind : thisjet.pfcand_indexs()) {
-        //     const PFParticle & pf = event.pfparticles->at(cind);
-        //     cout << pf.pt() << " : " << pf.Rapidity() << " : " << pf.phi() << " : " << pf.puppiWeight() << endl;
-        //   }
-        // }
-        // if (ptd_charged > 0.33 && ptd_charged < 0.335){
-        //   cout << "***** ptd_charged 0.33: " << ptd_charged << endl;
-        //   cout << "isgroomed?: " << doGroomed_ << endl;
-        //   // cout << "ptSum: " << recoJetCalc.getPtSum() << endl;
-        //   cout << " jet " << thisjet.pt() << " : " << thisjet.Rapidity() << " : " << thisjet.phi() << endl;
-        //   cout << "calc constits: " << recoJetCalc.constits().size() << endl;
-        //   for (const auto & constit : recoJetCalc.constits()) {
-        //     cout << constit.pt() << " : " << constit.Rapidity() << " : " << constit.phi() << " : " << constit.puppiWeight() << " : " << constit.charge() << endl;
-        //   }
+      //   cout << "jet constits: " << endl;
+      //   for (const auto & cind : thisjet.pfcand_indexs()) {
+      //     const PFParticle & pf = event.pfparticles->at(cind);
+      //     cout << pf.pt() << " : " << pf.Rapidity() << " : " << pf.phi() << " : " << pf.puppiWeight() << endl;
+      //   }
+      // }
+      // if (ptd > 0.33 && ptd < 0.335){
+      //   cout << "***** ptd 0.33: " << ptd << endl;
+      //   cout << "isgroomed?: " << doGroomed_ << endl;
+      //   // cout << "ptSum: " << recoJetCalc.getPtSum() << endl;
+      //   cout << " jet " << thisjet.pt() << " : " << thisjet.Rapidity() << " : " << thisjet.phi() << endl;
+      //   cout << "calc constits: " << recoJetCalc.constits().size() << endl;
+      //   for (const auto & constit : recoJetCalc.constits()) {
+      //     cout << constit.pt() << " : " << constit.Rapidity() << " : " << constit.phi() << " : " << constit.puppiWeight() << endl;
+      //   }
 
-        //   cout << "jet constits: " << endl;
-        //   for (const auto & cind : thisjet.pfcand_indexs()) {
-        //     const PFParticle & pf = event.pfparticles->at(cind);
-        //     cout << pf.pt() << " : " << pf.Rapidity() << " : " << pf.phi() << " : " << pf.puppiWeight() << " : " << pf.charge() <<  endl;
-        //   }
-        // }
+      //   cout << "jet constits: " << endl;
+      //   for (const auto & cind : thisjet.pfcand_indexs()) {
+      //     const PFParticle & pf = event.pfparticles->at(cind);
+      //     cout << pf.pt() << " : " << pf.Rapidity() << " : " << pf.phi() << " : " << pf.puppiWeight() << endl;
+      //   }
+      // }
 
-        h_jet_puppiMultiplicity_charged->Fill(puppiMult_charged, weight);
-        h_jet_multiplicity_charged->Fill(mult_charged, weight);
-        h_jet_LHA_charged->Fill(lha_charged, weight);
-        h_jet_pTD_charged->Fill(ptd_charged, weight);
-        h_jet_width_charged->Fill(width_charged, weight);
-        h_jet_thrust_charged->Fill(thrust_charged, weight);
+      puppiMult_charged = recoJetCalcCharged.getLambda(Cuts::mult_args);
+      mult_charged = recoJetCalcCharged.getLambda(Cuts::mult_args);
+      lha_charged = recoJetCalcCharged.getLambda(Cuts::lha_args);
+      ptd_charged = recoJetCalcCharged.getLambda(Cuts::pTD_args);
+      width_charged = recoJetCalcCharged.getLambda(Cuts::width_args);
+      thrust_charged = recoJetCalcCharged.getLambda(Cuts::thrust_args);
 
-        h_jet_puppiMultiplicity_charged_vs_pt->Fill(puppiMult_charged, jet_pt, weight);
-        h_jet_multiplicity_charged_vs_pt->Fill(mult_charged, jet_pt, weight);
-        h_jet_LHA_charged_vs_pt->Fill(lha_charged, jet_pt, weight);
-        h_jet_pTD_charged_vs_pt->Fill(ptd_charged, jet_pt, weight);
-        h_jet_width_charged_vs_pt->Fill(width_charged, jet_pt, weight);
-        h_jet_thrust_charged_vs_pt->Fill(thrust_charged, jet_pt, weight);
-      }
+      // if (ptd_charged > 0.5 && ptd_charged < 0.501){
+      //   cout << "+++++ ptd_charged 0.5: " << ptd_charged << endl;
+      //   cout << "isgroomed?: " << doGroomed_ << endl;
+      //   // cout << "ptSum: " << recoJetCalc.getPtSum() << endl;
+      //   cout << " jet " << thisjet.pt() << " : " << thisjet.Rapidity() << " : " << thisjet.phi() << endl;
+      //   cout << "calc constits: " << recoJetCalc.constits().size() << endl;
+      //   for (const auto & constit : recoJetCalc.constits()) {
+      //     cout << constit.pt() << " : " << constit.Rapidity() << " : " << constit.phi() << " : " << constit.puppiWeight() << " : " << constit.charge() << endl;
+      //   }
+
+      //   cout << "jet constits: " << endl;
+      //   for (const auto & cind : thisjet.pfcand_indexs()) {
+      //     const PFParticle & pf = event.pfparticles->at(cind);
+      //     cout << pf.pt() << " : " << pf.Rapidity() << " : " << pf.phi() << " : " << pf.puppiWeight() << endl;
+      //   }
+      // }
+      // if (ptd_charged > 0.33 && ptd_charged < 0.335){
+      //   cout << "***** ptd_charged 0.33: " << ptd_charged << endl;
+      //   cout << "isgroomed?: " << doGroomed_ << endl;
+      //   // cout << "ptSum: " << recoJetCalc.getPtSum() << endl;
+      //   cout << " jet " << thisjet.pt() << " : " << thisjet.Rapidity() << " : " << thisjet.phi() << endl;
+      //   cout << "calc constits: " << recoJetCalc.constits().size() << endl;
+      //   for (const auto & constit : recoJetCalc.constits()) {
+      //     cout << constit.pt() << " : " << constit.Rapidity() << " : " << constit.phi() << " : " << constit.puppiWeight() << " : " << constit.charge() << endl;
+      //   }
+
+      //   cout << "jet constits: " << endl;
+      //   for (const auto & cind : thisjet.pfcand_indexs()) {
+      //     const PFParticle & pf = event.pfparticles->at(cind);
+      //     cout << pf.pt() << " : " << pf.Rapidity() << " : " << pf.phi() << " : " << pf.puppiWeight() << " : " << pf.charge() <<  endl;
+      //   }
+      // }
 
       if (is_mc_ && passGen) {
         // Store variables for matched GenJet
@@ -593,9 +523,6 @@ void QGAnalysisHists::fill(const Event & event){
           const LambdaCalculator<GenParticle> & matchedGenJetCalc = genjetLambdas->at(thisInd).getLambdaCalculator(false, doGroomed_);
           const LambdaCalculator<GenParticle> & matchedGenJetCalcCharged = genjetLambdas->at(thisInd).getLambdaCalculator(true, doGroomed_);
 
-          bool thisPassGen = passGen;
-          bool thisPassGenCharged = passGen;
-
           genjet_pt = genjet.pt();
           genjet_y = genjet.Rapidity();
           genjet_flav = (useStatus23Flavour_) ? get_jet_flavour(genjet, event.genparticles, jetRadius/2., true) : genjet.partonFlavour();
@@ -605,160 +532,149 @@ void QGAnalysisHists::fill(const Event & event){
           response = jet_pt/genjet_pt;
           h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
 
-          if (thisPassGen && thisPassReco) {
-            // Response hists over all pt, and high/low pt split ones
-            float gen_mult = matchedGenJetCalc.getLambda(Cuts::mult_args);
-            fill_lambda_rsp_hists(mult, gen_mult, weight,
-              h_jet_multiplicity_response, h_jet_multiplicity_rel_response,
-              jet_pt,
-              h_jet_multiplicity_lowPt_response, h_jet_multiplicity_midPt_response, h_jet_multiplicity_highPt_response,
-              h_jet_multiplicity_lowPt_rel_response, h_jet_multiplicity_midPt_rel_response, h_jet_multiplicity_highPt_rel_response);
+          // Response hists over all pt, and high/low pt split ones
+          float gen_mult = matchedGenJetCalc.getLambda(Cuts::mult_args);
+          fill_lambda_rsp_hists(mult, gen_mult, weight,
+            h_jet_multiplicity_response, h_jet_multiplicity_rel_response,
+            jet_pt,
+            h_jet_multiplicity_lowPt_response, h_jet_multiplicity_midPt_response, h_jet_multiplicity_highPt_response,
+            h_jet_multiplicity_lowPt_rel_response, h_jet_multiplicity_midPt_rel_response, h_jet_multiplicity_highPt_rel_response);
 
-            fill_lambda_rsp_hists(puppiMult, gen_mult, weight,
-              h_jet_puppiMultiplicity_response, h_jet_puppiMultiplicity_rel_response,
-              jet_pt,
-              h_jet_puppiMultiplicity_lowPt_response, h_jet_puppiMultiplicity_midPt_response, h_jet_puppiMultiplicity_highPt_response,
-              h_jet_puppiMultiplicity_lowPt_rel_response, h_jet_puppiMultiplicity_midPt_rel_response, h_jet_puppiMultiplicity_highPt_rel_response);
+          fill_lambda_rsp_hists(puppiMult, gen_mult, weight,
+            h_jet_puppiMultiplicity_response, h_jet_puppiMultiplicity_rel_response,
+            jet_pt,
+            h_jet_puppiMultiplicity_lowPt_response, h_jet_puppiMultiplicity_midPt_response, h_jet_puppiMultiplicity_highPt_response,
+            h_jet_puppiMultiplicity_lowPt_rel_response, h_jet_puppiMultiplicity_midPt_rel_response, h_jet_puppiMultiplicity_highPt_rel_response);
 
-            float gen_lha = matchedGenJetCalc.getLambda(Cuts::lha_args);
-            fill_lambda_rsp_hists(lha, gen_lha, weight,
-              h_jet_LHA_response, h_jet_LHA_rel_response,
-              jet_pt,
-              h_jet_LHA_lowPt_response, h_jet_LHA_midPt_response, h_jet_LHA_highPt_response,
-              h_jet_LHA_lowPt_rel_response, h_jet_LHA_midPt_rel_response, h_jet_LHA_highPt_rel_response);
+          float gen_lha = matchedGenJetCalc.getLambda(Cuts::lha_args);
+          fill_lambda_rsp_hists(lha, gen_lha, weight,
+            h_jet_LHA_response, h_jet_LHA_rel_response,
+            jet_pt,
+            h_jet_LHA_lowPt_response, h_jet_LHA_midPt_response, h_jet_LHA_highPt_response,
+            h_jet_LHA_lowPt_rel_response, h_jet_LHA_midPt_rel_response, h_jet_LHA_highPt_rel_response);
 
-            float gen_ptd = matchedGenJetCalc.getLambda(Cuts::pTD_args);
-            fill_lambda_rsp_hists(ptd, gen_ptd, weight,
-              h_jet_pTD_response, h_jet_pTD_rel_response,
-              jet_pt,
-              h_jet_pTD_lowPt_response, h_jet_pTD_midPt_response, h_jet_pTD_highPt_response,
-              h_jet_pTD_lowPt_rel_response, h_jet_pTD_midPt_rel_response, h_jet_pTD_highPt_rel_response);
+          float gen_ptd = matchedGenJetCalc.getLambda(Cuts::pTD_args);
+          fill_lambda_rsp_hists(ptd, gen_ptd, weight,
+            h_jet_pTD_response, h_jet_pTD_rel_response,
+            jet_pt,
+            h_jet_pTD_lowPt_response, h_jet_pTD_midPt_response, h_jet_pTD_highPt_response,
+            h_jet_pTD_lowPt_rel_response, h_jet_pTD_midPt_rel_response, h_jet_pTD_highPt_rel_response);
 
-            float gen_width = matchedGenJetCalc.getLambda(Cuts::width_args);
-            fill_lambda_rsp_hists(width, gen_width, weight,
-              h_jet_width_response, h_jet_width_rel_response,
-              jet_pt,
-              h_jet_width_lowPt_response, h_jet_width_midPt_response, h_jet_width_highPt_response,
-              h_jet_width_lowPt_rel_response, h_jet_width_midPt_rel_response, h_jet_width_highPt_rel_response);
+          float gen_width = matchedGenJetCalc.getLambda(Cuts::width_args);
+          fill_lambda_rsp_hists(width, gen_width, weight,
+            h_jet_width_response, h_jet_width_rel_response,
+            jet_pt,
+            h_jet_width_lowPt_response, h_jet_width_midPt_response, h_jet_width_highPt_response,
+            h_jet_width_lowPt_rel_response, h_jet_width_midPt_rel_response, h_jet_width_highPt_rel_response);
 
-            float gen_thrust = matchedGenJetCalc.getLambda(Cuts::thrust_args);
-            fill_lambda_rsp_hists(thrust, gen_thrust, weight,
-              h_jet_thrust_response, h_jet_thrust_rel_response,
-              jet_pt,
-              h_jet_thrust_lowPt_response, h_jet_thrust_midPt_response, h_jet_thrust_highPt_response,
-              h_jet_thrust_lowPt_rel_response, h_jet_thrust_midPt_rel_response, h_jet_thrust_highPt_rel_response);
+          float gen_thrust = matchedGenJetCalc.getLambda(Cuts::thrust_args);
+          fill_lambda_rsp_hists(thrust, gen_thrust, weight,
+            h_jet_thrust_response, h_jet_thrust_rel_response,
+            jet_pt,
+            h_jet_thrust_lowPt_response, h_jet_thrust_midPt_response, h_jet_thrust_highPt_response,
+            h_jet_thrust_lowPt_rel_response, h_jet_thrust_midPt_rel_response, h_jet_thrust_highPt_rel_response);
+
+          // Do charged-only daughters version
+          float gen_mult_charged = matchedGenJetCalcCharged.getLambda(Cuts::mult_args);
+          fill_lambda_rsp_hists(mult_charged, gen_mult_charged, weight,
+            h_jet_multiplicity_charged_response, h_jet_multiplicity_charged_rel_response,
+            jet_pt,
+            h_jet_multiplicity_charged_lowPt_response, h_jet_multiplicity_charged_midPt_response, h_jet_multiplicity_charged_highPt_response,
+            h_jet_multiplicity_charged_lowPt_rel_response, h_jet_multiplicity_charged_midPt_rel_response, h_jet_multiplicity_charged_highPt_rel_response);
+
+          fill_lambda_rsp_hists(puppiMult_charged, gen_mult_charged, weight,
+            h_jet_puppiMultiplicity_charged_response, h_jet_puppiMultiplicity_charged_rel_response,
+            jet_pt,
+            h_jet_puppiMultiplicity_charged_lowPt_response, h_jet_puppiMultiplicity_charged_midPt_response, h_jet_puppiMultiplicity_charged_highPt_response,
+            h_jet_puppiMultiplicity_charged_lowPt_rel_response, h_jet_puppiMultiplicity_charged_midPt_rel_response, h_jet_puppiMultiplicity_charged_highPt_rel_response);
+
+          float gen_lha_charged = matchedGenJetCalcCharged.getLambda(Cuts::lha_args);
+          fill_lambda_rsp_hists(lha_charged, gen_lha_charged, weight,
+            h_jet_LHA_charged_response, h_jet_LHA_charged_rel_response,
+            jet_pt,
+            h_jet_LHA_charged_lowPt_response, h_jet_LHA_charged_midPt_response, h_jet_LHA_charged_highPt_response,
+            h_jet_LHA_charged_lowPt_rel_response, h_jet_LHA_charged_midPt_rel_response, h_jet_LHA_charged_highPt_rel_response);
+
+          float gen_ptd_charged = matchedGenJetCalcCharged.getLambda(Cuts::pTD_args);
+          fill_lambda_rsp_hists(ptd_charged, gen_ptd_charged, weight,
+            h_jet_pTD_charged_response, h_jet_pTD_charged_rel_response,
+            jet_pt,
+            h_jet_pTD_charged_lowPt_response, h_jet_pTD_charged_midPt_response, h_jet_pTD_charged_highPt_response,
+            h_jet_pTD_charged_lowPt_rel_response, h_jet_pTD_charged_midPt_rel_response, h_jet_pTD_charged_highPt_rel_response);
+
+          float gen_width_charged = matchedGenJetCalcCharged.getLambda(Cuts::width_args);
+          fill_lambda_rsp_hists(width_charged, gen_width_charged, weight,
+            h_jet_width_charged_response, h_jet_width_charged_rel_response,
+            jet_pt,
+            h_jet_width_charged_lowPt_response, h_jet_width_charged_midPt_response, h_jet_width_charged_highPt_response,
+            h_jet_width_charged_lowPt_rel_response, h_jet_width_charged_midPt_rel_response, h_jet_width_charged_highPt_rel_response);
+
+          float gen_thrust_charged = matchedGenJetCalcCharged.getLambda(Cuts::thrust_args);
+          fill_lambda_rsp_hists(thrust_charged, gen_thrust_charged, weight,
+            h_jet_thrust_charged_response, h_jet_thrust_charged_rel_response,
+            jet_pt,
+            h_jet_thrust_charged_lowPt_response, h_jet_thrust_charged_midPt_response, h_jet_thrust_charged_highPt_response,
+            h_jet_thrust_charged_lowPt_rel_response, h_jet_thrust_charged_midPt_rel_response, h_jet_thrust_charged_highPt_rel_response);
+
+          h_genjet_flavour_vs_pt->Fill(genjet_flav, genjet_pt, weight);
+          h_genjet_flavour_vs_eta->Fill(genjet_flav, genjet_y, weight);
+          if (i == 0) {
+            h_genjet1_flavour_vs_pt->Fill(genjet_flav, genjet_pt, weight);
+          } else if (i == 1) {
+            h_genjet2_flavour_vs_pt->Fill(genjet_flav, genjet_pt, weight);
           }
 
-          if (thisPassGenCharged && thisPassRecoCharged) {
-            // Do charged-only daughters version
-            float gen_mult_charged = matchedGenJetCalcCharged.getLambda(Cuts::mult_args);
-            fill_lambda_rsp_hists(mult_charged, gen_mult_charged, weight,
-              h_jet_multiplicity_charged_response, h_jet_multiplicity_charged_rel_response,
-              jet_pt,
-              h_jet_multiplicity_charged_lowPt_response, h_jet_multiplicity_charged_midPt_response, h_jet_multiplicity_charged_highPt_response,
-              h_jet_multiplicity_charged_lowPt_rel_response, h_jet_multiplicity_charged_midPt_rel_response, h_jet_multiplicity_charged_highPt_rel_response);
-
-            fill_lambda_rsp_hists(puppiMult_charged, gen_mult_charged, weight,
-              h_jet_puppiMultiplicity_charged_response, h_jet_puppiMultiplicity_charged_rel_response,
-              jet_pt,
-              h_jet_puppiMultiplicity_charged_lowPt_response, h_jet_puppiMultiplicity_charged_midPt_response, h_jet_puppiMultiplicity_charged_highPt_response,
-              h_jet_puppiMultiplicity_charged_lowPt_rel_response, h_jet_puppiMultiplicity_charged_midPt_rel_response, h_jet_puppiMultiplicity_charged_highPt_rel_response);
-
-            float gen_lha_charged = matchedGenJetCalcCharged.getLambda(Cuts::lha_args);
-            fill_lambda_rsp_hists(lha_charged, gen_lha_charged, weight,
-              h_jet_LHA_charged_response, h_jet_LHA_charged_rel_response,
-              jet_pt,
-              h_jet_LHA_charged_lowPt_response, h_jet_LHA_charged_midPt_response, h_jet_LHA_charged_highPt_response,
-              h_jet_LHA_charged_lowPt_rel_response, h_jet_LHA_charged_midPt_rel_response, h_jet_LHA_charged_highPt_rel_response);
-
-            float gen_ptd_charged = matchedGenJetCalcCharged.getLambda(Cuts::pTD_args);
-            fill_lambda_rsp_hists(ptd_charged, gen_ptd_charged, weight,
-              h_jet_pTD_charged_response, h_jet_pTD_charged_rel_response,
-              jet_pt,
-              h_jet_pTD_charged_lowPt_response, h_jet_pTD_charged_midPt_response, h_jet_pTD_charged_highPt_response,
-              h_jet_pTD_charged_lowPt_rel_response, h_jet_pTD_charged_midPt_rel_response, h_jet_pTD_charged_highPt_rel_response);
-
-            float gen_width_charged = matchedGenJetCalcCharged.getLambda(Cuts::width_args);
-            fill_lambda_rsp_hists(width_charged, gen_width_charged, weight,
-              h_jet_width_charged_response, h_jet_width_charged_rel_response,
-              jet_pt,
-              h_jet_width_charged_lowPt_response, h_jet_width_charged_midPt_response, h_jet_width_charged_highPt_response,
-              h_jet_width_charged_lowPt_rel_response, h_jet_width_charged_midPt_rel_response, h_jet_width_charged_highPt_rel_response);
-
-            float gen_thrust_charged = matchedGenJetCalcCharged.getLambda(Cuts::thrust_args);
-            fill_lambda_rsp_hists(thrust_charged, gen_thrust_charged, weight,
-              h_jet_thrust_charged_response, h_jet_thrust_charged_rel_response,
-              jet_pt,
-              h_jet_thrust_charged_lowPt_response, h_jet_thrust_charged_midPt_response, h_jet_thrust_charged_highPt_response,
-              h_jet_thrust_charged_lowPt_rel_response, h_jet_thrust_charged_midPt_rel_response, h_jet_thrust_charged_highPt_rel_response);
+          uint nPartons = get_num_outgoing_partons(*event.genparticles);
+          if (nPartons > N_PARTONS_MAX) throw std::runtime_error("Too many partons " + nPartons);
+          h_genjet_flavour_vs_pt_nPartons.at(nPartons)->Fill(genjet_flav, genjet_pt, weight);
+          if (i == 0) {
+            h_genjet1_flavour_vs_pt_nPartons.at(nPartons)->Fill(genjet_flav, genjet_pt, weight);
+          } else if (i == 1) {
+            h_genjet2_flavour_vs_pt_nPartons.at(nPartons)->Fill(genjet_flav, genjet_pt, weight);
           }
         } // end if matchedgenjet
 
-        int jet_flav = (useStatus23Flavour_) ? get_jet_flavour(thisjet, event.genparticles, jetRadius/2., true) : thisjet.partonFlavour();
-        jet_flav = abs(jet_flav);
-        if (jet_flav > 100) jet_flav = PDGID::UNKNOWN;
+        // int jet_flav = (useStatus23Flavour_) ? get_jet_flavour(thisjet, event.genparticles, jetRadius/2., true) : thisjet.partonFlavour();
+        // jet_flav = abs(jet_flav);
+        // if (jet_flav > 100) jet_flav = PDGID::UNKNOWN;
 
-        // Split by actual jet flavour - these only make sense for MC
-        if (thisPassReco) {
-          if (jet_flav == 21) { // gluon jets
-            h_gjet_multiplicity->Fill(mult, weight);
-            h_gjet_LHA->Fill(lha, weight);
-            h_gjet_pTD->Fill(ptd, weight);
-            h_gjet_width->Fill(width, weight);
-            h_gjet_thrust->Fill(thrust, weight);
+        // // Split by actual jet flavour - these only make sense for MC
+        // if (jet_flav == PDGID::GLUON) { // gluon jets
+        //   h_gjet_multiplicity_vs_pt->Fill(mult, jet_pt, weight);
+        //   h_gjet_LHA_vs_pt->Fill(lha, jet_pt, weight);
+        //   h_gjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
+        //   h_gjet_width_vs_pt->Fill(width, jet_pt, weight);
+        //   h_gjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
+        //   if (matchedGenJet) h_gjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+        //   h_gjet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
 
-            h_gjet_multiplicity_vs_pt->Fill(mult, jet_pt, weight);
-            h_gjet_LHA_vs_pt->Fill(lha, jet_pt, weight);
-            h_gjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
-            h_gjet_width_vs_pt->Fill(width, jet_pt, weight);
-            h_gjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
-            if (matchedGenJet) h_gjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
-            h_gjet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
-          } else if ((jet_flav <= 3) && (jet_flav > 0)){ // uds jets
-            h_qjet_multiplicity->Fill(mult, weight);
-            h_qjet_LHA->Fill(lha, weight);
-            h_qjet_pTD->Fill(ptd, weight);
-            h_qjet_width->Fill(width, weight);
-            h_qjet_thrust->Fill(thrust, weight);
+        // } else if ((jet_flav <= PDGID::STRANGE_QUARK) && (jet_flav >= PDGID::DOWN_QUARK)){ // uds jets
+        //   h_qjet_LHA_vs_pt->Fill(lha, jet_pt, weight);
+        //   h_qjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
+        //   h_qjet_width_vs_pt->Fill(width, jet_pt, weight);
+        //   h_qjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
+        //   if (matchedGenJet) h_qjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+        //   h_qjet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
 
-            h_qjet_multiplicity_vs_pt->Fill(mult, jet_pt, weight);
-            h_qjet_LHA_vs_pt->Fill(lha, jet_pt, weight);
-            h_qjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
-            h_qjet_width_vs_pt->Fill(width, jet_pt, weight);
-            h_qjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
-            if (matchedGenJet) h_qjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
-            h_qjet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
-          }
+        // } else {
+        //   h_bcjet_LHA_vs_pt->Fill(lha, jet_pt, weight);
+        //   h_bcjet_pTD_vs_pt->Fill(ptd, jet_pt, weight);
+        //   h_bcjet_width_vs_pt->Fill(width, jet_pt, weight);
+        //   h_bcjet_thrust_vs_pt->Fill(thrust, jet_pt, weight);
+        //   if (matchedGenJet) h_bcjet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
+        //   h_bcjet_puppiMultiplicity_vs_pt->Fill(puppiMult, jet_pt, weight);
+        // }
 
-          h_jet_flavour->Fill(jet_flav, weight);
-          h_jet_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
-          if (i == 0) {
-            h_jet1_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
-          } else if (i == 1) {
-            h_jet2_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
-          }
+        // h_jet_flavour->Fill(jet_flav, weight);
+        // h_jet_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
+        // if (i == 0) {
+        //   h_jet1_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
+        // } else if (i == 1) {
+        //   h_jet2_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
+        // }
 
-          if (matchedGenJet) {
-            h_genjet_flavour_vs_pt->Fill(genjet_flav, genjet_pt, weight);
-            h_genjet_flavour_vs_eta->Fill(genjet_flav, genjet_y, weight);
-            if (i == 0) {
-              h_genjet1_flavour_vs_pt->Fill(genjet_flav, genjet_pt, weight);
-            } else if (i == 1) {
-              h_genjet2_flavour_vs_pt->Fill(genjet_flav, genjet_pt, weight);
-            }
+        // h_jet_flavour_vs_eta->Fill(jet_flav, thisjet.Rapidity(), weight);
 
-            uint nPartons = get_num_outgoing_partons(*event.genparticles);
-            if (nPartons > N_PARTONS_MAX) throw std::runtime_error("Too many partons " + nPartons);
-            h_genjet_flavour_vs_pt_nPartons.at(nPartons)->Fill(genjet_flav, genjet_pt, weight);
-            if (i == 0) {
-              h_genjet1_flavour_vs_pt_nPartons.at(nPartons)->Fill(genjet_flav, genjet_pt, weight);
-            } else if (i == 1) {
-              h_genjet2_flavour_vs_pt_nPartons.at(nPartons)->Fill(genjet_flav, genjet_pt, weight);
-            }
-          }
-
-          h_jet_flavour_vs_eta->Fill(jet_flav, thisjet.Rapidity(), weight);
-        }
       } // end is_mc_
 
       //  Do lambda correlation hists
