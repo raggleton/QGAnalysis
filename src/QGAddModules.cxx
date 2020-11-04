@@ -870,8 +870,6 @@ QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx,
                                          const std::string & jet_coll_name,
                                          const std::string & output_coll_name):
   wta_cluster_(Recluster(JetDefinition(antikt_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme), false, Recluster::keep_only_hardest)),
-  // ca_cluster_(Recluster(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R), false, Recluster::keep_only_hardest)),
-  // mmdt_(contrib::ModifiedMassDropTagger(0.1)),
   // note that if MMDT/SD does reclustering, then it will call
   // Recluster(cambridge_algorithm, JetDefinition::max_allowable_R)(jet);
   // in RecursiveSymmetryCutBase::_recluster_if_needed. And inside Recluster ctor,
@@ -887,10 +885,7 @@ QGAnalysisJetLambda::QGAnalysisJetLambda(uhh2::Context & ctx,
   photonShift_(0), // must init to 0 otherwise bad things will happen, will go haywire!
   jet_handle_(ctx.get_handle<std::vector<Jet>>(jet_coll_name)),
   output_handle_(ctx.get_handle<std::vector<JetLambdaBundle>>(output_coll_name))
-{
-  // mmdt_.set_grooming_mode();
-  // mmdt_.set_reclustering(true);
-}
+{}
 
 
 PseudoJet QGAnalysisJetLambda::convert_uhh_pfparticle_to_pseudojet(const PFParticle & particle, bool applyPuppiWeight) {
@@ -921,21 +916,21 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     std::vector<PFParticle> constits = get_jet_pfparticles(jet, event, false);
     clean_collection<PFParticle>(constits, event, PtEtaCut(1E-8, 10.)); // basic cut to remove weird 0 pt constits
 
-    if (constits.size() < 2) {
-      cout << "Event number : run : lumi: " << event.event << " : " << event.run << " : " << event.luminosityBlock << endl;
-      cout << "WARNING: QGAnalysisJetLambda: constits.size() < 2, jet filtering not done properly!" << endl;
-      // since we might encounter a jet without its constituents (ntuple only has them for top 3 jets)
-      LambdaCalculator<PFParticle> recoJetCalc(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
-      LambdaCalculator<PFParticle> recoJetCalcCharged(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
+    // if (constits.size() < 2) {
+    //   cout << "Event number : run : lumi: " << event.event << " : " << event.run << " : " << event.luminosityBlock << endl;
+    //   cout << "WARNING: QGAnalysisJetLambda: constits.size() < 2, jet filtering not done properly!" << endl;
+    //   // since we might encounter a jet without its constituents (ntuple only has them for top 3 jets)
+    //   LambdaCalculator<PFParticle> recoJetCalc(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
+    //   LambdaCalculator<PFParticle> recoJetCalcCharged(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
 
-      LambdaCalculator<PFParticle> recoJetCalcGroomed(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
-      LambdaCalculator<PFParticle> recoJetCalcGroomedCharged(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
+    //   LambdaCalculator<PFParticle> recoJetCalcGroomed(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
+    //   LambdaCalculator<PFParticle> recoJetCalcGroomedCharged(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
 
-      JetLambdaBundle thisBundle{jet, recoJetCalc, recoJetCalcCharged, recoJetCalcGroomed, recoJetCalcGroomedCharged};
-      outputs.push_back(thisBundle);
-      continue;
-      // throw runtime_error("QGAnalysisJetLambda: constits.size() < 2, jet filtering not done properly!");
-    }
+    //   JetLambdaBundle thisBundle{jet, recoJetCalc, recoJetCalcCharged, recoJetCalcGroomed, recoJetCalcGroomedCharged};
+    //   outputs.push_back(thisBundle);
+    //   continue;
+    //   // throw runtime_error("QGAnalysisJetLambda: constits.size() < 2, jet filtering not done properly!");
+    // }
 
     // Shift energies if appropriate
     if (fabs(chargedHadronShift_) > 1E-6) { shift_charged_hadron_pfparticles(constits, chargedHadronShift_); }
@@ -1003,9 +998,6 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
       throw std::runtime_error("Reclustered AK pT/y mismatch");
     }
 
-    // cout << "Original jet: " << jet.pt()*jet.JEC_factor_raw() << " : " << jet.eta() << " : " << jet.phi() << endl;
-    // cout << "ak jet: " << akJets[0].pt() << " : " << akJets[0].eta() << " : " << akJets[0].phi() << endl;
-
     // Now recluster using WTA
     PseudoJet wtaJet = wta_cluster_(akJets[0]);
 
@@ -1033,12 +1025,8 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
 
     // Apply grooming to jet (does CA reclustering internally with E-scheme)
     // Also get WTA axis, and constits left after grooming
-    // PseudoJet caJet = ca_cluster_(akJets[0]);
-    // cout << "CA jet: " << caJet.pt() << " : " << caJet.eta() << " : " << caJet.phi() << endl;
     fastjet::contrib::SoftDrop sd(0, 0.1, jetRadius_);
     PseudoJet groomedJet = sd(akJets[0]);
-    // PseudoJet groomedJet = mmdt_(akJets[0]);
-    // cout << "Groomed jet: " << groomedJet.pt() << " : " << groomedJet.eta() << " : " << groomedJet.phi() << endl;
     PseudoJet groomedJetWTA = wta_cluster_(groomedJet); // want the AK WTA axis for lambda variables
     // create collection with only those in groomed jet
     std::vector<PFParticle> groomedConstits;
@@ -1065,13 +1053,6 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
       clean_collection<PFParticle>(groomedConstits, event, pfId_);
       clean_collection<PFParticle>(groomedChargedConstits, event, pfId_);
     }
-
-    // cout << "Original jet axis: " << jet.v4().px() << " : " << jet.v4().py() << " : " << jet.v4().pz() << endl;
-    // cout << "Original jet axis: " << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
-    // cout << "WTA jet axis: " << wtaJetAxis.px() << " : " << wtaJetAxis.py() << " : " << wtaJetAxis.pz() << endl;
-    // cout << "WTA jet axis: " << wtaJetAxis.pt() << " : " << wtaJetAxis.eta() << " : " << wtaJetAxis.phi() << endl;
-    // cout << "WTA groomed jet axis: " << wtaGroomedJetAxis.px() << " : " << wtaGroomedJetAxis.py() << " : " << wtaGroomedJetAxis.pz() << endl;
-    // cout << "WTA groomed jet axis: " << wtaGroomedJetAxis.pt() << " : " << wtaGroomedJetAxis.eta() << " : " << wtaGroomedJetAxis.phi() << endl;
 
     // Note that constits/chargedConstits/groomedConstits/groomedChargedConstits are PFParticles WITHOUT Puppi weights applied to 4-vector
     auto wtaJetAxis = toPtEtaPhi(LorentzVectorXYZE(wtaJet.px(), wtaJet.py(), wtaJet.pz(), wtaJet.E()));
@@ -1210,8 +1191,6 @@ QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx,
                                                const std::string & jet_coll_name,
                                                const std::string & output_coll_name):
   wta_cluster_(Recluster(JetDefinition(antikt_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme), false, Recluster::keep_only_hardest)),
-  // ca_cluster_(Recluster(JetDefinition(cambridge_algorithm, JetDefinition::max_allowable_R, WTA_pt_scheme), false, Recluster::keep_only_hardest)),
-  // mmdt_(contrib::ModifiedMassDropTagger(0.1)),
   jetRadius_(jetRadius),
   nJetsMax_(nJetsMax),
   genId_(genId),
@@ -1219,10 +1198,7 @@ QGAnalysisGenJetLambda::QGAnalysisGenJetLambda(uhh2::Context & ctx,
   photonShift_(0),
   genjet_handle_(ctx.get_handle<std::vector<GenJet>>(jet_coll_name)),
   output_handle_(ctx.get_handle<std::vector<GenJetLambdaBundle>>(output_coll_name))
-{
-  // mmdt_.set_grooming_mode();
-  // mmdt_.set_reclustering(true);
-}
+{}
 
 
 PseudoJet QGAnalysisGenJetLambda::convert_uhh_genparticle_to_pseudojet(const GenParticle & particle) {
@@ -1252,24 +1228,6 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     // Get constituents
     std::vector<GenParticle> constits = get_jet_genparticles(jet, event);
     clean_collection<GenParticle>(constits, event, PtEtaCut(1E-8, 10.)); // basic cut to remove weird 0 pt constits
-
-    if (constits.size() < 2) {
-      cout << "Event number : run : lumi: " << event.event << " : " << event.run << " : " << event.luminosityBlock << endl;
-      cout << "WARNING: QGAnalysisGenJetLambda: constits.size() < 2, jet filtering not done properly!" << endl;
-      // since we might encounter a jet without its constituents (ntuple only has them for top 3 jets)
-      LambdaCalculator<GenParticle> genJetCalc(constits, jetRadius_, jet.v4(), jet.v4(), false);
-      LambdaCalculator<GenParticle> genJetCalcCharged(constits, jetRadius_, jet.v4(), jet.v4(), false);
-
-      LambdaCalculator<GenParticle> genJetCalcGroomed(constits, jetRadius_, jet.v4(), jet.v4(), false);
-      LambdaCalculator<GenParticle> genJetCalcGroomedCharged(constits, jetRadius_, jet.v4(), jet.v4(), false);
-
-      GenJetLambdaBundle thisBundle{jet, genJetCalc, genJetCalcCharged, genJetCalcGroomed, genJetCalcGroomedCharged};
-      outputs.push_back(thisBundle);
-      continue;
-      // throw runtime_error("QGAnalysisGenJetLambda: constits.size() < 2, jet filtering not done properly!");
-    }
-
-    // FIXME: handle when 0 leftover constituents
 
     // Calculate the WTA axis
     // First convert constits to PseudoJets
@@ -1358,12 +1316,8 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
 
     // Apply grooming to jet (does CA reclustering internally with E-scheme)
     // Also get WTA axis, and constits left after grooming
-    // PseudoJet caJet = ca_cluster_(akJets[0]);
-    // cout << "CA jet: " << caJet.pt() << " : " << caJet.eta() << " : " << caJet.phi() << endl;
     fastjet::contrib::SoftDrop sd(0, 0.1, jetRadius_);
     PseudoJet groomedJet = sd(akJets[0]);
-    // PseudoJet groomedJet = mmdt_(akJets[0]);
-    // cout << "Groomed jet: " << groomedJet.pt() << " : " << groomedJet.eta() << " : " << groomedJet.phi() << endl;
     PseudoJet groomedJetWTA = wta_cluster_(groomedJet); // want the AK WTA axis for lambda variables
     // create collection with only those in groomed jet
     std::vector<GenParticle> groomedConstits;
@@ -1390,13 +1344,6 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
       clean_collection<GenParticle>(groomedConstits, event, genId_);
       clean_collection<GenParticle>(groomedChargedConstits, event, genId_);
     }
-
-    // cout << "Original jet axis: " << jet.v4().px() << " : " << jet.v4().py() << " : " << jet.v4().pz() << endl;
-    // cout << "Original jet axis: " << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
-    // cout << "WTA jet axis: " << wtaJetAxis.px() << " : " << wtaJetAxis.py() << " : " << wtaJetAxis.pz() << endl;
-    // cout << "WTA jet axis: " << wtaJetAxis.pt() << " : " << wtaJetAxis.eta() << " : " << wtaJetAxis.phi() << endl;
-    // cout << "WTA groomed jet axis: " << wtaGroomedJetAxis.px() << " : " << wtaGroomedJetAxis.py() << " : " << wtaGroomedJetAxis.pz() << endl;
-    // cout << "WTA groomed jet axis: " << wtaGroomedJetAxis.pt() << " : " << wtaGroomedJetAxis.eta() << " : " << wtaGroomedJetAxis.phi() << endl;
 
     auto wtaJetAxis = toPtEtaPhi(LorentzVectorXYZE(wtaJet.px(), wtaJet.py(), wtaJet.pz(), wtaJet.E()));
     LambdaCalculator<GenParticle> genJetCalc(constits, jetRadius_, jet.v4(), wtaJetAxis, false);
