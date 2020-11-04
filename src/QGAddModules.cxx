@@ -782,12 +782,10 @@ double LambdaCalculator<PFParticle>::getLambda(LambdaArgs lambdaArgs) const
   float kappa = lambdaArgs.kappa;
   float beta = lambdaArgs.beta;
   ParticleId constitId = lambdaArgs.id;
-  uint minNumConstits = lambdaArgs.minNumConstits;
 
+  double result = 0.;
   // Special case if both 0 ie multiplicity
   // Do it this way to ensure puppi weights correctly accounted for
-  double result = 0.;
-  uint numConstits = 0;
   if (kappa == 0 && beta == 0) {
     for (const auto & dtr : constits_) {
       if (!constitId(dtr)) continue;
@@ -796,9 +794,7 @@ double LambdaCalculator<PFParticle>::getLambda(LambdaArgs lambdaArgs) const
       } else {
         result += 1;
       }
-      numConstits++;
     }
-    if (!(numConstits >= minNumConstits)) return -1;
     return result;
   }
 
@@ -818,10 +814,7 @@ double LambdaCalculator<PFParticle>::getLambda(LambdaArgs lambdaArgs) const
     // 1 as puppi shouldn't change direction
     numerator += (pow(thisPt, kappa) * pow(theta2, 0.5*beta));
     ptSum += thisPt;
-    numConstits++;
   }
-  if (numConstits == 1) return 0; // special case if 1 constituent: must return 0 to cancel divergences for thoerists
-  else if (!(numConstits >= minNumConstits)) return -1;
   result = numerator / (pow(ptSum, kappa) * pow(jetRadius_, beta));
   return result;
 }
@@ -837,17 +830,15 @@ double LambdaCalculator<GenParticle>::getLambda(LambdaArgs lambdaArgs) const
   float kappa = lambdaArgs.kappa;
   float beta = lambdaArgs.beta;
   ParticleId constitId = lambdaArgs.id;
-  uint minNumConstits = lambdaArgs.minNumConstits;
 
+  double result = 0.;
   // Special case if both 0 ie multiplicity
   // Do it this way to save time
-  double result = 0.;
   if (kappa == 0 && beta == 0) {
     for (const auto & dtr : constits_) {
       if (!constitId(dtr)) continue;
       result++;
     }
-    if (!(result >= minNumConstits)) return -1;
     return result;
   }
 
@@ -865,10 +856,7 @@ double LambdaCalculator<GenParticle>::getLambda(LambdaArgs lambdaArgs) const
     double theta2 = (beta != 0) ? deltaR2UsingY(dtr.v4(), referenceAxis) : 1.;
     numerator += (pow(thisPt, kappa) * pow(theta2, 0.5*beta));
     ptSum += thisPt;
-    numConstits++;
   }
-  if (numConstits == 1) return 0; // special case if 1 constituent: must return 0 to cancel divergences for thoerists
-  else if (!(numConstits >= minNumConstits)) return -1;
   result = numerator / (pow(ptSum, kappa) * pow(jetRadius_, beta));
   return result;
 }
@@ -919,11 +907,11 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
   for (auto & jet : jets) {
     if (nJetsMax_ > 0 && nJetCounter == nJetsMax_) break;
     // For each jet, we:
-    // - get constits, apply energy shifts if need be
+    // - Get constits, apply energy shifts if need be
     // - Calculate the WTA axis
-    // - Apply grooming to create subset of groomed constits
-    // - Calculate WTA axis for groomed jet
-    // - Create subsets of charged constits (groomed & ungroomed)
+    // - Get charged constituents, recluster into jet, get WTA axis
+    // - Apply grooming to create subset of groomed constits, get WTA axis
+    // - Apply grooming to charged-only jet, get WTA axis
     // - Apply any other cuts (e.g. pt)
     // - Create LambdaCalculator for each constit collection, save to struct
     // {ungroomed, groomed} x {neutral+charged, charged-only}
@@ -1252,11 +1240,11 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
   for (auto & jet : jets) {
     if (nJetsMax_ > 0 && nJetCounter == nJetsMax_) break;
     // For each jet, we:
-    // - get constits
+    // - Get constits, apply energy shifts if need be
     // - Calculate the WTA axis
-    // - Apply grooming to create subset of groomed constits
-    // - Calculate WTA axis for groomed jet
-    // - Create subsets of charged constits (groomed & ungroomed)
+    // - Get charged constituents, recluster into jet, get WTA axis
+    // - Apply grooming to create subset of groomed constits, get WTA axis
+    // - Apply grooming to charged-only jet, get WTA axis
     // - Apply any other cuts (e.g. pt)
     // - Create LambdaCalculator for each constit collection, save to struct
     // {ungroomed, groomed} x {neutral+charged, charged-only}

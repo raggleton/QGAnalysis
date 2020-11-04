@@ -68,7 +68,6 @@ struct LambdaArgs {
   float kappa;
   float beta;
   ParticleId id;
-  uint minNumConstits;
 };
 
 
@@ -117,11 +116,11 @@ namespace Cuts {
   // and easier to have one getLambda method.
   // But could in theory have separate ones for gen & reco
   // Note that any constituent cuts here override the constit_pt_min and constit_eta_max above
-  const LambdaArgs lha_args      {1, 0.5, PtYCut(constit_pt_min, constit_eta_max), 0};
-  const LambdaArgs width_args    {1, 1,   PtYCut(constit_pt_min, constit_eta_max), 0};
-  const LambdaArgs thrust_args   {1, 2,   PtYCut(constit_pt_min, constit_eta_max), 0};
-  const LambdaArgs pTD_args      {2, 0,   PtYCut(constit_pt_min, constit_eta_max), 0}; // need minNumConstits=2 to stop spike at 1, other vars OK
-  const LambdaArgs mult_args     {0, 0,   PtYCut(1., constit_eta_max),             0}; // higher pT cut for multiplicity as messy below that
+  const LambdaArgs lha_args      {1, 0.5, PtYCut(constit_pt_min, constit_eta_max)};
+  const LambdaArgs width_args    {1, 1,   PtYCut(constit_pt_min, constit_eta_max)};
+  const LambdaArgs thrust_args   {1, 2,   PtYCut(constit_pt_min, constit_eta_max)};
+  const LambdaArgs pTD_args      {2, 0,   PtYCut(constit_pt_min, constit_eta_max)};
+  const LambdaArgs mult_args     {0, 0,   PtYCut(1., constit_eta_max)}; // higher pT cut for multiplicity as messy below that
 
 }
 
