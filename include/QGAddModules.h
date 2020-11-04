@@ -620,6 +620,10 @@ public:
   }
 };
 
+/**
+ * Check if pdgId is parton (quark or gluon)
+ */
+bool isParton(int pdgId);
 
 /**
  * Methods to create sum of constituents

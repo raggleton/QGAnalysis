@@ -37,6 +37,7 @@ protected:
                                float jet_pt,
                                TH2F * response_lowPt, TH2F * response_midPt, TH2F * response_highPt,
                                TH2F * rel_response_lowPt, TH2F * rel_response_midPt, TH2F * rel_response_highPt);
+    uint get_num_outgoing_partons(const std::vector<GenParticle> & genparticles);
     // reco jet hists
     float jetRadius;
     TH1F * h_weights;
@@ -52,7 +53,8 @@ protected:
     TH2F *h_jet_multiplicity_charged_vs_pt, *h_jet_LHA_charged_vs_pt, *h_jet_pTD_charged_vs_pt, *h_jet_width_charged_vs_pt, *h_jet_thrust_charged_vs_pt;
     TH2F *h_jet_flavour_vs_pt, *h_jet1_flavour_vs_pt, *h_jet2_flavour_vs_pt;
     TH2F *h_genjet_flavour_vs_pt, *h_genjet1_flavour_vs_pt, *h_genjet2_flavour_vs_pt;
-    TH2F *h_jet_flavour_vs_eta, *h_jet_response_vs_genjet_pt;
+    std::vector<TH2F *> h_genjet_flavour_vs_pt_nPartons, h_genjet1_flavour_vs_pt_nPartons, h_genjet2_flavour_vs_pt_nPartons;
+    TH2F *h_jet_flavour_vs_eta, *h_genjet_flavour_vs_eta, *h_jet_response_vs_genjet_pt;
     TH2F *h_qjet_multiplicity_vs_pt, *h_qjet_LHA_vs_pt, *h_qjet_pTD_vs_pt, *h_qjet_width_vs_pt, *h_qjet_thrust_vs_pt, *h_qjet_response_vs_genjet_pt;
     TH2F *h_gjet_multiplicity_vs_pt, *h_gjet_LHA_vs_pt, *h_gjet_pTD_vs_pt, *h_gjet_width_vs_pt, *h_gjet_thrust_vs_pt, *h_gjet_response_vs_genjet_pt;
     TH2F *h_jet_puppiMultiplicity_vs_pt, *h_jet_puppiMultiplicity_charged_vs_pt, *h_qjet_puppiMultiplicity_vs_pt, *h_gjet_puppiMultiplicity_vs_pt;
@@ -119,6 +121,7 @@ protected:
     float rsp_lowPt_cut_, rsp_midPt_cut_, rsp_highPt_cut_;
     float recoDauPtCut_;
     bool useStatus23Flavour_;
+    uint N_PARTONS_MAX;
 };
 
 

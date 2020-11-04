@@ -1439,6 +1439,12 @@ bool JetMatcher::process(uhh2::Event & event) {
 }
 
 
+bool isParton(int pdgId) {
+  uint pdg = abs(pdgId);
+  return ((pdg >= PDGID::DOWN_QUARK && pdg <= PDGID::TOP_QUARK) || pdg == PDGID::GLUON);
+}
+
+
 LorentzVector jet_constit_4vec(const Jet & jet, const std::vector<PFParticle> & pfparticles, bool doPuppi) {
   LorentzVector sumv4;
   for (const uint i : jet.pfcand_indexs()) {

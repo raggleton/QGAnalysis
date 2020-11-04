@@ -26,7 +26,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   rsp_midPt_cut_(100.),
   rsp_highPt_cut_(250.),
   recoDauPtCut_(1.),
-  useStatus23Flavour_(useStatus23Flavour)
+  useStatus23Flavour_(useStatus23Flavour),
+  N_PARTONS_MAX(4)
   {
 
   string jetCone = ctx.get("JetCone", "AK4");
@@ -265,7 +266,19 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
     h_genjet1_flavour_vs_pt = book<TH2F>("genjet1_flavour_vs_pt", "genjet1 flavour;PDGID;GenJet1 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
     h_genjet2_flavour_vs_pt = book<TH2F>("genjet2_flavour_vs_pt", "genjet2 flavour;PDGID;GenJet2 p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
 
+    h_genjet_flavour_vs_pt_nPartons.resize(N_PARTONS_MAX+1);
+    h_genjet1_flavour_vs_pt_nPartons.resize(N_PARTONS_MAX+1);
+    h_genjet2_flavour_vs_pt_nPartons.resize(N_PARTONS_MAX+1);
+
+    for (uint n=0; n <= N_PARTONS_MAX; n++) {
+      h_genjet_flavour_vs_pt_nPartons.at(n) = book<TH2F>(TString::Format("genjet_flavour_vs_pt_npartons_%d", n), TString::Format("genjet flavour for %d parton;PDGID;GenJet p_{T} [GeV]", n), 23, -0.5, 22.5, nPtBins, ptMin, ptMax);;
+      h_genjet1_flavour_vs_pt_nPartons.at(n) = book<TH2F>(TString::Format("genjet1_flavour_vs_pt_npartons_%d", n), TString::Format("genjet1 flavour for %d parton;PDGID;GenJet1 p_{T} [GeV]", n), 23, -0.5, 22.5, nPtBins, ptMin, ptMax);;
+      h_genjet2_flavour_vs_pt_nPartons.at(n) = book<TH2F>(TString::Format("genjet2_flavour_vs_pt_npartons_%d", n), TString::Format("genjet2 flavour for %d parton;PDGID;GenJet2 p_{T} [GeV]", n), 23, -0.5, 22.5, nPtBins, ptMin, ptMax);;
+    }
+
     h_jet_flavour_vs_eta = book<TH2F>("jet_flavour_vs_eta", "jet flavour;PDGID;Jet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
+
+    h_genjet_flavour_vs_eta = book<TH2F>("genjet_flavour_vs_eta", "genjet flavour;PDGID;GenJet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
 
     // q jet only
     h_qjet_puppiMultiplicity_vs_pt = book<TH2F>("qjet_puppiMultiplicity_vs_pt", "q-flavour;# of constituents, PUPPI weighted (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
@@ -567,7 +580,8 @@ void QGAnalysisHists::fill(const Event & event){
         // Store variables for matched GenJet
         bool matchedGenJet = (thisjet.genjet_index() > -1 && thisjet.genjet_index() < 3); // put upper limit to avoid weird matches
         float genjet_pt = -1.;
-        float genjet_flav = -1.;
+        float genjet_y = 0.;
+        float genjet_flav = PDGID::UNKNOWN;
         float response = -1.;
 
         if (matchedGenJet) { // we don't care about passing the GEN selection, just looking for a match
@@ -583,8 +597,11 @@ void QGAnalysisHists::fill(const Event & event){
           bool thisPassGenCharged = passGen;
 
           genjet_pt = genjet.pt();
+          genjet_y = genjet.Rapidity();
           genjet_flav = (useStatus23Flavour_) ? get_jet_flavour(genjet, event.genparticles, jetRadius/2., true) : genjet.partonFlavour();
           genjet_flav = abs(genjet_flav);
+          if (genjet_flav > 100) genjet_flav = PDGID::UNKNOWN;
+
           response = jet_pt/genjet_pt;
           h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
 
@@ -679,6 +696,7 @@ void QGAnalysisHists::fill(const Event & event){
 
         int jet_flav = (useStatus23Flavour_) ? get_jet_flavour(thisjet, event.genparticles, jetRadius/2., true) : thisjet.partonFlavour();
         jet_flav = abs(jet_flav);
+        if (jet_flav > 100) jet_flav = PDGID::UNKNOWN;
 
         // Split by actual jet flavour - these only make sense for MC
         if (thisPassReco) {
@@ -716,17 +734,26 @@ void QGAnalysisHists::fill(const Event & event){
           h_jet_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
           if (i == 0) {
             h_jet1_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
-          }
-          else if (i == 1) {
+          } else if (i == 1) {
             h_jet2_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
           }
+
           if (matchedGenJet) {
             h_genjet_flavour_vs_pt->Fill(genjet_flav, genjet_pt, weight);
+            h_genjet_flavour_vs_eta->Fill(genjet_flav, genjet_y, weight);
             if (i == 0) {
               h_genjet1_flavour_vs_pt->Fill(genjet_flav, genjet_pt, weight);
-            }
-            else if (i == 1) {
+            } else if (i == 1) {
               h_genjet2_flavour_vs_pt->Fill(genjet_flav, genjet_pt, weight);
+            }
+
+            uint nPartons = get_num_outgoing_partons(*event.genparticles);
+            if (nPartons > N_PARTONS_MAX) throw std::runtime_error("Too many partons " + nPartons);
+            h_genjet_flavour_vs_pt_nPartons.at(nPartons)->Fill(genjet_flav, genjet_pt, weight);
+            if (i == 0) {
+              h_genjet1_flavour_vs_pt_nPartons.at(nPartons)->Fill(genjet_flav, genjet_pt, weight);
+            } else if (i == 1) {
+              h_genjet2_flavour_vs_pt_nPartons.at(nPartons)->Fill(genjet_flav, genjet_pt, weight);
             }
           }
 
@@ -910,6 +937,19 @@ std::vector<PFParticle*> QGAnalysisHists::get_jet_pfparticles(const Jet & jet, s
     pf.push_back(&(pfparticles->at(i)));
   }
   return pf;
+}
+
+/**
+ * Counter number of outgoing partons in Matrix Element.
+ * Only works for Pythia-based status codes
+ */
+uint QGAnalysisHists::get_num_outgoing_partons(const std::vector<GenParticle> & genparticles) {
+  uint counter = 0;
+  for (const auto & gp : genparticles) {
+    int pgd = abs(gp.pdgId());
+    if ((gp.status() == 23) && isParton(gp.pdgId())) counter++;
+  }
+  return counter;
 }
 
 
