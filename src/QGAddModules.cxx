@@ -916,22 +916,6 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     std::vector<PFParticle> constits = get_jet_pfparticles(jet, event, false);
     clean_collection<PFParticle>(constits, event, PtEtaCut(1E-8, 10.)); // basic cut to remove weird 0 pt constits
 
-    // if (constits.size() < 2) {
-    //   cout << "Event number : run : lumi: " << event.event << " : " << event.run << " : " << event.luminosityBlock << endl;
-    //   cout << "WARNING: QGAnalysisJetLambda: constits.size() < 2, jet filtering not done properly!" << endl;
-    //   // since we might encounter a jet without its constituents (ntuple only has them for top 3 jets)
-    //   LambdaCalculator<PFParticle> recoJetCalc(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
-    //   LambdaCalculator<PFParticle> recoJetCalcCharged(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
-
-    //   LambdaCalculator<PFParticle> recoJetCalcGroomed(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
-    //   LambdaCalculator<PFParticle> recoJetCalcGroomedCharged(constits, jetRadius_, jet.v4(), jet.v4(), doPuppi_);
-
-    //   JetLambdaBundle thisBundle{jet, recoJetCalc, recoJetCalcCharged, recoJetCalcGroomed, recoJetCalcGroomedCharged};
-    //   outputs.push_back(thisBundle);
-    //   continue;
-    //   // throw runtime_error("QGAnalysisJetLambda: constits.size() < 2, jet filtering not done properly!");
-    // }
-
     // Shift energies if appropriate
     if (fabs(chargedHadronShift_) > 1E-6) { shift_charged_hadron_pfparticles(constits, chargedHadronShift_); }
     if (fabs(neutralHadronShift_) > 1E-6) { shift_neutral_hadron_pfparticles(constits, neutralHadronShift_); }
