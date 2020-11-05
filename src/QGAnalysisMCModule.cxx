@@ -498,7 +498,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         if (DO_KINEMATIC_HISTS) {
             dijet_gen_hists.reset(new QGAnalysisDijetGenHists(ctx, "Dijet_gen"));
             dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
-            dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet", binning_method));
+            // dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet", binning_method));
             dijet_hists_eta_ordered.reset(new QGAnalysisDijetHists(ctx, "Dijet_eta_ordered", binning_method));
             dijet_hists_tighter.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
         }
@@ -525,10 +525,10 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         // note that each of these does neutral+charged, and charged-only
         std::string dj_sel = "dijet";
         if (DO_LAMBDA_HISTS) {
-            dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG",
-                                                     NJETS_DIJET, false, useStatus23Flavour, dj_sel,
-                                                     pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
-                                                     reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+            // dijet_qg_hists.reset(new QGAnalysisHists(ctx, "Dijet_QG",
+            //                                          NJETS_DIJET, false, useStatus23Flavour, dj_sel,
+            //                                          pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
+            //                                          reco_jetlambda_handle_name, gen_jetlambda_handle_name));
             dijet_qg_hists_tighter.reset(new QGAnalysisHists(ctx, "Dijet_QG_tighter",
                                                              NJETS_DIJET, false, useStatus23Flavour, dj_sel,
                                                              pass_dj_sel_handle_name, pass_dj_gen_sel_handle_name,
@@ -1037,12 +1037,12 @@ bool QGAnalysisMCModule::process(Event & event) {
                 dijet_sel_tighter_passGen->passes(event);
             }
 
-            bool standard_sel = dijet_sel->passes(event);
+            // bool standard_sel = dijet_sel->passes(event);
             bool tight_sel = dijet_sel_tighter->passes(event); // aka passReco
             if (DO_KINEMATIC_HISTS) {
-                if (standard_sel) {
-                    dijet_hists->fill(event);
-                }
+                // if (standard_sel) {
+                //     dijet_hists->fill(event);
+                // }
                 if (tight_sel) {
                     dijet_hists_tighter->fill(event);
                 }
@@ -1051,9 +1051,9 @@ bool QGAnalysisMCModule::process(Event & event) {
             if (DO_WEIGHT_HISTS && tight_sel) weight_hists_reco_sel->fill(event);
 
             if (DO_LAMBDA_HISTS) {
-                if (standard_sel) {
-                    dijet_qg_hists->fill(event);
-                }
+                // if (standard_sel) {
+                //     dijet_qg_hists->fill(event);
+                // }
                 if (tight_sel) {
                     dijet_qg_hists_tighter->fill(event);
                     dijet_qg_hists_central_tighter->fill(event);
