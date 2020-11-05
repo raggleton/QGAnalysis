@@ -41,7 +41,7 @@ protected:
 
     TH2F *h_jet_flavour_vs_pt, *h_jet1_flavour_vs_pt, *h_jet2_flavour_vs_pt;
     std::vector<TH2F *> h_jet_flavour_vs_pt_nPartons, h_jet1_flavour_vs_pt_nPartons, h_jet2_flavour_vs_pt_nPartons;
-    TH2F *h_jet_flavour_vs_eta_lowPt, *h_jet_flavour_vs_eta_midPt, *h_jet_flavour_vs_eta_highPt;
+    TH2F *h_jet_flavour_vs_eta_lowPt, *h_jet_flavour_vs_eta_midPt, *h_jet_flavour_vs_eta_highPt, *h_jet_flavour_vs_eta_highPt2;
 
     TH2F *h_gjet_puppiMultiplicity_vs_pt, *h_gjet_LHA_vs_pt, *h_gjet_pTD_vs_pt, *h_gjet_width_vs_pt, *h_gjet_thrust_vs_pt;
     TH2F *h_gjet_puppiMultiplicity_charged_vs_pt, *h_gjet_LHA_charged_vs_pt, *h_gjet_pTD_charged_vs_pt, *h_gjet_width_charged_vs_pt, *h_gjet_thrust_charged_vs_pt;

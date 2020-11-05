@@ -55,7 +55,7 @@ protected:
     // TH2F *h_jet_flavour_vs_pt, *h_jet1_flavour_vs_pt, *h_jet2_flavour_vs_pt, *h_jet_flavour_vs_eta;
     TH2F *h_genjet_flavour_vs_pt, *h_genjet1_flavour_vs_pt, *h_genjet2_flavour_vs_pt;
     std::vector<TH2F *> h_genjet_flavour_vs_pt_nPartons, h_genjet1_flavour_vs_pt_nPartons, h_genjet2_flavour_vs_pt_nPartons;
-    TH2F *h_genjet_flavour_vs_eta_lowPt, *h_genjet_flavour_vs_eta_midPt, *h_genjet_flavour_vs_eta_highPt;
+    TH2F *h_genjet_flavour_vs_eta_lowPt, *h_genjet_flavour_vs_eta_midPt, *h_genjet_flavour_vs_eta_highPt, *h_genjet_flavour_vs_eta_highPt2;
     TH2F *h_jet_response_vs_genjet_pt, *h_jet_pt_vs_genjet_pt;
 
     TH2F *h_jet_puppiMultiplicity_vs_pt, *h_jet_LHA_vs_pt, *h_jet_pTD_vs_pt, *h_jet_width_vs_pt, *h_jet_thrust_vs_pt;
@@ -107,7 +107,7 @@ protected:
     // uhh2::Event::Handle<std::vector<GenJet> > genJets_handle;
 
     bool is_mc_;
-    float rsp_lowPt_cut_, rsp_midPt_cut_, rsp_highPt_cut_;
+    float rsp_lowPt_cut_, rsp_midPt_cut_, rsp_highPt_cut_, rsp_highPt2_cut_;
     bool useStatus23Flavour_;
     uint N_PARTONS_MAX;
 };

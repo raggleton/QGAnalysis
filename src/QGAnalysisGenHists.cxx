@@ -97,6 +97,7 @@ QGAnalysisGenHists::QGAnalysisGenHists(Context & ctx,
   h_jet_flavour_vs_eta_lowPt = book<TH2F>("jet_flavour_vs_eta_lowPt", "Genjet flavour;PDGID;Jet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
   h_jet_flavour_vs_eta_midPt = book<TH2F>("jet_flavour_vs_eta_midPt", "Genjet flavour;PDGID;Jet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
   h_jet_flavour_vs_eta_highPt = book<TH2F>("jet_flavour_vs_eta_highPt", "Genjet flavour;PDGID;Jet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
+  h_jet_flavour_vs_eta_highPt2 = book<TH2F>("jet_flavour_vs_eta_highPt2", "Genjet flavour;PDGID;Jet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
 
   // 2D lambda vs pT, split by flavour groups
   // g jet only
@@ -216,7 +217,9 @@ void QGAnalysisGenHists::fill(const Event & event){
 
     h_jet_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
 
-    if (jet_pt > 250)
+    if (jet_pt > 500)
+      h_jet_flavour_vs_eta_highPt->Fill(jet_flav, jet_y, weight);
+    else if (jet_pt > 250)
       h_jet_flavour_vs_eta_highPt->Fill(jet_flav, jet_y, weight);
     else if (jet_pt > 100)
       h_jet_flavour_vs_eta_midPt->Fill(jet_flav, jet_y, weight);

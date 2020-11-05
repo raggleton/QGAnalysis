@@ -25,6 +25,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   rsp_lowPt_cut_(30.),
   rsp_midPt_cut_(100.),
   rsp_highPt_cut_(250.),
+  rsp_highPt2_cut_(500.),
   useStatus23Flavour_(useStatus23Flavour),
   N_PARTONS_MAX(4)
   {
@@ -233,6 +234,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
     h_genjet_flavour_vs_eta_lowPt = book<TH2F>("genjet_flavour_vs_eta_lowPt", "genjet flavour;PDGID;GenJet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
     h_genjet_flavour_vs_eta_midPt = book<TH2F>("genjet_flavour_vs_eta_midPt", "genjet flavour;PDGID;GenJet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
     h_genjet_flavour_vs_eta_highPt = book<TH2F>("genjet_flavour_vs_eta_highPt", "genjet flavour;PDGID;GenJet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
+    h_genjet_flavour_vs_eta_highPt2 = book<TH2F>("genjet_flavour_vs_eta_highPt2", "genjet flavour;PDGID;GenJet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
 
     // g jet only
     h_gjet_puppiMultiplicity_vs_pt = book<TH2F>("gjet_puppiMultiplicity_vs_pt", "g-flavour;# of constituents, PUPPI weighted (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
@@ -539,7 +541,9 @@ void QGAnalysisHists::fill(const Event & event){
 
           h_genjet_flavour_vs_pt->Fill(genjet_flav, genjet_pt, weight);
 
-          if (genjet_pt > rsp_highPt_cut_)
+          if (genjet_pt > rsp_highPt2_cut_)
+            h_genjet_flavour_vs_eta_highPt2->Fill(genjet_flav, genjet_y, weight);
+          else if (genjet_pt > rsp_highPt_cut_)
             h_genjet_flavour_vs_eta_highPt->Fill(genjet_flav, genjet_y, weight);
           else if (genjet_pt > rsp_midPt_cut_)
             h_genjet_flavour_vs_eta_midPt->Fill(genjet_flav, genjet_y, weight);
