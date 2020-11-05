@@ -64,7 +64,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   h_jet_pt_unweighted = book<TH1F>("jet_pt_unweighted", ";p_{T}^{j} [GeV];", 2*nPtBins, ptMin, ptMax); // use as a catch-all to see we haven't missed highPT jets
 
   int nEtaBins = 50;
-  float etaMin(-5), etaMax(5);
+  float etaMin(-2.5), etaMax(2.5);
   h_jet_y = book<TH1F>("jet_y", ";y^{j};", nEtaBins, etaMin, etaMax);
   h_jet_eta = book<TH1F>("jet_eta", ";#eta^{j};", nEtaBins, etaMin, etaMax);
 
@@ -230,7 +230,9 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
       h_genjet2_flavour_vs_pt_nPartons.at(n) = book<TH2F>(TString::Format("genjet2_flavour_vs_pt_npartons_%d", n), TString::Format("genjet2 flavour for %d parton;PDGID;GenJet2 p_{T} [GeV]", n), 23, -0.5, 22.5, nPtBins, ptMin, ptMax);;
     }
 
-    h_genjet_flavour_vs_eta = book<TH2F>("genjet_flavour_vs_eta", "genjet flavour;PDGID;GenJet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
+    h_genjet_flavour_vs_eta_lowPt = book<TH2F>("genjet_flavour_vs_eta_lowPt", "genjet flavour;PDGID;GenJet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
+    h_genjet_flavour_vs_eta_midPt = book<TH2F>("genjet_flavour_vs_eta_midPt", "genjet flavour;PDGID;GenJet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
+    h_genjet_flavour_vs_eta_highPt = book<TH2F>("genjet_flavour_vs_eta_highPt", "genjet flavour;PDGID;GenJet y", 23, -0.5, 22.5, nEtaBins, etaMin, etaMax);
 
     // g jet only
     h_gjet_puppiMultiplicity_vs_pt = book<TH2F>("gjet_puppiMultiplicity_vs_pt", "g-flavour;# of constituents, PUPPI weighted (#lambda_{0}^{0});Jet p_{T} [GeV]", nMultBins, 0, nMultBins, nPtBins, ptMin, ptMax);
@@ -536,7 +538,14 @@ void QGAnalysisHists::fill(const Event & event){
             h_jet_thrust_charged_lowPt_rel_response, h_jet_thrust_charged_midPt_rel_response, h_jet_thrust_charged_highPt_rel_response);
 
           h_genjet_flavour_vs_pt->Fill(genjet_flav, genjet_pt, weight);
-          h_genjet_flavour_vs_eta->Fill(genjet_flav, genjet_y, weight);
+
+          if (genjet_pt > rsp_highPt_cut_)
+            h_genjet_flavour_vs_eta_highPt->Fill(genjet_flav, genjet_y, weight);
+          else if (genjet_pt > rsp_midPt_cut_)
+            h_genjet_flavour_vs_eta_midPt->Fill(genjet_flav, genjet_y, weight);
+          else if (genjet_pt > rsp_lowPt_cut_)
+            h_genjet_flavour_vs_eta_lowPt->Fill(genjet_flav, genjet_y, weight);
+
           if (i == 0) {
             h_genjet1_flavour_vs_pt->Fill(genjet_flav, genjet_pt, weight);
           } else if (i == 1) {
