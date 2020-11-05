@@ -146,7 +146,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
 
     // width
     // finer binning for these 2 variables as they can basically just peak @ 0.
-    int nBinsFine = nBins*2;
+    int nBinsFine = nBins*4;
     h_jet_width_response = book<TH2F>("jet_width_response", ";Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO)", nBinsFine, 0, 1, nBinsFine, 0, 1);
     h_jet_width_charged_response = book<TH2F>("jet_width_charged_response", ";Width (#lambda_{1}^{1}) (GEN, charged);Width (#lambda_{1}^{1}) (RECO, charged only)", nBinsFine, 0, 1, nBinsFine, 0, 1);
     h_jet_width_rel_response = book<TH2F>("jet_width_rel_response", ";Width (#lambda_{1}^{1}) (GEN);Width (#lambda_{1}^{1}) (RECO / GEN)", nBinsFine, 0, 1, nBinsNormRsp, 0, rsp_max);
