@@ -860,7 +860,6 @@ double LambdaCalculator<GenParticle>::getLambda(LambdaArgs lambdaArgs) const
 
   // If not, calculate it and store in cache
   double numerator(0.), ptSum(0.);
-  uint numConstits = 0;
   for (const auto & dtr : constits_) {
     if (!constitId(dtr)) continue;
     double thisPt = dtr.pt();
@@ -932,6 +931,13 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     std::vector<PFParticle> constits = get_jet_pfparticles(jet, event, false);
     clean_collection<PFParticle>(constits, event, PtEtaCut(1E-8, 10.)); // basic cut to remove weird 0 pt constits
 
+    LorentzVector sumv4 = jet_constit_4vec(jet, *event.pfparticles, doPuppi_);
+    if (fabs(sumv4.pt() - jet.pt()*jet.JEC_factor_raw())/(jet.pt()*jet.JEC_factor_raw()) >  0.05) {
+      cout << "Warning sumv4 - jet pt mismatch" << endl;
+      cout << "jet: " << jet.pt()*jet.JEC_factor_raw() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
+      cout << "sumv4: " << sumv4.pt() << " : " << sumv4.Rapidity() << " : " << sumv4.phi() << endl;
+    }
+
     // Shift energies if appropriate
     if (fabs(chargedHadronShift_) > 1E-6) { shift_charged_hadron_pfparticles(constits, chargedHadronShift_); }
     if (fabs(neutralHadronShift_) > 1E-6) { shift_neutral_hadron_pfparticles(constits, neutralHadronShift_); }
@@ -942,7 +948,7 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
     vector<PseudoJet> pjconstits = {};
     int dauCounter = 0;
     for (const auto & dau : constits) {
-      PseudoJet thisDau = convert_uhh_pfparticle_to_pseudojet(dau, doPuppi_); // apply puppi weight here to recluster
+      PseudoJet thisDau = convert_uhh_pfparticle_to_pseudojet(dau, doPuppi_); // do apply puppi weight here to recluster
       thisDau.set_user_index(dauCounter);
       pjconstits.push_back(thisDau);
       dauCounter++;
@@ -975,13 +981,6 @@ bool QGAnalysisJetLambda::process(uhh2::Event & event) {
       }
       cout << "Event number : run : lumi: " << event.event << " : " << event.run << " : " << event.luminosityBlock << endl;
       throw std::runtime_error("AKx reclustering failed QGAnalysisJetLambda - no jets");
-    }
-
-    LorentzVector sumv4 = jet_constit_4vec(jet, *event.pfparticles, doPuppi_);
-    if (fabs(sumv4.pt() - jet.pt()*jet.JEC_factor_raw())/(jet.pt()*jet.JEC_factor_raw()) >  0.05) {
-      cout << "Warning sumv4 - jet pt mismatch" << endl;
-      cout << "jet: " << jet.pt()*jet.JEC_factor_raw() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
-      cout << "sumv4: " << sumv4.pt() << " : " << sumv4.Rapidity() << " : " << sumv4.phi() << endl;
     }
 
     // Check AK jet is same as original
@@ -1229,6 +1228,13 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
     std::vector<GenParticle> constits = get_jet_genparticles(jet, event);
     clean_collection<GenParticle>(constits, event, PtEtaCut(1E-8, 10.)); // basic cut to remove weird 0 pt constits
 
+    LorentzVector sumv4 = genjet_constit_4vec(jet, *event.genparticles);
+    if (fabs(sumv4.pt() - jet.pt())/jet.pt() >  0.05) {
+      cout << "Warning sumv4 - genjet pt mismatch" << endl;
+      cout << "jet: " << jet.pt() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
+      cout << "sumv4: " << sumv4.pt() << " : " << sumv4.Rapidity() << " : " << sumv4.phi() << endl;
+    }
+
     // Calculate the WTA axis
     // First convert constits to PseudoJets
     vector<PseudoJet> pjconstits = {};
@@ -1265,13 +1271,6 @@ bool QGAnalysisGenJetLambda::process(uhh2::Event & event) {
       }
       cout << "Event number : run : lumi: " << event.event << " : " << event.run << " : " << event.luminosityBlock << endl;
       throw std::runtime_error("AKx reclustering failed QGAnalysisGenJetLambda - no jets");
-    }
-
-    LorentzVector sumv4 = genjet_constit_4vec(jet, *event.genparticles);
-    if (fabs(sumv4.pt() - jet.pt())/jet.pt() >  0.05) {
-      cout << "Warning sumv4 - genjet pt mismatch" << endl;
-      cout << "jet: " << jet.pt() << " : " << jet.Rapidity() << " : " << jet.phi() << endl;
-      cout << "sumv4: " << sumv4.pt() << " : " << sumv4.Rapidity() << " : " << sumv4.phi() << endl;
     }
 
     // Check AK jet is same as original

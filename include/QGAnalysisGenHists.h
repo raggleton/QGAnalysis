@@ -57,7 +57,6 @@ protected:
     bool doGroomed_;
 
     uhh2::Event::Handle<std::vector<GenJetLambdaBundle> > genJetsLambda_handle;
-    uhh2::Event::Handle<double> gen_weight_handle;
     uhh2::Event::Handle<bool> pass_gen_handle;
 
     bool useStatus23Flavour_;

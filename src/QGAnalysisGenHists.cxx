@@ -38,8 +38,6 @@ QGAnalysisGenHists::QGAnalysisGenHists(Context & ctx,
     throw runtime_error("selection must be dijet or zplusjets");
   }
 
-  gen_weight_handle = ctx.get_handle<double>("gen_weight");
-
   // book all histograms here
   int nWeightBins = 25;
   double weightBins [nWeightBins+1] = {1E-4, 1E-3, 1E-2, 1E-1, 1, 10, 100, 1000, 1E4, 2E4, 5E4, 7E4, 1E5, 2E5, 5E5, 7E5, 1E6, 2E6, 3E6, 4E6, 5E6, 6E6, 7E6, 8E6, 9E6, 1E7};
@@ -150,10 +148,6 @@ void QGAnalysisGenHists::fill(const Event & event){
   if (event.isRealData) { return; }
 
   double weight = event.weight;
-
-  // extract the separate gen & reco weight components, needed for TUnfold
-  double gen_weight = event.get(gen_weight_handle);
-
   h_weights->Fill(weight);
 
   if (event.genInfo->binningValues().size() > 0)
@@ -185,8 +179,9 @@ void QGAnalysisGenHists::fill(const Event & event){
     h_jet_y->Fill(jet_y, weight);
     h_jet_eta->Fill(thisjet.eta(), weight);
 
-    float puppiMult(0.), mult(0.), lha(0.), ptd(0.), width(0.), thrust(0.);
-    float puppiMult_charged(0.), mult_charged(0.), lha_charged(0.), ptd_charged(0.), width_charged(0.), thrust_charged(0.);
+
+    float mult(0.), lha(0.), ptd(0.), width(0.), thrust(0.);
+    float mult_charged(0.), lha_charged(0.), ptd_charged(0.), width_charged(0.), thrust_charged(0.);
 
     mult = genJetCalc.getLambda(Cuts::mult_args);
     lha = genJetCalc.getLambda(Cuts::lha_args);
