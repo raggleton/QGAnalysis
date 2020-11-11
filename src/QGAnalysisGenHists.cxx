@@ -228,8 +228,17 @@ void QGAnalysisGenHists::fill(const Event & event){
       h_jet2_flavour_vs_pt->Fill(jet_flav, jet_pt, weight);
     }
 
-    uint nPartons = get_num_outgoing_partons(*event.genparticles);
-    if (nPartons > N_PARTONS_MAX) throw std::runtime_error("Too many partons " + nPartons);
+    uint nPartons = 0;
+    // hard-code for herwig as always the same
+    if (dataset_ == MC::HERWIG_QCD) {
+      nPartons = 2;
+    } else if (dataset_ == MC::HERWIG_DY) {
+      nPartons = 1;
+    } else {
+      nPartons = get_num_outgoing_partons(*event.genparticles);
+    }
+    if (nPartons > N_PARTONS_MAX) throw std::runtime_error("Too many partons in QGAnalysisGenHists");
+
     h_jet_flavour_vs_pt_nPartons.at(nPartons)->Fill(jet_flav, jet_pt, weight);
     if (i == 0) {
       h_jet1_flavour_vs_pt_nPartons.at(nPartons)->Fill(jet_flav, jet_pt, weight);
@@ -323,13 +332,16 @@ int QGAnalysisGenHists::get_jet_flavour(const Particle & obj, std::vector<GenPar
 
 /**
  * Counter number of outgoing partons in Matrix Element.
- * Only works for Pythia-based status codes
+ * Only useful for Pythia generators, as we need status
+ * Herwig useless, everything non-final gets given status=11 (not just ME)
  */
 uint QGAnalysisGenHists::get_num_outgoing_partons(const std::vector<GenParticle> & genparticles) {
   uint counter = 0;
   for (const auto & gp : genparticles) {
-    int pgd = abs(gp.pdgId());
-    if ((gp.status() == 23) && isParton(gp.pdgId())) counter++;
+    if (gp.status() == 23 && isParton(gp.pdgId())) {
+      // cout << gp.pt() << " : " << gp.eta() << " : " << gp.phi() << " : " << gp.pdgId() << " : " << gp.status() << endl;
+      counter++;
+    }
   }
   return counter;
 }
