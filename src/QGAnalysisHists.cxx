@@ -29,7 +29,7 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   useStatus23Flavour_(useStatus23Flavour),
   N_PARTONS_MAX(4)
   {
-
+  dataset_ = matchDatasetName(ctx.get("dataset_version"));
   string jetCone = ctx.get("JetCone", "AK4");
   string pu_removal = ctx.get("PURemoval", "CHS");
   if (pu_removal != "CHS" && pu_removal != "PUPPI") {

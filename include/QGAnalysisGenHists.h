@@ -62,6 +62,7 @@ protected:
 
     bool useStatus23Flavour_;
     uint N_PARTONS_MAX;
+    MC::Name dataset_;
 };
 
 }

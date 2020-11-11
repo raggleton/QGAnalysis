@@ -110,6 +110,7 @@ protected:
     float rsp_lowPt_cut_, rsp_midPt_cut_, rsp_highPt_cut_, rsp_highPt2_cut_;
     bool useStatus23Flavour_;
     uint N_PARTONS_MAX;
+    MC::Name dataset_;
 };
 
 

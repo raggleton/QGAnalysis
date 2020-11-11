@@ -27,6 +27,7 @@ QGAnalysisGenHists::QGAnalysisGenHists(Context & ctx,
   N_PARTONS_MAX(4)
   {
 
+  dataset_ = matchDatasetName(ctx.get("dataset_version"));
   string jetCone = ctx.get("JetCone", "AK4");
   jetRadius = get_jet_radius(jetCone);
 

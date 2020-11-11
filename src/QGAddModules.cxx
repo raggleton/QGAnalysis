@@ -17,6 +17,22 @@ using namespace fastjet;
 // using namespace fastjet::contrib;
 
 
+MC::Name matchDatasetName(const std::string & name) {
+    if (name.find("MGPYTHIA_QCD") != string::npos) {
+        return MC::MGPYTHIA_QCD;
+    } else if (name.find("PYTHIA-QCD-Pt") != string::npos) {
+        return MC::PYTHIA_QCD_BINNED;
+    } else if (name.find("HERWIG_QCD") != string::npos) {
+        return MC::HERWIG_QCD;
+    } else if (name.find("MGPYTHIA_DYJetsToLL") != string::npos) {
+        return MC::MGPYTHIA_DY;
+    } else if (name.find("HERWIG_DYJetsToLL") != string::npos) {
+        return MC::HERWIG_DY;
+    } else {
+        throw std::runtime_error("Cannot understand dataset with name " + name);
+    }
+}
+
 DataJetMetCorrector::DataJetMetCorrector(uhh2::Context & ctx, const std::string & pu_removal, const std::string & jet_cone){
   if (jet_cone != "AK4" && jet_cone != "AK8") {
     throw runtime_error("jet_cone must be AK4 or AK8");

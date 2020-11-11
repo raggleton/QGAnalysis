@@ -33,15 +33,7 @@
 using namespace std;
 using namespace uhh2;
 
-namespace MC {
-    enum Name {
-        MGPYTHIA_QCD,
-        PYTHIA_QCD_BINNED,
-        HERWIG_QCD,
-        MGPYTHIA_DY,
-        HERWIG_DY
-    };
-};
+
 namespace uhh2examples {
 
 // print out info about collections, only use for debugging
@@ -58,7 +50,6 @@ public:
     virtual bool process(Event & event) override;
     std::vector<Jet> getMatchedJets(std::vector<Jet> * jets, std::vector<GenJet> * genjets, float drMax=0.8, bool uniqueMatch=true);
     virtual void endInputData() override;
-    MC::Name matchDatasetName(const std::string & name);
 
 private:
     std::unique_ptr<GeneralEventSetup> common_setup;
@@ -1248,22 +1239,6 @@ std::vector<Jet> QGAnalysisMCModule::getMatchedJets(std::vector<Jet> * jets, std
     return goodJets;
 }
 
-
-MC::Name QGAnalysisMCModule::matchDatasetName(const std::string & name) {
-    if (name.find("MGPYTHIA_QCD") != string::npos) {
-        return MC::MGPYTHIA_QCD;
-    } else if (name.find("PYTHIA-QCD-Pt") != string::npos) {
-        return MC::PYTHIA_QCD_BINNED;
-    } else if (name.find("HERWIG_QCD") != string::npos) {
-        return MC::HERWIG_QCD;
-    } else if (name.find("MGPYTHIA_DYJetsToLL") != string::npos) {
-        return MC::MGPYTHIA_DY;
-    } else if (name.find("HERWIG_DYJetsToLL") != string::npos) {
-        return MC::HERWIG_DY;
-    } else {
-        throw std::runtime_error("Cannot understand dataset with name " + name);
-    }
-}
 
 // as we want to run the ExampleCycleNew directly with AnalysisModuleRunner,
 // make sure the QGAnalysisMCModule is found by class name. This is ensured by this macro:

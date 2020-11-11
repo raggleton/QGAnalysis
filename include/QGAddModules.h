@@ -125,6 +125,18 @@ namespace Cuts {
 }
 
 
+namespace MC {
+    enum Name {
+        MGPYTHIA_QCD,
+        PYTHIA_QCD_BINNED,
+        HERWIG_QCD,
+        MGPYTHIA_DY,
+        HERWIG_DY
+    };
+};
+
+MC::Name matchDatasetName(const std::string & name);
+
 /**
  * Easy way to do JEC, JER, MET corrections in Data. Takes care of run period dependency.
  */
