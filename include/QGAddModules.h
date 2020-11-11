@@ -671,15 +671,16 @@ public:
                   const std::string & genparticles_exclude_coll_name=""); // name of collection to veto particles from, leave as "" to disable this
   virtual bool process(uhh2::Event & event) override;
   fastjet::PseudoJet convert_uhh_genparticle_to_pseudojet(const GenParticle & particle);
-  GenJet convert_pseudojet_to_uhh_genjet(const fastjet::PseudoJet & jet);
+  GenJet convert_pseudojet_to_uhh_genjet(const fastjet::PseudoJet & jet, const std::vector<GenParticle> & genparticles);
   inline bool floatMatch(float a, float b) { return (fabs(a-b) < (1E-6 * std::max(a, b))); }
 private:
   uhh2::Event::Handle<std::vector<GenJet>> genjet_handle_;
   uhh2::Event::Handle<std::vector<GenParticle>> genparticle_handle_, genparticle_exclude_handle_;
   fastjet::JetDefinition jet_def_;
   GenParticleId gpId_;
+  GenParticleId partonId_;
+  float ghostScaling_;
 };
-
 
 
 /**

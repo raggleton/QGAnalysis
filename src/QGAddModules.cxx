@@ -1492,12 +1492,14 @@ GenJetClusterer::GenJetClusterer(uhh2::Context & ctx,
                                  const std::string & genparticles_exclude_coll_name):
   genjet_handle_(ctx.get_handle<std::vector<GenJet>>(genjet_coll_name)),
   genparticle_handle_(ctx.get_handle<std::vector<GenParticle>>(genparticles_coll_name)),
-  jet_def_(antikt_algorithm, radius)
+  jet_def_(antikt_algorithm, radius),
+  ghostScaling_(1E-16)
 {
   if (genparticles_exclude_coll_name != "") {
     genparticle_exclude_handle_ = ctx.get_handle<std::vector<GenParticle>>(genparticles_exclude_coll_name);
   }
   gpId_ = AndId<GenParticle>(NoNeutrinoCut(), FinalStateCut());
+  partonId_ = IsPartonCut();
 }
 
 PseudoJet GenJetClusterer::convert_uhh_genparticle_to_pseudojet(const GenParticle & particle) {
@@ -1506,13 +1508,30 @@ PseudoJet GenJetClusterer::convert_uhh_genparticle_to_pseudojet(const GenParticl
   return outputParticle;
 }
 
-GenJet GenJetClusterer::convert_pseudojet_to_uhh_genjet(const PseudoJet & jet) {
+GenJet GenJetClusterer::convert_pseudojet_to_uhh_genjet(const PseudoJet & jet, const std::vector<GenParticle> & genparticles) {
   GenJet genjet;
   // use XYZE v4 as safer?
   genjet.set_v4(toPtEtaPhi(LorentzVectorXYZE(jet.px(), jet.py(), jet.pz(), jet.E())));
+  int pdgid = 0;
+  float maxGhostPt = 0;
+  // cout << "GenJet " << jet.pt() << " : " << jet.eta() << " : " << jet.phi() << endl;
   for (const auto & dItr : jet.constituents()) {
-    genjet.add_genparticles_index(dItr.user_index());
+    // find ghost partons, use them to assign flavour
+    // dont store in main jet
+    if (dItr.pt() < (1E5 * ghostScaling_)) {
+      if (dItr.pt() > maxGhostPt) {
+        maxGhostPt = dItr.pt();
+        // nb pseudojet doesn't have pdgid
+        pdgid = genparticles.at(dItr.user_index()).pdgId();
+        // const GenParticle & gp = genparticles.at(dItr.user_index());
+        // cout << "Found parton " << gp.pt() << " : " << gp.pdgId() << " : " << gp.status() << endl;
+      }
+    } else {
+      genjet.add_genparticles_index(dItr.user_index());
+    }
   }
+  genjet.set_pdgId(pdgid);
+  genjet.set_partonFlavour(pdgid);
   return genjet;
 }
 
@@ -1524,10 +1543,25 @@ bool GenJetClusterer::process(uhh2::Event & event) {
     gps_reject = & event.get(genparticle_exclude_handle_);
   }
 
-  vector<PseudoJet> pjs;
+  vector<PseudoJet> pjs; // Get all relevant gen particles for genjet itself
+  vector<PseudoJet> pjsGhosts; // Get Gen Partons for ghost clustering
   int gpCounter = -1;
   for (auto gp : gps) {
     gpCounter++;
+
+    // select partons for ghosts
+    if (partonId_(gp, event)) {
+      PseudoJet pj = convert_uhh_genparticle_to_pseudojet(gp);
+      pj.set_user_index(gpCounter); // keep link to original GP
+      // // Check for duplicates
+      // if (std::find_if(pjs.begin(), pjs.end(), [&pj] (const PseudoJet &arg) {
+      //   return (fabs(arg.pt()-pj.pt()) < 1E-1 && arg.delta_R(pj)<1E-2);
+      // } ) != pjs.end()) continue;
+      pj *= ghostScaling_;
+      // pjsGhosts.push_back(pj);
+      pjs.push_back(pj);
+    }
+
     // Keep status = 1, no neutrinos
     if (!gpId_(gp, event)) continue;
     // Reject any veto particles
@@ -1539,14 +1573,13 @@ bool GenJetClusterer::process(uhh2::Event & event) {
     }
     PseudoJet pj = convert_uhh_genparticle_to_pseudojet(gp);
     pj.set_user_index(gpCounter); // keep link to original GP
-    // ignore duplicates - bug in how I stored genparticles originally
-    // needs custom predicate, since PseudoJet doesn't have ==
-    if (std::find_if(pjs.begin(), pjs.end(), [&pj] (const PseudoJet &arg) {
-        return (fabs(arg.pt()-pj.pt()) < 1E-1 && arg.delta_R(pj)<1E-2);
-      } ) != pjs.end()) continue;
+    // // ignore duplicates - bug in how I stored genparticles originally
+    // // needs custom predicate, since PseudoJet doesn't have ==
+    // if (std::find_if(pjs.begin(), pjs.end(), [&pj] (const PseudoJet &arg) {
+    //     return (fabs(arg.pt()-pj.pt()) < 1E-1 && arg.delta_R(pj)<1E-2);
+    //   } ) != pjs.end()) continue;
     pjs.push_back(pj);
   }
-  // cout << "Had " << gps.size() << " now have " << pjs.size() << endl;
 
   // run the jet clustering with the above jet definition
   fastjet::ClusterSequence clust_seq(pjs, jet_def_);
@@ -1559,8 +1592,17 @@ bool GenJetClusterer::process(uhh2::Event & event) {
   // Convert back to GenJet
   vector<GenJet> genJets;
   for (auto fjjet : akJets) {
-    GenJet genjet = convert_pseudojet_to_uhh_genjet(fjjet);
+    GenJet genjet = convert_pseudojet_to_uhh_genjet(fjjet, gps);
     genJets.push_back(genjet);
+
+    // if (genjet.pdgId() == 0) {
+    //   cout << " NO FLAVOUR" << endl;
+    //   cout << genjet.pt() << " : " << genjet.eta() << " : " << genjet.phi() << endl;
+    //   for (auto & gp : gps) {
+    //     if (!partonId_(gp, event)) continue;
+    //     cout << gp.pdgId() << " : " << gp.status() << " : " << gp.pt() << " : " << gp.eta() << " : " << gp.phi() << endl;
+    //   }
+    // }
   }
   event.set(genjet_handle_, genJets);
 
