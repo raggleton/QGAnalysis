@@ -632,10 +632,25 @@ public:
   }
 };
 
+
 /**
  * Check if pdgId is parton (quark or gluon)
  */
 bool isParton(int pdgId);
+
+
+/**
+ * Check object is parton
+ */
+class IsPartonCut {
+public:
+  IsPartonCut() {}
+  bool operator()(const GenParticle & p, const uhh2::Event & event) const {
+    (void) event;
+    return (isParton(p.pdgId()));
+  }
+};
+
 
 /**
  * Methods to create sum of constituents
