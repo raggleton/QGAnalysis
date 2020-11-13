@@ -208,8 +208,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
     int rspNbins = 500;
     float rspMax = 5;
     h_jet_response_vs_genjet_pt = book<TH2F>("jet_response_vs_genjet_pt", ";response;GenJet p_{T} [GeV]", rspNbins, 0, rspMax, nPtBins, ptMin, ptMax);
-    // with final unfolding binning
-    h_jet_pt_vs_genjet_pt = book<TH2F>("jet_pt_vs_genjet_pt", ";Jet p_{T} [GeV];GenJet p_{T} [GeV]", Binning::nbins_pt_gen, &Binning::pt_bin_edges_gen[0], Binning::nbins_pt_gen, &Binning::pt_bin_edges_gen[0]);
+    // with trigger binning, with underflow to get correct movement in/out signal region
+    h_jet_pt_vs_genjet_pt = book<TH2F>("jet_pt_vs_genjet_pt", ";GenJet p_{T} [GeV];RecoJet p_{T} [GeV];", Binning::nbins_pt_gen_all, &Binning::pt_bin_edges_gen_all[0], Binning::nbins_pt_gen_all, &Binning::pt_bin_edges_gen_all[0]);
 
     // deactivate for now as jets dont have proper flavour calculation
     // h_jet_flavour_vs_pt = book<TH2F>("jet_flavour_vs_pt", "jet flavour;PDGID;Jet p_{T} [GeV]", 23, -0.5, 22.5, nPtBins, ptMin, ptMax);
@@ -465,7 +465,7 @@ void QGAnalysisHists::fill(const Event & event){
 
           response = jet_pt/genjet_pt;
           h_jet_response_vs_genjet_pt->Fill(response, genjet_pt, weight);
-          h_jet_pt_vs_genjet_pt->Fill(jet_pt, genjet_pt, weight);
+          h_jet_pt_vs_genjet_pt->Fill(genjet_pt, jet_pt, weight);
 
           // Response hists over all pt, and high/low pt split ones
           float gen_mult = matchedGenJetCalc.getLambda(Cuts::mult_args);
