@@ -734,222 +734,65 @@ private:
 };
 
 
-namespace Binning {
-  // For unfolding, the "coarse" binning is the binning used for the final unfolded plots
-  // The "fine" binning is each of the coarse bins divided by 2, which is better for TUnfold
+typedef std::vector<double> bins;
 
-  std::vector<double> calculate_fine_binning(const std::vector<double> & coarse_bin_edges);
-  std::vector<double> sum_vectors(const std::vector<double> & vec1, const std::vector<double> & vec2);
+/**
+ * Structure to hold gen + reco binning for one variable
+ */
+class VariableBinning {
+public:
+  VariableBinning() = default; // need 0 arg version for static vars
+  VariableBinning(bins genBinning);
 
-  // pt bins
-  // ---------
-  const std::vector<double> pt_bin_edges_gen = {
-    50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 1000, 4000 // maximum should be 13 TeV / 2, but get weird empty reco binning
-  };
-  const int nbins_pt_gen(pt_bin_edges_gen.size() - 1);
+  const bins & getBinning(bool is_reco) {
+    if (is_reco)
+      return recoBinning_;
+    else
+      return genBinning_;
+  }
 
-  // separate "underflow" bin edges for underflow binning region
-  // see comments in QGAnalysisHists.cxx
-  const std::vector<double> pt_bin_edges_gen_underflow = {
-    15, 30, 38, 50
-  };
-  const int nbins_pt_gen_underflow(pt_bin_edges_gen_underflow.size() - 1);
+  int getNbins(bool is_reco) {
+    if (is_reco)
+      return nbins_reco_;
+    else
+      return nbins_gen_;
+  }
 
-  // calculate reco (fine binned) bins using gen bins and making half as wide
-  const std::vector<double> pt_bin_edges_reco = calculate_fine_binning(pt_bin_edges_gen); // MUST be const otherwise get mulitple defintion issues
-  const int nbins_pt_reco(pt_bin_edges_reco.size() - 1);
-
-  const std::vector<double> pt_bin_edges_reco_underflow = calculate_fine_binning(pt_bin_edges_gen_underflow);
-  const int nbins_pt_reco_underflow(pt_bin_edges_reco_underflow.size() - 1);
-
-  // for non-TUnfold things, need all bins together, plus extra underflow bins
-  // also need to remove duplicate bin at start of signal region,
-  // hence the inplace ctor with begin()+1
-  const std::vector<double> pt_bin_edges_gen_all = sum_vectors({0.},
-                                                               sum_vectors(pt_bin_edges_gen_underflow,
-                                                                           std::vector<double>(pt_bin_edges_gen.begin()+1, pt_bin_edges_gen.end()) )
-                                                              );
-  const int nbins_pt_gen_all(pt_bin_edges_gen_all.size() - 1);
-
-  const std::vector<double> pt_bin_edges_reco_all = sum_vectors({0.},
-                                                                sum_vectors(pt_bin_edges_reco_underflow,
-                                                                            std::vector<double>(pt_bin_edges_reco.begin()+1, pt_bin_edges_reco.end()) )
-                                                               );
-  const int nbins_pt_reco_all(pt_bin_edges_reco_all.size() - 1);
-
-  // Separate pt binning for Z+jets
-  // ------------------------------
-  // lower last big bin for Z+jets - dont want many empty bins for tunfold
-  const std::vector<double> pt_bin_edges_zpj_gen = {
-    // 50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 2000 // original
-    // 50, 65, 88, 120, 150, 186, 254, 408, 614, 2000 // maximum should be 13 TeV / 2, but no events in the last reco bin once split into 2, so go for 2TeV
-    50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 2000 // maximum should be 13 TeV / 2, but no events in the last reco bin once split into 2, so go for 2TeV
-  };
-  const int nbins_pt_zpj_gen(pt_bin_edges_zpj_gen.size() - 1);
-
-  const std::vector<double> pt_bin_edges_zpj_gen_underflow = {
-    15, 30, 38, 50
-  };
-  const int nbins_pt_zpj_gen_underflow(pt_bin_edges_zpj_gen_underflow.size() - 1);
-
-  const std::vector<double> pt_bin_edges_zpj_reco = calculate_fine_binning(pt_bin_edges_zpj_gen);
-  const int nbins_pt_zpj_reco(pt_bin_edges_zpj_reco.size() - 1);
-
-  const std::vector<double> pt_bin_edges_zpj_reco_underflow = calculate_fine_binning(pt_bin_edges_zpj_gen_underflow);
-  const int nbins_pt_zpj_reco_underflow(pt_bin_edges_zpj_reco_underflow.size() - 1);
-
-  const std::vector<double> pt_bin_edges_zpj_gen_all = sum_vectors({0., 15.},
-                                                                   sum_vectors(pt_bin_edges_zpj_gen_underflow,
-                                                                               std::vector<double>(pt_bin_edges_zpj_gen.begin()+1, pt_bin_edges_zpj_gen.end()) )
-                                                                  );
-  const int nbins_pt_zpj_gen_all(pt_bin_edges_zpj_gen_all.size() - 1);
-
-  const std::vector<double> pt_bin_edges_zpj_reco_all = sum_vectors({0., 15.},
-                                                                    sum_vectors(pt_bin_edges_zpj_reco_underflow,
-                                                                                std::vector<double>(pt_bin_edges_zpj_reco.begin()+1, pt_bin_edges_zpj_reco.end()) )
-                                                                   );
-  const int nbins_pt_zpj_reco_all(pt_bin_edges_zpj_reco_all.size() - 1);
+private:
+  bins calculate_fine_binning(const bins & coarse_bin_edges);
+  bins genBinning_, recoBinning_;
+  int nbins_gen_, nbins_reco_;
+};
 
 
-  // LHA binning
-  // -----------
-  const std::vector<double> lha_bin_edges_gen = {
-    // 0.0, 0.16, 0.23, 0.3, 0.36, 0.42, 0.49, 0.56, 0.63, 0.72, 1.0 // target 0.5, across both dijets
-    // 0.0, 0.19, 0.29, 0.38, 0.49, 0.6, 0.75, 1.0 // target 0.6, forward
-    // 0.0, 0.14, 0.22, 0.29, 0.35, 0.42, 0.49, 0.56, 0.64, 1.0 //target 0.5, cen+fwd
-    // 0.0, 0.14, 0.21, 0.28, 0.34, 0.4, 0.47, 0.54, 0.61, 1.0 //target 0.5, cen+fwd, AK axis
-    0.0, 0.17, 0.25, 0.32, 0.38, 0.45, 0.52, 0.59, 0.66, 1.0 // target 0.5, cen+fwd, WTA axis, pt > 0, ungroomed, fixLambda, >= 2 constits
-  };
-  const int nbins_lha_gen(lha_bin_edges_gen.size() - 1);
+typedef std::map<std::string, VariableBinning> VarBinningMap;
 
-  const std::vector<double> lha_bin_edges_reco= calculate_fine_binning(lha_bin_edges_gen);
-  const int nbins_lha_reco(lha_bin_edges_reco.size() - 1);
+/**
+ * Effective singleton to get binning for pt, lambda variables
+ *
+ * Lots of static members to turn into singleton-like reference object
+ */
+class Binning {
+public:
+  Binning();
+  // static bins pt_bin_edges(bool is_reco, bool is_zpj);
+  const static bins & var_bin_edges(const std::string & variable, bool is_groomed, bool is_reco); // get bin edges for given variable, settings
+  static int nbins_var(const std::string & variable, bool is_groomed, bool is_reco); // get number of bins for given variable, settings ( = size() - 1)
 
-  // Charged LHA binning
-  // -----------
-  const std::vector<double> lha_charged_bin_edges_gen = {
-    // 0.0, 0.09, 0.14, 0.19, 0.24, 0.3, 0.36, 0.43, 0.51, 0.6, 0.71, 1.0 // target 0.5, across both dijets
-    // 0.0, 0.11, 0.17, 0.24, 0.32, 0.42, 0.54, 0.69, 1.0 // target 0.6, forward
-    // 0.0, 0.05, 0.09, 0.12, 0.15, 0.18, 0.22, 0.26, 0.31, 0.36, 0.42, 0.49, 0.56, 0.64, 1.0 // target 0.5, cen+fwd
-    // 0.0, 0.05, 0.09, 0.14, 0.19, 0.25, 0.32, 0.39, 0.47, 0.55, 0.63, 0.73, 1.0 // target 0.5, cen+fwd groomed (as coarser), AK axis
-    0.0, 0.05, 0.09, 0.14, 0.19, 0.25, 0.32, 0.39, 0.47, 0.55, 0.63, 0.72, 1.0 // target 0.5, cen+fwd groomed (to avoid big drop for ungroomed), WTA axis, pt > 0, fixLambda, >= 2 constits
-  };
-  const int nbins_lha_charged_gen(lha_charged_bin_edges_gen.size() - 1);
+  static bins pt_bin_edges_gen, pt_bin_edges_gen_underflow, pt_bin_edges_gen_all;
+  static bins pt_bin_edges_reco, pt_bin_edges_reco_underflow, pt_bin_edges_reco_all;
+  static int nbins_pt_gen, nbins_pt_gen_underflow, nbins_pt_gen_all;
+  static int nbins_pt_reco, nbins_pt_reco_underflow, nbins_pt_reco_all;
 
-  const std::vector<double> lha_charged_bin_edges_reco= calculate_fine_binning(lha_charged_bin_edges_gen);
-  const int nbins_lha_charged_reco(lha_charged_bin_edges_reco.size() - 1);
+  static bins pt_bin_edges_zpj_gen, pt_bin_edges_zpj_gen_underflow, pt_bin_edges_zpj_gen_all;
+  static bins pt_bin_edges_zpj_reco, pt_bin_edges_zpj_reco_underflow, pt_bin_edges_zpj_reco_all;
+  static int nbins_pt_zpj_gen, nbins_pt_zpj_gen_underflow, nbins_pt_zpj_gen_all;
+  static int nbins_pt_zpj_reco, nbins_pt_zpj_reco_underflow, nbins_pt_zpj_reco_all;
 
-  // Multiplicity binning
-  // --------------------
-  const std::vector<double> puppiMultiplicity_bin_edges_gen = {
-    // 0, 9, 15, 22, 35, 50, 75, 100, 150 // target 0.5, across both dijets
-    // 0.0, 11.0, 18.0, 25.0, 150.0 // target 0.6, central
-    // 0.0, 10, 15, 20, 27, 50, 75, 100, 150 // target 0.5, cen+fwd
-    // 0.0, 10, 15, 20, 30, 50, 75, 100, 150 // target 0.5, cen+fwd, AK axis. 30, 50, 75, 100 added by hand otherwise no granulairty
-    // 0, 10, 15, 20, 30, 50, 75, 100, 150 // based on target 0.5, cen+fwd, but rounded to nearest multiple of 5. 30, 50, 75, 100 added by hand otherwise no granulairty, >= 2 constits
-    -0.5, 9.5, 15.5, 21.5, 29.5, 39.5, 59.5, 99.5, 149.5 // based on target 0.5, cen+fwd, ensuring even interval between bins. values above 22 added by hand otherwise no granularity, >= 2 constits. upper limit set to 100 manually. subtract 0.5 as mostly integers
-  };
-  const int nbins_puppiMultiplicity_gen(puppiMultiplicity_bin_edges_gen.size() - 1);
+private:
+  static bins calculate_fine_binning(const bins & coarse_bin_edges);
+  static bins sum_vectors(const bins & vec1, const bins & vec2);
 
-  const std::vector<double> puppiMultiplicity_bin_edges_reco = calculate_fine_binning(puppiMultiplicity_bin_edges_gen);
-  const int nbins_puppiMultiplicity_reco(puppiMultiplicity_bin_edges_reco.size() - 1);
+  static VarBinningMap var_binning_map_ungroomed, var_binning_map_groomed;
 
-  // Charged Multiplicity binning
-  // --------------------
-  const std::vector<double> puppiMultiplicity_charged_bin_edges_gen = {
-    // 0, 9, 15, 22, 35, 50, 75, 100, 150 // target 0.5, across both dijets
-    // 0.0, 4.0, 6.0, 9.0, 12.0, 16.0, 23.0, 150.0 // target 0.6, forward
-    // 0.0, 2.0, 3.0, 4.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0, 18.0, 21.0, 25.0, 32.0, 91, 150.0 // target 0.5, cen+fwd, 91 added as halfway between 32 and 150
-   // 0.0, 3.0, 5.0, 8.0, 11.0, 14.0, 18.0, 22.0, 26.0, 31.0, 37.0, 45.0, 150.0 // target 0.5, cen+fwd groomed, AK axis, added 30, 50, 75, 100 manually
-   // 0, 3.0, 5.0, 8.0, 11.0, 14.0, 18.0, 22.0, 26.0, 31.0, 37.0, 45.0, 150.0 // target 0.5, cen+fwd groomed, highPt, AK axis, pt > 1, >=2 constits
-   -0.5, 3.5, 5.5, 9.5, 13.5, 17.5, 21.5, 25.5, 31.5, 37.5, 45.5, 59.5, 99.5 // target 0.5, cen+fwd groomed, highPt, AK axis, pt > 1, >=2 constits, ensuring even interval between bins. 60 added manually. upper limit set to 100 manually
-  };
-  const int nbins_puppiMultiplicity_charged_gen(puppiMultiplicity_charged_bin_edges_gen.size() - 1);
-
-  const std::vector<double> puppiMultiplicity_charged_bin_edges_reco = calculate_fine_binning(puppiMultiplicity_charged_bin_edges_gen);
-  const int nbins_puppiMultiplicity_charged_reco(puppiMultiplicity_charged_bin_edges_reco.size() - 1);
-
-  // pTD binning
-  // --------------------
-  const std::vector<double> pTD_bin_edges_gen = {
-    // 0.0, 0.09, 0.14, 0.25, 1.0 // target 0.5, across both dijets
-    // 0.0, 0.1, 0.17, 0.4, 1.0 // target 0.6, forward
-    // 0.0, 0.07, 0.1, 0.15, 0.24, 0.45, 1.0 // target 0.5, cen+fwd
-    // 0.0, 0.07, 0.1, 0.15, 0.24, 1.0 // target 0.5, cen+fwd, AK axis
-    0.0, 0.06, 0.09, 0.13, 0.19, 0.3, 1.0 // target 0.5, cen+fwd, WTA axis, pt > 0, fixLambda, >= 2 constits
-  };
-  const int nbins_pTD_gen(pTD_bin_edges_gen.size() - 1);
-
-  const std::vector<double> pTD_bin_edges_reco = calculate_fine_binning(pTD_bin_edges_gen);
-  const int nbins_pTD_reco(pTD_bin_edges_reco.size() - 1);
-
-  // Charged pTD binning
-  // --------------------
-  const std::vector<double> pTD_charged_bin_edges_gen = {
-    // 0.0, 0.09, 0.12, 0.15, 0.19, 0.24, 0.31, 0.4, 0.53, 0.73, 1.0 // target 0.5, across both dijets
-    // 0.0, 0.09, 0.12, 0.16, 0.21, 0.29, 0.41, 0.6, 1.0 // target 0.6, forward
-    // 0.0, 0.08, 0.1, 0.12, 0.14, 0.17, 0.2, 0.24, 0.29, 0.34, 0.4, 0.47, 0.55, 0.65, 0.76, 0.89, 1.0 // target 0.5, cen+fwd
-    // 0.0, 0.07, 0.09, 0.11, 0.14, 0.18, 0.23, 0.3, 0.39, 0.51, 0.64, 1.0 // target 0.5, cen+fwd groomed (as ungroomed had too large drop in purity/stab), AK axis
-    0.0, 0.06, 0.08, 0.1, 0.13, 0.17, 0.22, 0.28, 0.36, 0.47, 0.59, 0.73, 1.0 // target 0.5, cen+fwd groomed (as ungroomed had too large drop in purity/stab), pt > 0, >= 2 constits
-  };
-  const int nbins_pTD_charged_gen(pTD_charged_bin_edges_gen.size() - 1);
-
-  const std::vector<double> pTD_charged_bin_edges_reco = calculate_fine_binning(pTD_charged_bin_edges_gen);
-  const int nbins_pTD_charged_reco(pTD_charged_bin_edges_reco.size() - 1);
-
-  // thrust binning
-  // --------------------
-  const std::vector<double> thrust_bin_edges_gen = {
-    // 0.0, 0.04, 0.07, 0.12, 0.19, 0.27, 0.37, 0.52, 1.0 // target 0.5, across both dijets
-    // 0.0, 0.06, 0.16, 0.3, 0.51, 1.0 // target 0.6, forward
-    // 0.0, 0.04, 0.08, 0.145, 0.225, 0.32, 0.445, 1.0 // target 0.5, cen+fwd
-    // 0.0, 0.04, 0.08, 0.14, 0.195, 0.25, 1.0 // target 0.5, cen+fwd, AK axis
-    0.0, 0.05, 0.09, 0.15, 0.205, 0.26, 1.0 // target 0.5, cen+fwd, antiKT axis, pt > 0, fixLambda, >= 2 constits
-  };
-  const int nbins_thrust_gen(thrust_bin_edges_gen.size() - 1);
-
-  const std::vector<double> thrust_bin_edges_reco = calculate_fine_binning(thrust_bin_edges_gen);
-  const int nbins_thrust_reco(thrust_bin_edges_reco.size() - 1);
-
-  // Charged thrust binning
-  // --------------------
-  const std::vector<double> thrust_charged_bin_edges_gen = {
-    // 0.0, 0.02, 0.04, 0.07, 0.11, 0.17, 0.25, 0.36, 0.52, 1.0 // target 0.5, across both dijets
-    // 0.0, 0.01, 0.02, 0.04, 0.07, 0.11, 0.18, 0.29, 0.48, 1.0 // target 0.6, forward
-    // 0.0, 0.005, 0.01, 0.015, 0.025, 0.035, 0.05, 0.065, 0.085, 0.115, 0.15, 0.2, 0.265, 0.355, 0.48, 0.725, 1.0 // target 0.5, cen+fwd
-    // 0.0, 0.005, 0.015, 0.03, 0.06, 0.105, 0.16, 0.23, 0.315, 0.425, 1.0 // target 0.5, cen+fwd groomed, AK axis
-    0.0, 0.005, 0.015, 0.03, 0.055, 0.09, 0.125, 0.16, 0.195, 0.23, 0.27, 0.315, 0.375, 1.0 // target 0.5, cen+fwd groomed, antiKT axis, pt > 0, fixLambda, >= 2 constits
-  };
-  const int nbins_thrust_charged_gen(thrust_charged_bin_edges_gen.size() - 1);
-
-  const std::vector<double> thrust_charged_bin_edges_reco = calculate_fine_binning(thrust_charged_bin_edges_gen);
-  const int nbins_thrust_charged_reco(thrust_charged_bin_edges_reco.size() - 1);
-
-  // width binning
-  // --------------------
-  const std::vector<double> width_bin_edges_gen = {
-    // 0.0, 0.08, 0.13, 0.18, 0.24, 0.31, 0.39, 0.47, 0.58, 1.0 // target 0.5, across both dijets
-    // 0.0, 0.12, 0.2, 0.32, 0.45, 0.64, 1.0 // target 0.6, forward
-    // 0.0, 0.09, 0.145, 0.205, 0.28, 0.36, 0.445, 0.545, 1.0 // target 0.5, cen+fwd
-    // 0.0, 0.09, 0.145, 0.205, 0.28, 0.355, 0.43, 0.515, 1.0 // target 0.5, cen+fwd, AK axis
-    0.0, 0.105, 0.165, 0.23, 0.305, 0.38, 0.46, 0.55, 1.0 // target 0.5, cen+fwd, WTA axis, pt > 0, fixLambda, >= 2 constits
-  };
-  const int nbins_width_gen(width_bin_edges_gen.size() - 1);
-
-  const std::vector<double> width_bin_edges_reco = calculate_fine_binning(width_bin_edges_gen);
-  const int nbins_width_reco(width_bin_edges_reco.size() - 1);
-
-  // Charged width binning
-  // --------------------
-  const std::vector<double> width_charged_bin_edges_gen = {
-    // 0.0, 0.04, 0.07, 0.1, 0.14, 0.18, 0.23, 0.29, 0.37, 0.46, 0.58, 0.99, 1.0 // target 0.5, across both dijets
-    // 0.0, 0.04, 0.07, 0.11, 0.16, 0.22, 0.3, 0.41, 0.57, 1.0 // target 0.6, forward
-    // 0.0, 0.015, 0.025, 0.035, 0.05, 0.065, 0.085, 0.105, 0.13, 0.16, 0.195, 0.235, 0.28, 0.335, 0.4, 0.48, 0.585, 1.0 // target 0.5, cen+fwd
-    // 0.0, 0.01, 0.025, 0.045, 0.075, 0.11, 0.155, 0.21, 0.275, 0.34, 0.415, 0.495, 0.595, 1.0 // target 0.5, cen+fwd groomed, AK axis
-    0.0, 0.01, 0.025, 0.045, 0.075, 0.11, 0.155, 0.21, 0.275, 0.34, 0.41, 0.485, 0.575, 1.0 // target 0.5, cen+fwd groomed, WTA axis, pt > 0, fixLambda, >= 2 constits
-  };
-  const int nbins_width_charged_gen(width_charged_bin_edges_gen.size() - 1);
-
-  const std::vector<double> width_charged_bin_edges_reco = calculate_fine_binning(width_charged_bin_edges_gen);
-  const int nbins_width_charged_reco(width_charged_bin_edges_reco.size() - 1);
-}
+};
