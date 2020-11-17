@@ -643,11 +643,11 @@ void QGAnalysisDataModule::endInputData(){
 
 
 DATASET::Name QGAnalysisDataModule::matchDatasetName(const std::string & name) {
-    if (name == "SingleMu") {
+    if (name.find("SingleMu") != std::string::npos) {
         return DATASET::SingleMu;
-    } else if (name == "JetHT") {
+    } else if (name.find("JetHT") != std::string::npos) {
         return DATASET::JetHT;
-    } else if (name == "ZeroBias") {
+    } else if (name.find("ZeroBias") != std::string::npos) {
         return DATASET::ZeroBias;
     } else {
         throw std::runtime_error("Cannot understand dataset with name " + name);
