@@ -204,7 +204,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     common_setup.reset(new GeneralEventSetup(ctx));
     bool update4vec = false;
     tracking_eff.reset(new TrackingEfficiency(ctx, update4vec));
-    bool doJetId = true; // if have tracking SF, need False - do it AFTER the tracking SF and not before - could have some promoted particles
+    bool doJetId = false; // Do it in the selection modules, after we have chosen our jet 1/2
     float largeY = 5.; // set y large here, do y selection as part of dijet selection
     recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, Cuts::reco_jet_pt_min, largeY, doJetId, zLeptonLabel));
 
@@ -800,10 +800,6 @@ bool QGAnalysisMCModule::process(Event & event) {
     // Apply tracking SFs, but only after JECs, etc applied
     // - we want to use the original jet pT
     // tracking_eff->process(event);
-
-    // Apply Jet PF ID since the jet constituents changes
-    // jet_pf_id->process(event);
-    // if (printout_this_event) printJetsWithParts(*event.jets, event.pfparticles, "Matched Jets after tracking SF");
 
     // Do AFTER all things that could affect number of jets e.g. track SF, IDs
     bool hasRecoJets = njet_min_sel->passes(event) && passCommonRecoSetup; // commonReco bit here as common for all reco parts

@@ -140,7 +140,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     zLeptonLabel = isZPlusJets ? "zMuonCand" : "";
 
     common_setup.reset(new GeneralEventSetup(ctx));
-    bool doJetId = true; // if have tracking SF, need False - do it AFTER the tracking SF and not before - could have some promoted particles
+    bool doJetId = false; // Do it in the selection modules, after we have chosen our jet 1/2
     float largeY = 5.; // set y large here, do y selection as part of dijet selection
     recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jetRadius, Cuts::reco_jet_pt_min, largeY, doJetId, zLeptonLabel));
     gen_weight_handle = ctx.get_handle<double>("gen_weight");

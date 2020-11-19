@@ -1,4 +1,5 @@
 #include "UHH2/QGAnalysis/include/QGAnalysisSelections.h"
+#include "UHH2/QGAnalysis/include/QGAddModules.h"
 #include "UHH2/core/include/Event.h"
 
 #include <stdexcept>
@@ -30,13 +31,15 @@ ZplusJetsSelection::ZplusJetsSelection(uhh2::Context & ctx,
     dphi_jet_z_min_(dphi_jet_z_min),
     second_jet_frac_max_(second_jet_frac_max),
     z_pt_min_(z_pt_min),
-    z_jet_asym_max_(z_jet_asym_max)
+    z_jet_asym_max_(z_jet_asym_max),
+    jetId_(Cuts::RECO_JET_ID)
     {
         // Remember to update when you update passes() ! Yes is horrible
         std::vector<std::string> descriptions = {
             "nJets>=1",
             "jet_pt_min",
             "jet_y_max",
+            "jet_id",
             "nZMuons>=2",
             "muon1_pt",
             "muon2_pt",
@@ -78,6 +81,11 @@ bool ZplusJetsSelection::passes(const Event & event){
     cutflow_weighted->Fill(i, event.weight);
 
     if (fabs(jet1.Rapidity()) > jet_y_max_) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
+
+    if (!jetId_(jet1, event)) return false;
     i++;
     cutflow_raw->Fill(i);
     cutflow_weighted->Fill(i, event.weight);
@@ -302,13 +310,15 @@ DijetSelection::DijetSelection(uhh2::Context & ctx,
     jet_asym_max_(jet_asym_max),
     ss_eta_(ss_eta),
     deta_max_(deta_max),
-    sum_eta_(sum_eta)
+    sum_eta_(sum_eta),
+    jetId_(Cuts::RECO_JET_ID)
     {
         // Remember to update when you update passes() ! Yes is horrible
         std::vector<std::string> descriptions = {
             "nJets>=2",
             "jet_pt_min",
             "jet_y_max",
+            "jet_id",
             "second_jet_frac_max",
             "dphi_min",
             "ss_eta",
@@ -350,6 +360,11 @@ bool DijetSelection::passes(const Event & event){
     cutflow_weighted->Fill(i, event.weight);
 
     if ((fabs(jet1.Rapidity()) > jet_y_max_) || (fabs(jet2.Rapidity()) > jet_y_max_)) return false;
+    i++;
+    cutflow_raw->Fill(i);
+    cutflow_weighted->Fill(i, event.weight);
+
+    if (!(jetId_(jet1, event) && jetId_(jet2, event))) return false;
     i++;
     cutflow_raw->Fill(i);
     cutflow_weighted->Fill(i, event.weight);
