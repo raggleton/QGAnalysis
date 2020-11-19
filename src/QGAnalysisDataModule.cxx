@@ -50,7 +50,7 @@ public:
 
     explicit QGAnalysisDataModule(Context & ctx);
     virtual bool process(Event & event) override;
-    DATASET::Name matchDatasetName(const std::string & name);
+    DATASET::Name matchDataDatasetName(const std::string & name);
     virtual void endInputData() override;
 
 private:
@@ -109,7 +109,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     cout << "Running analysis module" << endl;
 
     string datasetStr = ctx.get("Dataset", "");
-    dataset = matchDatasetName(datasetStr);
+    dataset = matchDataDatasetName(datasetStr);
     cout << "Running over " << datasetStr << endl;
 
     string jet_cone = ctx.get("JetCone", "AK4");
@@ -642,12 +642,12 @@ void QGAnalysisDataModule::endInputData(){
 }
 
 
-DATASET::Name QGAnalysisDataModule::matchDatasetName(const std::string & name) {
-    if (name.find("SingleMu") != std::string::npos) {
+DATASET::Name QGAnalysisDataModule::matchDataDatasetName(const std::string & name) {
+    if (uhh2::isSubstring(name, "SingleMu", true)) {
         return DATASET::SingleMu;
-    } else if (name.find("JetHT") != std::string::npos) {
+    } else if (uhh2::isSubstring(name, "JetHT", true)) {
         return DATASET::JetHT;
-    } else if (name.find("ZeroBias") != std::string::npos) {
+    } else if (uhh2::isSubstring(name, "ZeroBias", true)) {
         return DATASET::ZeroBias;
     } else {
         throw std::runtime_error("Cannot understand dataset with name " + name);
