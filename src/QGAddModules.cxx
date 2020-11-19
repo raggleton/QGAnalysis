@@ -1805,24 +1805,24 @@ int Binning::nbins_pt_zpj_reco_all = pt_bin_edges_zpj_reco_all.size() - 1;
 // put into a function that returns a map, then assign that to the static var
 VarBinningMap Binning::var_binning_map_ungroomed = {
   {"LHA",
-    // target 0.5, cen+fwd, WTA axis, pt > 0, ungroomed, fixLambda, >= 2 constits
+    // target 0.5, cen+fwd ungroomed, WTA axis, pt > 0, fixLambda
     VariableBinning({0.0, 0.17, 0.25, 0.32, 0.38, 0.45, 0.52, 0.59, 0.66, 1.0})
   },
   {"LHA_charged",
-    // target 0.5, cen+fwd groomed (to avoid big drop for ungroomed), WTA axis, pt > 0, fixLambda, >= 2 constits
-    VariableBinning({0.0, 0.05, 0.09, 0.14, 0.19, 0.25, 0.32, 0.39, 0.47, 0.55, 0.63, 0.72, 1.0})
+    // target 0.6, spike smoothing, cen+fwd ungroomed, WTA axis, pt > 0, fixLambda, charged clustering
+    VariableBinning({0, 0.06, 0.11, 0.15, 0.19, 0.23, 0.27, 0.31, 0.35, 0.39, 0.44, 0.49, 0.54, 0.6, 1})
   },
 
   {"puppiMultiplicity",
     // based on target 0.5, cen+fwd, ensuring even interval between bins.
-    // values above 22 added by hand otherwise no granularity, >= 2 constits.
-    // upper limit set to 100 manually. subtract 0.5 as mostly integers
+    // values above 22 added by hand otherwise no granularity.
+    // subtract 0.5 as mostly integers
     VariableBinning({-0.5, 9.5, 15.5, 21.5, 29.5, 39.5, 59.5, 99.5, 149.5})
   },
   {"puppiMultiplicity_charged",
-    // target 0.5, cen+fwd groomed, highPt, AK axis, pt > 1, >=2 constits, ensuring even interval between bins.
-    // 60 added manually. upper limit set to 100 manually
-    VariableBinning({-0.5, 3.5, 5.5, 9.5, 13.5, 17.5, 21.5, 25.5, 31.5, 37.5, 45.5, 59.5, 99.5})
+    // target 0.5, cen+fwd ungroomed, highPt, AK axis, pt > 1, ensuring even interval between bins.
+    // 59.5 added manually. upper limit set to 99.5 manually
+    VariableBinning({-0.5, 3.5, 5.5, 7.5, 9.5, 11.5, 13.5, 17.5, 21.5, 25.5, 29.5, 35.5, 41.5, 59.5, 99.5})
   },
 
   {"pTD",
@@ -1831,64 +1831,76 @@ VarBinningMap Binning::var_binning_map_ungroomed = {
     VariableBinning({0.0, 0.06, 0.09, 0.13, 0.19, 0.3, 1.0})
   },
   {"pTD_charged",
-    // target 0.5, cen+fwd groomed (as ungroomed had too large drop in purity/stab), pt > 0, >= 2 constits
-    VariableBinning({0.0, 0.06, 0.08, 0.1, 0.13, 0.17, 0.22, 0.28, 0.36, 0.47, 0.59, 0.73, 1.0})
+    // target 0.6, cen+fwd ungroomed, pt > 0, charged clustering
+    VariableBinning({0, 0.07, 0.09, 0.12, 0.15, 0.19, 0.24, 0.31, 0.4, 0.52, 0.69, 1})
   },
 
   {"thrust",
-    // target 0.5, cen+fwd, antiKT axis, pt > 0, fixLambda, >= 2 constits
-    VariableBinning({0.0, 0.05, 0.09, 0.15, 0.205, 0.26, 1.0})
+    // target 0.5, cen+fwd, antiKT axis, pt > 0, fixLambda, manually set end to 0.6
+    VariableBinning({0.0, 0.05, 0.09, 0.15, 0.205, 0.26, 0.6})
   },
   {"thrust_charged",
-    // target 0.5, cen+fwd groomed, antiKT axis, pt > 0, fixLambda, >= 2 constits
-    VariableBinning({0.0, 0.005, 0.015, 0.03, 0.055, 0.09, 0.125, 0.16, 0.195, 0.23, 0.27, 0.315, 0.375, 1.0})
+    // target 0.6, spike smoothing, cen+fwd ungroomed, antiKT axis, pt > 0, fixLambda, charged clustering, manually set end to 0.6
+    VariableBinning({0, 0.005, 0.0125, 0.0225, 0.035, 0.05, 0.07, 0.0925, 0.12, 0.152, 0.188, 0.228, 0.273, 0.6})
   },
 
   {"width",
-    // target 0.5, cen+fwd, WTA axis, pt > 0, fixLambda, >= 2 constits
+    // target 0.5, cen+fwd, WTA axis, pt > 0, fixLambda
     VariableBinning({0.0, 0.105, 0.165, 0.23, 0.305, 0.38, 0.46, 0.55, 1.0})
   },
   {"width_charged",
-    // target 0.5, cen+fwd groomed, WTA axis, pt > 0, fixLambda, >= 2 constits
-    VariableBinning({0.0, 0.01, 0.025, 0.045, 0.075, 0.11, 0.155, 0.21, 0.275, 0.34, 0.41, 0.485, 0.575, 1.0})
+    // target 0.6, spike smoothing, cen+fwd ungroomed, WTA axis, pt > 0, fixLambda, charged clustering
+    VariableBinning({0, 0.0225, 0.04, 0.0575, 0.0775, 0.1, 0.125, 0.152, 0.185, 0.22, 0.26, 0.307, 0.362, 0.425, 0.497, 1})
   }
 };
 
 
 VarBinningMap Binning::var_binning_map_groomed = {
   {"LHA",
-    VariableBinning({0.0, 0.17, 0.25, 0.32, 0.38, 0.45, 0.52, 0.59, 0.66, 1.0})
+    // target 0.5, cen+fwd groomed midPt, WTA axis, pt > 0, fixLambda
+    VariableBinning({0, 0.1, 0.18, 0.26, 0.34, 0.42, 0.5, 0.57, 0.64, 1})
   },
   {"LHA_charged",
-    VariableBinning({0.0, 0.05, 0.09, 0.14, 0.19, 0.25, 0.32, 0.39, 0.47, 0.55, 0.63, 0.72, 1.0})
+    // target 0.6, cen+fwd groomed midPt, spike smoothing, WTA axis, pt > 0, fixLambda, charged clustering
+    VariableBinning({0, 0.06, 0.09, 0.12, 0.15, 0.19, 0.23, 0.27, 0.32, 0.37, 0.42, 0.48, 0.54, 0.6, 1})
   },
 
   {"puppiMultiplicity",
-    VariableBinning({-0.5, 9.5, 15.5, 21.5, 29.5, 39.5, 59.5, 99.5, 149.5})
+    // target 0.5, cen+fwd groomed midPt, pt > 1
+    // add 39.5, 49.5, etc manually otherwise no bins
+    VariableBinning({-0.5, 7.5, 13.5, 19.5, 29.5, 39.5, 49.5, 75.5, 99.5, 149.5})
   },
   {"puppiMultiplicity_charged",
-    VariableBinning({-0.5, 3.5, 5.5, 9.5, 13.5, 17.5, 21.5, 25.5, 31.5, 37.5, 45.5, 59.5, 99.5})
+    // target 0.6, cen+fwd groomed highPt, pt > 1
+    // add 49.5 manually otherwise no bins
+    VariableBinning({-0.5, 3.5, 5.5, 9.5, 13.5, 17.5, 21.5, 27.5, 35.5, 49.5, 99.5})
   },
 
   {"pTD",
-    VariableBinning({0.0, 0.06, 0.09, 0.13, 0.19, 0.3, 1.0})
+    // target 0.5, cen+fwd groomed midPt, pt > 0
+    VariableBinning({0, 0.06, 0.09, 0.14, 0.22, 1})
   },
   {"pTD_charged",
-    VariableBinning({0.0, 0.06, 0.08, 0.1, 0.13, 0.17, 0.22, 0.28, 0.36, 0.47, 0.59, 0.73, 1.0})
+    // target 0.6, cen+fwd groomed midPt, spike smoothing, pt > 0, fixLambda, charged clustering
+    VariableBinning({0, 0.07, 0.09, 0.12, 0.16, 0.21, 0.27, 0.35, 0.44, 0.54, 0.66, 1})
   },
 
   {"thrust",
-    VariableBinning({0.0, 0.05, 0.09, 0.15, 0.205, 0.26, 1.0})
+    // target 0.5, cen+fwd groomed midPt, AK axis, pt > 0, fixLambda, manually set end to 0.6
+    VariableBinning({0, 0.0025, 0.01, 0.025, 0.06, 0.12, 0.177, 0.23, 0.285, 0.6})
   },
   {"thrust_charged",
-    VariableBinning({0.0, 0.005, 0.015, 0.03, 0.055, 0.09, 0.125, 0.16, 0.195, 0.23, 0.27, 0.315, 0.375, 1.0})
+    // target 0.65, cen+fwd groomed midPt, spike smoothing, WTA axis, pt > 0, fixLambda, charged clustering, manually set end to 0.6
+    VariableBinning({0, 0.0025, 0.005, 0.0075, 0.0125, 0.02, 0.0325, 0.05, 0.0775, 0.115, 0.16, 0.21, 0.265, 0.6})
   },
 
   {"width",
-    VariableBinning({0.0, 0.105, 0.165, 0.23, 0.305, 0.38, 0.46, 0.55, 1.0})
+    // target 0.5, cen+fwd groomed midPt, WTA axis, pt > 0, fixLambda
+    VariableBinning({0, 0.02, 0.05, 0.095, 0.147, 0.225, 0.307, 0.388, 0.468, 0.56, 1})
   },
   {"width_charged",
-    VariableBinning({0.0, 0.01, 0.025, 0.045, 0.075, 0.11, 0.155, 0.21, 0.275, 0.34, 0.41, 0.485, 0.575, 1.0 })
+    // target 0.65, cen+fwd groomed midPt, spike smoothing, WTA axis, pt > 0, fixLambda, charged clustering
+    VariableBinning({0, 0.0125, 0.0225, 0.035, 0.05, 0.07, 0.095, 0.128, 0.17, 0.225, 0.29, 0.365, 0.45, 1})
   }
 };
 
