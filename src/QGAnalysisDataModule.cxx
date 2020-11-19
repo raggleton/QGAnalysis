@@ -305,20 +305,22 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     trig320.reset(new TriggerSelection("HLT_AK8PFJet320_v*"));
 
     std::vector<std::pair<float, float>> dj_trigger_bins;
-    for (uint i=0; i<dj_trig_thresholds.size(); i++) {
-        float lowerPt = dj_trig_thresholds.at(i);
-        float upperPt = (i == dj_trig_thresholds.size()-1) ? 999999 : dj_trig_thresholds.at(i+1);
-        dj_trigger_bins.push_back(std::make_pair(lowerPt, upperPt));
-    }
-    if (jet_cone == "AK8") {
-        dijet_trigger_sel.reset(new DataJetSelection(ak8dj_trig_names, dj_trigger_bins));
-        dj_trig_prescales = ak8dj_trig_prescales;
-    } else {
-        dijet_trigger_sel.reset(new DataJetSelection(ak4dj_trig_names, dj_trigger_bins));
-        dj_trig_prescales = ak4dj_trig_prescales;
-    }
+    if (!isZPlusJets) {
+        for (uint i=0; i<dj_trig_thresholds.size(); i++) {
+            float lowerPt = dj_trig_thresholds.at(i);
+            float upperPt = (i == dj_trig_thresholds.size()-1) ? 999999 : dj_trig_thresholds.at(i+1);
+            dj_trigger_bins.push_back(std::make_pair(lowerPt, upperPt));
+        }
+        if (jet_cone == "AK8") {
+            dijet_trigger_sel.reset(new DataJetSelection(ak8dj_trig_names, dj_trigger_bins));
+            dj_trig_prescales = ak8dj_trig_prescales;
+        } else {
+            dijet_trigger_sel.reset(new DataJetSelection(ak4dj_trig_names, dj_trigger_bins));
+            dj_trig_prescales = ak4dj_trig_prescales;
+        }
 
-    jetht_zb_pt_boundary = dj_trig_thresholds.at(0);
+        jetht_zb_pt_boundary = dj_trig_thresholds.at(0);
+    }
 
     // only setup needed hists to avoid extra objects in output file
     if (isZPlusJets) {
