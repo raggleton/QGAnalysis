@@ -141,7 +141,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
 
     common_setup.reset(new GeneralEventSetup(ctx));
     bool doJetId = false; // Do it in the selection modules, after we have chosen our jet 1/2
-    float largeY = 5.; // set y large here, do y selection as part of dijet selection
+    float largeY = 999.; // set y large here, do y selection as part of dijet selection
     recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jet_cone, jetRadius, Cuts::reco_jet_pt_min, largeY, doJetId, zLeptonLabel));
     gen_weight_handle = ctx.get_handle<double>("gen_weight");
     pt_binning_reco_handle = ctx.get_handle<double>("pt_binning_reco_value"); // the value to use for reco pt bin e.g dijet average
