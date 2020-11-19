@@ -3,13 +3,15 @@
 LambdaHistsFiller::LambdaHistsFiller(const LambdaArgs & pfLambdaArgs,
                                      TUnfoldBinning * recoBinning,
                                      const LambdaArgs & genLambdaArgs,
-                                     TUnfoldBinning * genBinning):
+                                     TUnfoldBinning * genBinning,
+                                     const std::string & lambdaName):
 pfLambdaArgs_(pfLambdaArgs),
 recoBinning_(recoBinning),
 passReco_(false),
 genLambdaArgs_(genLambdaArgs),
 genBinning_(genBinning),
 passGen_(false),
+lambdaName_(lambdaName),
 recoBin_(0),
 recoBinGenBinning_(0),
 genBin_(0),
@@ -94,44 +96,78 @@ void LambdaHistsFiller::setupGen(float genJetPt,
   }
 }
 
-void LambdaHistsFiller::assignRecoHists(TH1D * allReco,
-                                        TH1D * splitReco,
-                                        TH1D * allRecoGenBinning,
-                                        TH1D * splitRecoGenBinning,
-                                        TH1D * allRecoFakes,
-                                        TH1D * splitRecoFakes,
-                                        TH1D * allRecoFakesGenBinning,
-                                        std::vector<TH1D*> * jackknifeVariations,
-                                        std::vector<TH1D*> * PDFVariations) {
-  recoHist_ = allReco;
-  recoSplitHist_ = splitReco;
-  recoHistGenBinning_ = allRecoGenBinning;
-  recoSplitHistGenBinning_ = splitRecoGenBinning;
-  recoHistFakes_ = allRecoFakes;
-  recoSplitHistFakes_ = splitRecoFakes;
-  recoHistFakesGenBinning_ = allRecoFakesGenBinning;
-  recoJackknifeVariations_ = jackknifeVariations;
-  recoPDFVariations_ = PDFVariations;
+
+void LambdaHistsFiller::setupRecoHists(Context & ctx, const std::string & dirname, bool doSplitHists, bool doFakeHists, int nJackknifeVariations, int nPDFVariations) {
+  TH1 * h_tu_reco_tmp = recoBinning_->CreateHistogram("hist_reco"); // template hist, since copying is quicker
+  recoHist_ = copy_book_th1d(ctx, dirname, h_tu_reco_tmp, strWithLambdaName("hist_%s_reco_all"));
+
+  // reco variable, but gen binning
+  TH1 * h_tu_gen_tmp = genBinning_->CreateHistogram("hist_reco_gen_binning");
+  recoHistGenBinning_ = copy_book_th1d(ctx, dirname, h_tu_gen_tmp, strWithLambdaName("hist_%s_reco_gen_binning"));;
+
+  if (doSplitHists) {
+    recoSplitHist_ = copy_book_th1d(ctx, dirname, h_tu_reco_tmp, strWithLambdaName("hist_%s_reco_split"));
+    recoSplitHistGenBinning_ = copy_book_th1d(ctx, dirname, h_tu_gen_tmp, strWithLambdaName("hist_%s_reco_gen_binning_split"));
+  }
+
+  // for fakes
+  if (doFakeHists) {
+    recoHistFakes_ = copy_book_th1d(ctx, dirname, h_tu_reco_tmp, strWithLambdaName("hist_%s_reco_fake_all"));
+    recoHistFakesGenBinning_ = copy_book_th1d(ctx, dirname, h_tu_gen_tmp, strWithLambdaName("hist_%s_reco_fake_gen_binning"));
+
+    if (doSplitHists) recoSplitHistFakes_ = copy_book_th1d(ctx, dirname, h_tu_reco_tmp, strWithLambdaName("hist_%s_reco_fake_split"));
+  }
+
+  for (int i=0; i < nJackknifeVariations; i++) {
+    recoJackknifeVariations_.push_back(copy_book_th1d(ctx, dirname, h_tu_reco_tmp, TString::Format("hist_%s_reco_all_jackknife_%d", lambdaName_.c_str(), i)));
+  }
+
+  for (int i=0; i < nPDFVariations; i++) {
+    recoPDFVariations_.push_back(copy_book_th1d(ctx, dirname, h_tu_reco_tmp, TString::Format("hist_%s_reco_all_PDF_%d", lambdaName_.c_str(), i)));
+  }
+
+  delete h_tu_reco_tmp;
+  delete h_tu_gen_tmp;
 }
 
-void LambdaHistsFiller::assignGenHists(TH1D * allGen,
-                                       TH1D * splitGen,
-                                       std::vector<TH1D*> * jackknifeVariations,
-                                       std::vector<TH1D*> * PDFVariations) {
-  genHist_ = allGen;
-  genSplitHist_ = splitGen;
-  genJackknifeVariations_ = jackknifeVariations;
-  genPDFVariations_ = PDFVariations;
+
+void LambdaHistsFiller::setupGenHists(Context & ctx, const std::string & dirname, bool doSplitHists, int nJackknifeVariations, int nPDFVariations) {
+  TH1 * h_tu_gen_tmp = genBinning_->CreateHistogram("hist_gen_binning");
+  genHist_ = copy_book_th1d(ctx, dirname, h_tu_gen_tmp, strWithLambdaName("hist_%s_truth_all"));
+
+  if (doSplitHists) {
+    genSplitHist_ = copy_book_th1d(ctx, dirname, h_tu_gen_tmp, strWithLambdaName("hist_%s_truth_split"));
+  }
+
+  for (int i=0; i < nJackknifeVariations; i++) {
+    genJackknifeVariations_.push_back(copy_book_th1d(ctx, dirname, h_tu_gen_tmp, TString::Format("hist_%s_truth_all_jackknife_%d", lambdaName_.c_str(), i)));
+  }
+
+  for (int i=0; i < nPDFVariations; i++) {
+    genPDFVariations_.push_back(copy_book_th1d(ctx, dirname, h_tu_gen_tmp, TString::Format("hist_%s_truth_all_PDF_%d", lambdaName_.c_str(), i)));
+  }
+
+  delete h_tu_gen_tmp;
 }
 
-void LambdaHistsFiller::assignResponseHists(TH2D * allResponse,
-                                            TH2D * splitResponse,
-                                            std::vector<TH2D*> * jackknifeVariations,
-                                            std::vector<TH2D*> * PDFVariations) {
-  responseHist_ = allResponse;
-  responseSplitHist_ = splitResponse;
-  responseJackknifeVariations_ = jackknifeVariations;
-  responsePDFVariations_ = PDFVariations;
+
+void LambdaHistsFiller::setupResponseHists(Context & ctx, const std::string & dirname, bool doSplitHists, int nJackknifeVariations, int nPDFVariations) {
+  TH2 * h_tu_response_tmp = TUnfoldBinning::CreateHistogramOfMigrations(genBinning_, recoBinning_, "tu_GenReco");
+  responseHist_ = copy_book_th2d(ctx, dirname, h_tu_response_tmp, strWithLambdaName("tu_%s_GenReco_all"));
+
+  if (doSplitHists) {
+    responseSplitHist_ = copy_book_th2d(ctx, dirname, h_tu_response_tmp, strWithLambdaName("tu_%s_GenReco_split"));
+  }
+
+  for (int i=0; i < nJackknifeVariations; i++) {
+    responseJackknifeVariations_.push_back(copy_book_th2d(ctx, dirname, h_tu_response_tmp, TString::Format("tu_%s_GenReco_all_jackknife_%d", lambdaName_.c_str(), i)));
+  }
+
+  for (int i=0; i < nPDFVariations; i++) {
+    responsePDFVariations_.push_back(copy_book_th2d(ctx, dirname, h_tu_response_tmp, TString::Format("tu_%s_GenReco_all_PDF_%d", lambdaName_.c_str(), i)));
+  }
+
+  delete h_tu_response_tmp;
 }
 
 void LambdaHistsFiller::fillRecoTH1(TH1 * h, double weight) {
@@ -170,4 +206,53 @@ void LambdaHistsFiller::fillResponseTH2(TH2 * h, double recoWeight, double genWe
     // not physical values
     h->Fill(genBin_, underflowBin, corrWeight);
   }
+}
+
+TH1D * LambdaHistsFiller::copy_book_th1d(Context & ctx, const std::string & dirname, TH1 * h, const std::string & newName) {
+  // DO NOT USE h->GetXaxis()->GetXbins()->GetArray() to clone bins, it just doesn't work
+  return book<TH1D>(ctx,
+                    dirname,
+                    newName.c_str(),
+                    h->GetTitle(),
+                    h->GetNbinsX(),
+                    h->GetXaxis()->GetXmin(),
+                    h->GetXaxis()->GetXmax());
+}
+
+
+TH1D * LambdaHistsFiller::copy_book_th1d(Context & ctx, const std::string & dirname, TH1 * h, const TString & newName) {
+  // DO NOT USE h->GetXaxis()->GetXbins()->GetArray() to clone bins, it just doesn't work
+  return book<TH1D>(ctx,
+                    dirname,
+                    newName,
+                    h->GetTitle(),
+                    h->GetNbinsX(),
+                    h->GetXaxis()->GetXmin(),
+                    h->GetXaxis()->GetXmax());
+}
+
+TH2D * LambdaHistsFiller::copy_book_th2d(Context & ctx, const std::string & dirname, TH2 * h, const std::string & newName) {
+  return book<TH2D>(ctx,
+                    dirname,
+                    newName.c_str(),
+                    h->GetTitle(),
+                    h->GetNbinsX(), h->GetXaxis()->GetXmin(), h->GetXaxis()->GetXmax(),
+                    h->GetNbinsY(), h->GetYaxis()->GetXmin(), h->GetYaxis()->GetXmax());
+
+}
+
+
+TH2D * LambdaHistsFiller::copy_book_th2d(Context & ctx, const std::string & dirname, TH2 * h, const TString & newName) {
+  return book<TH2D>(ctx,
+                    dirname,
+                    newName,
+                    h->GetTitle(),
+                    h->GetNbinsX(), h->GetXaxis()->GetXmin(), h->GetXaxis()->GetXmax(),
+                    h->GetNbinsY(), h->GetYaxis()->GetXmin(), h->GetYaxis()->GetXmax());
+
+}
+
+
+TString LambdaHistsFiller::strWithLambdaName(const std::string & str) {
+  return TString::Format(str.c_str(), lambdaName_.c_str());
 }

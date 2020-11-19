@@ -35,12 +35,16 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   doJackknifeVariations_ = string2bool(ctx.get("JackknifeVariations", "false"));
   if (doJackknifeVariations_) {
     cout << "Doing jackknife variations in " << dirname << endl;
+  } else {
+    N_JACKKNIFE_VARIATIONS = 0;
   }
   doPDFvariations_ = (string2bool(ctx.get("PDFvariations", "false")) && is_mc_);
   if (doPDFvariations_) {
     cout << "Doing PDF variations in " << dirname << endl;
     doJackknifeVariations_ = false;
     cout << "Turning off jackknife variations" << endl;
+  } else {
+    N_PDF_VARIATIONS = 0;
   }
 
   if (useNJets_ < 0) useNJets_ = 99999; // Do them all
@@ -188,72 +192,30 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   generator_distribution_LHA->AddAxis("LHA", Binning::nbins_var("LHA", doGroomed_, false), Binning::var_bin_edges("LHA", doGroomed_, false).data(), var_uf, var_of);
   generator_distribution_LHA->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
 
-  // Response matrix
-  // make tmp copies which we can then copy and use with book<>
-  TH2 * h_tu_response_LHA_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_LHA, detector_tu_binning_LHA, "tu_LHA_GenReco");
-  h_tu_response_LHA = copy_book_th2d(h_tu_response_LHA_tmp, "tu_LHA_GenReco_all");
-  h_tu_response_LHA_split = copy_book_th2d(h_tu_response_LHA_tmp, "tu_LHA_GenReco_split");
-  delete h_tu_response_LHA_tmp;
-
-  // detector histograms
-  TH1 * h_tu_reco_LHA_tmp = detector_tu_binning_LHA->CreateHistogram("hist_LHA_reco");
-  h_tu_reco_LHA = copy_book_th1d(h_tu_reco_LHA_tmp, "hist_LHA_reco_all");
-  h_tu_reco_LHA_split = copy_book_th1d(h_tu_reco_LHA_tmp, "hist_LHA_reco_split");
-  // for fakes, detector binning
-  h_tu_reco_LHA_fake = copy_book_th1d(h_tu_reco_LHA_tmp, "hist_LHA_reco_fake_all");
-  h_tu_reco_LHA_fake_split = copy_book_th1d(h_tu_reco_LHA_tmp, "hist_LHA_reco_fake_split");
-  delete h_tu_reco_LHA_tmp;
-
-  // truth histograms
-  TH1 * h_tu_gen_LHA_tmp = generator_tu_binning_LHA->CreateHistogram("hist_LHA_truth");
-  h_tu_gen_LHA = copy_book_th1d(h_tu_gen_LHA_tmp, "hist_LHA_truth_all");
-  h_tu_gen_LHA_split = copy_book_th1d(h_tu_gen_LHA_tmp, "hist_LHA_truth_split");
-  delete h_tu_gen_LHA_tmp;
-
-  if (doJackknifeVariations_) {
-    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
-      h_tu_response_LHA_jackknife_variations.push_back(copy_book_th2d(h_tu_response_LHA, TString::Format("tu_LHA_GenReco_all_jackknife_%d", i).Data()));
-      h_tu_reco_LHA_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_LHA, TString::Format("hist_LHA_reco_all_jackknife_%d", i).Data()));
-      h_tu_gen_LHA_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_LHA, TString::Format("hist_LHA_truth_all_jackknife_%d", i).Data()));
-    }
-  }
-
-  // PDF variations
-  if (doPDFvariations_) {
-    for (int i=0; i < N_PDF_VARIATIONS; i++) {
-      h_tu_reco_LHA_PDF_variations.push_back(copy_book_th1d(h_tu_reco_LHA, TString::Format("hist_LHA_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_LHA_PDF_variations.push_back(copy_book_th1d(h_tu_gen_LHA, TString::Format("hist_LHA_truth_all_PDF_%d", i).Data()));
-      h_tu_response_LHA_PDF_variations.push_back(copy_book_th2d(h_tu_response_LHA, TString::Format("tu_LHA_GenReco_all_PDF_%d", i).Data()));
-    }
-  }
-
-  // detector variable, but using gen binning for comparison later
-  h_tu_reco_LHA_gen_binning = copy_book_th1d(h_tu_gen_LHA, "hist_LHA_reco_gen_binning");
-  h_tu_reco_LHA_gen_binning_split = copy_book_th1d(h_tu_gen_LHA, "hist_LHA_reco_gen_binning_split");
-  // for fakes, gen binning
-  h_tu_reco_LHA_fake_gen_binning = copy_book_th1d(h_tu_gen_LHA, "hist_LHA_reco_fake_gen_binning");
-
+  bool doFakeHists = is_mc_;
   LHA_hist_filler.reset(new LambdaHistsFiller(Cuts::lha_args,
                                               detector_tu_binning_LHA,
                                               Cuts::lha_args,
-                                              generator_tu_binning_LHA));
-  LHA_hist_filler->assignRecoHists(h_tu_reco_LHA,
-                                   h_tu_reco_LHA_split,
-                                   h_tu_reco_LHA_gen_binning,
-                                   h_tu_reco_LHA_gen_binning_split,
-                                   h_tu_reco_LHA_fake,
-                                   h_tu_reco_LHA_fake_split,
-                                   h_tu_reco_LHA_fake_gen_binning,
-                                   &h_tu_reco_LHA_jackknife_variations,
-                                   &h_tu_reco_LHA_PDF_variations);
-  LHA_hist_filler->assignGenHists(h_tu_gen_LHA,
-                                  h_tu_gen_LHA_split,
-                                  &h_tu_gen_LHA_jackknife_variations,
-                                  &h_tu_gen_LHA_PDF_variations);
-  LHA_hist_filler->assignResponseHists(h_tu_response_LHA,
-                                       h_tu_response_LHA_split,
-                                       &h_tu_response_LHA_jackknife_variations,
-                                       &h_tu_response_LHA_PDF_variations);
+                                              generator_tu_binning_LHA,
+                                              "LHA"));
+  LHA_hist_filler->setupRecoHists(ctx,
+                                  dirname,
+                                  doMCsplit_,
+                                  doFakeHists,
+                                  N_JACKKNIFE_VARIATIONS,
+                                  N_PDF_VARIATIONS);
+  if (is_mc_) {
+    LHA_hist_filler->setupGenHists(ctx,
+                                   dirname,
+                                   doMCsplit_,
+                                   N_JACKKNIFE_VARIATIONS,
+                                   N_PDF_VARIATIONS);
+    LHA_hist_filler->setupResponseHists(ctx,
+                                        dirname,
+                                        doMCsplit_,
+                                        N_JACKKNIFE_VARIATIONS,
+                                        N_PDF_VARIATIONS);
+  }
 
   // Charged LHA
   // -------------------------------------
@@ -275,65 +237,30 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   generator_distribution_LHA_charged->AddAxis("LHA_charged", Binning::nbins_var("LHA_charged", doGroomed_, false), Binning::var_bin_edges("LHA_charged", doGroomed_, false).data(), var_uf, var_of);
   generator_distribution_LHA_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
 
-  TH2 * h_tu_response_LHA_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_LHA_charged, detector_tu_binning_LHA_charged, "tu_LHA_charged_GenReco");
-  h_tu_response_LHA_charged = copy_book_th2d(h_tu_response_LHA_charged_tmp, "tu_LHA_charged_GenReco_all");
-  h_tu_response_LHA_charged_split = copy_book_th2d(h_tu_response_LHA_charged_tmp, "tu_LHA_charged_GenReco_split");
-  delete h_tu_response_LHA_charged_tmp;
-
-  TH1 * h_tu_reco_LHA_charged_tmp = detector_tu_binning_LHA_charged->CreateHistogram("hist_LHA_charged_reco");
-  h_tu_reco_LHA_charged = copy_book_th1d(h_tu_reco_LHA_charged_tmp, "hist_LHA_charged_reco_all");
-  h_tu_reco_LHA_charged_split = copy_book_th1d(h_tu_reco_LHA_charged_tmp, "hist_LHA_charged_reco_split");
-  h_tu_reco_LHA_charged_fake = copy_book_th1d(h_tu_reco_LHA_charged_tmp, "hist_LHA_charged_reco_fake_all");
-  h_tu_reco_LHA_charged_fake_split = copy_book_th1d(h_tu_reco_LHA_charged_tmp, "hist_LHA_charged_reco_fake_split");
-  delete h_tu_reco_LHA_charged_tmp;
-
-  TH1 * h_tu_gen_LHA_charged_tmp = generator_tu_binning_LHA_charged->CreateHistogram("hist_LHA_charged_truth");
-  h_tu_gen_LHA_charged = copy_book_th1d(h_tu_gen_LHA_charged_tmp, "hist_LHA_charged_truth_all");
-  h_tu_gen_LHA_charged_split = copy_book_th1d(h_tu_gen_LHA_charged_tmp, "hist_LHA_charged_truth_split");
-  delete h_tu_gen_LHA_charged_tmp;
-
-  if (doJackknifeVariations_) {
-    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
-      h_tu_reco_LHA_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_LHA_charged, TString::Format("hist_LHA_charged_reco_all_jackknife_%d", i).Data()));
-      h_tu_gen_LHA_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_LHA_charged, TString::Format("hist_LHA_charged_truth_all_jackknife_%d", i).Data()));
-      h_tu_response_LHA_charged_jackknife_variations.push_back(copy_book_th2d(h_tu_response_LHA_charged, TString::Format("tu_LHA_charged_GenReco_all_jackknife_%d", i).Data()));
-    }
-  }
-
-  if (doPDFvariations_) {
-    for (int i=0; i < N_PDF_VARIATIONS; i++) {
-      h_tu_reco_LHA_charged_PDF_variations.push_back(copy_book_th1d(h_tu_reco_LHA_charged, TString::Format("hist_LHA_charged_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_LHA_charged_PDF_variations.push_back(copy_book_th1d(h_tu_gen_LHA_charged, TString::Format("hist_LHA_charged_truth_all_PDF_%d", i).Data()));
-      h_tu_response_LHA_charged_PDF_variations.push_back(copy_book_th2d(h_tu_response_LHA_charged, TString::Format("tu_LHA_charged_GenReco_all_PDF_%d", i).Data()));
-    }
-  }
-
-  h_tu_reco_LHA_charged_gen_binning = copy_book_th1d(h_tu_gen_LHA_charged, "hist_LHA_charged_reco_gen_binning");
-  h_tu_reco_LHA_charged_gen_binning_split = copy_book_th1d(h_tu_gen_LHA_charged, "hist_LHA_charged_reco_gen_binning_split");
-  h_tu_reco_LHA_charged_fake_gen_binning = copy_book_th1d(h_tu_gen_LHA_charged, "hist_LHA_charged_reco_fake_gen_binning");
-
   LHA_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::lha_args,
                                                       detector_tu_binning_LHA_charged,
                                                       Cuts::lha_args,
-                                                      generator_tu_binning_LHA_charged));
-  LHA_charged_hist_filler->assignRecoHists(h_tu_reco_LHA_charged,
-                                           h_tu_reco_LHA_charged_split,
-                                           h_tu_reco_LHA_charged_gen_binning,
-                                           h_tu_reco_LHA_charged_gen_binning_split,
-                                           h_tu_reco_LHA_charged_fake,
-                                           h_tu_reco_LHA_charged_fake_split,
-                                           h_tu_reco_LHA_charged_fake_gen_binning,
-                                           &h_tu_reco_LHA_charged_jackknife_variations,
-                                           &h_tu_reco_LHA_charged_PDF_variations);
-  LHA_charged_hist_filler->assignResponseHists(h_tu_response_LHA_charged,
-                                               h_tu_response_LHA_charged_split,
-                                               &h_tu_response_LHA_charged_jackknife_variations,
-                                               &h_tu_response_LHA_charged_PDF_variations);
+                                                      generator_tu_binning_LHA_charged,
+                                                      "LHA_charged"));
+  LHA_charged_hist_filler->setupRecoHists(ctx,
+                                          dirname,
+                                          doMCsplit_,
+                                          doFakeHists,
+                                          N_JACKKNIFE_VARIATIONS,
+                                          N_PDF_VARIATIONS);
+  if (is_mc_) {
+    LHA_charged_hist_filler->setupGenHists(ctx,
+                                           dirname,
+                                           doMCsplit_,
+                                           N_JACKKNIFE_VARIATIONS,
+                                           N_PDF_VARIATIONS);
+    LHA_charged_hist_filler->setupResponseHists(ctx,
+                                                dirname,
+                                                doMCsplit_,
+                                                N_JACKKNIFE_VARIATIONS,
+                                                N_PDF_VARIATIONS);
+  }
 
-  LHA_charged_hist_filler->assignGenHists(h_tu_gen_LHA_charged,
-                                          h_tu_gen_LHA_charged_split,
-                                          &h_tu_gen_LHA_charged_jackknife_variations,
-                                          &h_tu_gen_LHA_charged_PDF_variations);
 
   // puppi multiplicity
   // -------------------------------------
@@ -355,65 +282,29 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   generator_distribution_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_var("puppiMultiplicity", doGroomed_, false), Binning::var_bin_edges("puppiMultiplicity", doGroomed_, false).data(), var_uf, var_of);
   generator_distribution_puppiMultiplicity->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
 
-  TH2 * h_tu_response_puppiMultiplicity_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_puppiMultiplicity, detector_tu_binning_puppiMultiplicity, "tu_puppiMultiplicity_GenReco");
-  h_tu_response_puppiMultiplicity = copy_book_th2d(h_tu_response_puppiMultiplicity_tmp, "tu_puppiMultiplicity_GenReco_all");
-  h_tu_response_puppiMultiplicity_split = copy_book_th2d(h_tu_response_puppiMultiplicity_tmp, "tu_puppiMultiplicity_GenReco_split");
-  delete h_tu_response_puppiMultiplicity_tmp;
-
-  TH1 * h_tu_reco_puppiMultiplicity_tmp = detector_tu_binning_puppiMultiplicity->CreateHistogram("hist_puppiMultiplicity_reco");
-  h_tu_reco_puppiMultiplicity = copy_book_th1d(h_tu_reco_puppiMultiplicity_tmp, "hist_puppiMultiplicity_reco_all");
-  h_tu_reco_puppiMultiplicity_split = copy_book_th1d(h_tu_reco_puppiMultiplicity_tmp, "hist_puppiMultiplicity_reco_split");
-  h_tu_reco_puppiMultiplicity_fake = copy_book_th1d(h_tu_reco_puppiMultiplicity_tmp, "hist_puppiMultiplicity_reco_fake_all");
-  h_tu_reco_puppiMultiplicity_fake_split = copy_book_th1d(h_tu_reco_puppiMultiplicity_tmp, "hist_puppiMultiplicity_reco_fake_split");
-  delete h_tu_reco_puppiMultiplicity_tmp;
-
-  TH1 * h_tu_gen_puppiMultiplicity_tmp = generator_tu_binning_puppiMultiplicity->CreateHistogram("hist_puppiMultiplicity_truth");
-  h_tu_gen_puppiMultiplicity = copy_book_th1d(h_tu_gen_puppiMultiplicity_tmp, "hist_puppiMultiplicity_truth_all");
-  h_tu_gen_puppiMultiplicity_split = copy_book_th1d(h_tu_gen_puppiMultiplicity_tmp, "hist_puppiMultiplicity_truth_split");
-  delete h_tu_gen_puppiMultiplicity_tmp;
-
-  if (doJackknifeVariations_) {
-    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
-      h_tu_reco_puppiMultiplicity_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_puppiMultiplicity, TString::Format("hist_puppiMultiplicity_reco_all_jackknife_%d", i).Data()));
-      h_tu_gen_puppiMultiplicity_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_puppiMultiplicity, TString::Format("hist_puppiMultiplicity_truth_all_jackknife_%d", i).Data()));
-      h_tu_response_puppiMultiplicity_jackknife_variations.push_back(copy_book_th2d(h_tu_response_puppiMultiplicity, TString::Format("tu_puppiMultiplicity_GenReco_all_jackknife_%d", i).Data()));
-    }
-  }
-
-  if (doPDFvariations_) {
-    for (int i=0; i < N_PDF_VARIATIONS; i++) {
-      h_tu_reco_puppiMultiplicity_PDF_variations.push_back(copy_book_th1d(h_tu_reco_puppiMultiplicity, TString::Format("hist_puppiMultiplicity_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_puppiMultiplicity_PDF_variations.push_back(copy_book_th1d(h_tu_gen_puppiMultiplicity, TString::Format("hist_puppiMultiplicity_truth_all_PDF_%d", i).Data()));
-      h_tu_response_puppiMultiplicity_PDF_variations.push_back(copy_book_th2d(h_tu_response_puppiMultiplicity, TString::Format("tu_puppiMultiplicity_GenReco_all_PDF_%d", i).Data()));
-    }
-  }
-
-  h_tu_reco_puppiMultiplicity_gen_binning = copy_book_th1d(h_tu_gen_puppiMultiplicity, "hist_puppiMultiplicity_reco_gen_binning");
-  h_tu_reco_puppiMultiplicity_gen_binning_split = copy_book_th1d(h_tu_gen_puppiMultiplicity, "hist_puppiMultiplicity_reco_gen_binning_split");
-
-  h_tu_reco_puppiMultiplicity_fake_gen_binning = copy_book_th1d(h_tu_gen_puppiMultiplicity, "hist_puppiMultiplicity_reco_fake_gen_binning");
-
   puppiMultiplicity_hist_filler.reset(new LambdaHistsFiller(Cuts::mult_args,
                                                             detector_tu_binning_puppiMultiplicity,
                                                             Cuts::mult_args,
-                                                            generator_tu_binning_puppiMultiplicity));
-  puppiMultiplicity_hist_filler->assignRecoHists(h_tu_reco_puppiMultiplicity,
-                                                 h_tu_reco_puppiMultiplicity_split,
-                                                 h_tu_reco_puppiMultiplicity_gen_binning,
-                                                 h_tu_reco_puppiMultiplicity_gen_binning_split,
-                                                 h_tu_reco_puppiMultiplicity_fake,
-                                                 h_tu_reco_puppiMultiplicity_fake_split,
-                                                 h_tu_reco_puppiMultiplicity_fake_gen_binning,
-                                                 &h_tu_reco_puppiMultiplicity_jackknife_variations,
-                                                 &h_tu_reco_puppiMultiplicity_PDF_variations);
-  puppiMultiplicity_hist_filler->assignGenHists(h_tu_gen_puppiMultiplicity,
-                                                h_tu_gen_puppiMultiplicity_split,
-                                                &h_tu_gen_puppiMultiplicity_jackknife_variations,
-                                                &h_tu_gen_puppiMultiplicity_PDF_variations);
-  puppiMultiplicity_hist_filler->assignResponseHists(h_tu_response_puppiMultiplicity,
-                                                     h_tu_response_puppiMultiplicity_split,
-                                                     &h_tu_response_puppiMultiplicity_jackknife_variations,
-                                                     &h_tu_response_puppiMultiplicity_PDF_variations);
+                                                            generator_tu_binning_puppiMultiplicity,
+                                                            "puppiMultiplicity"));
+  puppiMultiplicity_hist_filler->setupRecoHists(ctx,
+                                                dirname,
+                                                doMCsplit_,
+                                                doFakeHists,
+                                                N_JACKKNIFE_VARIATIONS,
+                                                N_PDF_VARIATIONS);
+  if (is_mc_) {
+    puppiMultiplicity_hist_filler->setupGenHists(ctx,
+                                                 dirname,
+                                                 doMCsplit_,
+                                                 N_JACKKNIFE_VARIATIONS,
+                                                 N_PDF_VARIATIONS);
+    puppiMultiplicity_hist_filler->setupResponseHists(ctx,
+                                                      dirname,
+                                                      doMCsplit_,
+                                                      N_JACKKNIFE_VARIATIONS,
+                                                      N_PDF_VARIATIONS);
+  }
 
   // Charged PUPPI multiplicity
   // -------------------------------------
@@ -435,65 +326,29 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   generator_distribution_puppiMultiplicity_charged->AddAxis("puppiMultiplicity_charged", Binning::nbins_var("puppiMultiplicity_charged", doGroomed_, false), Binning::var_bin_edges("puppiMultiplicity_charged", doGroomed_, false).data(), var_uf, var_of);
   generator_distribution_puppiMultiplicity_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
 
-  TH2 * h_tu_response_puppiMultiplicity_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_puppiMultiplicity_charged, detector_tu_binning_puppiMultiplicity_charged, "tu_puppiMultiplicity_charged_GenReco");
-  h_tu_response_puppiMultiplicity_charged = copy_book_th2d(h_tu_response_puppiMultiplicity_charged_tmp, "tu_puppiMultiplicity_charged_GenReco_all");
-  h_tu_response_puppiMultiplicity_charged_split = copy_book_th2d(h_tu_response_puppiMultiplicity_charged_tmp, "tu_puppiMultiplicity_charged_GenReco_split");
-  delete h_tu_response_puppiMultiplicity_charged_tmp;
-
-  TH1 * h_tu_reco_puppiMultiplicity_charged_tmp = detector_tu_binning_puppiMultiplicity_charged->CreateHistogram("hist_puppiMultiplicity_charged_reco");
-  h_tu_reco_puppiMultiplicity_charged = copy_book_th1d(h_tu_reco_puppiMultiplicity_charged_tmp, "hist_puppiMultiplicity_charged_reco_all");
-  h_tu_reco_puppiMultiplicity_charged_split = copy_book_th1d(h_tu_reco_puppiMultiplicity_charged_tmp, "hist_puppiMultiplicity_charged_reco_split");
-  h_tu_reco_puppiMultiplicity_charged_fake = copy_book_th1d(h_tu_reco_puppiMultiplicity_charged_tmp, "hist_puppiMultiplicity_charged_reco_fake_all");
-  h_tu_reco_puppiMultiplicity_charged_fake_split = copy_book_th1d(h_tu_reco_puppiMultiplicity_charged_tmp, "hist_puppiMultiplicity_charged_reco_fake_split");
-  delete h_tu_reco_puppiMultiplicity_charged_tmp;
-
-  TH1 * h_tu_gen_puppiMultiplicity_charged_tmp = generator_tu_binning_puppiMultiplicity_charged->CreateHistogram("hist_puppiMultiplicity_charged_truth");
-  h_tu_gen_puppiMultiplicity_charged = copy_book_th1d(h_tu_gen_puppiMultiplicity_charged_tmp, "hist_puppiMultiplicity_charged_truth_all");
-  h_tu_gen_puppiMultiplicity_charged_split = copy_book_th1d(h_tu_gen_puppiMultiplicity_charged_tmp, "hist_puppiMultiplicity_charged_truth_split");
-  delete h_tu_gen_puppiMultiplicity_charged_tmp;
-
-  if (doJackknifeVariations_) {
-    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
-      h_tu_reco_puppiMultiplicity_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_puppiMultiplicity_charged, TString::Format("hist_puppiMultiplicity_charged_reco_all_jackknife_%d", i).Data()));
-      h_tu_gen_puppiMultiplicity_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_puppiMultiplicity_charged, TString::Format("hist_puppiMultiplicity_charged_truth_all_jackknife_%d", i).Data()));
-      h_tu_response_puppiMultiplicity_charged_jackknife_variations.push_back(copy_book_th2d(h_tu_response_puppiMultiplicity_charged, TString::Format("tu_puppiMultiplicity_charged_GenReco_all_jackknife_%d", i).Data()));
-    }
-  }
-
-  if (doPDFvariations_) {
-    for (int i=0; i < N_PDF_VARIATIONS; i++) {
-      h_tu_reco_puppiMultiplicity_charged_PDF_variations.push_back(copy_book_th1d(h_tu_reco_puppiMultiplicity_charged, TString::Format("hist_puppiMultiplicity_charged_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_puppiMultiplicity_charged_PDF_variations.push_back(copy_book_th1d(h_tu_gen_puppiMultiplicity_charged, TString::Format("hist_puppiMultiplicity_charged_truth_all_PDF_%d", i).Data()));
-      h_tu_response_puppiMultiplicity_charged_PDF_variations.push_back(copy_book_th2d(h_tu_response_puppiMultiplicity_charged, TString::Format("tu_puppiMultiplicity_charged_GenReco_all_PDF_%d", i).Data()));
-    }
-  }
-
-  h_tu_reco_puppiMultiplicity_charged_gen_binning = copy_book_th1d(h_tu_gen_puppiMultiplicity_charged, "hist_puppiMultiplicity_charged_reco_gen_binning");
-  h_tu_reco_puppiMultiplicity_charged_gen_binning_split = copy_book_th1d(h_tu_gen_puppiMultiplicity_charged, "hist_puppiMultiplicity_charged_reco_gen_binning_split");
-
-  h_tu_reco_puppiMultiplicity_charged_fake_gen_binning = copy_book_th1d(h_tu_gen_puppiMultiplicity_charged, "hist_puppiMultiplicity_charged_reco_fake_gen_binning");
-
   puppiMultiplicity_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::mult_args,
                                                                     detector_tu_binning_puppiMultiplicity_charged,
                                                                     Cuts::mult_args,
-                                                                    generator_tu_binning_puppiMultiplicity_charged));
-  puppiMultiplicity_charged_hist_filler->assignRecoHists(h_tu_reco_puppiMultiplicity_charged,
-                                                         h_tu_reco_puppiMultiplicity_charged_split,
-                                                         h_tu_reco_puppiMultiplicity_charged_gen_binning,
-                                                         h_tu_reco_puppiMultiplicity_charged_gen_binning_split,
-                                                         h_tu_reco_puppiMultiplicity_charged_fake,
-                                                         h_tu_reco_puppiMultiplicity_charged_fake_split,
-                                                         h_tu_reco_puppiMultiplicity_charged_fake_gen_binning,
-                                                         &h_tu_reco_puppiMultiplicity_charged_jackknife_variations,
-                                                         &h_tu_reco_puppiMultiplicity_charged_PDF_variations);
-  puppiMultiplicity_charged_hist_filler->assignGenHists(h_tu_gen_puppiMultiplicity_charged,
-                                                        h_tu_gen_puppiMultiplicity_charged_split,
-                                                        &h_tu_gen_puppiMultiplicity_charged_jackknife_variations,
-                                                        &h_tu_gen_puppiMultiplicity_charged_PDF_variations);
-  puppiMultiplicity_charged_hist_filler->assignResponseHists(h_tu_response_puppiMultiplicity_charged,
-                                                             h_tu_response_puppiMultiplicity_charged_split,
-                                                             &h_tu_response_puppiMultiplicity_charged_jackknife_variations,
-                                                             &h_tu_response_puppiMultiplicity_charged_PDF_variations);
+                                                                    generator_tu_binning_puppiMultiplicity_charged,
+                                                                    "puppiMultiplicity_charged"));
+  puppiMultiplicity_charged_hist_filler->setupRecoHists(ctx,
+                                                        dirname,
+                                                        doMCsplit_,
+                                                        doFakeHists,
+                                                        N_JACKKNIFE_VARIATIONS,
+                                                        N_PDF_VARIATIONS);
+  if (is_mc_) {
+    puppiMultiplicity_charged_hist_filler->setupGenHists(ctx,
+                                                         dirname,
+                                                         doMCsplit_,
+                                                         N_JACKKNIFE_VARIATIONS,
+                                                         N_PDF_VARIATIONS);
+    puppiMultiplicity_charged_hist_filler->setupResponseHists(ctx,
+                                                              dirname,
+                                                              doMCsplit_,
+                                                              N_JACKKNIFE_VARIATIONS,
+                                                              N_PDF_VARIATIONS);
+  }
 
   // pTD
   // -------------------------------------
@@ -515,65 +370,29 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   generator_distribution_pTD->AddAxis("pTD", Binning::nbins_var("pTD", doGroomed_, false), Binning::var_bin_edges("pTD", doGroomed_, false).data(), var_uf, var_of);
   generator_distribution_pTD->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
 
-  TH2 * h_tu_response_pTD_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_pTD, detector_tu_binning_pTD, "tu_pTD_GenReco");
-  h_tu_response_pTD = copy_book_th2d(h_tu_response_pTD_tmp, "tu_pTD_GenReco_all");
-  h_tu_response_pTD_split = copy_book_th2d(h_tu_response_pTD_tmp, "tu_pTD_GenReco_split");
-  delete h_tu_response_pTD_tmp;
-
-  TH1 * h_tu_reco_pTD_tmp = detector_tu_binning_pTD->CreateHistogram("hist_pTD_reco");
-  h_tu_reco_pTD = copy_book_th1d(h_tu_reco_pTD_tmp, "hist_pTD_reco_all");
-  h_tu_reco_pTD_split = copy_book_th1d(h_tu_reco_pTD_tmp, "hist_pTD_reco_split");
-  h_tu_reco_pTD_fake = copy_book_th1d(h_tu_reco_pTD_tmp, "hist_pTD_reco_fake_all");
-  h_tu_reco_pTD_fake_split = copy_book_th1d(h_tu_reco_pTD_tmp, "hist_pTD_reco_fake_split");
-  delete h_tu_reco_pTD_tmp;
-
-  TH1 * h_tu_gen_pTD_tmp = generator_tu_binning_pTD->CreateHistogram("hist_pTD_truth");
-  h_tu_gen_pTD = copy_book_th1d(h_tu_gen_pTD_tmp, "hist_pTD_truth_all");
-  h_tu_gen_pTD_split = copy_book_th1d(h_tu_gen_pTD_tmp, "hist_pTD_truth_split");
-  delete h_tu_gen_pTD_tmp;
-
-  if (doJackknifeVariations_) {
-    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
-      h_tu_reco_pTD_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_pTD, TString::Format("hist_pTD_reco_all_jackknife_%d", i).Data()));
-      h_tu_gen_pTD_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_pTD, TString::Format("hist_pTD_truth_all_jackknife_%d", i).Data()));
-      h_tu_response_pTD_jackknife_variations.push_back(copy_book_th2d(h_tu_response_pTD, TString::Format("tu_pTD_GenReco_all_jackknife_%d", i).Data()));
-    }
-  }
-
-  if (doPDFvariations_) {
-    for (int i=0; i < N_PDF_VARIATIONS; i++) {
-      h_tu_reco_pTD_PDF_variations.push_back(copy_book_th1d(h_tu_reco_pTD, TString::Format("hist_pTD_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_pTD_PDF_variations.push_back(copy_book_th1d(h_tu_gen_pTD, TString::Format("hist_pTD_truth_all_PDF_%d", i).Data()));
-      h_tu_response_pTD_PDF_variations.push_back(copy_book_th2d(h_tu_response_pTD, TString::Format("tu_pTD_GenReco_all_PDF_%d", i).Data()));
-    }
-  }
-
-  h_tu_reco_pTD_gen_binning = copy_book_th1d(h_tu_gen_pTD, "hist_pTD_reco_gen_binning");
-  h_tu_reco_pTD_gen_binning_split = copy_book_th1d(h_tu_gen_pTD, "hist_pTD_reco_gen_binning_split");
-
-  h_tu_reco_pTD_fake_gen_binning = copy_book_th1d(h_tu_gen_pTD, "hist_pTD_reco_fake_gen_binning");
-
   pTD_hist_filler.reset(new LambdaHistsFiller(Cuts::pTD_args,
                                               detector_tu_binning_pTD,
                                               Cuts::pTD_args,
-                                              generator_tu_binning_pTD));
-  pTD_hist_filler->assignRecoHists(h_tu_reco_pTD,
-                                  h_tu_reco_pTD_split,
-                                  h_tu_reco_pTD_gen_binning,
-                                  h_tu_reco_pTD_gen_binning_split,
-                                  h_tu_reco_pTD_fake,
-                                  h_tu_reco_pTD_fake_split,
-                                  h_tu_reco_pTD_fake_gen_binning,
-                                  &h_tu_reco_pTD_jackknife_variations,
-                                  &h_tu_reco_pTD_PDF_variations);
-  pTD_hist_filler->assignGenHists(h_tu_gen_pTD,
-                                  h_tu_gen_pTD_split,
-                                  &h_tu_gen_pTD_jackknife_variations,
-                                  &h_tu_gen_pTD_PDF_variations);
-  pTD_hist_filler->assignResponseHists(h_tu_response_pTD,
-                                       h_tu_response_pTD_split,
-                                       &h_tu_response_pTD_jackknife_variations,
-                                       &h_tu_response_pTD_PDF_variations);
+                                              generator_tu_binning_pTD,
+                                              "pTD"));
+  pTD_hist_filler->setupRecoHists(ctx,
+                                  dirname,
+                                  doMCsplit_,
+                                  doFakeHists,
+                                  N_JACKKNIFE_VARIATIONS,
+                                  N_PDF_VARIATIONS);
+  if (is_mc_) {
+    pTD_hist_filler->setupGenHists(ctx,
+                                   dirname,
+                                   doMCsplit_,
+                                   N_JACKKNIFE_VARIATIONS,
+                                   N_PDF_VARIATIONS);
+    pTD_hist_filler->setupResponseHists(ctx,
+                                        dirname,
+                                        doMCsplit_,
+                                        N_JACKKNIFE_VARIATIONS,
+                                        N_PDF_VARIATIONS);
+  }
 
   // Charged pTD
   // -------------------------------------
@@ -595,65 +414,29 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   generator_distribution_pTD_charged->AddAxis("pTD_charged", Binning::nbins_var("pTD_charged", doGroomed_, false), Binning::var_bin_edges("pTD_charged", doGroomed_, false).data(), var_uf, var_of);
   generator_distribution_pTD_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
 
-  TH2 * h_tu_response_pTD_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_pTD_charged, detector_tu_binning_pTD_charged, "tu_pTD_charged_GenReco");
-  h_tu_response_pTD_charged = copy_book_th2d(h_tu_response_pTD_charged_tmp, "tu_pTD_charged_GenReco_all");
-  h_tu_response_pTD_charged_split = copy_book_th2d(h_tu_response_pTD_charged_tmp, "tu_pTD_charged_GenReco_split");
-  delete h_tu_response_pTD_charged_tmp;
-
-  TH1 * h_tu_reco_pTD_charged_tmp = detector_tu_binning_pTD_charged->CreateHistogram("hist_pTD_charged_reco");
-  h_tu_reco_pTD_charged = copy_book_th1d(h_tu_reco_pTD_charged_tmp, "hist_pTD_charged_reco_all");
-  h_tu_reco_pTD_charged_split = copy_book_th1d(h_tu_reco_pTD_charged_tmp, "hist_pTD_charged_reco_split");
-  h_tu_reco_pTD_charged_fake = copy_book_th1d(h_tu_reco_pTD_charged_tmp, "hist_pTD_charged_reco_fake_all");
-  h_tu_reco_pTD_charged_fake_split = copy_book_th1d(h_tu_reco_pTD_charged_tmp, "hist_pTD_charged_reco_fake_split");
-  delete h_tu_reco_pTD_charged_tmp;
-
-  TH1 * h_tu_gen_pTD_charged_tmp = generator_tu_binning_pTD_charged->CreateHistogram("hist_pTD_charged_truth");
-  h_tu_gen_pTD_charged = copy_book_th1d(h_tu_gen_pTD_charged_tmp, "hist_pTD_charged_truth_all");
-  h_tu_gen_pTD_charged_split = copy_book_th1d(h_tu_gen_pTD_charged_tmp, "hist_pTD_charged_truth_split");
-  delete h_tu_gen_pTD_charged_tmp;
-
-  if (doJackknifeVariations_) {
-    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
-      h_tu_reco_pTD_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_pTD_charged, TString::Format("hist_pTD_charged_reco_all_jackknife_%d", i).Data()));
-      h_tu_gen_pTD_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_pTD_charged, TString::Format("hist_pTD_charged_truth_all_jackknife_%d", i).Data()));
-      h_tu_response_pTD_charged_jackknife_variations.push_back(copy_book_th2d(h_tu_response_pTD_charged, TString::Format("tu_pTD_charged_GenReco_all_jackknife_%d", i).Data()));
-    }
-  }
-
-  if (doPDFvariations_) {
-    for (int i=0; i < N_PDF_VARIATIONS; i++) {
-      h_tu_reco_pTD_charged_PDF_variations.push_back(copy_book_th1d(h_tu_reco_pTD_charged, TString::Format("hist_pTD_charged_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_pTD_charged_PDF_variations.push_back(copy_book_th1d(h_tu_gen_pTD_charged, TString::Format("hist_pTD_charged_truth_all_PDF_%d", i).Data()));
-      h_tu_response_pTD_charged_PDF_variations.push_back(copy_book_th2d(h_tu_response_pTD_charged, TString::Format("tu_pTD_charged_GenReco_all_PDF_%d", i).Data()));
-    }
-  }
-
-  h_tu_reco_pTD_charged_gen_binning = copy_book_th1d(h_tu_gen_pTD_charged, "hist_pTD_charged_reco_gen_binning");
-  h_tu_reco_pTD_charged_gen_binning_split = copy_book_th1d(h_tu_gen_pTD_charged, "hist_pTD_charged_reco_gen_binning_split");
-
-  h_tu_reco_pTD_charged_fake_gen_binning = copy_book_th1d(h_tu_gen_pTD_charged, "hist_pTD_charged_reco_fake_gen_binning");
-
   pTD_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::pTD_args,
                                                       detector_tu_binning_pTD_charged,
                                                       Cuts::pTD_args,
-                                                      generator_tu_binning_pTD_charged));
-  pTD_charged_hist_filler->assignRecoHists(h_tu_reco_pTD_charged,
-                                           h_tu_reco_pTD_charged_split,
-                                           h_tu_reco_pTD_charged_gen_binning,
-                                           h_tu_reco_pTD_charged_gen_binning_split,
-                                           h_tu_reco_pTD_charged_fake,
-                                           h_tu_reco_pTD_charged_fake_split,
-                                           h_tu_reco_pTD_charged_fake_gen_binning,
-                                           &h_tu_reco_pTD_charged_jackknife_variations,
-                                           &h_tu_reco_pTD_charged_PDF_variations);
-  pTD_charged_hist_filler->assignGenHists(h_tu_gen_pTD_charged,
-                                          h_tu_gen_pTD_charged_split,
-                                          &h_tu_gen_pTD_charged_jackknife_variations,
-                                          &h_tu_gen_pTD_charged_PDF_variations);
-  pTD_charged_hist_filler->assignResponseHists(h_tu_response_pTD_charged,
-                                               h_tu_response_pTD_charged_split,
-                                               &h_tu_response_pTD_charged_jackknife_variations,
-                                               &h_tu_response_pTD_charged_PDF_variations);
+                                                      generator_tu_binning_pTD_charged,
+                                                      "pTD_charged"));
+  pTD_charged_hist_filler->setupRecoHists(ctx,
+                                          dirname,
+                                          doMCsplit_,
+                                          doFakeHists,
+                                          N_JACKKNIFE_VARIATIONS,
+                                          N_PDF_VARIATIONS);
+  if (is_mc_) {
+    pTD_charged_hist_filler->setupGenHists(ctx,
+                                           dirname,
+                                           doMCsplit_,
+                                           N_JACKKNIFE_VARIATIONS,
+                                           N_PDF_VARIATIONS);
+    pTD_charged_hist_filler->setupResponseHists(ctx,
+                                                dirname,
+                                                doMCsplit_,
+                                                N_JACKKNIFE_VARIATIONS,
+                                                N_PDF_VARIATIONS);
+  }
 
   // thrust
   // -------------------------------------
@@ -675,65 +458,29 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   generator_distribution_thrust->AddAxis("thrust", Binning::nbins_var("thrust", doGroomed_, false), Binning::var_bin_edges("thrust", doGroomed_, false).data(), var_uf, var_of);
   generator_distribution_thrust->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
 
-  TH2 * h_tu_response_thrust_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_thrust, detector_tu_binning_thrust, "tu_thrust_GenReco");
-  h_tu_response_thrust = copy_book_th2d(h_tu_response_thrust_tmp, "tu_thrust_GenReco_all");
-  h_tu_response_thrust_split = copy_book_th2d(h_tu_response_thrust_tmp, "tu_thrust_GenReco_split");
-  delete h_tu_response_thrust_tmp;
-
-  TH1 * h_tu_reco_thrust_tmp = detector_tu_binning_thrust->CreateHistogram("hist_thrust_reco");
-  h_tu_reco_thrust = copy_book_th1d(h_tu_reco_thrust_tmp, "hist_thrust_reco_all");
-  h_tu_reco_thrust_split = copy_book_th1d(h_tu_reco_thrust_tmp, "hist_thrust_reco_split");
-  h_tu_reco_thrust_fake = copy_book_th1d(h_tu_reco_thrust_tmp, "hist_thrust_reco_fake_all");
-  h_tu_reco_thrust_fake_split = copy_book_th1d(h_tu_reco_thrust_tmp, "hist_thrust_reco_fake_split");
-  delete h_tu_reco_thrust_tmp;
-
-  TH1 * h_tu_gen_thrust_tmp = generator_tu_binning_thrust->CreateHistogram("hist_thrust_truth");
-  h_tu_gen_thrust = copy_book_th1d(h_tu_gen_thrust_tmp, "hist_thrust_truth_all");
-  h_tu_gen_thrust_split = copy_book_th1d(h_tu_gen_thrust_tmp, "hist_thrust_truth_split");
-  delete h_tu_gen_thrust_tmp;
-
-  if (doJackknifeVariations_) {
-    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
-      h_tu_reco_thrust_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_thrust, TString::Format("hist_thrust_reco_all_jackknife_%d", i).Data()));
-      h_tu_gen_thrust_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_thrust, TString::Format("hist_thrust_truth_all_jackknife_%d", i).Data()));
-      h_tu_response_thrust_jackknife_variations.push_back(copy_book_th2d(h_tu_response_thrust, TString::Format("tu_thrust_GenReco_all_jackknife_%d", i).Data()));
-    }
-  }
-
-  if (doPDFvariations_) {
-    for (int i=0; i < N_PDF_VARIATIONS; i++) {
-      h_tu_reco_thrust_PDF_variations.push_back(copy_book_th1d(h_tu_reco_thrust, TString::Format("hist_thrust_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_thrust_PDF_variations.push_back(copy_book_th1d(h_tu_gen_thrust, TString::Format("hist_thrust_truth_all_PDF_%d", i).Data()));
-      h_tu_response_thrust_PDF_variations.push_back(copy_book_th2d(h_tu_response_thrust, TString::Format("tu_thrust_GenReco_all_PDF_%d", i).Data()));
-    }
-  }
-
-  h_tu_reco_thrust_gen_binning = copy_book_th1d(h_tu_gen_thrust, "hist_thrust_reco_gen_binning");
-  h_tu_reco_thrust_gen_binning_split = copy_book_th1d(h_tu_gen_thrust, "hist_thrust_reco_gen_binning_split");
-
-  h_tu_reco_thrust_fake_gen_binning = copy_book_th1d(h_tu_gen_thrust, "hist_thrust_reco_fake_gen_binning");
-
   thrust_hist_filler.reset(new LambdaHistsFiller(Cuts::thrust_args,
                                                  detector_tu_binning_thrust,
                                                  Cuts::thrust_args,
-                                                 generator_tu_binning_thrust));
-  thrust_hist_filler->assignRecoHists(h_tu_reco_thrust,
-                                     h_tu_reco_thrust_split,
-                                     h_tu_reco_thrust_gen_binning,
-                                     h_tu_reco_thrust_gen_binning_split,
-                                     h_tu_reco_thrust_fake,
-                                     h_tu_reco_thrust_fake_split,
-                                     h_tu_reco_thrust_fake_gen_binning,
-                                     &h_tu_reco_thrust_jackknife_variations,
-                                     &h_tu_reco_thrust_PDF_variations);
-  thrust_hist_filler->assignGenHists(h_tu_gen_thrust,
-                                     h_tu_gen_thrust_split,
-                                     &h_tu_gen_thrust_jackknife_variations,
-                                     &h_tu_gen_thrust_PDF_variations);
-  thrust_hist_filler->assignResponseHists(h_tu_response_thrust,
-                                          h_tu_response_thrust_split,
-                                          &h_tu_response_thrust_jackknife_variations,
-                                          &h_tu_response_thrust_PDF_variations);
+                                                 generator_tu_binning_thrust,
+                                                 "thrust"));
+  thrust_hist_filler->setupRecoHists(ctx,
+                                     dirname,
+                                     doMCsplit_,
+                                     doFakeHists,
+                                     N_JACKKNIFE_VARIATIONS,
+                                     N_PDF_VARIATIONS);
+  if (is_mc_) {
+    thrust_hist_filler->setupGenHists(ctx,
+                                      dirname,
+                                      doMCsplit_,
+                                      N_JACKKNIFE_VARIATIONS,
+                                      N_PDF_VARIATIONS);
+    thrust_hist_filler->setupResponseHists(ctx,
+                                           dirname,
+                                           doMCsplit_,
+                                           N_JACKKNIFE_VARIATIONS,
+                                           N_PDF_VARIATIONS);
+  }
 
   // Charged thrust
   // -------------------------------------
@@ -755,65 +502,29 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   generator_distribution_thrust_charged->AddAxis("thrust_charged", Binning::nbins_var("thrust_charged", doGroomed_, false), Binning::var_bin_edges("thrust_charged", doGroomed_, false).data(), var_uf, var_of);
   generator_distribution_thrust_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
 
-  TH2 * h_tu_response_thrust_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_thrust_charged, detector_tu_binning_thrust_charged, "tu_thrust_charged_GenReco");
-  h_tu_response_thrust_charged = copy_book_th2d(h_tu_response_thrust_charged_tmp, "tu_thrust_charged_GenReco_all");
-  h_tu_response_thrust_charged_split = copy_book_th2d(h_tu_response_thrust_charged_tmp, "tu_thrust_charged_GenReco_split");
-  delete h_tu_response_thrust_charged_tmp;
-
-  TH1 * h_tu_reco_thrust_charged_tmp = detector_tu_binning_thrust_charged->CreateHistogram("hist_thrust_charged_reco");
-  h_tu_reco_thrust_charged = copy_book_th1d(h_tu_reco_thrust_charged_tmp, "hist_thrust_charged_reco_all");
-  h_tu_reco_thrust_charged_split = copy_book_th1d(h_tu_reco_thrust_charged_tmp, "hist_thrust_charged_reco_split");
-  h_tu_reco_thrust_charged_fake = copy_book_th1d(h_tu_reco_thrust_charged_tmp, "hist_thrust_charged_reco_fake_all");
-  h_tu_reco_thrust_charged_fake_split = copy_book_th1d(h_tu_reco_thrust_charged_tmp, "hist_thrust_charged_reco_fake_split");
-  delete h_tu_reco_thrust_charged_tmp;
-
-  TH1 * h_tu_gen_thrust_charged_tmp = generator_tu_binning_thrust_charged->CreateHistogram("hist_thrust_charged_truth");
-  h_tu_gen_thrust_charged = copy_book_th1d(h_tu_gen_thrust_charged_tmp, "hist_thrust_charged_truth_all");
-  h_tu_gen_thrust_charged_split = copy_book_th1d(h_tu_gen_thrust_charged_tmp, "hist_thrust_charged_truth_split");
-  delete h_tu_gen_thrust_charged_tmp;
-
-  if (doJackknifeVariations_) {
-    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
-      h_tu_reco_thrust_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_thrust_charged, TString::Format("hist_thrust_charged_reco_all_jackknife_%d", i).Data()));
-      h_tu_gen_thrust_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_thrust_charged, TString::Format("hist_thrust_charged_truth_all_jackknife_%d", i).Data()));
-      h_tu_response_thrust_charged_jackknife_variations.push_back(copy_book_th2d(h_tu_response_thrust_charged, TString::Format("tu_thrust_charged_GenReco_all_jackknife_%d", i).Data()));
-    }
-  }
-
-  if (doPDFvariations_) {
-    for (int i=0; i < N_PDF_VARIATIONS; i++) {
-      h_tu_reco_thrust_charged_PDF_variations.push_back(copy_book_th1d(h_tu_reco_thrust_charged, TString::Format("hist_thrust_charged_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_thrust_charged_PDF_variations.push_back(copy_book_th1d(h_tu_gen_thrust_charged, TString::Format("hist_thrust_charged_truth_all_PDF_%d", i).Data()));
-      h_tu_response_thrust_charged_PDF_variations.push_back(copy_book_th2d(h_tu_response_thrust_charged, TString::Format("tu_thrust_charged_GenReco_all_PDF_%d", i).Data()));
-    }
-  }
-
-  h_tu_reco_thrust_charged_gen_binning = copy_book_th1d(h_tu_gen_thrust_charged, "hist_thrust_charged_reco_gen_binning");
-  h_tu_reco_thrust_charged_gen_binning_split = copy_book_th1d(h_tu_gen_thrust_charged, "hist_thrust_charged_reco_gen_binning_split");
-
-  h_tu_reco_thrust_charged_fake_gen_binning = copy_book_th1d(h_tu_gen_thrust_charged, "hist_thrust_charged_reco_fake_gen_binning");
-
   thrust_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::thrust_args,
                                                          detector_tu_binning_thrust_charged,
                                                          Cuts::thrust_args,
-                                                         generator_tu_binning_thrust_charged));
-  thrust_charged_hist_filler->assignRecoHists(h_tu_reco_thrust_charged,
-                                              h_tu_reco_thrust_charged_split,
-                                              h_tu_reco_thrust_charged_gen_binning,
-                                              h_tu_reco_thrust_charged_gen_binning_split,
-                                              h_tu_reco_thrust_charged_fake,
-                                              h_tu_reco_thrust_charged_fake_split,
-                                              h_tu_reco_thrust_charged_fake_gen_binning,
-                                              &h_tu_reco_thrust_charged_jackknife_variations,
-                                              &h_tu_reco_thrust_charged_PDF_variations);
-  thrust_charged_hist_filler->assignGenHists(h_tu_gen_thrust_charged,
-                                             h_tu_gen_thrust_charged_split,
-                                             &h_tu_gen_thrust_charged_jackknife_variations,
-                                             &h_tu_gen_thrust_charged_PDF_variations);
-  thrust_charged_hist_filler->assignResponseHists(h_tu_response_thrust_charged,
-                                                  h_tu_response_thrust_charged_split,
-                                                  &h_tu_response_thrust_charged_jackknife_variations,
-                                                  &h_tu_response_thrust_charged_PDF_variations);
+                                                         generator_tu_binning_thrust_charged,
+                                                         "thrust_charged"));
+  thrust_charged_hist_filler->setupRecoHists(ctx,
+                                             dirname,
+                                             doMCsplit_,
+                                             doFakeHists,
+                                             N_JACKKNIFE_VARIATIONS,
+                                             N_PDF_VARIATIONS);
+  if (is_mc_) {
+    thrust_charged_hist_filler->setupGenHists(ctx,
+                                              dirname,
+                                              doMCsplit_,
+                                              N_JACKKNIFE_VARIATIONS,
+                                              N_PDF_VARIATIONS);
+    thrust_charged_hist_filler->setupResponseHists(ctx,
+                                                   dirname,
+                                                   doMCsplit_,
+                                                   N_JACKKNIFE_VARIATIONS,
+                                                   N_PDF_VARIATIONS);
+  }
 
   // width
   // -------------------------------------
@@ -835,65 +546,29 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   generator_distribution_width->AddAxis("width", Binning::nbins_var("width", doGroomed_, false), Binning::var_bin_edges("width", doGroomed_, false).data(), var_uf, var_of);
   generator_distribution_width->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
 
-  TH2 * h_tu_response_width_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_width, detector_tu_binning_width, "tu_width_GenReco");
-  h_tu_response_width = copy_book_th2d(h_tu_response_width_tmp, "tu_width_GenReco_all");
-  h_tu_response_width_split = copy_book_th2d(h_tu_response_width_tmp, "tu_width_GenReco_split");
-  delete h_tu_response_width_tmp;
-
-  TH1 * h_tu_reco_width_tmp = detector_tu_binning_width->CreateHistogram("hist_width_reco");
-  h_tu_reco_width = copy_book_th1d(h_tu_reco_width_tmp, "hist_width_reco_all");
-  h_tu_reco_width_split = copy_book_th1d(h_tu_reco_width_tmp, "hist_width_reco_split");
-  h_tu_reco_width_fake = copy_book_th1d(h_tu_reco_width_tmp, "hist_width_reco_fake_all");
-  h_tu_reco_width_fake_split = copy_book_th1d(h_tu_reco_width_tmp, "hist_width_reco_fake_split");
-  delete h_tu_reco_width_tmp;
-
-  TH1 * h_tu_gen_width_tmp = generator_tu_binning_width->CreateHistogram("hist_width_truth");
-  h_tu_gen_width = copy_book_th1d(h_tu_gen_width_tmp, "hist_width_truth_all");
-  h_tu_gen_width_split = copy_book_th1d(h_tu_gen_width_tmp, "hist_width_truth_split");
-  delete h_tu_gen_width_tmp;
-
-  if (doJackknifeVariations_) {
-    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
-      h_tu_reco_width_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_width, TString::Format("hist_width_reco_all_jackknife_%d", i).Data()));
-      h_tu_gen_width_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_width, TString::Format("hist_width_truth_all_jackknife_%d", i).Data()));
-      h_tu_response_width_jackknife_variations.push_back(copy_book_th2d(h_tu_response_width, TString::Format("tu_width_GenReco_all_jackknife_%d", i).Data()));
-    }
-  }
-
-  if (doPDFvariations_) {
-    for (int i=0; i < N_PDF_VARIATIONS; i++) {
-      h_tu_reco_width_PDF_variations.push_back(copy_book_th1d(h_tu_reco_width, TString::Format("hist_width_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_width_PDF_variations.push_back(copy_book_th1d(h_tu_gen_width, TString::Format("hist_width_truth_all_PDF_%d", i).Data()));
-      h_tu_response_width_PDF_variations.push_back(copy_book_th2d(h_tu_response_width, TString::Format("tu_width_GenReco_all_PDF_%d", i).Data()));
-    }
-  }
-
-  h_tu_reco_width_gen_binning = copy_book_th1d(h_tu_gen_width, "hist_width_reco_gen_binning");
-  h_tu_reco_width_gen_binning_split = copy_book_th1d(h_tu_gen_width, "hist_width_reco_gen_binning_split");
-
-  h_tu_reco_width_fake_gen_binning = copy_book_th1d(h_tu_gen_width, "hist_width_reco_fake_gen_binning");
-
   width_hist_filler.reset(new LambdaHistsFiller(Cuts::width_args,
                                                 detector_tu_binning_width,
                                                 Cuts::width_args,
-                                                generator_tu_binning_width));
-  width_hist_filler->assignRecoHists(h_tu_reco_width,
-                                    h_tu_reco_width_split,
-                                    h_tu_reco_width_gen_binning,
-                                    h_tu_reco_width_gen_binning_split,
-                                    h_tu_reco_width_fake,
-                                    h_tu_reco_width_fake_split,
-                                    h_tu_reco_width_fake_gen_binning,
-                                    &h_tu_reco_width_jackknife_variations,
-                                    &h_tu_reco_width_PDF_variations);
-  width_hist_filler->assignGenHists(h_tu_gen_width,
-                                    h_tu_gen_width_split,
-                                    &h_tu_gen_width_jackknife_variations,
-                                    &h_tu_gen_width_PDF_variations);
-  width_hist_filler->assignResponseHists(h_tu_response_width,
-                                         h_tu_response_width_split,
-                                         &h_tu_response_width_jackknife_variations,
-                                         &h_tu_response_width_PDF_variations);
+                                                generator_tu_binning_width,
+                                                "width"));
+  width_hist_filler->setupRecoHists(ctx,
+                                    dirname,
+                                    doMCsplit_,
+                                    doFakeHists,
+                                    N_JACKKNIFE_VARIATIONS,
+                                    N_PDF_VARIATIONS);
+  if (is_mc_) {
+    width_hist_filler->setupGenHists(ctx,
+                                     dirname,
+                                     doMCsplit_,
+                                     N_JACKKNIFE_VARIATIONS,
+                                     N_PDF_VARIATIONS);
+    width_hist_filler->setupResponseHists(ctx,
+                                          dirname,
+                                          doMCsplit_,
+                                          N_JACKKNIFE_VARIATIONS,
+                                          N_PDF_VARIATIONS);
+  }
 
   // Charged width
   // -------------------------------------
@@ -915,65 +590,30 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
   generator_distribution_width_charged->AddAxis("width_charged", Binning::nbins_var("width_charged", doGroomed_, false), Binning::var_bin_edges("width_charged", doGroomed_, false).data(), var_uf, var_of);
   generator_distribution_width_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
 
-  TH2 * h_tu_response_width_charged_tmp = TUnfoldBinning::CreateHistogramOfMigrations(generator_tu_binning_width_charged, detector_tu_binning_width_charged, "tu_width_charged_GenReco");
-  h_tu_response_width_charged = copy_book_th2d(h_tu_response_width_charged_tmp, "tu_width_charged_GenReco_all");
-  h_tu_response_width_charged_split = copy_book_th2d(h_tu_response_width_charged_tmp, "tu_width_charged_GenReco_split");
-  delete h_tu_response_width_charged_tmp;
-
-  TH1 * h_tu_reco_width_charged_tmp = detector_tu_binning_width_charged->CreateHistogram("hist_width_charged_reco");
-  h_tu_reco_width_charged = copy_book_th1d(h_tu_reco_width_charged_tmp, "hist_width_charged_reco_all");
-  h_tu_reco_width_charged_split = copy_book_th1d(h_tu_reco_width_charged_tmp, "hist_width_charged_reco_split");
-  h_tu_reco_width_charged_fake = copy_book_th1d(h_tu_reco_width_charged_tmp, "hist_width_charged_reco_fake_all");
-  h_tu_reco_width_charged_fake_split = copy_book_th1d(h_tu_reco_width_charged_tmp, "hist_width_charged_reco_fake_split");
-  delete h_tu_reco_width_charged_tmp;
-
-  TH1 * h_tu_gen_width_charged_tmp = generator_tu_binning_width_charged->CreateHistogram("hist_width_charged_truth");
-  h_tu_gen_width_charged = copy_book_th1d(h_tu_gen_width_charged_tmp, "hist_width_charged_truth_all");
-  h_tu_gen_width_charged_split = copy_book_th1d(h_tu_gen_width_charged_tmp, "hist_width_charged_truth_split");
-  delete h_tu_gen_width_charged_tmp;
-
-  if (doJackknifeVariations_) {
-    for (uint i=0; i < N_JACKKNIFE_VARIATIONS; i++) {
-      h_tu_reco_width_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_reco_width_charged, TString::Format("hist_width_charged_reco_all_jackknife_%d", i).Data()));
-      h_tu_gen_width_charged_jackknife_variations.push_back(copy_book_th1d(h_tu_gen_width_charged, TString::Format("hist_width_charged_truth_all_jackknife_%d", i).Data()));
-      h_tu_response_width_charged_jackknife_variations.push_back(copy_book_th2d(h_tu_response_width_charged, TString::Format("tu_width_charged_GenReco_all_jackknife_%d", i).Data()));
-    }
-  }
-
-  if (doPDFvariations_) {
-    for (int i=0; i < N_PDF_VARIATIONS; i++) {
-      h_tu_reco_width_charged_PDF_variations.push_back(copy_book_th1d(h_tu_reco_width_charged, TString::Format("hist_width_charged_reco_all_PDF_%d", i).Data()));
-      h_tu_gen_width_charged_PDF_variations.push_back(copy_book_th1d(h_tu_gen_width_charged, TString::Format("hist_width_charged_truth_all_PDF_%d", i).Data()));
-      h_tu_response_width_charged_PDF_variations.push_back(copy_book_th2d(h_tu_response_width_charged, TString::Format("tu_width_charged_GenReco_all_PDF_%d", i).Data()));
-    }
-  }
-
-  h_tu_reco_width_charged_gen_binning = copy_book_th1d(h_tu_gen_width_charged, "hist_width_charged_reco_gen_binning");
-  h_tu_reco_width_charged_gen_binning_split = copy_book_th1d(h_tu_gen_width_charged, "hist_width_charged_reco_gen_binning_split");
-
-  h_tu_reco_width_charged_fake_gen_binning = copy_book_th1d(h_tu_gen_width_charged, "hist_width_charged_reco_fake_gen_binning");
-
   width_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::width_args,
                                                         detector_tu_binning_width_charged,
                                                         Cuts::width_args,
-                                                        generator_tu_binning_width_charged));
-  width_charged_hist_filler->assignRecoHists(h_tu_reco_width_charged,
-                                             h_tu_reco_width_charged_split,
-                                             h_tu_reco_width_charged_gen_binning,
-                                             h_tu_reco_width_charged_gen_binning_split,
-                                             h_tu_reco_width_charged_fake,
-                                             h_tu_reco_width_charged_fake_split,
-                                             h_tu_reco_width_charged_fake_gen_binning,
-                                             &h_tu_reco_width_charged_jackknife_variations,
-                                             &h_tu_reco_width_charged_PDF_variations);
-  width_charged_hist_filler->assignGenHists(h_tu_gen_width_charged,
-                                            h_tu_gen_width_charged_split,
-                                            &h_tu_gen_width_charged_jackknife_variations,
-                                            &h_tu_gen_width_charged_PDF_variations);
-  width_charged_hist_filler->assignResponseHists(h_tu_response_width_charged,
-                                                 h_tu_response_width_charged_split,
-                                                 &h_tu_response_width_charged_jackknife_variations,
-                                                 &h_tu_response_width_charged_PDF_variations);
+                                                        generator_tu_binning_width_charged,
+                                                        "width_charged"));
+  width_charged_hist_filler->setupRecoHists(ctx,
+                                            dirname,
+                                            doMCsplit_,
+                                            doFakeHists,
+                                            N_JACKKNIFE_VARIATIONS,
+                                            N_PDF_VARIATIONS);
+  if (is_mc_) {
+    width_charged_hist_filler->setupGenHists(ctx,
+                                             dirname,
+                                             doMCsplit_,
+                                             N_JACKKNIFE_VARIATIONS,
+                                             N_PDF_VARIATIONS);
+    width_charged_hist_filler->setupResponseHists(ctx,
+                                                  dirname,
+                                                  doMCsplit_,
+                                                  N_JACKKNIFE_VARIATIONS,
+                                                  N_PDF_VARIATIONS);
+  }
+
 
   // Setup other things
   // ---------------------------------------------------------------------------
@@ -1096,7 +736,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           uint index = eventCounter_ % N_JACKKNIFE_VARIATIONS;
           for (uint jk_ind=0; jk_ind<N_JACKKNIFE_VARIATIONS; jk_ind++) {
             if (jk_ind == index) continue;
-            filler->fillRecoTH1(filler->recoJackknifeVariations()->at(index), weight);
+            filler->fillRecoTH1(filler->recoJackknifeVariations().at(index), weight);
           }
         }
 
@@ -1105,7 +745,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           for (int i=0; i<N_PDF_VARIATIONS; i++) {
             double pdf_weight = event.genInfo->systweights().at(i+10) / event.genInfo->systweights().at(9); // +10 as first 9 are scale variations, then comes the nominal weight again
             double this_weight = weight * pdf_weight;
-            filler->fillRecoTH1(filler->recoPDFVariations()->at(i), this_weight);
+            filler->fillRecoTH1(filler->recoPDFVariations().at(i), this_weight);
           }
         }
       } // end loop over hist fillers
@@ -1224,7 +864,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           uint index = eventCounter_ % N_JACKKNIFE_VARIATIONS;
           for (uint jk_ind=0; jk_ind<N_JACKKNIFE_VARIATIONS; jk_ind++) {
             if (jk_ind == index) continue;
-            filler->fillGenTH1(filler->genJackknifeVariations()->at(index), gen_weight);
+            filler->fillGenTH1(filler->genJackknifeVariations().at(index), gen_weight);
           }
         }
 
@@ -1233,7 +873,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           for (int i=0; i<N_PDF_VARIATIONS; i++) {
             double pdf_weight = event.genInfo->systweights().at(i+10) / event.genInfo->systweights().at(9); // +10 as first 9 are scale variations, then comes the nominal weight again
             double this_weight = gen_weight * pdf_weight;
-            filler->fillGenTH1(filler->genPDFVariations()->at(i), this_weight);
+            filler->fillGenTH1(filler->genPDFVariations().at(i), this_weight);
           }
         }
       } // end loop over hist fillers
@@ -1341,7 +981,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           uint index = eventCounter_ % N_JACKKNIFE_VARIATIONS;
           for (uint jk_ind=0; jk_ind<N_JACKKNIFE_VARIATIONS; jk_ind++) {
             if (jk_ind == index) continue;
-            filler->fillResponseTH2(filler->responseJackknifeVariations()->at(index), reco_weight, gen_weight);
+            filler->fillResponseTH2(filler->responseJackknifeVariations().at(index), reco_weight, gen_weight);
           }
         }
 
@@ -1349,7 +989,7 @@ void QGAnalysisUnfoldHists::fill(const Event & event){
           for (int i=0; i<N_PDF_VARIATIONS; i++) {
             double pdf_weight = event.genInfo->systweights().at(i+10) / event.genInfo->systweights().at(9); // +10 as first 9 are scale variations + nominal again
             double this_gen_weight = gen_weight * pdf_weight;
-            filler->fillResponseTH2(filler->responsePDFVariations()->at(i), reco_weight, this_gen_weight);
+            filler->fillResponseTH2(filler->responsePDFVariations().at(i), reco_weight, this_gen_weight);
           }
         }
       }
