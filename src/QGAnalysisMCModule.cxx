@@ -985,7 +985,7 @@ bool QGAnalysisMCModule::process(Event & event) {
             uint flav2 = event.jets->at(1).partonFlavour();
 
             // Fill hists
-            if (DO_KINEMATIC_HISTS) dijet_hists_presel->fill(event);
+            // if (DO_KINEMATIC_HISTS) dijet_hists_presel->fill(event);
             // if (DO_FLAVOUR_HISTS) {
             //     if (flav1 == PDGID::GLUON) {
             //         if (flav2 > PDGID::UNKNOWN && flav2 < PDGID::CHARM_QUARK) {

@@ -61,7 +61,7 @@ private:
 
     // Reco selections/hists
     std::unique_ptr<ZFinder> zFinder;
-    std::unique_ptr<Selection> njet_sel, zplusjets_sel, zplusjets_presel, dijet_sel;
+    std::unique_ptr<Selection> njet_sel, zplusjets_sel, dijet_sel;
     std::unique_ptr<Selection> zerobias_trigger_sel;
     std::unique_ptr<OrSelection> zplusjets_trigger_sel;
     std::unique_ptr<DataJetSelection> dijet_trigger_sel;
@@ -75,10 +75,10 @@ private:
     Event::Handle<bool> pass_zpj_sel_handle, pass_dj_sel_handle;
     Event::Handle<std::vector<Jet>> dijet_forward_handle, dijet_central_handle;
 
-    std::unique_ptr<Hists> zplusjets_hists_presel, zplusjets_hists, zplusjets_qg_hists, zplusjets_qg_hists_groomed;
+    std::unique_ptr<Hists> zplusjets_hists, zplusjets_qg_hists, zplusjets_qg_hists_groomed;
     std::unique_ptr<Hists> zplusjets_qg_unfold_hists, zplusjets_qg_unfold_hists_groomed;
 
-    std::unique_ptr<Hists> dijet_hists_presel, dijet_hists, dijet_hists_eta_ordered;
+    std::unique_ptr<Hists> dijet_hists, dijet_hists_eta_ordered;
     std::unique_ptr<Hists> dijet_qg_hists, dijet_qg_hists_central_tighter, dijet_qg_hists_forward_tighter;
     std::unique_ptr<Hists> dijet_qg_hists_central_tighter_groomed, dijet_qg_hists_forward_tighter_groomed;
     std::unique_ptr<Hists> dijet_qg_unfold_hists_central_tighter, dijet_qg_unfold_hists_forward_tighter;
@@ -168,16 +168,8 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     // Z+JETS selection
     if (isZPlusJets) {
         zFinder.reset(new ZFinder(ctx, "muons", zLeptonLabel));
-
         float second_jet_frac_max_zpj = 1000.3;
-        float z_jet_asym_max = 100.4;
         zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLeptonLabel, Cuts::reco_jet_pt_min, Cuts::jet_y_max, Cuts::reco_muon_pt_min, Cuts::reco_muon_pt_min, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, Cuts::z_asym_max, "ZPlusJetsSel"));
-
-        // Preselection for Z+J - only 2 muons to reco Z, no other event cuts
-        float dphi_jet_z_min = 0.;
-        second_jet_frac_max_zpj = 999.;
-        z_jet_asym_max = 1.;
-        zplusjets_presel.reset(new ZplusJetsSelection(ctx, zLeptonLabel, Cuts::reco_jet_pt_min, Cuts::jet_y_max, Cuts::reco_muon_pt_min, Cuts::reco_muon_pt_min, Cuts::mZ_window, dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, z_jet_asym_max, "ZPlusJetsSel_presel"));
     } else {
         // DIJET selection
         float second_jet_frac_max_dj = 10.94;
@@ -332,7 +324,6 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     if (isZPlusJets) {
         // Hists
         if (DO_KINEMATIC_HISTS) {
-            zplusjets_hists_presel.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets_Presel", zLeptonLabel));
             zplusjets_hists.reset(new QGAnalysisZPlusJetsHists(ctx, "ZPlusJets", zLeptonLabel));
         }
         std::string zpj_sel = "zplusjets";
@@ -361,7 +352,6 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
         std::string binning_method = "ave";
         std::string dj_sel = "dijet";
         if (DO_KINEMATIC_HISTS) {
-            dijet_hists_presel.reset(new QGAnalysisDijetHists(ctx, "Dijet_Presel", binning_method));
             dijet_hists.reset(new QGAnalysisDijetHists(ctx, "Dijet_tighter", binning_method));
             dijet_hists_eta_ordered.reset(new QGAnalysisDijetHists(ctx, "Dijet_eta_ordered", binning_method));
             // add in simple jet kinematic hists, for each trigger, so we can show a manually stitched plot
@@ -535,38 +525,30 @@ bool QGAnalysisDataModule::process(Event & event) {
 
     if (isZPlusJets) {
         event.set(pt_binning_reco_handle, event.jets->at(0).pt());
-        if (zplusjets_presel->passes(event)) {
-            if (DO_KINEMATIC_HISTS) {
-                zplusjets_hists_presel->fill(event);
-            }
-            selected = zplusjets_sel->passes(event);
-            event.set(pass_zpj_sel_handle, selected);
-            if (selected) {
-                // Calculate lambda vars for jets (pt ordered)
-                // These will be used in various histogram classes
-                // At this point, all objects should have had all necessary corrections, filtering, etc
-                jetLambdaCreatorPtSorted->process(event);
+        selected = zplusjets_sel->passes(event);
+        event.set(pass_zpj_sel_handle, selected);
+        if (selected) {
+            // Calculate lambda vars for jets (pt ordered)
+            // These will be used in various histogram classes
+            // At this point, all objects should have had all necessary corrections, filtering, etc
+            jetLambdaCreatorPtSorted->process(event);
 
-                if (DO_KINEMATIC_HISTS) {
-                    zplusjets_hists->fill(event);
-                }
-                if (DO_LAMBDA_HISTS) {
-                    zplusjets_qg_hists->fill(event);
-                    zplusjets_qg_hists_groomed->fill(event);
-                }
-                if (DO_UNFOLD_HISTS) {
-                    zplusjets_qg_unfold_hists->fill(event);
-                    zplusjets_qg_unfold_hists_groomed->fill(event);
-                }
-            } else if (PRINTOUT) {
-                cout << Color::BG_WHITE << Color::FG_RED << " ! Failed Z+J selection" << Color::BG_DEFAULT << Color::FG_DEFAULT << endl;
+            if (DO_KINEMATIC_HISTS) {
+                zplusjets_hists->fill(event);
+            }
+            if (DO_LAMBDA_HISTS) {
+                zplusjets_qg_hists->fill(event);
+                zplusjets_qg_hists_groomed->fill(event);
+            }
+            if (DO_UNFOLD_HISTS) {
+                zplusjets_qg_unfold_hists->fill(event);
+                zplusjets_qg_unfold_hists_groomed->fill(event);
             }
         } else if (printout_this_event) {
             cout << Color::BG_WHITE << Color::FG_RED << " ! Failed Z+J selection" << Color::BG_DEFAULT << Color::FG_DEFAULT << endl;
         }
 
     } else {
-        dijet_hists_presel->fill(event);
         selected = dijet_sel->passes(event);
         event.set(pass_dj_sel_handle, selected);
         if (selected) {
