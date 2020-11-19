@@ -29,7 +29,6 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
   useStatus23Flavour_(useStatus23Flavour),
   N_PARTONS_MAX(4)
   {
-  dataset_ = matchDatasetName(ctx.get("dataset_version"));
   string jetCone = ctx.get("JetCone", "AK4");
   string pu_removal = ctx.get("PURemoval", "CHS");
   if (pu_removal != "CHS" && pu_removal != "PUPPI") {
@@ -39,6 +38,8 @@ QGAnalysisHists::QGAnalysisHists(Context & ctx, const string & dirname,
 
   is_mc_ = ctx.get("dataset_type") == "MC";
   doPuppi_ = (ctx.get("PURemoval") == "PUPPI");
+
+  if (is_mc_) dataset_ = matchDatasetName(ctx.get("dataset_version"));
 
   if (useNJets_ < 0) useNJets_ = 99999; // Do them all
   else if (useNJets_ == 0) throw runtime_error("useNJets should be > 0, or < 0 to use all jets in the event");

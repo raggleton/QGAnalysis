@@ -29,7 +29,7 @@ MC::Name matchDatasetName(const std::string & name) {
     } else if (name.find("HERWIG_DYJetsToLL") != string::npos) {
         return MC::HERWIG_DY;
     } else {
-        throw std::runtime_error("Cannot understand dataset with name " + name);
+        throw std::runtime_error("Cannot understand MC dataset with name " + name);
     }
 }
 
