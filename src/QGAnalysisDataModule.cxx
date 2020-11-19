@@ -442,9 +442,7 @@ bool QGAnalysisDataModule::process(Event & event) {
 
     nTotalEvents++;
 
-    bool printout_event_sel = false;
-    // bool printout_event_sel = event_sel_printout->passes(event);
-    if (!printout_event_sel) return false;
+    bool printout_event_sel = (event_sel_printout == nullptr) ? false : event_sel_printout->passes(event);
     bool printout_this_event = (PRINTOUT || printout_event_sel);
 
     if (event.run < 274954) {

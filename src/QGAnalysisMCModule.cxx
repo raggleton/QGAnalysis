@@ -360,7 +360,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         float mu1_pt = Cuts::reco_muon_pt_min;
         float mu2_pt = Cuts::reco_muon_pt_min;
         float second_jet_frac_max_zpj = 1000.3;
-        zplusjets_sel.reset(            new ZplusJetsSelection(ctx, zLeptonLabel, Cuts::reco_jet_pt_min, Cuts::jet_y_max,mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, Cuts::z_asym_max, "ZPlusJetsSelCutFlow"));
+        zplusjets_sel.reset(            new ZplusJetsSelection(ctx, zLeptonLabel, Cuts::reco_jet_pt_min, Cuts::jet_y_max, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, Cuts::z_asym_max, "ZPlusJetsSelCutFlow"));
         // just to plot cutflow only when passGen==true
         zplusjets_sel_passGen.reset(    new ZplusJetsSelection(ctx, zLeptonLabel, Cuts::reco_jet_pt_min, Cuts::jet_y_max, mu1_pt, mu2_pt, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, Cuts::z_asym_max, "ZPlusJetsSelPassGenCutFlow"));
 
@@ -650,9 +650,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
 bool QGAnalysisMCModule::process(Event & event) {
 
-    bool printout_event_sel = false;
-    // bool printout_event_sel = event_sel_printout->passes(event);
-    // if (!printout_event_sel) return false;
+    bool printout_event_sel = (event_sel_printout == nullptr) ? false : event_sel_printout->passes(event);
     bool printout_this_event = (PRINTOUT || printout_event_sel);
 
     event.set(gen_weight_handle, event.weight); // need to set this at the start
