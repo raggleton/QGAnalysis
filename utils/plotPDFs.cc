@@ -11,8 +11,10 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
 
-    const PDF* pdfCTEQ = mkPDF(10042); // CTEQ6L1 - yes this is the same as CTEQ6ll, I think
-    const PDF* pdfNNPDF = mkPDF(263000); // NNPDF30_lo_as_0130
+    // const PDF* pdfCTEQ = mkPDF(10042); // CTEQ6L1 - yes this is the same as CTEQ6ll, I think
+    const PDF* pdfCTEQ = mkPDF("cteq6l1"); // CTEQ6L1 - yes this is the same as CTEQ6ll, I think
+    // const PDF* pdfNNPDF = mkPDF(263000); // NNPDF30_lo_as_0130
+    const PDF* pdfNNPDF = mkPDF("NNPDF30_lo_as_0130"); // NNPDF30_lo_as_0130
 
     const double MINLOGX = -5;
     const double MAXLOGX = 0;
