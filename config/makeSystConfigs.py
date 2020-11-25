@@ -61,10 +61,11 @@ def write_updated_file(contents, new_xml_filename, radius, systematic_names=None
                 # Turn off the standard hists, we only care about lambda & unfolding ones (currently)
                 new_line = ""
                 if systematic_names:
-                    for key in ["DO_PU_BINNED_HISTS", "DO_FLAVOUR_HISTS", "DO_KINEMATIC_HISTS"]:
+                    for key in ["DO_PU_BINNED_HISTS", "DO_FLAVOUR_HISTS", "DO_KINEMATIC_HISTS", "DO_LAMBDA_HISTS"]:
                         new_line = '            <Item Name="%s" Value="False"/>\n' % (key)
                         f.write(new_line)
 
+                # new_line = '            <Item Name="DO_KINEMATIC_HISTS" Value="False"/>\n'
                 # new_line = '            <Item Name="DO_LAMBDA_HISTS" Value="False"/>\n'
                 # new_line += '            <Item Name="DO_UNFOLD_HISTS" Value="False"/>\n'
                 new_line += '            <Item Name="DO_WEIGHT_HISTS" Value="False"/>\n'
@@ -76,12 +77,19 @@ def write_updated_file(contents, new_xml_filename, radius, systematic_names=None
                         new_line = '            <Item Name="%s" Value="%s"/>\n' % (sn, val)
                         f.write(new_line)
 
-            elif systematic_names and '<!--' not in line and "<Item Name=" in line:
-                # remove any existing entries for this systematic
-                if any(['<Item Name="%s"' % (sn) in line for sn in systematic_names]):
-                    continue
-                elif "JackknifeVariations" in line:
-                    # turn off Jackknife for systematics
+            elif '<!--' not in line and "<Item Name=" in line:
+                if systematic_names:
+                    # remove any existing entries for this systematic
+                    if any(['<Item Name="%s"' % (sn) in line for sn in systematic_names]):
+                        continue
+                    elif "JackknifeVariations" in line:
+                        # turn off Jackknife for systematics
+                        f.write('            <Item Name="JackknifeVariations" Value="False"/>\n')
+                    else:
+                        f.write(line)
+
+                if "JackknifeVariations" in line:
+                    # turn off Jackknife for all
                     f.write('            <Item Name="JackknifeVariations" Value="False"/>\n')
                 else:
                     f.write(line)
@@ -258,8 +266,8 @@ if __name__ == "__main__":
             new_xml_filename = xml_stem + '_' + radius + '.xml'
 
             # if radius is not "AK4PUPPI":
-            write_updated_file(contents, new_xml_filename, radius)
             if not args.onlySubmitSystematics:
+                write_updated_file(contents, new_xml_filename, radius)
                 if args.submit:
                     print "Submitting", new_xml_filename
                     submit_xml(new_xml_filename, local=args.local, el7_worker=args.el7worker)

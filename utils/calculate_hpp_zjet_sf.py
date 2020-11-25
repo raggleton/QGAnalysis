@@ -93,6 +93,9 @@ if __name__ == "__main__":
     inclusive_filename = "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/workdir_102X_v3data_v2mc_ak4puppi_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_fixLambda/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_DYJetsToLL_Incl_all.root"
     high_pt_filename = "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/workdir_102X_v3data_v2mc_ak4puppi_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_fixLambda/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_DYJetsToLL_JetKtMin170_PartonKtMin300.root"
 
+    inclusive_filename = "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/Herwig/workdir_102X_v2_ak4puppi_herwig_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_DYJetsToLL_Incl.root"
+    high_pt_filename = "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/Herwig/workdir_102X_v2_ak4puppi_herwig_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_DYJetsToLL_JetKtMin170_PartonKtMin300.root"
+
     hist_name = "ZPlusJets_gen/jet_kt"
 
     inclusive_tfile = ROOT.TFile(inclusive_filename)
