@@ -8,8 +8,8 @@
 
     <!-- Full datasets -->
     <!-- My extra stats sample at high pt -->
-    <!ENTITY HERWIG-DY-EXTRA SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/DYJetsToLL_M-50_JetKtMin170_TuneCUETHS1_13TeV-herwigpp_NoTopJet_AllGP.xml">
-    <!ENTITY HERWIG-DY-EXTRA-5M SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/DYJetsToLL_M-50_JetKtMin170_TuneCUETHS1_13TeV-herwigpp_NoTopJet_AllGP_5M.xml">
+    <!ENTITY HERWIG-DY-EXTRA SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/DYJetsToLL_JetKtMin170_HS1_1M_5Nov20_NoTopJetAllGPParton_genjetGhostNoBC.xml">
+    <!ENTITY HERWIG-DY-EXTRA-5M SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/DYJetsToLL_JetKtMin170_HS1_5M_5Nov20_NoTopJetAllGPParton_genjetGhostNoBC.xml">
 
     <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/commonMC.xml">
 
@@ -27,7 +27,7 @@
 <!-- split 15 -->
 <!--
    <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="10" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_herwig_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_weightHists_betterWeightCuts"/>
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_herwig_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning5_mergeZpJPt"/>
 -->
 
 
@@ -39,18 +39,19 @@
     <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-HERWIG;/" PostFix="" TargetLumi="35918" >
 
 
-        <InputData Lumi="3319307.248" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_DYJetsToLL_JetKtMin170_PartonKtMin300_2016v2" Cacheable="False">
+        <InputData Lumi="3372513.045" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_DYJetsToLL_JetKtMin170_PartonKtMin300_2016v2" Cacheable="False">
         &HERWIG-DY-EXTRA;
         &HERWIG-DY-EXTRA-5M;
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
-<!-- 
-        <InputData Lumi="1" NEventsMax="20000" Type="MC" Version="MC_HERWIG_DYJetsToLL_JetKtMin170_Test" Cacheable="False">
-            <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/DYJetsToLL_M-50_JetKtMin170_TuneCUETHS1_13TeV-herwigpp/crab_DYJetsToLL_M-50_JetKtMin170_physical_05_Apr_20_newRecoJetFlav_fixPuppi_v4_3/200405_101826/0000/Ntuple_1.root" Lumi="0.0"/>
-        <InputTree Name="AnalysisTree"/>
-        </InputData>
- -->
+
+        <!-- <InputData Lumi="1" NEventsMax="-1" Type="MC" Version="MC_HERWIG_DYJetsToLL_JetKtMin170_Test_2016v2" Cacheable="False"> -->
+            <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/DYJetsToLL_M-50_JetKtMin170_TuneCUETHS1_13TeV-herwigpp/crab_DYJetsToLL_M-50_JetKtMin170_physical_05_Apr_20_newRecoJetFlav_fixPuppi_v4_3/200405_101826/0000/Ntuple_1.root" Lumi="0.0"/> -->
+            <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/RunII_102X_v2/2016v2/DYJetsToLL_M-50_JetKtMin170_TuneCUETHS1_13TeV-herwigpp/crab_DYJetsToLL_M-50_JetKtMin170_TuneCUETHS1_13TeV-herwigpp_Summer16v2_NoTopJet_AllGP_hpp_dy_5M/200907_104122/0000/Ntuple_74.root" Lumi="0.0"/> -->
+        <!-- <InputTree Name="AnalysisTree"/> -->
+        <!-- </InputData> -->
+
         <UserConfig>
             &COMMON;
 
@@ -70,16 +71,10 @@
             <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
             <!-- <Item Name="z_reweight_file" Value=""/> -->
 
-            <Item Name="neutralHadronShift" Value="nominal"/>
-            <!-- <Item Name="neutralHadronShift" Value="down"/> -->
-            <!-- <Item Name="neutralHadronShift" Value="up"/> -->
-
-            <Item Name="photonShift" Value="nominal"/>
-            <!-- <Item Name="photonShift" Value="down"/> -->
-            <!-- <Item Name="photonShift" Value="up"/> -->
-
-            <!-- <Item Name="ScaleVariationMuR" Value="up"/> -->
-            <!-- <Item Name="ScaleVariationMuF" Value="down"/> -->
+            <Item Name="JackknifeVariations" Value="False"/>
+            
+            <!-- <Item Name="original_pdf" Value="cteq6l1"/> -->
+            <!-- <Item Name="pdf_reweight" Value="NNPDF30_lo_as_0130"/> -->
 
         </UserConfig>
     </Cycle>

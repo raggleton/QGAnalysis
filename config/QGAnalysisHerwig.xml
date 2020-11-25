@@ -7,8 +7,10 @@
     <!ENTITY ODIR-HERWIG "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/Herwig">
 
     <!-- Full datasets -->
-    <!ENTITY HERWIG-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp_Summer16v2_v1_NoTopJet_AllGP.xml">
-    <!ENTITY HERWIG-QCD-EXT SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp_Summer16v2_ext1_v2_NoTopJet_AllGP.xml">
+    <!ENTITY HERWIG-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/QCD_Pt-15to7000_HS1_Flat_Summer16v2_v1_5Nov20_NoTopJetAllGPParton_genjetGhostNoBC.xml">
+    <!ENTITY HERWIG-QCD-EXT SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/QCD_Pt-15to7000_HS1_Flat_Summer16v2_ext1_v2_5Nov20_NoTopJetAllGPParton_genjetGhostNoBC.xml">
+    <!-- <!ENTITY HERWIG-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp_Summer16v2_v1_NoTopJet_AllGP.xml"> -->
+    <!-- <!ENTITY HERWIG-QCD-EXT SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp_Summer16v2_ext1_v2_NoTopJet_AllGP.xml"> -->
 
     <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/commonMC.xml">
 
@@ -25,8 +27,8 @@
 <!-- split 3 for mgpythia -->
 <!-- split 15 -->
 <!--
-   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="30" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_herwig_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_weightHists_betterWeightCuts"/>
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="25" />
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_herwig_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning5"/>
 -->
 
 
@@ -39,38 +41,20 @@
 
         <!-- HERWIG -->
 
-        <InputData Lumi="0.006706263489" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_QCD_2016v2" Cacheable="False">
+        <InputData Lumi="0.006702934357" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_QCD_2016v2" Cacheable="False">
         &HERWIG-QCD;
         &HERWIG-QCD-EXT;
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
-        <!-- <InputData Lumi="0.006692918686" NEventsMax="&NEVT;" Type="MC" Version="MC_HERWIG_QCD" Cacheable="False"> -->
-        <!-- &HERWIG-EXT; -->
-        <!-- <InputTree Name="AnalysisTree"/> -->
-        <!-- </InputData> -->
 
-        <!-- <InputData Lumi="1" NEventsMax="10000" Type="MC" Version="MC_MG_HERWIG_DYJetsToLL_Test" Cacheable="False"> -->
+        <!-- <InputData Lumi="1" NEventsMax="10000" Type="MC" Version="MC_HERWIG_QCD_2016v2" Cacheable="False"> -->
+        <!-- <In FileName="/pnfs/desy.de/cms/tier2//store/user/raggleto/RunII_102X_v2/2016v2//QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp/crab_QCD_Pt-15to7000_HS1_Flat_Summer16v2_v1_23_Sep_20_NoTopJet_AllGP_genjetGhostFlavour_noBCpref/201011_175814/0000/Ntuple_1.root" Lumi="0.0" /> -->
 
-        <!-- <InputData Lumi="1" NEventsMax="10000" Type="MC" Version="MC_MG_HERWIG_DYJetsToLL_Test" Cacheable="False"> -->
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/DYJetsToLL_M-50_TuneCUETHS1_13TeV-madgraphMLM-herwigpp/crab_DYJetsToLL_M-50_mg-herwig_10_Feb_18_newRecoJetFlav_fixPuppi/180210_102303/0000/Ntuple_1.root" Lumi="0.0"/> -->
         <!-- <InputTree Name="AnalysisTree"/> -->
         <!-- <OutputTree Name="AnalysisTree"/> -->
         <!-- </InputData> -->
 
-        <!-- <InputData Lumi="1.5" NEventsMax="10000" Type="MC" Version="MC_QCD_Test_reweight" Cacheable="False"> -->
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp/crab_QCD_Pt-15to7000_herwig_10_Feb_18_newRecoJetFlav_fixPuppi/180210_102451/0000/Ntuple_1.root" Lumi="0.0"/> -->
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp/crab_QCD_Pt-15to7000_herwig_10_Feb_18_newRecoJetFlav_fixPuppi/180210_102451/0000/Ntuple_2.root" Lumi="0.0"/> -->
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp/crab_QCD_Pt-15to7000_herwig_10_Feb_18_newRecoJetFlav_fixPuppi/180210_102451/0000/Ntuple_3.root" Lumi="0.0"/> -->
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/raggleto/DYJetsToLL_M-50_TuneCUETHS1_13TeV-madgraphMLM-herwigpp/crab_DYJetsToLL_M-50_mg-herwig_10_Feb_18_newRecoJetFlav_fixPuppi/180210_102303/0000/Ntuple_1.root" Lumi="0.0"/> -->
-        <!-- <InputTree Name="AnalysisTree"/> -->
-        <!-- <OutputTree Name="AnalysisTree"/> -->
-        <!-- </InputData> -->
-
-        <!-- <InputData Lumi="134565.581" NEventsMax="10000" Type="MC" Version="MC_HERWIG_DYJetsToLL_JetKtMin100" Cacheable="False"> -->
-        <!-- <In Filename="/nfs/dust/cms/user/aggleton/QG/CMSSW_8_0_24_patch1/src/UHH2/core/python/Ntuple_hpp_zjet_100K_flat_JetKtMin100.root" Lumi="0.0"/> -->
-        <!-- <InputTree Name="AnalysisTree"/> -->
-        <!-- </InputData> -->
 
         <UserConfig>
             &COMMON;
@@ -88,6 +72,9 @@
 
             <!-- <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/> -->
             <Item Name="z_reweight_file" Value=""/>
+            
+            <!-- <Item Name="original_pdf" Value="cteq6l1"/> -->
+            <!-- <Item Name="pdf_reweight" Value="NNPDF30_lo_as_0130"/> -->
 
         </UserConfig>
     </Cycle>

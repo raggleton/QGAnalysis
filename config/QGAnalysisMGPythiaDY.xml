@@ -7,17 +7,17 @@
     <!ENTITY ODIR-MG-PYTHIA "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/MGPythia">
 
     <!-- Full datasets -->
-    <!ENTITY MG-PYTHIA-DYJetsToLL_HT70to100 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_HT-70to100_P8M1_Summer16v2_v1_NoTopJet_AllGP.xml">
-    <!ENTITY MG-PYTHIA-DYJetsToLL_HT100to200 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_HT-100to200_P8M1_Summer16v2_v1_NoTopJet_AllGP_all.xml">
-    <!ENTITY MG-PYTHIA-DYJetsToLL_HT100to200ext SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_HT-100to200_P8M1_Summer16v2_ext1_v1_NoTopJet_AllGP_dropLHE.xml">
-    <!ENTITY MG-PYTHIA-DYJetsToLL_HT200to400 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_HT-200to400_P8M1_Summer16v2_v1_NoTopJet_AllGP.xml">
-    <!ENTITY MG-PYTHIA-DYJetsToLL_HT200to400ext SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_HT-200to400_P8M1_Summer16v2_ext1_v1_NoTopJet_AllGP_dropLHE.xml">
-    <!ENTITY MG-PYTHIA-DYJetsToLL_HT400to600 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_HT-400to600_P8M1_Summer16v2_v1_NoTopJet_AllGP.xml">
-    <!ENTITY MG-PYTHIA-DYJetsToLL_HT400to600ext SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_HT-400to600_P8M1_Summer16v2_ext1_v1_NoTopJet_AllGP_dropLHE.xml">
-    <!ENTITY MG-PYTHIA-DYJetsToLL_HT600to800 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_HT-600to800_P8M1_Summer16v2_v2_NoTopJet_AllGP.xml">
-    <!ENTITY MG-PYTHIA-DYJetsToLL_HT800to1200 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_HT-800to1200_P8M1_Summer16v2_v1_NoTopJet_AllGP.xml">
-    <!ENTITY MG-PYTHIA-DYJetsToLL_HT1200to2500 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_HT-1200to2500_P8M1_Summer16v2_v1_NoTopJet_AllGP.xml">
-    <!ENTITY MG-PYTHIA-DYJetsToLL_HT2500toInf SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_HT-2500toInf_P8M1_Summer16v2_v1_NoTopJet_AllGP.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT70to100 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_HT-70to100_P8M1_Summer16v2_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT100to200 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_HT-100to200_P8M1_Summer16v2_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT100to200ext SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_HT-100to200_P8M1_Summer16v2_ext1_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT200to400 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_HT-200to400_P8M1_Summer16v2_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT200to400ext SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_HT-200to400_P8M1_Summer16v2_ext1_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT400to600 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_HT-400to600_P8M1_Summer16v2_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT400to600ext SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_HT-400to600_P8M1_Summer16v2_ext1_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT600to800 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_HT-600to800_P8M1_Summer16v2_v2_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT800to1200 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_HT-800to1200_P8M1_Summer16v2_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT1200to2500 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_HT-1200to2500_P8M1_Summer16v2_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_HT2500toInf SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_HT-2500toInf_P8M1_Summer16v2_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
 
     <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/commonMC.xml">
 
@@ -31,8 +31,8 @@
 
 <!-- MUST run SFrameBatch inside QGAnalyis/config! -->
 <!--
-   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="50" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_weightHists_betterWeightCuts"/>
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="60" />
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning5_mergeZpJPt"/>
 -->
 
 
@@ -44,24 +44,24 @@
    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-MG-PYTHIA;/" PostFix="" TargetLumi="35918" >
 
 
-        <InputData Lumi="56383.05523" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-70to100_2016v2" Cacheable="False">
+        <InputData Lumi="56499.34195" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-70to100_2016v2" Cacheable="False">
         &MG-PYTHIA-DYJetsToLL_HT70to100;
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
-        <InputData Lumi="69861.70285" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-100to200_2016v2" Cacheable="False">
+        <InputData Lumi="71962.05563" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-100to200_2016v2" Cacheable="False">
         &MG-PYTHIA-DYJetsToLL_HT100to200;
         &MG-PYTHIA-DYJetsToLL_HT100to200ext;
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
-        <InputData Lumi="233280.7992" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-200to400_2016v2" Cacheable="False">
+        <InputData Lumi="235227.3635" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-200to400_2016v2" Cacheable="False">
         &MG-PYTHIA-DYJetsToLL_HT200to400;
         &MG-PYTHIA-DYJetsToLL_HT200to400ext;
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
-        <InputData Lumi="1763350.247" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-400to600_2016v2" Cacheable="False">
+        <InputData Lumi="1745664.376" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-400to600_2016v2" Cacheable="False">
         &MG-PYTHIA-DYJetsToLL_HT400to600;
         &MG-PYTHIA-DYJetsToLL_HT400to600ext;
         <InputTree Name="AnalysisTree"/>
@@ -92,10 +92,8 @@
         <!-- TEST FILES -->
 
         <!-- <InputData Lumi="1" NEventsMax="-1" Type="MC" Version="MC_Test_MGPYTHIA_DYJetsToLL_default_2016v2" Cacheable="False"> -->
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2//store/group/uhh/uhh2ntuples/RunII_102X_v2/2016v2//DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/crab_DYJetsToLL_M-50_HT-200to400_P8M1_Summer16v2_v1_NoTopJet_AllGP/200716_080019/0000/Ntuple_1.root" Lumi="0.0" /> -->
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2//store/group/uhh/uhh2ntuples/RunII_102X_v2/2016v2//DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/crab_DYJetsToLL_M-50_HT-200to400_P8M1_Summer16v2_v1_NoTopJet_AllGP/200716_080019/0000/Ntuple_10.root" Lumi="0.0" /> -->
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2//store/group/uhh/uhh2ntuples/RunII_102X_v2/2016v2//DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/crab_DYJetsToLL_M-50_HT-200to400_P8M1_Summer16v2_v1_NoTopJet_AllGP/200716_080019/0000/Ntuple_11.root" Lumi="0.0" /> -->
-
+        <!-- <In FileName="/pnfs/desy.de/cms/tier2//store/user/raggleto/RunII_102X_v2/2016v2//DYJetsToLL_M-50_HT-70to100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/crab_DYJetsToLL_HT-70to100_P8M1_Summer16v2_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC/201105_134020/0000/Ntuple_1.root" Lumi="0.0" /> -->
+        <!-- <In FileName="/pnfs/desy.de/cms/tier2//store/user/raggleto/RunII_102X_v2/2016v2//DYJetsToLL_M-50_HT-400to600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/crab_DYJetsToLL_HT-400to600_P8M1_Summer16v2_ext1_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC/201105_135418/0000/Ntuple_1.root" Lumi="0.0" /> -->
         <!-- <InputTree Name="AnalysisTree"/> -->
         <!-- </InputData> -->
 
@@ -119,44 +117,12 @@
             <!-- <Item Name="z_reweight_file" Value=""/> -->
 
             <!--@SYST-->
+            <!-- <Item Name="orignal_pdf" Value="NNPDF30_lo_as_0130"/> -->
+            <!-- <Item Name="pdf_reweight" Value="cteq6l1"/> -->
 
             <Item Name="JackknifeVariations" Value="True"/>
 
-            <Item Name="chargedHadronShift" Value="nominal"/>
-            <!-- <Item Name="chargedHadronShift" Value="down"/> -->
-            <!-- <Item Name="chargedHadronShift" Value="up"/> -->
-
-            <Item Name="neutralHadronShift" Value="nominal"/>
-            <!-- <Item Name="neutralHadronShift" Value="down"/> -->
-            <!-- <Item Name="neutralHadronShift" Value="up"/> -->
-
-            <Item Name="photonShift" Value="nominal"/>
-            <!-- <Item Name="photonShift" Value="down"/> -->
-            <!-- <Item Name="photonShift" Value="up"/> -->
-
-            <Item Name="jecsmear_direction" Value="nominal"/>
-            <!-- <Item Name="jecsmear_direction" Value="down"/> -->
-            <!-- <Item Name="jecsmear_direction" Value="up"/> -->
-
-            <Item Name="jersmear_direction" Value="nominal"/>
-            <!-- <Item Name="jersmear_direction" Value="down"/> -->
-            <!-- <Item Name="jersmear_direction" Value="up"/> -->
-
-            <Item Name="pileup_direction" Value="nominal"/>
-            <!-- <Item Name="pileup_direction" Value="down"/> -->
-            <!-- <Item Name="pileup_direction" Value="up"/> -->
-
-            <!-- Need to set BOTH MuR and MuF otherwise fail -->
-            <Item Name="ScaleVariationMuR" Value="nominal"/>
-            <!-- <Item Name="ScaleVariationMuR" Value="down"/> -->
-            <!-- <Item Name="ScaleVariationMuR" Value="up"/> -->
-
-            <Item Name="ScaleVariationMuF" Value="nominal"/>
-            <!-- <Item Name="ScaleVariationMuF" Value="down"/> -->
-            <!-- <Item Name="ScaleVariationMuF" Value="up"/> -->
-
-            <Item Name="PDFvariations" Value="false"/>
-            <!-- <Item Name="PDFvariations" Value="true"/> -->
+            
 
         </UserConfig>
     </Cycle>

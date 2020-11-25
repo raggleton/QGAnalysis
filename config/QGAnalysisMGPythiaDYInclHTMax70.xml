@@ -7,8 +7,8 @@
     <!ENTITY ODIR-MG-PYTHIA "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/MGPythia">
 
     <!-- Full datasets -->
-    <!ENTITY MG-PYTHIA-DYJetsToLL_INCLext1 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_P8M1_Summer16v2_ext1_v2_NoTopJet_AllGP.xml">
-    <!ENTITY MG-PYTHIA-DYJetsToLL_INCLext2 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_P8M1_Summer16v2_ext2_v1_NoTopJet_AllGP.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_INCLext1 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_P8M1_Summer16v2_ext1_v2_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_INCLext2 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_P8M1_Summer16v2_ext2_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
 
     <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/commonMC.xml">
 
@@ -23,8 +23,8 @@
 <!-- MUST run SFrameBatch inside QGAnalyis/config! -->
 
 <!--
-   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="50" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_weightHists_betterWeightCuts"/>
+   <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="60" />
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning5_mergeZpJPt"/>
 -->
 
 
@@ -35,7 +35,7 @@
 
    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-MG-PYTHIA;/" PostFix="" TargetLumi="35918" >
 
-        <InputData Lumi="29122.67574" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-0to70_2016v2" Cacheable="False">
+        <InputData Lumi="29360.0792" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-0to70_2016v2" Cacheable="False">
         &MG-PYTHIA-DYJetsToLL_INCLext1;
         &MG-PYTHIA-DYJetsToLL_INCLext2;
         <InputTree Name="AnalysisTree"/>
@@ -62,42 +62,12 @@
             <!-- <Item Name="z_reweight_file" Value=""/> -->
             <Item Name="z_reweight_file" Value="common/data/z_pt_spectrum.root"/>
             <Item Name="maxHT" Value="70"/>
+            <!-- <Item Name="orignal_pdf" Value="NNPDF30_lo_as_0130"/> -->
+            <!-- <Item Name="pdf_reweight" Value="cteq6l1"/> -->
 
             <!--@SYST-->
 
             <Item Name="JackknifeVariations" Value="True"/>
-
-            <Item Name="neutralHadronShift" Value="nominal"/>
-            <!-- <Item Name="neutralHadronShift" Value="down"/> -->
-            <!-- <Item Name="neutralHadronShift" Value="up"/> -->
-
-            <Item Name="photonShift" Value="nominal"/>
-            <!-- <Item Name="photonShift" Value="down"/> -->
-            <!-- <Item Name="photonShift" Value="up"/> -->
-
-            <Item Name="jecsmear_direction" Value="nominal"/>
-            <!-- <Item Name="jecsmear_direction" Value="down"/> -->
-            <!-- <Item Name="jecsmear_direction" Value="up"/> -->
-
-            <Item Name="jersmear_direction" Value="nominal"/>
-            <!-- <Item Name="jersmear_direction" Value="down"/> -->
-            <!-- <Item Name="jersmear_direction" Value="up"/> -->
-
-            <Item Name="pileup_direction" Value="nominal"/>
-            <!-- <Item Name="pileup_direction" Value="down"/> -->
-            <!-- <Item Name="pileup_direction" Value="up"/> -->
-
-            <!-- Need to set BOTH MuR and MuF otherwise fail -->
-            <Item Name="ScaleVariationMuR" Value="nominal"/>
-            <!-- <Item Name="ScaleVariationMuR" Value="down"/> -->
-            <!-- <Item Name="ScaleVariationMuR" Value="up"/> -->
-
-            <Item Name="ScaleVariationMuF" Value="nominal"/>
-            <!-- <Item Name="ScaleVariationMuF" Value="down"/> -->
-            <!-- <Item Name="ScaleVariationMuF" Value="up"/> -->
-
-            <Item Name="PDFvariations" Value="false"/>
-            <!-- <Item Name="PDFvariations" Value="true"/> -->
 
         </UserConfig>
     </Cycle>

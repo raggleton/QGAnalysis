@@ -8,13 +8,21 @@
 
     <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/commonData.xml">
 
-    <!ENTITY SINGLEMU-B SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v1/2016v3/DATA_SingleMuon2016_RunB.xml">
-    <!ENTITY SINGLEMU-C SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v1/2016v3/DATA_SingleMuon2016_RunC.xml">
-    <!ENTITY SINGLEMU-D SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v1/2016v3/DATA_SingleMuon2016_RunD.xml">
-    <!ENTITY SINGLEMU-E SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v1/2016v3/DATA_SingleMuon2016_RunE.xml">
-    <!ENTITY SINGLEMU-F SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v1/2016v3/DATA_SingleMuon2016_RunF.xml">
-    <!ENTITY SINGLEMU-G SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v1/2016v3/DATA_SingleMuon2016_RunG.xml">
-    <!ENTITY SINGLEMU-H SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v1/2016v3/DATA_SingleMuon2016_RunH.xml">
+    <!-- <!ENTITY SINGLEMU-B SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v1/2016v3/DATA_SingleMuon2016_RunB.xml"> -->
+    <!-- <!ENTITY SINGLEMU-C SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v1/2016v3/DATA_SingleMuon2016_RunC.xml"> -->
+    <!-- <!ENTITY SINGLEMU-D SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v1/2016v3/DATA_SingleMuon2016_RunD.xml"> -->
+    <!-- <!ENTITY SINGLEMU-E SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v1/2016v3/DATA_SingleMuon2016_RunE.xml"> -->
+    <!-- <!ENTITY SINGLEMU-F SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v1/2016v3/DATA_SingleMuon2016_RunF.xml"> -->
+    <!-- <!ENTITY SINGLEMU-G SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v1/2016v3/DATA_SingleMuon2016_RunG.xml"> -->
+    <!-- <!ENTITY SINGLEMU-H SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/common/UHH2-datasets/RunII_102X_v1/2016v3/DATA_SingleMuon2016_RunH.xml"> -->
+
+    <!ENTITY SINGLEMU-B SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/SingleMu/SingleMuon_2016B_ver2_v1_19Nov20_NoTopJet_AllJetConstit.xml">
+    <!ENTITY SINGLEMU-C SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/SingleMu/SingleMuon_2016C_v1_19Nov20_NoTopJet_AllJetConstit.xml">
+    <!ENTITY SINGLEMU-D SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/SingleMu/SingleMuon_2016D_v1_19Nov20_NoTopJet_AllJetConstit.xml">
+    <!ENTITY SINGLEMU-E SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/SingleMu/SingleMuon_2016E_v1_19Nov20_NoTopJet_AllJetConstit.xml">
+    <!ENTITY SINGLEMU-F SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/SingleMu/SingleMuon_2016F_v1_19Nov20_NoTopJet_AllJetConstit.xml">
+    <!ENTITY SINGLEMU-G SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/SingleMu/SingleMuon_2016G_v1_19Nov20_NoTopJet_AllJetConstit.xml">
+    <!ENTITY SINGLEMU-H SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/SingleMu/SingleMuon_2016H_v1_19Nov20_NoTopJet_AllJetConstit.xml">
 
     <!-- Jet config snippets -->
     <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4chsData.xml">
@@ -27,7 +35,7 @@
 <!-- 300 for singlemu -->
 <!--
    <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="100" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_ak4puppi_data_singlemu_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1"/>
+   <ConfigSGE RAM ="6" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_ak4puppi_data_singlemu_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_zjAsym_fixCharged_jetIDSel_newBinning5_mergeZpJPt"/>
 -->
 
 <!-- OutputLevel controls which messages are printed; set to VERBOSE or DEBUG for more verbosity, to WARNING or ERROR for less -->
@@ -39,10 +47,9 @@
 
         <!-- TEST FILES -->
         <!-- <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_SingleMu_2016v3" Cacheable="False"> -->
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/akaravdi/RunII_102X_v1_ProductionMay19_2016_leadingjetConstits_LZMA9/SingleMuon/crab_SingleMuon_v1_Run2016C/190524_160248/0000/Ntuple_1.root" Lumi="0.0"/> -->
-        <!-- <In FileName="/pnfs/desy.de/cms/tier2/store/user/akaravdi/RunII_102X_v1_ProductionMay19_2016_leadingjetConstits_LZMA9/SingleMuon/crab_SingleMuon_v1_Run2016C/190524_160248/0000/Ntuple_10.root" Lumi="0.0"/> -->
            <!-- <InputTree Name="AnalysisTree"/> -->
         <!-- </InputData> -->
+
 
         <InputData Lumi="1" NEventsMax="-1" Type="DATA" Version="Data_SingleMu_RunB_2016v3" Cacheable="False">
         &SINGLEMU-B;
@@ -79,6 +86,8 @@
         <InputTree Name="AnalysisTree"/>
         </InputData>
 
+
+
         <UserConfig>
             &COMMON;
 
@@ -93,17 +102,8 @@
 
             <!--@SYST-->
 
-            <Item Name="neutralHadronShift" Value="nominal"/>
-            <!-- <Item Name="neutralHadronShift" Value="down"/> -->
-            <!-- <Item Name="neutralHadronShift" Value="up"/> -->
+            <Item Name="JackknifeVariations" Value="True"/>
 
-            <Item Name="jecsmear_direction" Value="nominal"/>
-            <!-- <Item Name="jecsmear_direction" Value="down"/> -->
-            <!-- <Item Name="jecsmear_direction" Value="up"/> -->
-
-            <Item Name="jersmear_direction" Value="nominal"/>
-            <!-- <Item Name="jersmear_direction" Value="down"/> -->
-            <!-- <Item Name="jersmear_direction" Value="up"/> -->
         </UserConfig>
     </Cycle>
 

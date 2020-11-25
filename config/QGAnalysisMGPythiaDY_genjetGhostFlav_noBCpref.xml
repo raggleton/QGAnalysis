@@ -32,7 +32,7 @@
 <!-- MUST run SFrameBatch inside QGAnalyis/config! -->
 <!--
    <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="60" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_fixLambda_newBinning2_genjetGhostFlav_noBCpref"/>
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_fixLambda_newBinning2_genjetGhostFlav_noBCpref_zjAsym"/>
 -->
 
 
@@ -122,42 +122,6 @@
             <Item Name="orignal_pdf" Value="NNPDF30_lo_as_0130"/>
 
             <Item Name="JackknifeVariations" Value="False"/>
-
-            <Item Name="chargedHadronShift" Value="nominal"/>
-            <!-- <Item Name="chargedHadronShift" Value="down"/> -->
-            <!-- <Item Name="chargedHadronShift" Value="up"/> -->
-
-            <Item Name="neutralHadronShift" Value="nominal"/>
-            <!-- <Item Name="neutralHadronShift" Value="down"/> -->
-            <!-- <Item Name="neutralHadronShift" Value="up"/> -->
-
-            <Item Name="photonShift" Value="nominal"/>
-            <!-- <Item Name="photonShift" Value="down"/> -->
-            <!-- <Item Name="photonShift" Value="up"/> -->
-
-            <Item Name="jecsmear_direction" Value="nominal"/>
-            <!-- <Item Name="jecsmear_direction" Value="down"/> -->
-            <!-- <Item Name="jecsmear_direction" Value="up"/> -->
-
-            <Item Name="jersmear_direction" Value="nominal"/>
-            <!-- <Item Name="jersmear_direction" Value="down"/> -->
-            <!-- <Item Name="jersmear_direction" Value="up"/> -->
-
-            <Item Name="pileup_direction" Value="nominal"/>
-            <!-- <Item Name="pileup_direction" Value="down"/> -->
-            <!-- <Item Name="pileup_direction" Value="up"/> -->
-
-            <!-- Need to set BOTH MuR and MuF otherwise fail -->
-            <Item Name="ScaleVariationMuR" Value="nominal"/>
-            <!-- <Item Name="ScaleVariationMuR" Value="down"/> -->
-            <!-- <Item Name="ScaleVariationMuR" Value="up"/> -->
-
-            <Item Name="ScaleVariationMuF" Value="nominal"/>
-            <!-- <Item Name="ScaleVariationMuF" Value="down"/> -->
-            <!-- <Item Name="ScaleVariationMuF" Value="up"/> -->
-
-            <Item Name="PDFvariations" Value="false"/>
-            <!-- <Item Name="PDFvariations" Value="true"/> -->
 
         </UserConfig>
     </Cycle>

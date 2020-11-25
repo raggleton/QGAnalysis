@@ -7,8 +7,8 @@
     <!ENTITY ODIR-MG-PYTHIA "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/MGPythia">
 
     <!-- Full datasets -->
-    <!ENTITY MG-PYTHIA-DYJetsToLL_INCLext1 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_P8M1_Summer16v2_ext1_v2_NoTopJet_AllGP.xml">
-    <!ENTITY MG-PYTHIA-DYJetsToLL_INCLext2 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/DYJetsToLL_M-50_P8M1_Summer16v2_ext2_v2_NoTopJet_AllGP.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_INCLext1 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_P8M1_Summer16v2_ext1_v2_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
+    <!ENTITY MG-PYTHIA-DYJetsToLL_INCLext2 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_P8M1_Summer16v2_ext2_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
 
     <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/commonMC.xml">
 
@@ -24,7 +24,7 @@
 
 <!--
    <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="35" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1"/>
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged"/>
 -->
 
 
@@ -35,7 +35,7 @@
 
    <Cycle Name="uhh2::AnalysisModuleRunner" OutputDirectory="&ODIR-MG-PYTHIA;/" PostFix="" TargetLumi="35918" >
 
-        <InputData Lumi="29122.67574" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-INCL" Cacheable="False">
+        <InputData Lumi="29360.0792" NEventsMax="&NEVT;" Type="MC" Version="MC_MGPYTHIA_DYJetsToLL_M-50_HT-INCL" Cacheable="False">
         &MG-PYTHIA-DYJetsToLL_INCLext1;
         &MG-PYTHIA-DYJetsToLL_INCLext2;
         <InputTree Name="AnalysisTree"/>
