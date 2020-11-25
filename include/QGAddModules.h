@@ -775,7 +775,7 @@ typedef std::map<std::string, VariableBinning> VarBinningMap;
 class Binning {
 public:
   Binning();
-  // static bins pt_bin_edges(bool is_reco, bool is_zpj);
+  // static bins pt_bin_edges(bool is_underflow, bool is_reco, bool is_zpj);
   const static bins & var_bin_edges(const std::string & variable, bool is_groomed, bool is_reco); // get bin edges for given variable, settings
   static int nbins_var(const std::string & variable, bool is_groomed, bool is_reco); // get number of bins for given variable, settings ( = size() - 1)
 
@@ -794,5 +794,7 @@ private:
   static bins sum_vectors(const bins & vec1, const bins & vec2);
 
   static VarBinningMap var_binning_map_ungroomed, var_binning_map_groomed;
+  static VarBinningMap pt_binning_map, pt_binning_map_underflow, pt_binning_map_all;
+  static VarBinningMap pt_binning_map_zpj, pt_binning_map_zpj_underflow, pt_binning_map_zpj_all;
 
 };
