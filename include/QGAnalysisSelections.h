@@ -168,10 +168,10 @@ private:
  */
 class EventNumberSelection: public uhh2::Selection {
 public:
-    EventNumberSelection(std::vector<unsigned long> eventNums);
+    EventNumberSelection(std::vector<long long> eventNums);
     virtual bool passes(const uhh2::Event & event) override;
 private:
-    std::vector<unsigned long> eventNums_;
+    std::vector<long long> eventNums_;
 };
 
 

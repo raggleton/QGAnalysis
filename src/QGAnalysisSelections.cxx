@@ -596,7 +596,7 @@ bool DijetTheorySelection::passes(const Event & event) {
 }
 
 
-EventNumberSelection::EventNumberSelection(std::vector<unsigned long> eventNums) {
+EventNumberSelection::EventNumberSelection(std::vector<long long> eventNums) {
     eventNums_ = eventNums;
 }
 
