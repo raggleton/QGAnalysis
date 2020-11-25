@@ -1769,7 +1769,7 @@ int Binning::nbins_pt_reco_all = pt_bin_edges_reco_all.size() - 1;
 // ------------------------------
 // lower last big bin for Z+jets - dont want many empty bins for tunfold
 bins Binning::pt_bin_edges_zpj_gen = {
-  50, 65, 88, 120, 150, 186, 254, 326, 408, 481, 614, 800, 2000 // maximum should be 13 TeV / 2, but no events in the last reco bin once split into 2, so go for 2TeV
+  50, 65, 88, 120, 150, 186, 254, 326, 408, 1500 // maximum should be 13 TeV / 2, but no events in the last reco bin once split into 2, so pick a value just above last data point
 };
 int Binning::nbins_pt_zpj_gen = pt_bin_edges_zpj_gen.size() - 1;
 
