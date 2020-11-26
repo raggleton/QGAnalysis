@@ -1806,7 +1806,8 @@ int Binning::nbins_pt_zpj_reco_all = pt_bin_edges_zpj_reco_all.size() - 1;
 VarBinningMap Binning::var_binning_map_ungroomed = {
   {"LHA",
     // target 0.5, cen+fwd ungroomed, WTA axis, pt > 0, fixLambda
-    VariableBinning({0.0, 0.17, 0.25, 0.32, 0.38, 0.45, 0.52, 0.59, 0.66, 1.0})
+    // removed 0.66 bin since -ve last bin
+    VariableBinning({0.0, 0.17, 0.25, 0.32, 0.38, 0.45, 0.52, 0.59, 1.0})
   },
   {"LHA_charged",
     // target 0.6, spike smoothing, cen+fwd ungroomed, WTA axis, pt > 0, fixLambda, charged clustering
@@ -1836,12 +1837,14 @@ VarBinningMap Binning::var_binning_map_ungroomed = {
   },
 
   {"thrust",
-    // target 0.5, cen+fwd, antiKT axis, pt > 0, fixLambda, manually set end to 0.6
-    VariableBinning({0.0, 0.05, 0.09, 0.15, 0.205, 0.26, 0.6})
+    // target 0.5, cen+fwd, antiKT axis, pt > 0, fixLambda
+    // remove 0.26 as -ve last bin
+    VariableBinning({0.0, 0.05, 0.09, 0.15, 0.205, 1})
   },
   {"thrust_charged",
-    // target 0.6, spike smoothing, cen+fwd ungroomed, antiKT axis, pt > 0, fixLambda, charged clustering, manually set end to 0.6
-    VariableBinning({0, 0.005, 0.0125, 0.0225, 0.035, 0.05, 0.07, 0.0925, 0.12, 0.152, 0.188, 0.228, 0.273, 0.6})
+    // target 0.6, spike smoothing, cen+fwd ungroomed, antiKT axis, pt > 0, fixLambda, charged clustering
+    // removed last 0.273 as last bin -ve
+    VariableBinning({0, 0.005, 0.0125, 0.0225, 0.035, 0.05, 0.07, 0.0925, 0.12, 0.152, 0.188, 0.228, 1})
   },
 
   {"width",
@@ -1886,17 +1889,20 @@ VarBinningMap Binning::var_binning_map_groomed = {
   },
 
   {"thrust",
-    // target 0.5, cen+fwd groomed midPt, AK axis, pt > 0, fixLambda, manually set end to 0.6
-    VariableBinning({0, 0.0025, 0.01, 0.025, 0.06, 0.12, 0.177, 0.23, 0.285, 0.6})
+    // target 0.5, cen+fwd groomed midPt, AK axis, pt > 0, fixLambda
+    // removed 0.285 as -ve last bin
+    VariableBinning({0, 0.0025, 0.01, 0.025, 0.06, 0.12, 0.177, 0.23, 1})
   },
   {"thrust_charged",
-    // target 0.65, cen+fwd groomed midPt, spike smoothing, WTA axis, pt > 0, fixLambda, charged clustering, manually set end to 0.6
-    VariableBinning({0, 0.0025, 0.005, 0.0075, 0.0125, 0.02, 0.0325, 0.05, 0.0775, 0.115, 0.16, 0.21, 0.265, 0.6})
+    // target 0.65, cen+fwd groomed midPt, spike smoothing, WTA axis, pt > 0, fixLambda, charged clustering
+    // removed 0.265 as -ve last bin
+    VariableBinning({0, 0.0025, 0.005, 0.0075, 0.0125, 0.02, 0.0325, 0.05, 0.0775, 0.115, 0.16, 0.21, 1})
   },
 
   {"width",
     // target 0.5, cen+fwd groomed midPt, WTA axis, pt > 0, fixLambda
-    VariableBinning({0, 0.02, 0.05, 0.095, 0.147, 0.225, 0.307, 0.388, 0.468, 0.56, 1})
+    // removed 0.56 as -ve last bin
+    VariableBinning({0, 0.02, 0.05, 0.095, 0.147, 0.225, 0.307, 0.388, 0.468, 1})
   },
   {"width_charged",
     // target 0.65, cen+fwd groomed midPt, spike smoothing, WTA axis, pt > 0, fixLambda, charged clustering
