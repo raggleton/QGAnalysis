@@ -24,7 +24,8 @@ public:
                     const std::string & reco_sel_handle_name,
                     const std::string & gen_sel_handle_name,
                     const std::string & reco_jetlambda_handle_name,
-                    const std::string & gen_jetlambda_handle_name);
+                    const std::string & gen_jetlambda_handle_name,
+                    const std::string & z_handle_name="");
 
     virtual void fill(const uhh2::Event & ev) override;
     virtual ~QGAnalysisHists();
@@ -37,7 +38,7 @@ protected:
                                float weight,
                                TH2F * response,
                                TH2F * rel_response,
-                               float jet_pt,
+                               float binning_pt,
                                TH2F * response_lowPt,
                                TH2F * response_midPt,
                                TH2F * response_highPt,
@@ -99,10 +100,13 @@ protected:
     int useNJets_;
     bool doPuppi_;
     bool doGroomed_;
+    bool doTagNProbe_;
+    std::string selection_;
 
     uhh2::Event::Handle<std::vector<GenJetLambdaBundle> > genJetsLambda_handle;
     uhh2::Event::Handle<std::vector<JetLambdaBundle> > jetsLambda_handle;
     uhh2::Event::Handle<bool> pass_reco_handle, pass_gen_handle;
+    uhh2::Event::Handle<Particle> z_handle;
 
     // uhh2::Event::Handle<std::vector<GenJet> > genJets_handle;
 

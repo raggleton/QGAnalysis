@@ -334,11 +334,13 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
             zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG",
                                                          NJETS_ZPJ, false, false, zpj_sel,
                                                          pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
-                                                         reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+                                                         reco_jetlambda_handle_name, gen_jetlambda_handle_name,
+                                                         zLabel));
             zplusjets_qg_hists_groomed.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG_groomed",
                                                                  NJETS_ZPJ, true, false, zpj_sel,
                                                                  pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
-                                                                 reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+                                                                 reco_jetlambda_handle_name, gen_jetlambda_handle_name,
+                                                                 zLabel));
         }
         if (DO_UNFOLD_HISTS) {
             zplusjets_qg_unfold_hists.reset(new QGAnalysisUnfoldHists(ctx, "ZPlusJets_QG_Unfold",

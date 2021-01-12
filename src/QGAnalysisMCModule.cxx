@@ -436,11 +436,13 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
             zplusjets_qg_hists.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG",
                                                          NJETS_ZPJ, false, useStatus23Flavour, zpj_sel,
                                                          pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
-                                                         reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+                                                         reco_jetlambda_handle_name, gen_jetlambda_handle_name,
+                                                         zLabel));
             zplusjets_qg_hists_groomed.reset(new QGAnalysisHists(ctx, "ZPlusJets_QG_groomed",
                                                                  NJETS_ZPJ, true, useStatus23Flavour, zpj_sel,
                                                                  pass_zpj_sel_handle_name, pass_zpj_gen_sel_handle_name,
-                                                                 reco_jetlambda_handle_name, gen_jetlambda_handle_name));
+                                                                 reco_jetlambda_handle_name, gen_jetlambda_handle_name,
+                                                                 zLabel));
             zplusjets_qg_genhists.reset(new QGAnalysisGenHists(ctx, "ZPlusJets_QG_gen",
                                                                NJETS_ZPJ, false, useStatus23Flavour, zpj_sel,
                                                                pass_zpj_gen_sel_handle_name,
