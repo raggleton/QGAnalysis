@@ -93,7 +93,7 @@ private:
     bool DO_KINEMATIC_HISTS = true;
     bool DO_LAMBDA_HISTS = true;
 
-    std::string zLeptonLabel;
+    std::string zLabel, zLeptonLabel;
 
     double TOTAL_LUMI = 35918.219492947;
     double ZB_LUMI = 0.029048362;
@@ -137,6 +137,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
     DO_KINEMATIC_HISTS = string2bool(ctx.get("DO_KINEMATIC_HISTS", "true"));
     DO_LAMBDA_HISTS = string2bool(ctx.get("DO_LAMBDA_HISTS", "true"));
 
+    zLabel = isZPlusJets ? "zCand" : "";
     zLeptonLabel = isZPlusJets ? "zMuonCand" : "";
 
     common_setup.reset(new GeneralEventSetup(ctx));
@@ -167,7 +168,7 @@ QGAnalysisDataModule::QGAnalysisDataModule(Context & ctx){
 
     // Z+JETS selection
     if (isZPlusJets) {
-        zFinder.reset(new ZFinder(ctx, "muons", zLeptonLabel));
+        zFinder.reset(new ZFinder(ctx, "muons", zLabel, zLeptonLabel));
         float second_jet_frac_max_zpj = 1000.3;
         zplusjets_sel.reset(new ZplusJetsSelection(ctx, zLeptonLabel, Cuts::reco_jet_pt_min, Cuts::jet_y_max, Cuts::reco_muon_pt_min, Cuts::reco_muon_pt_min, Cuts::mZ_window, Cuts::dphi_jet_z_min, second_jet_frac_max_zpj, Cuts::z_pt_min, Cuts::z_asym_max, "ZPlusJetsSel"));
     } else {

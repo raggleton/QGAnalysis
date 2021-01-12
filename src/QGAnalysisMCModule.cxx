@@ -198,6 +198,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     cout << "jetRadius==0.8: " << (bool)(jetRadius == 0.8) << endl;
     cout << "useStatus23Flavour: " << useStatus23Flavour << endl;
 
+    std::string zLabel = isZPlusJets ? "zCand" : "";
     std::string zLeptonLabel = isZPlusJets ? "zMuonCand" : "";  // turn off to not do Z/J overlap
 
     // FIXME: get everything from ctx not extra args
@@ -219,7 +220,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
         genMuon_selector.reset(new GenMuonSelector(ctx, Cuts::gen_muon_pt_min, Cuts::muon_eta_max, genmuon_handle_name));
         genMuons_handle = ctx.get_handle<std::vector<GenParticle>> (genmuon_handle_name);
         genZFinder.reset(new GenZFinder(ctx, genmuon_handle_name, genZLabel, genZLeptonLabel));
-        zFinder.reset(new ZFinder(ctx, "muons", zLeptonLabel));
+        zFinder.reset(new ZFinder(ctx, "muons", zLabel, zLeptonLabel));
     }
 
     // Recluster genjets, eliminating Z muons from input particles

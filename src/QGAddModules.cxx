@@ -178,12 +178,14 @@ bool RecoJetSetup::process(uhh2::Event & event) {
 }
 
 
-ZFinder::ZFinder(uhh2::Context & ctx, const std::string & inputLabel, const std::string & zLeptonLabel):
+ZFinder::ZFinder(uhh2::Context & ctx, const std::string & inputLabel, const std::string & zLabel, const std::string & zLeptonLabel):
   input_handle(ctx.get_handle<vector<Muon>>(inputLabel)),
+  z_handle(ctx.get_handle<Particle>(zLabel)),
   z_leptons_handle(ctx.get_handle<vector<Muon>>(zLeptonLabel))
 {}
 
 bool ZFinder::process(uhh2::Event & event) {
+  event.set(z_handle, Particle()); // set handle to empty if fails later
   event.set(z_leptons_handle, std::vector<Muon>()); // set handle to empty vector if fails later
 
   // Look for a reconstructed Z using inputs
@@ -195,6 +197,9 @@ bool ZFinder::process(uhh2::Event & event) {
   if ((fabs(zCand.M() - 90) < Cuts::mZ_window) && (inputs[0].charge() * inputs[1].charge() < 0)) {
     std::vector<Muon> cands = {inputs[0], inputs[1]};
     event.set(z_leptons_handle, cands);
+    Particle z;
+    z.set_v4(zCand);
+    event.set(z_handle, z);
     return true;
   }
   return false;

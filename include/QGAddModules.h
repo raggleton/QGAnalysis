@@ -200,10 +200,12 @@ private:
  */
 class ZFinder : public uhh2::AnalysisModule {
 public:
-  ZFinder(uhh2::Context & ctx, const std::string & inputLabel, const std::string & zLeptonLabel);
+  ZFinder(uhh2::Context & ctx, const std::string & inputLabel, const std::string & zLabel, const std::string & zLeptonLabel);
   virtual bool process(uhh2::Event & event) override;
 private:
-  uhh2::Event::Handle<std::vector<Muon>> input_handle, z_leptons_handle;
+  uhh2::Event::Handle<std::vector<Muon>> input_handle;
+  uhh2::Event::Handle<Particle> z_handle;
+  uhh2::Event::Handle<std::vector<Muon>> z_leptons_handle;
 };
 
 
