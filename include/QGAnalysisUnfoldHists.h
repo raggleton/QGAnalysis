@@ -103,7 +103,7 @@ protected:
     int N_PDF_VARIATIONS;
     int eventCounter_;
 
-    std::unique_ptr<LambdaHistsFiller> LHA_hist_filler,
+    std::unique_ptr<LambdaHistsFiller>  LHA_hist_filler,
                                         puppiMultiplicity_hist_filler,
                                         pTD_hist_filler,
                                         thrust_hist_filler,

@@ -167,453 +167,489 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
     }
   }
 
+  bool doFakeHists = is_mc_;
+
   // LHA
   // -------------------------------------
-  // don't give same name as child node, as FindNode() will use this parent node
-  detector_tu_binning_LHA = new TUnfoldBinning("detectorall");
-  // add binning scheme for pT underflow regions
-  // we handle it ourselves (instead of just having underflow bin in standard detector binning)
-  // so that we can also use it to constrain the unfolding
-  // (like simultaneously fitting to sideband regions)
-  detector_distribution_underflow_LHA = detector_tu_binning_LHA->AddBinning("detector_underflow");
-  detector_distribution_underflow_LHA->AddAxis("LHA", Binning::nbins_var("LHA", doGroomed_, true), Binning::var_bin_edges("LHA", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_underflow_LHA->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
+  bool do_LHA = string2bool(ctx.get("DO_LHA", "true"));
+  if (do_LHA) {
+    // don't give same name as child node, as FindNode() will use this parent node
+    detector_tu_binning_LHA = new TUnfoldBinning("detectorall");
+    // add binning scheme for pT underflow regions
+    // we handle it ourselves (instead of just having underflow bin in standard detector binning)
+    // so that we can also use it to constrain the unfolding
+    // (like simultaneously fitting to sideband regions)
+    detector_distribution_underflow_LHA = detector_tu_binning_LHA->AddBinning("detector_underflow");
+    detector_distribution_underflow_LHA->AddAxis("LHA", Binning::nbins_var("LHA", doGroomed_, true), Binning::var_bin_edges("LHA", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_underflow_LHA->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
 
-  detector_distribution_LHA = detector_tu_binning_LHA->AddBinning("detector");
-  detector_distribution_LHA->AddAxis("LHA", Binning::nbins_var("LHA", doGroomed_, true), Binning::var_bin_edges("LHA", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_LHA->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
+    detector_distribution_LHA = detector_tu_binning_LHA->AddBinning("detector");
+    detector_distribution_LHA->AddAxis("LHA", Binning::nbins_var("LHA", doGroomed_, true), Binning::var_bin_edges("LHA", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_LHA->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
 
-  generator_tu_binning_LHA = new TUnfoldBinning("generator");
-  generator_distribution_underflow_LHA = generator_tu_binning_LHA->AddBinning("signal_underflow");
-  generator_distribution_underflow_LHA->AddAxis("LHA", Binning::nbins_var("LHA", doGroomed_, false), Binning::var_bin_edges("LHA", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_underflow_LHA->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
+    generator_tu_binning_LHA = new TUnfoldBinning("generator");
+    generator_distribution_underflow_LHA = generator_tu_binning_LHA->AddBinning("signal_underflow");
+    generator_distribution_underflow_LHA->AddAxis("LHA", Binning::nbins_var("LHA", doGroomed_, false), Binning::var_bin_edges("LHA", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_underflow_LHA->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
 
-  generator_distribution_LHA = generator_tu_binning_LHA->AddBinning("signal");
-  generator_distribution_LHA->AddAxis("LHA", Binning::nbins_var("LHA", doGroomed_, false), Binning::var_bin_edges("LHA", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_LHA->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
+    generator_distribution_LHA = generator_tu_binning_LHA->AddBinning("signal");
+    generator_distribution_LHA->AddAxis("LHA", Binning::nbins_var("LHA", doGroomed_, false), Binning::var_bin_edges("LHA", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_LHA->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
 
-  bool doFakeHists = is_mc_;
-  LHA_hist_filler.reset(new LambdaHistsFiller(Cuts::lha_args,
-                                              detector_tu_binning_LHA,
-                                              Cuts::lha_args,
-                                              generator_tu_binning_LHA,
-                                              "LHA"));
-  LHA_hist_filler->setupRecoHists(ctx,
-                                  dirname,
-                                  doMCsplit_,
-                                  doFakeHists,
-                                  N_JACKKNIFE_VARIATIONS,
-                                  N_PDF_VARIATIONS);
-  if (is_mc_) {
-    LHA_hist_filler->setupGenHists(ctx,
-                                   dirname,
-                                   doMCsplit_,
-                                   N_JACKKNIFE_VARIATIONS,
-                                   N_PDF_VARIATIONS);
-    LHA_hist_filler->setupResponseHists(ctx,
-                                        dirname,
-                                        doMCsplit_,
-                                        N_JACKKNIFE_VARIATIONS,
-                                        N_PDF_VARIATIONS);
-  }
-
-  // Charged LHA
-  // -------------------------------------
-  detector_tu_binning_LHA_charged = new TUnfoldBinning("detectorall");
-  detector_distribution_underflow_LHA_charged = detector_tu_binning_LHA_charged->AddBinning("detector_underflow");
-  detector_distribution_underflow_LHA_charged->AddAxis("LHA_charged", Binning::nbins_var("LHA_charged", doGroomed_, true), Binning::var_bin_edges("LHA_charged", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_underflow_LHA_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
-
-  detector_distribution_LHA_charged = detector_tu_binning_LHA_charged->AddBinning("detector");
-  detector_distribution_LHA_charged->AddAxis("LHA_charged", Binning::nbins_var("LHA_charged", doGroomed_, true), Binning::var_bin_edges("LHA_charged", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_LHA_charged->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
-
-  generator_tu_binning_LHA_charged = new TUnfoldBinning("generator");
-  generator_distribution_underflow_LHA_charged = generator_tu_binning_LHA_charged->AddBinning("signal_underflow");
-  generator_distribution_underflow_LHA_charged->AddAxis("LHA_charged", Binning::nbins_var("LHA_charged", doGroomed_, false), Binning::var_bin_edges("LHA_charged", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_underflow_LHA_charged->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
-
-  generator_distribution_LHA_charged = generator_tu_binning_LHA_charged->AddBinning("signal");
-  generator_distribution_LHA_charged->AddAxis("LHA_charged", Binning::nbins_var("LHA_charged", doGroomed_, false), Binning::var_bin_edges("LHA_charged", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_LHA_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
-
-  LHA_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::lha_args,
-                                                      detector_tu_binning_LHA_charged,
-                                                      Cuts::lha_args,
-                                                      generator_tu_binning_LHA_charged,
-                                                      "LHA_charged"));
-  LHA_charged_hist_filler->setupRecoHists(ctx,
-                                          dirname,
-                                          doMCsplit_,
-                                          doFakeHists,
-                                          N_JACKKNIFE_VARIATIONS,
-                                          N_PDF_VARIATIONS);
-  if (is_mc_) {
-    LHA_charged_hist_filler->setupGenHists(ctx,
-                                           dirname,
-                                           doMCsplit_,
-                                           N_JACKKNIFE_VARIATIONS,
-                                           N_PDF_VARIATIONS);
-    LHA_charged_hist_filler->setupResponseHists(ctx,
-                                                dirname,
-                                                doMCsplit_,
-                                                N_JACKKNIFE_VARIATIONS,
-                                                N_PDF_VARIATIONS);
-  }
-
-
-  // puppi multiplicity
-  // -------------------------------------
-  detector_tu_binning_puppiMultiplicity = new TUnfoldBinning("detectorall");
-  detector_distribution_underflow_puppiMultiplicity = detector_tu_binning_puppiMultiplicity->AddBinning("detector_underflow");
-  detector_distribution_underflow_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_var("puppiMultiplicity", doGroomed_, true), Binning::var_bin_edges("puppiMultiplicity", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_underflow_puppiMultiplicity->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
-
-  detector_distribution_puppiMultiplicity = detector_tu_binning_puppiMultiplicity->AddBinning("detector");
-  detector_distribution_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_var("puppiMultiplicity", doGroomed_, true), Binning::var_bin_edges("puppiMultiplicity", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_puppiMultiplicity->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
-
-  generator_tu_binning_puppiMultiplicity = new TUnfoldBinning("generator");
-  generator_distribution_underflow_puppiMultiplicity = generator_tu_binning_puppiMultiplicity->AddBinning("signal_underflow");
-  generator_distribution_underflow_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_var("puppiMultiplicity", doGroomed_, false), Binning::var_bin_edges("puppiMultiplicity", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_underflow_puppiMultiplicity->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
-
-  generator_distribution_puppiMultiplicity = generator_tu_binning_puppiMultiplicity->AddBinning("signal");
-  generator_distribution_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_var("puppiMultiplicity", doGroomed_, false), Binning::var_bin_edges("puppiMultiplicity", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_puppiMultiplicity->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
-
-  puppiMultiplicity_hist_filler.reset(new LambdaHistsFiller(Cuts::mult_args,
-                                                            detector_tu_binning_puppiMultiplicity,
-                                                            Cuts::mult_args,
-                                                            generator_tu_binning_puppiMultiplicity,
-                                                            "puppiMultiplicity"));
-  puppiMultiplicity_hist_filler->setupRecoHists(ctx,
-                                                dirname,
-                                                doMCsplit_,
-                                                doFakeHists,
-                                                N_JACKKNIFE_VARIATIONS,
-                                                N_PDF_VARIATIONS);
-  if (is_mc_) {
-    puppiMultiplicity_hist_filler->setupGenHists(ctx,
-                                                 dirname,
-                                                 doMCsplit_,
-                                                 N_JACKKNIFE_VARIATIONS,
-                                                 N_PDF_VARIATIONS);
-    puppiMultiplicity_hist_filler->setupResponseHists(ctx,
-                                                      dirname,
-                                                      doMCsplit_,
-                                                      N_JACKKNIFE_VARIATIONS,
-                                                      N_PDF_VARIATIONS);
-  }
-
-  // Charged PUPPI multiplicity
-  // -------------------------------------
-  detector_tu_binning_puppiMultiplicity_charged = new TUnfoldBinning("detectorall");
-  detector_distribution_underflow_puppiMultiplicity_charged = detector_tu_binning_puppiMultiplicity_charged->AddBinning("detector_underflow");
-  detector_distribution_underflow_puppiMultiplicity_charged->AddAxis("puppiMultiplicity_charged", Binning::nbins_var("puppiMultiplicity_charged", doGroomed_, true), Binning::var_bin_edges("puppiMultiplicity_charged", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_underflow_puppiMultiplicity_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
-
-  detector_distribution_puppiMultiplicity_charged = detector_tu_binning_puppiMultiplicity_charged->AddBinning("detector");
-  detector_distribution_puppiMultiplicity_charged->AddAxis("puppiMultiplicity_charged", Binning::nbins_var("puppiMultiplicity_charged", doGroomed_, true), Binning::var_bin_edges("puppiMultiplicity_charged", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_puppiMultiplicity_charged->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
-
-  generator_tu_binning_puppiMultiplicity_charged = new TUnfoldBinning("generator");
-  generator_distribution_underflow_puppiMultiplicity_charged = generator_tu_binning_puppiMultiplicity_charged->AddBinning("signal_underflow");
-  generator_distribution_underflow_puppiMultiplicity_charged->AddAxis("puppiMultiplicity_charged", Binning::nbins_var("puppiMultiplicity_charged", doGroomed_, false), Binning::var_bin_edges("puppiMultiplicity_charged", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_underflow_puppiMultiplicity_charged->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
-
-  generator_distribution_puppiMultiplicity_charged = generator_tu_binning_puppiMultiplicity_charged->AddBinning("signal");
-  generator_distribution_puppiMultiplicity_charged->AddAxis("puppiMultiplicity_charged", Binning::nbins_var("puppiMultiplicity_charged", doGroomed_, false), Binning::var_bin_edges("puppiMultiplicity_charged", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_puppiMultiplicity_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
-
-  puppiMultiplicity_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::mult_args,
-                                                                    detector_tu_binning_puppiMultiplicity_charged,
-                                                                    Cuts::mult_args,
-                                                                    generator_tu_binning_puppiMultiplicity_charged,
-                                                                    "puppiMultiplicity_charged"));
-  puppiMultiplicity_charged_hist_filler->setupRecoHists(ctx,
-                                                        dirname,
-                                                        doMCsplit_,
-                                                        doFakeHists,
-                                                        N_JACKKNIFE_VARIATIONS,
-                                                        N_PDF_VARIATIONS);
-  if (is_mc_) {
-    puppiMultiplicity_charged_hist_filler->setupGenHists(ctx,
-                                                         dirname,
-                                                         doMCsplit_,
-                                                         N_JACKKNIFE_VARIATIONS,
-                                                         N_PDF_VARIATIONS);
-    puppiMultiplicity_charged_hist_filler->setupResponseHists(ctx,
-                                                              dirname,
-                                                              doMCsplit_,
-                                                              N_JACKKNIFE_VARIATIONS,
-                                                              N_PDF_VARIATIONS);
-  }
-
-  // pTD
-  // -------------------------------------
-  detector_tu_binning_pTD = new TUnfoldBinning("detectorall");
-  detector_distribution_underflow_pTD = detector_tu_binning_pTD->AddBinning("detector_underflow");
-  detector_distribution_underflow_pTD->AddAxis("pTD", Binning::nbins_var("pTD", doGroomed_, true), Binning::var_bin_edges("pTD", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_underflow_pTD->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
-
-  detector_distribution_pTD = detector_tu_binning_pTD->AddBinning("detector");
-  detector_distribution_pTD->AddAxis("pTD", Binning::nbins_var("pTD", doGroomed_, true), Binning::var_bin_edges("pTD", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_pTD->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
-
-  generator_tu_binning_pTD = new TUnfoldBinning("generator");
-  generator_distribution_underflow_pTD = generator_tu_binning_pTD->AddBinning("signal_underflow");
-  generator_distribution_underflow_pTD->AddAxis("pTD", Binning::nbins_var("pTD", doGroomed_, false), Binning::var_bin_edges("pTD", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_underflow_pTD->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
-
-  generator_distribution_pTD = generator_tu_binning_pTD->AddBinning("signal");
-  generator_distribution_pTD->AddAxis("pTD", Binning::nbins_var("pTD", doGroomed_, false), Binning::var_bin_edges("pTD", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_pTD->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
-
-  pTD_hist_filler.reset(new LambdaHistsFiller(Cuts::pTD_args,
-                                              detector_tu_binning_pTD,
-                                              Cuts::pTD_args,
-                                              generator_tu_binning_pTD,
-                                              "pTD"));
-  pTD_hist_filler->setupRecoHists(ctx,
-                                  dirname,
-                                  doMCsplit_,
-                                  doFakeHists,
-                                  N_JACKKNIFE_VARIATIONS,
-                                  N_PDF_VARIATIONS);
-  if (is_mc_) {
-    pTD_hist_filler->setupGenHists(ctx,
-                                   dirname,
-                                   doMCsplit_,
-                                   N_JACKKNIFE_VARIATIONS,
-                                   N_PDF_VARIATIONS);
-    pTD_hist_filler->setupResponseHists(ctx,
-                                        dirname,
-                                        doMCsplit_,
-                                        N_JACKKNIFE_VARIATIONS,
-                                        N_PDF_VARIATIONS);
-  }
-
-  // Charged pTD
-  // -------------------------------------
-  detector_tu_binning_pTD_charged = new TUnfoldBinning("detectorall");
-  detector_distribution_underflow_pTD_charged = detector_tu_binning_pTD_charged->AddBinning("detector_underflow");
-  detector_distribution_underflow_pTD_charged->AddAxis("pTD_charged", Binning::nbins_var("pTD_charged", doGroomed_, true), Binning::var_bin_edges("pTD_charged", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_underflow_pTD_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
-
-  detector_distribution_pTD_charged = detector_tu_binning_pTD_charged->AddBinning("detector");
-  detector_distribution_pTD_charged->AddAxis("pTD_charged", Binning::nbins_var("pTD_charged", doGroomed_, true), Binning::var_bin_edges("pTD_charged", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_pTD_charged->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
-
-  generator_tu_binning_pTD_charged = new TUnfoldBinning("generator");
-  generator_distribution_underflow_pTD_charged = generator_tu_binning_pTD_charged->AddBinning("signal_underflow");
-  generator_distribution_underflow_pTD_charged->AddAxis("pTD_charged", Binning::nbins_var("pTD_charged", doGroomed_, false), Binning::var_bin_edges("pTD_charged", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_underflow_pTD_charged->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
-
-  generator_distribution_pTD_charged = generator_tu_binning_pTD_charged->AddBinning("signal");
-  generator_distribution_pTD_charged->AddAxis("pTD_charged", Binning::nbins_var("pTD_charged", doGroomed_, false), Binning::var_bin_edges("pTD_charged", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_pTD_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
-
-  pTD_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::pTD_args,
-                                                      detector_tu_binning_pTD_charged,
-                                                      Cuts::pTD_args,
-                                                      generator_tu_binning_pTD_charged,
-                                                      "pTD_charged"));
-  pTD_charged_hist_filler->setupRecoHists(ctx,
-                                          dirname,
-                                          doMCsplit_,
-                                          doFakeHists,
-                                          N_JACKKNIFE_VARIATIONS,
-                                          N_PDF_VARIATIONS);
-  if (is_mc_) {
-    pTD_charged_hist_filler->setupGenHists(ctx,
-                                           dirname,
-                                           doMCsplit_,
-                                           N_JACKKNIFE_VARIATIONS,
-                                           N_PDF_VARIATIONS);
-    pTD_charged_hist_filler->setupResponseHists(ctx,
-                                                dirname,
-                                                doMCsplit_,
-                                                N_JACKKNIFE_VARIATIONS,
-                                                N_PDF_VARIATIONS);
-  }
-
-  // thrust
-  // -------------------------------------
-  detector_tu_binning_thrust = new TUnfoldBinning("detectorall");
-  detector_distribution_underflow_thrust = detector_tu_binning_thrust->AddBinning("detector_underflow");
-  detector_distribution_underflow_thrust->AddAxis("thrust", Binning::nbins_var("thrust", doGroomed_, true), Binning::var_bin_edges("thrust", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_underflow_thrust->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
-
-  detector_distribution_thrust = detector_tu_binning_thrust->AddBinning("detector");
-  detector_distribution_thrust->AddAxis("thrust", Binning::nbins_var("thrust", doGroomed_, true), Binning::var_bin_edges("thrust", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_thrust->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
-
-  generator_tu_binning_thrust = new TUnfoldBinning("generator");
-  generator_distribution_underflow_thrust = generator_tu_binning_thrust->AddBinning("signal_underflow");
-  generator_distribution_underflow_thrust->AddAxis("thrust", Binning::nbins_var("thrust", doGroomed_, false), Binning::var_bin_edges("thrust", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_underflow_thrust->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
-
-  generator_distribution_thrust = generator_tu_binning_thrust->AddBinning("signal");
-  generator_distribution_thrust->AddAxis("thrust", Binning::nbins_var("thrust", doGroomed_, false), Binning::var_bin_edges("thrust", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_thrust->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
-
-  thrust_hist_filler.reset(new LambdaHistsFiller(Cuts::thrust_args,
-                                                 detector_tu_binning_thrust,
-                                                 Cuts::thrust_args,
-                                                 generator_tu_binning_thrust,
-                                                 "thrust"));
-  thrust_hist_filler->setupRecoHists(ctx,
-                                     dirname,
-                                     doMCsplit_,
-                                     doFakeHists,
-                                     N_JACKKNIFE_VARIATIONS,
-                                     N_PDF_VARIATIONS);
-  if (is_mc_) {
-    thrust_hist_filler->setupGenHists(ctx,
-                                      dirname,
-                                      doMCsplit_,
-                                      N_JACKKNIFE_VARIATIONS,
-                                      N_PDF_VARIATIONS);
-    thrust_hist_filler->setupResponseHists(ctx,
-                                           dirname,
-                                           doMCsplit_,
-                                           N_JACKKNIFE_VARIATIONS,
-                                           N_PDF_VARIATIONS);
-  }
-
-  // Charged thrust
-  // -------------------------------------
-  detector_tu_binning_thrust_charged = new TUnfoldBinning("detectorall");
-  detector_distribution_underflow_thrust_charged = detector_tu_binning_thrust_charged->AddBinning("detector_underflow");
-  detector_distribution_underflow_thrust_charged->AddAxis("thrust_charged", Binning::nbins_var("thrust_charged", doGroomed_, true), Binning::var_bin_edges("thrust_charged", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_underflow_thrust_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
-
-  detector_distribution_thrust_charged = detector_tu_binning_thrust_charged->AddBinning("detector");
-  detector_distribution_thrust_charged->AddAxis("thrust_charged", Binning::nbins_var("thrust_charged", doGroomed_, true), Binning::var_bin_edges("thrust_charged", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_thrust_charged->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
-
-  generator_tu_binning_thrust_charged = new TUnfoldBinning("generator");
-  generator_distribution_underflow_thrust_charged = generator_tu_binning_thrust_charged->AddBinning("signal_underflow");
-  generator_distribution_underflow_thrust_charged->AddAxis("thrust_charged", Binning::nbins_var("thrust_charged", doGroomed_, false), Binning::var_bin_edges("thrust_charged", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_underflow_thrust_charged->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
-
-  generator_distribution_thrust_charged = generator_tu_binning_thrust_charged->AddBinning("signal");
-  generator_distribution_thrust_charged->AddAxis("thrust_charged", Binning::nbins_var("thrust_charged", doGroomed_, false), Binning::var_bin_edges("thrust_charged", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_thrust_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
-
-  thrust_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::thrust_args,
-                                                         detector_tu_binning_thrust_charged,
-                                                         Cuts::thrust_args,
-                                                         generator_tu_binning_thrust_charged,
-                                                         "thrust_charged"));
-  thrust_charged_hist_filler->setupRecoHists(ctx,
-                                             dirname,
-                                             doMCsplit_,
-                                             doFakeHists,
-                                             N_JACKKNIFE_VARIATIONS,
-                                             N_PDF_VARIATIONS);
-  if (is_mc_) {
-    thrust_charged_hist_filler->setupGenHists(ctx,
-                                              dirname,
-                                              doMCsplit_,
-                                              N_JACKKNIFE_VARIATIONS,
-                                              N_PDF_VARIATIONS);
-    thrust_charged_hist_filler->setupResponseHists(ctx,
-                                                   dirname,
-                                                   doMCsplit_,
-                                                   N_JACKKNIFE_VARIATIONS,
-                                                   N_PDF_VARIATIONS);
-  }
-
-  // width
-  // -------------------------------------
-  detector_tu_binning_width = new TUnfoldBinning("detectorall");
-  detector_distribution_underflow_width = detector_tu_binning_width->AddBinning("detector_underflow");
-  detector_distribution_underflow_width->AddAxis("width", Binning::nbins_var("width", doGroomed_, true), Binning::var_bin_edges("width", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_underflow_width->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
-
-  detector_distribution_width = detector_tu_binning_width->AddBinning("detector");
-  detector_distribution_width->AddAxis("width", Binning::nbins_var("width", doGroomed_, true), Binning::var_bin_edges("width", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_width->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
-
-  generator_tu_binning_width = new TUnfoldBinning("generator");
-  generator_distribution_underflow_width = generator_tu_binning_width->AddBinning("signal_underflow");
-  generator_distribution_underflow_width->AddAxis("width", Binning::nbins_var("width", doGroomed_, false), Binning::var_bin_edges("width", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_underflow_width->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
-
-  generator_distribution_width = generator_tu_binning_width->AddBinning("signal");
-  generator_distribution_width->AddAxis("width", Binning::nbins_var("width", doGroomed_, false), Binning::var_bin_edges("width", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_width->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
-
-  width_hist_filler.reset(new LambdaHistsFiller(Cuts::width_args,
-                                                detector_tu_binning_width,
-                                                Cuts::width_args,
-                                                generator_tu_binning_width,
-                                                "width"));
-  width_hist_filler->setupRecoHists(ctx,
+    LHA_hist_filler.reset(new LambdaHistsFiller(Cuts::lha_args,
+                                                detector_tu_binning_LHA,
+                                                Cuts::lha_args,
+                                                generator_tu_binning_LHA,
+                                                "LHA"));
+    LHA_hist_filler->setupRecoHists(ctx,
                                     dirname,
                                     doMCsplit_,
                                     doFakeHists,
                                     N_JACKKNIFE_VARIATIONS,
                                     N_PDF_VARIATIONS);
-  if (is_mc_) {
-    width_hist_filler->setupGenHists(ctx,
+    if (is_mc_) {
+      LHA_hist_filler->setupGenHists(ctx,
                                      dirname,
                                      doMCsplit_,
                                      N_JACKKNIFE_VARIATIONS,
                                      N_PDF_VARIATIONS);
-    width_hist_filler->setupResponseHists(ctx,
+      LHA_hist_filler->setupResponseHists(ctx,
                                           dirname,
                                           doMCsplit_,
                                           N_JACKKNIFE_VARIATIONS,
                                           N_PDF_VARIATIONS);
-  }
+    }
 
-  // Charged width
-  // -------------------------------------
-  detector_tu_binning_width_charged = new TUnfoldBinning("detectorall");
-  detector_distribution_underflow_width_charged = detector_tu_binning_width_charged->AddBinning("detector_underflow");
-  detector_distribution_underflow_width_charged->AddAxis("width_charged", Binning::nbins_var("width_charged", doGroomed_, true), Binning::var_bin_edges("width_charged", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_underflow_width_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
+    chargedPlusNeutralHistFillers.push_back(LHA_hist_filler.get()); // use .get() to get raw ptr, since we don't want to own the object
 
-  detector_distribution_width_charged = detector_tu_binning_width_charged->AddBinning("detector");
-  detector_distribution_width_charged->AddAxis("width_charged", Binning::nbins_var("width_charged", doGroomed_, true), Binning::var_bin_edges("width_charged", doGroomed_, true).data(), var_uf, var_of);
-  detector_distribution_width_charged->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
+    // Charged LHA
+    // -------------------------------------
+    detector_tu_binning_LHA_charged = new TUnfoldBinning("detectorall");
+    detector_distribution_underflow_LHA_charged = detector_tu_binning_LHA_charged->AddBinning("detector_underflow");
+    detector_distribution_underflow_LHA_charged->AddAxis("LHA_charged", Binning::nbins_var("LHA_charged", doGroomed_, true), Binning::var_bin_edges("LHA_charged", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_underflow_LHA_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
 
-  generator_tu_binning_width_charged = new TUnfoldBinning("generator");
-  generator_distribution_underflow_width_charged = generator_tu_binning_width_charged->AddBinning("signal_underflow");
-  generator_distribution_underflow_width_charged->AddAxis("width_charged", Binning::nbins_var("width_charged", doGroomed_, false), Binning::var_bin_edges("width_charged", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_underflow_width_charged->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
+    detector_distribution_LHA_charged = detector_tu_binning_LHA_charged->AddBinning("detector");
+    detector_distribution_LHA_charged->AddAxis("LHA_charged", Binning::nbins_var("LHA_charged", doGroomed_, true), Binning::var_bin_edges("LHA_charged", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_LHA_charged->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
 
-  generator_distribution_width_charged = generator_tu_binning_width_charged->AddBinning("signal");
-  generator_distribution_width_charged->AddAxis("width_charged", Binning::nbins_var("width_charged", doGroomed_, false), Binning::var_bin_edges("width_charged", doGroomed_, false).data(), var_uf, var_of);
-  generator_distribution_width_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
+    generator_tu_binning_LHA_charged = new TUnfoldBinning("generator");
+    generator_distribution_underflow_LHA_charged = generator_tu_binning_LHA_charged->AddBinning("signal_underflow");
+    generator_distribution_underflow_LHA_charged->AddAxis("LHA_charged", Binning::nbins_var("LHA_charged", doGroomed_, false), Binning::var_bin_edges("LHA_charged", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_underflow_LHA_charged->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
 
-  width_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::width_args,
-                                                        detector_tu_binning_width_charged,
-                                                        Cuts::width_args,
-                                                        generator_tu_binning_width_charged,
-                                                        "width_charged"));
-  width_charged_hist_filler->setupRecoHists(ctx,
+    generator_distribution_LHA_charged = generator_tu_binning_LHA_charged->AddBinning("signal");
+    generator_distribution_LHA_charged->AddAxis("LHA_charged", Binning::nbins_var("LHA_charged", doGroomed_, false), Binning::var_bin_edges("LHA_charged", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_LHA_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
+
+    LHA_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::lha_args,
+                                                        detector_tu_binning_LHA_charged,
+                                                        Cuts::lha_args,
+                                                        generator_tu_binning_LHA_charged,
+                                                        "LHA_charged"));
+    LHA_charged_hist_filler->setupRecoHists(ctx,
                                             dirname,
                                             doMCsplit_,
                                             doFakeHists,
                                             N_JACKKNIFE_VARIATIONS,
                                             N_PDF_VARIATIONS);
-  if (is_mc_) {
-    width_charged_hist_filler->setupGenHists(ctx,
+    if (is_mc_) {
+      LHA_charged_hist_filler->setupGenHists(ctx,
                                              dirname,
                                              doMCsplit_,
                                              N_JACKKNIFE_VARIATIONS,
                                              N_PDF_VARIATIONS);
-    width_charged_hist_filler->setupResponseHists(ctx,
+      LHA_charged_hist_filler->setupResponseHists(ctx,
                                                   dirname,
                                                   doMCsplit_,
                                                   N_JACKKNIFE_VARIATIONS,
                                                   N_PDF_VARIATIONS);
+    }
+
+    chargedOnlyHistFillers.push_back(LHA_charged_hist_filler.get());
   }
 
+
+  // puppi multiplicity
+  // -------------------------------------
+  bool do_multiplicity = string2bool(ctx.get("DO_MULTIPLICITY", "true"));
+  if (do_multiplicity) {
+    detector_tu_binning_puppiMultiplicity = new TUnfoldBinning("detectorall");
+    detector_distribution_underflow_puppiMultiplicity = detector_tu_binning_puppiMultiplicity->AddBinning("detector_underflow");
+    detector_distribution_underflow_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_var("puppiMultiplicity", doGroomed_, true), Binning::var_bin_edges("puppiMultiplicity", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_underflow_puppiMultiplicity->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
+
+    detector_distribution_puppiMultiplicity = detector_tu_binning_puppiMultiplicity->AddBinning("detector");
+    detector_distribution_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_var("puppiMultiplicity", doGroomed_, true), Binning::var_bin_edges("puppiMultiplicity", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_puppiMultiplicity->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
+
+    generator_tu_binning_puppiMultiplicity = new TUnfoldBinning("generator");
+    generator_distribution_underflow_puppiMultiplicity = generator_tu_binning_puppiMultiplicity->AddBinning("signal_underflow");
+    generator_distribution_underflow_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_var("puppiMultiplicity", doGroomed_, false), Binning::var_bin_edges("puppiMultiplicity", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_underflow_puppiMultiplicity->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
+
+    generator_distribution_puppiMultiplicity = generator_tu_binning_puppiMultiplicity->AddBinning("signal");
+    generator_distribution_puppiMultiplicity->AddAxis("puppiMultiplicity", Binning::nbins_var("puppiMultiplicity", doGroomed_, false), Binning::var_bin_edges("puppiMultiplicity", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_puppiMultiplicity->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
+
+    puppiMultiplicity_hist_filler.reset(new LambdaHistsFiller(Cuts::mult_args,
+                                                              detector_tu_binning_puppiMultiplicity,
+                                                              Cuts::mult_args,
+                                                              generator_tu_binning_puppiMultiplicity,
+                                                              "puppiMultiplicity"));
+    puppiMultiplicity_hist_filler->setupRecoHists(ctx,
+                                                  dirname,
+                                                  doMCsplit_,
+                                                  doFakeHists,
+                                                  N_JACKKNIFE_VARIATIONS,
+                                                  N_PDF_VARIATIONS);
+    if (is_mc_) {
+      puppiMultiplicity_hist_filler->setupGenHists(ctx,
+                                                   dirname,
+                                                   doMCsplit_,
+                                                   N_JACKKNIFE_VARIATIONS,
+                                                   N_PDF_VARIATIONS);
+      puppiMultiplicity_hist_filler->setupResponseHists(ctx,
+                                                        dirname,
+                                                        doMCsplit_,
+                                                        N_JACKKNIFE_VARIATIONS,
+                                                        N_PDF_VARIATIONS);
+    }
+
+    chargedPlusNeutralHistFillers.push_back(puppiMultiplicity_hist_filler.get());
+
+    // Charged PUPPI multiplicity
+    // -------------------------------------
+    detector_tu_binning_puppiMultiplicity_charged = new TUnfoldBinning("detectorall");
+    detector_distribution_underflow_puppiMultiplicity_charged = detector_tu_binning_puppiMultiplicity_charged->AddBinning("detector_underflow");
+    detector_distribution_underflow_puppiMultiplicity_charged->AddAxis("puppiMultiplicity_charged", Binning::nbins_var("puppiMultiplicity_charged", doGroomed_, true), Binning::var_bin_edges("puppiMultiplicity_charged", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_underflow_puppiMultiplicity_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
+
+    detector_distribution_puppiMultiplicity_charged = detector_tu_binning_puppiMultiplicity_charged->AddBinning("detector");
+    detector_distribution_puppiMultiplicity_charged->AddAxis("puppiMultiplicity_charged", Binning::nbins_var("puppiMultiplicity_charged", doGroomed_, true), Binning::var_bin_edges("puppiMultiplicity_charged", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_puppiMultiplicity_charged->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
+
+    generator_tu_binning_puppiMultiplicity_charged = new TUnfoldBinning("generator");
+    generator_distribution_underflow_puppiMultiplicity_charged = generator_tu_binning_puppiMultiplicity_charged->AddBinning("signal_underflow");
+    generator_distribution_underflow_puppiMultiplicity_charged->AddAxis("puppiMultiplicity_charged", Binning::nbins_var("puppiMultiplicity_charged", doGroomed_, false), Binning::var_bin_edges("puppiMultiplicity_charged", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_underflow_puppiMultiplicity_charged->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
+
+    generator_distribution_puppiMultiplicity_charged = generator_tu_binning_puppiMultiplicity_charged->AddBinning("signal");
+    generator_distribution_puppiMultiplicity_charged->AddAxis("puppiMultiplicity_charged", Binning::nbins_var("puppiMultiplicity_charged", doGroomed_, false), Binning::var_bin_edges("puppiMultiplicity_charged", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_puppiMultiplicity_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
+
+    puppiMultiplicity_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::mult_args,
+                                                                      detector_tu_binning_puppiMultiplicity_charged,
+                                                                      Cuts::mult_args,
+                                                                      generator_tu_binning_puppiMultiplicity_charged,
+                                                                      "puppiMultiplicity_charged"));
+    puppiMultiplicity_charged_hist_filler->setupRecoHists(ctx,
+                                                          dirname,
+                                                          doMCsplit_,
+                                                          doFakeHists,
+                                                          N_JACKKNIFE_VARIATIONS,
+                                                          N_PDF_VARIATIONS);
+    if (is_mc_) {
+      puppiMultiplicity_charged_hist_filler->setupGenHists(ctx,
+                                                           dirname,
+                                                           doMCsplit_,
+                                                           N_JACKKNIFE_VARIATIONS,
+                                                           N_PDF_VARIATIONS);
+      puppiMultiplicity_charged_hist_filler->setupResponseHists(ctx,
+                                                                dirname,
+                                                                doMCsplit_,
+                                                                N_JACKKNIFE_VARIATIONS,
+                                                                N_PDF_VARIATIONS);
+    }
+
+    chargedOnlyHistFillers.push_back(puppiMultiplicity_charged_hist_filler.get());
+  }
+
+
+  // pTD
+  // -------------------------------------
+  bool do_pTD = string2bool(ctx.get("DO_PTD", "true"));
+  if (do_pTD) {
+    detector_tu_binning_pTD = new TUnfoldBinning("detectorall");
+    detector_distribution_underflow_pTD = detector_tu_binning_pTD->AddBinning("detector_underflow");
+    detector_distribution_underflow_pTD->AddAxis("pTD", Binning::nbins_var("pTD", doGroomed_, true), Binning::var_bin_edges("pTD", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_underflow_pTD->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
+
+    detector_distribution_pTD = detector_tu_binning_pTD->AddBinning("detector");
+    detector_distribution_pTD->AddAxis("pTD", Binning::nbins_var("pTD", doGroomed_, true), Binning::var_bin_edges("pTD", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_pTD->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
+
+    generator_tu_binning_pTD = new TUnfoldBinning("generator");
+    generator_distribution_underflow_pTD = generator_tu_binning_pTD->AddBinning("signal_underflow");
+    generator_distribution_underflow_pTD->AddAxis("pTD", Binning::nbins_var("pTD", doGroomed_, false), Binning::var_bin_edges("pTD", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_underflow_pTD->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
+
+    generator_distribution_pTD = generator_tu_binning_pTD->AddBinning("signal");
+    generator_distribution_pTD->AddAxis("pTD", Binning::nbins_var("pTD", doGroomed_, false), Binning::var_bin_edges("pTD", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_pTD->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
+
+    pTD_hist_filler.reset(new LambdaHistsFiller(Cuts::pTD_args,
+                                                detector_tu_binning_pTD,
+                                                Cuts::pTD_args,
+                                                generator_tu_binning_pTD,
+                                                "pTD"));
+    pTD_hist_filler->setupRecoHists(ctx,
+                                    dirname,
+                                    doMCsplit_,
+                                    doFakeHists,
+                                    N_JACKKNIFE_VARIATIONS,
+                                    N_PDF_VARIATIONS);
+    if (is_mc_) {
+      pTD_hist_filler->setupGenHists(ctx,
+                                     dirname,
+                                     doMCsplit_,
+                                     N_JACKKNIFE_VARIATIONS,
+                                     N_PDF_VARIATIONS);
+      pTD_hist_filler->setupResponseHists(ctx,
+                                          dirname,
+                                          doMCsplit_,
+                                          N_JACKKNIFE_VARIATIONS,
+                                          N_PDF_VARIATIONS);
+    }
+    chargedPlusNeutralHistFillers.push_back(pTD_hist_filler.get());
+
+    // Charged pTD
+    // -------------------------------------
+    detector_tu_binning_pTD_charged = new TUnfoldBinning("detectorall");
+    detector_distribution_underflow_pTD_charged = detector_tu_binning_pTD_charged->AddBinning("detector_underflow");
+    detector_distribution_underflow_pTD_charged->AddAxis("pTD_charged", Binning::nbins_var("pTD_charged", doGroomed_, true), Binning::var_bin_edges("pTD_charged", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_underflow_pTD_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
+
+    detector_distribution_pTD_charged = detector_tu_binning_pTD_charged->AddBinning("detector");
+    detector_distribution_pTD_charged->AddAxis("pTD_charged", Binning::nbins_var("pTD_charged", doGroomed_, true), Binning::var_bin_edges("pTD_charged", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_pTD_charged->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
+
+    generator_tu_binning_pTD_charged = new TUnfoldBinning("generator");
+    generator_distribution_underflow_pTD_charged = generator_tu_binning_pTD_charged->AddBinning("signal_underflow");
+    generator_distribution_underflow_pTD_charged->AddAxis("pTD_charged", Binning::nbins_var("pTD_charged", doGroomed_, false), Binning::var_bin_edges("pTD_charged", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_underflow_pTD_charged->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
+
+    generator_distribution_pTD_charged = generator_tu_binning_pTD_charged->AddBinning("signal");
+    generator_distribution_pTD_charged->AddAxis("pTD_charged", Binning::nbins_var("pTD_charged", doGroomed_, false), Binning::var_bin_edges("pTD_charged", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_pTD_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
+
+    pTD_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::pTD_args,
+                                                        detector_tu_binning_pTD_charged,
+                                                        Cuts::pTD_args,
+                                                        generator_tu_binning_pTD_charged,
+                                                        "pTD_charged"));
+    pTD_charged_hist_filler->setupRecoHists(ctx,
+                                            dirname,
+                                            doMCsplit_,
+                                            doFakeHists,
+                                            N_JACKKNIFE_VARIATIONS,
+                                            N_PDF_VARIATIONS);
+    if (is_mc_) {
+      pTD_charged_hist_filler->setupGenHists(ctx,
+                                             dirname,
+                                             doMCsplit_,
+                                             N_JACKKNIFE_VARIATIONS,
+                                             N_PDF_VARIATIONS);
+      pTD_charged_hist_filler->setupResponseHists(ctx,
+                                                  dirname,
+                                                  doMCsplit_,
+                                                  N_JACKKNIFE_VARIATIONS,
+                                                  N_PDF_VARIATIONS);
+    }
+
+    chargedOnlyHistFillers.push_back(pTD_charged_hist_filler.get());
+  }
+
+
+  // thrust
+  // -------------------------------------
+  bool do_thrust = string2bool(ctx.get("DO_THRUST", "true"));
+  if (do_thrust) {
+    detector_tu_binning_thrust = new TUnfoldBinning("detectorall");
+    detector_distribution_underflow_thrust = detector_tu_binning_thrust->AddBinning("detector_underflow");
+    detector_distribution_underflow_thrust->AddAxis("thrust", Binning::nbins_var("thrust", doGroomed_, true), Binning::var_bin_edges("thrust", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_underflow_thrust->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
+
+    detector_distribution_thrust = detector_tu_binning_thrust->AddBinning("detector");
+    detector_distribution_thrust->AddAxis("thrust", Binning::nbins_var("thrust", doGroomed_, true), Binning::var_bin_edges("thrust", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_thrust->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
+
+    generator_tu_binning_thrust = new TUnfoldBinning("generator");
+    generator_distribution_underflow_thrust = generator_tu_binning_thrust->AddBinning("signal_underflow");
+    generator_distribution_underflow_thrust->AddAxis("thrust", Binning::nbins_var("thrust", doGroomed_, false), Binning::var_bin_edges("thrust", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_underflow_thrust->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
+
+    generator_distribution_thrust = generator_tu_binning_thrust->AddBinning("signal");
+    generator_distribution_thrust->AddAxis("thrust", Binning::nbins_var("thrust", doGroomed_, false), Binning::var_bin_edges("thrust", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_thrust->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
+
+    thrust_hist_filler.reset(new LambdaHistsFiller(Cuts::thrust_args,
+                                                   detector_tu_binning_thrust,
+                                                   Cuts::thrust_args,
+                                                   generator_tu_binning_thrust,
+                                                   "thrust"));
+    thrust_hist_filler->setupRecoHists(ctx,
+                                       dirname,
+                                       doMCsplit_,
+                                       doFakeHists,
+                                       N_JACKKNIFE_VARIATIONS,
+                                       N_PDF_VARIATIONS);
+    if (is_mc_) {
+      thrust_hist_filler->setupGenHists(ctx,
+                                        dirname,
+                                        doMCsplit_,
+                                        N_JACKKNIFE_VARIATIONS,
+                                        N_PDF_VARIATIONS);
+      thrust_hist_filler->setupResponseHists(ctx,
+                                             dirname,
+                                             doMCsplit_,
+                                             N_JACKKNIFE_VARIATIONS,
+                                             N_PDF_VARIATIONS);
+    }
+    chargedPlusNeutralHistFillers.push_back(thrust_hist_filler.get());
+
+    // Charged thrust
+    // -------------------------------------
+    detector_tu_binning_thrust_charged = new TUnfoldBinning("detectorall");
+    detector_distribution_underflow_thrust_charged = detector_tu_binning_thrust_charged->AddBinning("detector_underflow");
+    detector_distribution_underflow_thrust_charged->AddAxis("thrust_charged", Binning::nbins_var("thrust_charged", doGroomed_, true), Binning::var_bin_edges("thrust_charged", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_underflow_thrust_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
+
+    detector_distribution_thrust_charged = detector_tu_binning_thrust_charged->AddBinning("detector");
+    detector_distribution_thrust_charged->AddAxis("thrust_charged", Binning::nbins_var("thrust_charged", doGroomed_, true), Binning::var_bin_edges("thrust_charged", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_thrust_charged->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
+
+    generator_tu_binning_thrust_charged = new TUnfoldBinning("generator");
+    generator_distribution_underflow_thrust_charged = generator_tu_binning_thrust_charged->AddBinning("signal_underflow");
+    generator_distribution_underflow_thrust_charged->AddAxis("thrust_charged", Binning::nbins_var("thrust_charged", doGroomed_, false), Binning::var_bin_edges("thrust_charged", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_underflow_thrust_charged->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
+
+    generator_distribution_thrust_charged = generator_tu_binning_thrust_charged->AddBinning("signal");
+    generator_distribution_thrust_charged->AddAxis("thrust_charged", Binning::nbins_var("thrust_charged", doGroomed_, false), Binning::var_bin_edges("thrust_charged", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_thrust_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
+
+    thrust_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::thrust_args,
+                                                           detector_tu_binning_thrust_charged,
+                                                           Cuts::thrust_args,
+                                                           generator_tu_binning_thrust_charged,
+                                                           "thrust_charged"));
+    thrust_charged_hist_filler->setupRecoHists(ctx,
+                                               dirname,
+                                               doMCsplit_,
+                                               doFakeHists,
+                                               N_JACKKNIFE_VARIATIONS,
+                                               N_PDF_VARIATIONS);
+    if (is_mc_) {
+      thrust_charged_hist_filler->setupGenHists(ctx,
+                                                dirname,
+                                                doMCsplit_,
+                                                N_JACKKNIFE_VARIATIONS,
+                                                N_PDF_VARIATIONS);
+      thrust_charged_hist_filler->setupResponseHists(ctx,
+                                                     dirname,
+                                                     doMCsplit_,
+                                                     N_JACKKNIFE_VARIATIONS,
+                                                     N_PDF_VARIATIONS);
+    }
+
+    chargedOnlyHistFillers.push_back(thrust_charged_hist_filler.get());
+  }
+
+
+  // width
+  // -------------------------------------
+  bool do_width = string2bool(ctx.get("DO_WIDTH", "true"));
+  if (do_width) {
+    detector_tu_binning_width = new TUnfoldBinning("detectorall");
+    detector_distribution_underflow_width = detector_tu_binning_width->AddBinning("detector_underflow");
+    detector_distribution_underflow_width->AddAxis("width", Binning::nbins_var("width", doGroomed_, true), Binning::var_bin_edges("width", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_underflow_width->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
+
+    detector_distribution_width = detector_tu_binning_width->AddBinning("detector");
+    detector_distribution_width->AddAxis("width", Binning::nbins_var("width", doGroomed_, true), Binning::var_bin_edges("width", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_width->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
+
+    generator_tu_binning_width = new TUnfoldBinning("generator");
+    generator_distribution_underflow_width = generator_tu_binning_width->AddBinning("signal_underflow");
+    generator_distribution_underflow_width->AddAxis("width", Binning::nbins_var("width", doGroomed_, false), Binning::var_bin_edges("width", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_underflow_width->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
+
+    generator_distribution_width = generator_tu_binning_width->AddBinning("signal");
+    generator_distribution_width->AddAxis("width", Binning::nbins_var("width", doGroomed_, false), Binning::var_bin_edges("width", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_width->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
+
+    width_hist_filler.reset(new LambdaHistsFiller(Cuts::width_args,
+                                                  detector_tu_binning_width,
+                                                  Cuts::width_args,
+                                                  generator_tu_binning_width,
+                                                  "width"));
+    width_hist_filler->setupRecoHists(ctx,
+                                      dirname,
+                                      doMCsplit_,
+                                      doFakeHists,
+                                      N_JACKKNIFE_VARIATIONS,
+                                      N_PDF_VARIATIONS);
+    if (is_mc_) {
+      width_hist_filler->setupGenHists(ctx,
+                                       dirname,
+                                       doMCsplit_,
+                                       N_JACKKNIFE_VARIATIONS,
+                                       N_PDF_VARIATIONS);
+      width_hist_filler->setupResponseHists(ctx,
+                                            dirname,
+                                            doMCsplit_,
+                                            N_JACKKNIFE_VARIATIONS,
+                                            N_PDF_VARIATIONS);
+    }
+
+    chargedPlusNeutralHistFillers.push_back(width_hist_filler.get());
+
+    // Charged width
+    // -------------------------------------
+    detector_tu_binning_width_charged = new TUnfoldBinning("detectorall");
+    detector_distribution_underflow_width_charged = detector_tu_binning_width_charged->AddBinning("detector_underflow");
+    detector_distribution_underflow_width_charged->AddAxis("width_charged", Binning::nbins_var("width_charged", doGroomed_, true), Binning::var_bin_edges("width_charged", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_underflow_width_charged->AddAxis("pt", nbins_pt_reco_underflow, pt_bin_edges_reco_underflow_unfold.data(), false, false);
+
+    detector_distribution_width_charged = detector_tu_binning_width_charged->AddBinning("detector");
+    detector_distribution_width_charged->AddAxis("width_charged", Binning::nbins_var("width_charged", doGroomed_, true), Binning::var_bin_edges("width_charged", doGroomed_, true).data(), var_uf, var_of);
+    detector_distribution_width_charged->AddAxis("pt", nbins_pt_reco, pt_bin_edges_reco.data(), false, pt_of);
+
+    generator_tu_binning_width_charged = new TUnfoldBinning("generator");
+    generator_distribution_underflow_width_charged = generator_tu_binning_width_charged->AddBinning("signal_underflow");
+    generator_distribution_underflow_width_charged->AddAxis("width_charged", Binning::nbins_var("width_charged", doGroomed_, false), Binning::var_bin_edges("width_charged", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_underflow_width_charged->AddAxis("pt", nbins_pt_gen_underflow, pt_bin_edges_gen_underflow.data(), pt_uf, false);
+
+    generator_distribution_width_charged = generator_tu_binning_width_charged->AddBinning("signal");
+    generator_distribution_width_charged->AddAxis("width_charged", Binning::nbins_var("width_charged", doGroomed_, false), Binning::var_bin_edges("width_charged", doGroomed_, false).data(), var_uf, var_of);
+    generator_distribution_width_charged->AddAxis("pt", nbins_pt_gen, pt_bin_edges_gen.data(), false, pt_of);
+
+    width_charged_hist_filler.reset(new LambdaHistsFiller(Cuts::width_args,
+                                                          detector_tu_binning_width_charged,
+                                                          Cuts::width_args,
+                                                          generator_tu_binning_width_charged,
+                                                          "width_charged"));
+    width_charged_hist_filler->setupRecoHists(ctx,
+                                              dirname,
+                                              doMCsplit_,
+                                              doFakeHists,
+                                              N_JACKKNIFE_VARIATIONS,
+                                              N_PDF_VARIATIONS);
+    if (is_mc_) {
+      width_charged_hist_filler->setupGenHists(ctx,
+                                               dirname,
+                                               doMCsplit_,
+                                               N_JACKKNIFE_VARIATIONS,
+                                               N_PDF_VARIATIONS);
+      width_charged_hist_filler->setupResponseHists(ctx,
+                                                    dirname,
+                                                    doMCsplit_,
+                                                    N_JACKKNIFE_VARIATIONS,
+                                                    N_PDF_VARIATIONS);
+    }
+
+    chargedOnlyHistFillers.push_back(width_charged_hist_filler.get());
+  }
 
   // Setup other things
   // ---------------------------------------------------------------------------
@@ -628,24 +664,8 @@ QGAnalysisUnfoldHists::QGAnalysisUnfoldHists(Context & ctx, const string & dirna
 
   // TODO: automate setting up of hists - let the LambdaHistsFiller own them?
 
-  chargedPlusNeutralHistFillers = {
-    LHA_hist_filler.get(), // use .get() to get raw ptr, since we don't want to own the object
-    puppiMultiplicity_hist_filler.get(),
-    pTD_hist_filler.get(),
-    thrust_hist_filler.get(),
-    width_hist_filler.get(),
-  };
-
-  chargedOnlyHistFillers = {
-    LHA_charged_hist_filler.get(),
-    puppiMultiplicity_charged_hist_filler.get(),
-    pTD_charged_hist_filler.get(),
-    thrust_charged_hist_filler.get(),
-    width_charged_hist_filler.get(),
-  };
-
   // combine into one vector of HistFillers
-  allHistFillers = chargedPlusNeutralHistFillers;
+  allHistFillers = chargedPlusNeutralHistFillers; // makes copy?
   allHistFillers.insert(allHistFillers.end(), chargedOnlyHistFillers.begin(), chargedOnlyHistFillers.end());
 }
 
