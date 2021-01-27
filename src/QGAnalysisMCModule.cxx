@@ -204,7 +204,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     // FIXME: get everything from ctx not extra args
     common_setup.reset(new GeneralEventSetup(ctx));
     bool update4vec = false;
-    tracking_eff.reset(new TrackingEfficiency(ctx, update4vec));
+    // tracking_eff.reset(new TrackingEfficiency(ctx, update4vec));
     bool doJetId = false; // Do it in the selection modules, after we have chosen our jet 1/2
     float largeY = 999.; // set y large here, do y selection as part of dijet selection
     recojet_setup.reset(new RecoJetSetup(ctx, pu_removal, jetCone, jetRadius, Cuts::reco_jet_pt_min, largeY, doJetId, zLeptonLabel));
