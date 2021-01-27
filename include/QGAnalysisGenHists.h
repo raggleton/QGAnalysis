@@ -62,6 +62,8 @@ protected:
     bool useStatus23Flavour_;
     uint N_PARTONS_MAX;
     MC::Name dataset_;
+
+    bool do_LHA, do_multiplicity, do_pTD, do_thrust, do_width;
 };
 
 }
