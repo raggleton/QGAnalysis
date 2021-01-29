@@ -135,6 +135,8 @@ private:
     bool DO_LAMBDA_HISTS;
     bool DO_WEIGHT_HISTS;
 
+    bool DO_LARGE_WEIGHT_CUTS;
+
     std::unique_ptr<EventNumberSelection> event_sel, event_sel_printout;
 
     int NJETS_ZPJ, NJETS_DIJET;
@@ -181,6 +183,8 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     DO_KINEMATIC_HISTS = string2bool(ctx.get("DO_KINEMATIC_HISTS", "true"));
     DO_LAMBDA_HISTS = string2bool(ctx.get("DO_LAMBDA_HISTS", "true"));
     DO_WEIGHT_HISTS = string2bool(ctx.get("DO_WEIGHT_HISTS", "true"));
+
+    DO_LARGE_WEIGHT_CUTS = string2bool(ctx.get("DO_LARGE_WEIGHT_CUTS", "true"));
 
     useStatus23Flavour = string2bool(ctx.get("useStatus23Flavour", "false"));
 
@@ -751,41 +755,42 @@ bool QGAnalysisMCModule::process(Event & event) {
     // or where leading jet actually PU jet
     // -------------------------------------------------------------------------
     // These cuts are MC-specific, after much tuning
-    float reco_jet_pt = event.jets->size() > 0 ? event.jets->at(0).pt() : 0;
-    // float gen_jet_pt = event.get(genJets_handle).size() > 0 ? event.get(genJets_handle).at(0).pt() : 0;
+    if (DO_LARGE_WEIGHT_CUTS) {
+        // float qScale = event.genInfo->qScale();
+        // float gen_jet_pt = event.get(genJets_handle).size() > 0 ? event.get(genJets_handle).at(0).pt() : 0;
+        float reco_jet_pt = event.jets->size() > 0 ? event.jets->at(0).pt() : 0;
+        float PU_pThat = event.genInfo->PU_pT_hat_max();
 
-    float PU_pThat = event.genInfo->PU_pT_hat_max();
-    // float qScale = event.genInfo->qScale();
+        if (dataset == MC::MGPYTHIA_QCD) {
+            if (genHT > 0 && (PU_pThat / genHT) > 1) return false;
+            if (genHT > 0 && (reco_jet_pt / genHT) > 1) return false;
 
-    if (dataset == MC::MGPYTHIA_QCD) {
-        if (genHT > 0 && (PU_pThat / genHT) > 1) return false;
-        if (genHT > 0 && (reco_jet_pt / genHT) > 1) return false;
+        } else if (dataset == MC::PYTHIA_QCD_BINNED) {
+            double ptHat = event.genInfo->binningValues().at(0); // yes this is correct. no idea why
+            if (ptHat > 0 && ((reco_jet_pt / ptHat) > 2)) return false;
+            if (ptHat > 0 && (PU_pThat / ptHat) > 1) return false;
 
-    } else if (dataset == MC::PYTHIA_QCD_BINNED) {
-        double ptHat = event.genInfo->binningValues().at(0); // yes this is correct. no idea why
-        if (ptHat > 0 && ((reco_jet_pt / ptHat) > 2)) return false;
-        if (ptHat > 0 && (PU_pThat / ptHat) > 1) return false;
+        } else if (dataset == MC::HERWIG_QCD) {
+            double ptHat = event.genInfo->binningValues().at(0);
+            if (ptHat > 0 && ((reco_jet_pt / ptHat) > 2)) return false;
+            if (ptHat > 0 && (PU_pThat / ptHat) > 1) return false;
 
-    } else if (dataset == MC::HERWIG_QCD) {
-        double ptHat = event.genInfo->binningValues().at(0);
-        if (ptHat > 0 && ((reco_jet_pt / ptHat) > 2)) return false;
-        if (ptHat > 0 && (PU_pThat / ptHat) > 1) return false;
+        } else if (dataset == MC::MGPYTHIA_DY) {
+            if (genHT > 0 && (PU_pThat / genHT) > 1) return false;
 
-    } else if (dataset == MC::MGPYTHIA_DY) {
-        if (genHT > 0 && (PU_pThat / genHT) > 1) return false;
+        } else if (dataset == MC::HERWIG_DY) {
+            double ptHat = event.genInfo->binningValues().at(0); // this sometimes gives weird values tho
+            if (ptHat > 0 && (PU_pThat / ptHat) > 1) return false;
+        }
 
-    } else if (dataset == MC::HERWIG_DY) {
-        double ptHat = event.genInfo->binningValues().at(0); // this sometimes gives weird values tho
-        if (ptHat > 0 && (PU_pThat / ptHat) > 1) return false;
+        // cout << "*** EVENT:" << endl;
+        // cout << "genHT: " << genHT << endl;
+        // cout << "qScale: " << qScale << endl;
+        // cout << "PU_pThat: " << PU_pThat << endl;
+        // cout << "pdf_scalePDF: " << event.genInfo->pdf_scalePDF() << endl;
+        // cout << "weight: " << event.weight << endl;
+        // if (njet_min_sel->passes(event)) cout << "jet1pt: " << event.jets->at(0).pt() << endl;
     }
-
-    // cout << "*** EVENT:" << endl;
-    // cout << "genHT: " << genHT << endl;
-    // cout << "qScale: " << qScale << endl;
-    // cout << "PU_pThat: " << PU_pThat << endl;
-    // cout << "pdf_scalePDF: " << event.genInfo->pdf_scalePDF() << endl;
-    // cout << "weight: " << event.weight << endl;
-    // if (njet_min_sel->passes(event)) cout << "jet1pt: " << event.jets->at(0).pt() << endl;
 
     if (DO_KINEMATIC_HISTS) genjet_hists->fill(event);
 
