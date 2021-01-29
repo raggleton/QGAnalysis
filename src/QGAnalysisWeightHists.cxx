@@ -61,40 +61,69 @@ QGAnalysisWeightHists::QGAnalysisWeightHists(Context & ctx, const string & dirna
   //   cout << "r: " << r << endl;
   // }
 
+  // Do lots of permutations of variables:
+  // {reco/gen pt} vs ({reco/gen pt} / X), weighted & unweighted
 
+  // pt / genHT
+  // ----------
   weight_vs_pt_vs_pt_jet_genHT_ratio = book<TH3F>("weight_vs_pt_vs_pt_jet_genHT_ratio", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];pt_jet_genHT_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
   weight_vs_pt_vs_pt_jet_genHT_ratio_unweighted = book<TH3F>("weight_vs_pt_vs_pt_jet_genHT_ratio_unweighted", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];pt_jet_genHT_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
-  
-  // plot ve pt (reco) and pt(gen), since both are of importance  
+
+  weight_vs_pt_genjet_vs_pt_jet_genHT_ratio = book<TH3F>("weight_vs_pt_genjet_vs_pt_jet_genHT_ratio", ";log_{10}(weight);p^{GenJet}_{T} [GeV];pt_jet_genHT_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
+  weight_vs_pt_genjet_vs_pt_jet_genHT_ratio_unweighted = book<TH3F>("weight_vs_pt_genjet_vs_pt_jet_genHT_ratio_unweighted", ";log_{10}(weight);p^{GenJet}_{T} [GeV];pt_jet_genHT_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
+
   weight_vs_pt_vs_pt_genjet_genHT_ratio = book<TH3F>("weight_vs_pt_vs_pt_genjet_genHT_ratio", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];pt_genjet_genHT_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
-  weight_vs_pt_genjet_vs_pt_genjet_genHT_ratio = book<TH3F>("weight_vs_pt_genjet_vs_pt_genjet_genHT_ratio", ";log_{10}(weight);p^{GenJet}_{T} [GeV];pt_genjet_genHT_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
   weight_vs_pt_vs_pt_genjet_genHT_ratio_unweighted = book<TH3F>("weight_vs_pt_vs_pt_genjet_genHT_ratio_unweighted", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];pt_genjet_genHT_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
+
+  weight_vs_pt_genjet_vs_pt_genjet_genHT_ratio = book<TH3F>("weight_vs_pt_genjet_vs_pt_genjet_genHT_ratio", ";log_{10}(weight);p^{GenJet}_{T} [GeV];pt_genjet_genHT_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
   weight_vs_pt_genjet_vs_pt_genjet_genHT_ratio_unweighted = book<TH3F>("weight_vs_pt_genjet_vs_pt_genjet_genHT_ratio_unweighted", ";log_{10}(weight);p^{GenJet}_{T} [GeV];pt_genjet_genHT_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
-  
+
+  // pt / qScale
+  // ----------
   weight_vs_pt_vs_pt_jet_qScale_ratio = book<TH3F>("weight_vs_pt_vs_pt_jet_qScale_ratio", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];pt_jet_qScale_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
   weight_vs_pt_vs_pt_jet_qScale_ratio_unweighted = book<TH3F>("weight_vs_pt_vs_pt_jet_qScale_ratio_unweighted", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];pt_jet_qScale_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
 
-  // plot ve pt (reco) and pt(gen), since both are of importance  
+  weight_vs_pt_genjet_vs_pt_jet_qScale_ratio = book<TH3F>("weight_vs_pt_genjet_vs_pt_jet_qScale_ratio", ";log_{10}(weight);p^{GenJet}_{T} [GeV];pt_jet_qScale_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
+  weight_vs_pt_genjet_vs_pt_jet_qScale_ratio_unweighted = book<TH3F>("weight_vs_pt_genjet_vs_pt_jet_qScale_ratio_unweighted", ";log_{10}(weight);p^{GenJet}_{T} [GeV];pt_jet_qScale_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
+
   weight_vs_pt_vs_pt_genjet_qScale_ratio = book<TH3F>("weight_vs_pt_vs_pt_genjet_qScale_ratio", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];pt_genjet_qScale_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
-  weight_vs_pt_genjet_vs_pt_genjet_qScale_ratio = book<TH3F>("weight_vs_pt_genjet_vs_pt_genjet_qScale_ratio", ";log_{10}(weight);p^{GenJet}_{T} [GeV];pt_genjet_qScale_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
   weight_vs_pt_vs_pt_genjet_qScale_ratio_unweighted = book<TH3F>("weight_vs_pt_vs_pt_genjet_qScale_ratio_unweighted", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];pt_genjet_qScale_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
+
+  weight_vs_pt_genjet_vs_pt_genjet_qScale_ratio = book<TH3F>("weight_vs_pt_genjet_vs_pt_genjet_qScale_ratio", ";log_{10}(weight);p^{GenJet}_{T} [GeV];pt_genjet_qScale_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
   weight_vs_pt_genjet_vs_pt_genjet_qScale_ratio_unweighted = book<TH3F>("weight_vs_pt_genjet_vs_pt_genjet_qScale_ratio_unweighted", ";log_{10}(weight);p^{GenJet}_{T} [GeV];pt_genjet_qScale_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
-  
+
+  // pt / ptHat
+  // ----------
   weight_vs_pt_vs_pt_jet_ptHat_ratio = book<TH3F>("weight_vs_pt_vs_pt_jet_ptHat_ratio", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];pt_jet_ptHat_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
   weight_vs_pt_vs_pt_jet_ptHat_ratio_unweighted = book<TH3F>("weight_vs_pt_vs_pt_jet_ptHat_ratio_unweighted", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];pt_jet_ptHat_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
 
-  // plot ve pt (reco) and pt(gen), since both are of importance  
+  weight_vs_pt_genjet_vs_pt_jet_ptHat_ratio = book<TH3F>("weight_vs_pt_genjet_vs_pt_jet_ptHat_ratio", ";log_{10}(weight);p^{GenJet}_{T} [GeV];pt_jet_ptHat_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
+  weight_vs_pt_genjet_vs_pt_jet_ptHat_ratio_unweighted = book<TH3F>("weight_vs_pt_genjet_vs_pt_jet_ptHat_ratio_unweighted", ";log_{10}(weight);p^{GenJet}_{T} [GeV];pt_jet_ptHat_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
+
   weight_vs_pt_vs_pt_genjet_ptHat_ratio = book<TH3F>("weight_vs_pt_vs_pt_genjet_ptHat_ratio", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];pt_genjet_ptHat_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
-  weight_vs_pt_genjet_vs_pt_genjet_ptHat_ratio = book<TH3F>("weight_vs_pt_genjet_vs_pt_genjet_ptHat_ratio", ";log_{10}(weight);p^{GenJet}_{T} [GeV];pt_genjet_ptHat_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
   weight_vs_pt_vs_pt_genjet_ptHat_ratio_unweighted = book<TH3F>("weight_vs_pt_vs_pt_genjet_ptHat_ratio_unweighted", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];pt_genjet_ptHat_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
+
+  weight_vs_pt_genjet_vs_pt_genjet_ptHat_ratio = book<TH3F>("weight_vs_pt_genjet_vs_pt_genjet_ptHat_ratio", ";log_{10}(weight);p^{GenJet}_{T} [GeV];pt_genjet_ptHat_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
   weight_vs_pt_genjet_vs_pt_genjet_ptHat_ratio_unweighted = book<TH3F>("weight_vs_pt_genjet_vs_pt_genjet_ptHat_ratio_unweighted", ";log_{10}(weight);p^{GenJet}_{T} [GeV];pt_genjet_ptHat_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
-  
+
+  // PU / genHT
+  // ----------
   weight_vs_pt_vs_PU_ptHat_genHT_ratio = book<TH3F>("weight_vs_pt_vs_PU_ptHat_genHT_ratio", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];PU_ptHat_genHT_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
   weight_vs_pt_vs_PU_ptHat_genHT_ratio_unweighted = book<TH3F>("weight_vs_pt_vs_PU_ptHat_genHT_ratio_unweighted", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];PU_ptHat_genHT_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
 
+  weight_vs_pt_genjet_vs_PU_ptHat_genHT_ratio = book<TH3F>("weight_vs_pt_genjet_vs_PU_ptHat_genHT_ratio", ";log_{10}(weight);p^{GenJet}_{T} [GeV];PU_ptHat_genHT_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
+  weight_vs_pt_genjet_vs_PU_ptHat_genHT_ratio_unweighted = book<TH3F>("weight_vs_pt_genjet_vs_PU_ptHat_genHT_ratio_unweighted", ";log_{10}(weight);p^{GenJet}_{T} [GeV];PU_ptHat_genHT_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
+
+  // PU / ptHat
+  // ----------
   weight_vs_pt_vs_PU_ptHat_ptHat_ratio = book<TH3F>("weight_vs_pt_vs_PU_ptHat_ptHat_ratio", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];PU_ptHat_ptHat_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
   weight_vs_pt_vs_PU_ptHat_ptHat_ratio_unweighted = book<TH3F>("weight_vs_pt_vs_PU_ptHat_ptHat_ratio_unweighted", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];PU_ptHat_ptHat_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
 
+  weight_vs_pt_genjet_vs_PU_ptHat_ptHat_ratio = book<TH3F>("weight_vs_pt_genjet_vs_PU_ptHat_ptHat_ratio", ";log_{10}(weight);p^{GenJet}_{T} [GeV];PU_ptHat_ptHat_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
+  weight_vs_pt_genjet_vs_PU_ptHat_ptHat_ratio_unweighted = book<TH3F>("weight_vs_pt_genjet_vs_PU_ptHat_ptHat_ratio_unweighted", ";log_{10}(weight);p^{GenJet}_{T} [GeV];PU_ptHat_ptHat_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
+
+  // pt / jetKT
+  // ----------
   weight_vs_pt_vs_pt_jet_jetkT_ratio = book<TH3F>("weight_vs_pt_vs_pt_jet_jetkT_ratio", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];pt_jet_jetkT_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
   weight_vs_pt_vs_pt_jet_jetkT_ratio_unweighted = book<TH3F>("weight_vs_pt_vs_pt_jet_jetkT_ratio_unweighted", ";log_{10}(weight);p^{RecoJet}_{T} [GeV];pt_jet_jetkT_ratio", nbins_weight, &weight_bin_edges[0], nbins_pt, &pt_bin_edges[0], nbins_ratio, &ratio_bin_edges[0]);
 
@@ -132,13 +161,20 @@ void QGAnalysisWeightHists::fill(const Event & event){
     if (hasGenJets) {
       weight_vs_pt_genjet_vs_pt_genjet_genHT_ratio->Fill(log_weight, genjet_pt, genjet_pt / genHT, weight);
       weight_vs_pt_genjet_vs_pt_genjet_genHT_ratio_unweighted->Fill(log_weight, genjet_pt, genjet_pt / genHT);
+
+      weight_vs_pt_genjet_vs_PU_ptHat_genHT_ratio->Fill(log_weight, genjet_pt, PU_pThat / genHT, weight);
+      weight_vs_pt_genjet_vs_PU_ptHat_genHT_ratio_unweighted->Fill(log_weight, genjet_pt, PU_pThat / genHT);
     }
     if (hasGenJets && hasRecoJets) {
+      weight_vs_pt_genjet_vs_pt_jet_genHT_ratio->Fill(log_weight, genjet_pt, jet_pt / genHT, weight);
+      weight_vs_pt_genjet_vs_pt_jet_genHT_ratio_unweighted->Fill(log_weight, genjet_pt, jet_pt / genHT);
+
       weight_vs_pt_vs_pt_genjet_genHT_ratio->Fill(log_weight, jet_pt, genjet_pt / genHT, weight);
       weight_vs_pt_vs_pt_genjet_genHT_ratio_unweighted->Fill(log_weight, jet_pt, genjet_pt / genHT);
     }
-  }
+  } // end genHT > 0
 
+  // qscale plots
   if (hasRecoJets) {
     weight_vs_pt_vs_pt_jet_qScale_ratio->Fill(log_weight, jet_pt, jet_pt / qScale, weight);
     weight_vs_pt_vs_pt_jet_qScale_ratio_unweighted->Fill(log_weight, jet_pt, jet_pt / qScale);
@@ -150,8 +186,12 @@ void QGAnalysisWeightHists::fill(const Event & event){
   if (hasGenJets && hasRecoJets) {
     weight_vs_pt_vs_pt_genjet_qScale_ratio->Fill(log_weight, jet_pt, genjet_pt / qScale, weight);
     weight_vs_pt_vs_pt_genjet_qScale_ratio_unweighted->Fill(log_weight, jet_pt, genjet_pt / qScale);
+
+    weight_vs_pt_genjet_vs_pt_jet_qScale_ratio->Fill(log_weight, genjet_pt, jet_pt / qScale, weight);
+    weight_vs_pt_genjet_vs_pt_jet_qScale_ratio_unweighted->Fill(log_weight, genjet_pt, jet_pt / qScale);
   }
 
+  // ptHat plots
   if (event.genInfo->binningValues().size() > 0) {
     double ptHat = event.genInfo->binningValues().at(0); // yes this is correct. no idea why
     if (hasRecoJets) {
@@ -164,13 +204,20 @@ void QGAnalysisWeightHists::fill(const Event & event){
     if (hasGenJets) {
       weight_vs_pt_genjet_vs_pt_genjet_ptHat_ratio->Fill(log_weight, genjet_pt, genjet_pt / ptHat, weight);
       weight_vs_pt_genjet_vs_pt_genjet_ptHat_ratio_unweighted->Fill(log_weight, genjet_pt, genjet_pt / ptHat);
+
+      weight_vs_pt_genjet_vs_PU_ptHat_ptHat_ratio->Fill(log_weight, genjet_pt, PU_pThat / ptHat, weight);
+      weight_vs_pt_genjet_vs_PU_ptHat_ptHat_ratio_unweighted->Fill(log_weight, genjet_pt, PU_pThat / ptHat);
     }
     if (hasGenJets && hasRecoJets) {
+      weight_vs_pt_genjet_vs_pt_jet_ptHat_ratio->Fill(log_weight, genjet_pt, jet_pt / ptHat, weight);
+      weight_vs_pt_genjet_vs_pt_jet_ptHat_ratio_unweighted->Fill(log_weight, genjet_pt, jet_pt / ptHat);
+
       weight_vs_pt_vs_pt_genjet_ptHat_ratio->Fill(log_weight, jet_pt, genjet_pt / ptHat, weight);
       weight_vs_pt_vs_pt_genjet_ptHat_ratio_unweighted->Fill(log_weight, jet_pt, genjet_pt / ptHat);
     }
   }
 
+  // jet kt plots
   float jetkT = calcJetKt(*event.genparticles);
   if (jetkT > 0) {
     weight_vs_pt_vs_pt_jet_jetkT_ratio->Fill(log_weight, jet_pt, jet_pt / jetkT, weight);
