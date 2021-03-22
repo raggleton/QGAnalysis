@@ -67,15 +67,16 @@ def write_updated_file(contents, new_xml_filename, radius, systematic_names=None
                 # Turn off the standard hists, we only care about lambda & unfolding ones (currently)
                 new_line = ""
                 if systematic_names:
-                    for key in ["DO_PU_BINNED_HISTS", "DO_FLAVOUR_HISTS", "DO_KINEMATIC_HISTS", "DO_LAMBDA_HISTS"]:
+                    for key in ["DO_PU_BINNED_HISTS", "DO_FLAVOUR_HISTS", "DO_KINEMATIC_HISTS", "DO_LAMBDA_HISTS"][:-1]:
                         new_line = '            <Item Name="%s" Value="False"/>\n' % (key)
                         f.write(new_line)
-
-                # new_line = '            <Item Name="DO_KINEMATIC_HISTS" Value="False"/>\n'
-                # new_line = '            <Item Name="DO_LAMBDA_HISTS" Value="False"/>\n'
-                # new_line += '            <Item Name="DO_UNFOLD_HISTS" Value="False"/>\n'
-                new_line += '            <Item Name="DO_WEIGHT_HISTS" Value="False"/>\n'
-                f.write(new_line)
+                else:
+                    pass
+                    # new_line = '            <Item Name="DO_KINEMATIC_HISTS" Value="False"/>\n'
+                    # new_line = '            <Item Name="DO_LAMBDA_HISTS" Value="False"/>\n'
+                    # new_line += '            <Item Name="DO_UNFOLD_HISTS" Value="False"/>\n'
+                    # new_line += '            <Item Name="DO_WEIGHT_HISTS" Value="False"/>\n'
+                    # f.write(new_line)
 
                 # Write out systematics
                 if systematic_values:
@@ -93,12 +94,13 @@ def write_updated_file(contents, new_xml_filename, radius, systematic_names=None
                         f.write('            <Item Name="JackknifeVariations" Value="False"/>\n')
                     else:
                         f.write(line)
-
-                if "JackknifeVariations" in line:
-                    # turn off Jackknife for all
-                    f.write('            <Item Name="JackknifeVariations" Value="False"/>\n')
                 else:
-                    f.write(line)
+                    if "JackknifeVariations" in line:
+                        # turn off Jackknife for all
+                        f.write('            <Item Name="JackknifeVariations" Value="False"/>\n')
+                    else:
+                        f.write(line)
+
             # elif "OutputDirectory=" in line:
             #     match = re.search(r'OutputDirectory ?= ?"(.*?)"', line)
             #     if not match:
