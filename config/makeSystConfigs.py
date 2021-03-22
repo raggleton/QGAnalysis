@@ -111,10 +111,10 @@ def write_updated_file(contents, new_xml_filename, radius, systematic_names=None
     return new_workdir
 
 
-def submit_xml(xml_filename, local=False, el7_worker=False):
+def submit_xml(xml_filename, local=False, grid_control=False):
     local_opt = "--local" if local else ""
-    worker_opt = "--el7worker" if el7_worker else ""
-    cmd = 'sframe_batch.py -s %s %s %s' % (local_opt, worker_opt, xml_filename)
+    gc_opt = "--gc" if grid_control else ""
+    cmd = 'sframe_batch.py -s %s %s %s' % (local_opt, gc_opt, xml_filename)
     try:
         result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
         print(result)
@@ -124,10 +124,10 @@ def submit_xml(xml_filename, local=False, el7_worker=False):
     sleep(5)
 
 
-def resubmit_xml(xml_filename, local=False, el7_worker=False):
+def resubmit_xml(xml_filename, local=False, grid_control=False):
     local_opt = "--local" if local else ""
-    worker_opt = "--el7worker" if el7_worker else ""
-    cmd = 'sframe_batch.py -r %s %s %s' % (local_opt, worker_opt, xml_filename)
+    gc_opt = "--gc" if grid_control else ""
+    cmd = 'sframe_batch.py -r %s %s %s' % (local_opt, gc_opt, xml_filename)
     try:
         if not local:
             result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
@@ -209,13 +209,13 @@ def hadd_job_gc(workdir, sample, xml_name, cmd, local=False, dry_run=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group()
-    group.add_argument( "-s", "--submit", action='store_true', help='submit on sframe_batch')
+    group.add_argument("-s", "--submit", action='store_true', help='submit on sframe_batch')
     group.add_argument("-r", "--resubmit", action='store_true', help='resubmit on sframe_batch')
     group.add_argument("-c", "--check", action='store_true', help='check with sframe_batch')
     group.add_argument("--hadd", action='store_true', help='hadd output with grid-control jobs')
     parser.add_argument("--onlySubmitSystematics", action='store_true', help='Only submit systematic variation jobs, not nominal')
     parser.add_argument("--local", action='store_true', help='Run locally')
-    parser.add_argument("--el7worker", action='store_true', help='Run on EL7 worker nodes')
+    parser.add_argument("--gc", action='store_true', help='Use grid-control')
     args = parser.parse_args()
 
     base_files = [
@@ -397,10 +397,10 @@ if __name__ == "__main__":
                 new_workdir = write_updated_file(contents, new_xml_filename, radius)
                 if args.submit:
                     print("Submitting", new_xml_filename)
-                    submit_xml(new_xml_filename, local=args.local, el7_worker=args.el7worker)
+                    submit_xml(new_xml_filename, local=args.local, grid_control=args.gc)
                 elif args.resubmit:
                     print("Re-Submitting", new_xml_filename)
-                    resubmit_xml(new_xml_filename, local=args.local, el7_worker=args.el7worker)
+                    resubmit_xml(new_xml_filename, local=args.local, grid_control=args.gc)
                 elif args.check:
                     print("Checking", new_xml_filename)
                     check_xml(new_xml_filename)
@@ -409,7 +409,7 @@ if __name__ == "__main__":
                         sample_dir = hadd_cmds[xml_filename]['sample_dir']
                         if cmd is None:
                             continue
-                        workdir = os.path.abspath("../Selection/%s/%s" % (sample_dir, new_workdir))
+                        workdir = os.path.abspath("/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/%s/%s" % (sample_dir, new_workdir))
                         conf_filename = hadd_job_gc(workdir=workdir, sample=sample_dir, xml_name=new_xml_filename, cmd=cmd)
                         hadd_filenames.append(conf_filename)
 
@@ -432,10 +432,10 @@ if __name__ == "__main__":
                     new_workdir = write_updated_file(contents, new_xml_filename, radius, systematic_names=syst.names, systematic_values=syst_values, workdir_append=append)
                     if args.submit:
                         print("Submitting", new_xml_filename)
-                        submit_xml(new_xml_filename, local=args.local, el7_worker=args.el7worker)
+                        submit_xml(new_xml_filename, local=args.local, grid_control=args.gc)
                     elif args.resubmit:
                         print("Re-Submitting", new_xml_filename)
-                        resubmit_xml(new_xml_filename, local=args.local, el7_worker=args.el7worker)
+                        resubmit_xml(new_xml_filename, local=args.local, grid_control=args.gc)
                     elif args.check:
                         print("Checking", new_xml_filename)
                         check_xml(new_xml_filename)
