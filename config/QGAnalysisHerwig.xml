@@ -7,18 +7,18 @@
     <!ENTITY ODIR-HERWIG "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/Herwig">
 
     <!-- Full datasets -->
-    <!ENTITY HERWIG-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/QCD_Pt-15to7000_HS1_Flat_Summer16v2_v1_5Nov20_NoTopJetAllGPParton_genjetGhostNoBC.xml">
+<!ENTITY HERWIG-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/QCD_Pt-15to7000_HS1_Flat_Summer16v2_v1_5Nov20_NoTopJetAllGPParton_genjetGhostNoBC.xml">
     <!ENTITY HERWIG-QCD-EXT SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/QCD_Pt-15to7000_HS1_Flat_Summer16v2_ext1_v2_5Nov20_NoTopJetAllGPParton_genjetGhostNoBC.xml">
     <!-- <!ENTITY HERWIG-QCD SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp_Summer16v2_v1_NoTopJet_AllGP.xml"> -->
     <!-- <!ENTITY HERWIG-QCD-EXT SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/Herwig/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp_Summer16v2_ext1_v2_NoTopJet_AllGP.xml"> -->
 
-    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/commonMC.xml">
+    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X_EL7/CMSSW_10_2_17/src/UHH2/QGAnalysis/config/commonMC_QCD.xml">
 
     <!-- Jet config snippets -->
-    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
-    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
-    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
-    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
+    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X_EL7/CMSSW_10_2_17/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
+    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X_EL7/CMSSW_10_2_17/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
+    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X_EL7/CMSSW_10_2_17/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
+    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X_EL7/CMSSW_10_2_17/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
 ]>
 
 

@@ -1,0 +1,23 @@
+<Item Name="PrimaryVertexCollection" Value="offlineSlimmedPrimaryVertices" />
+<Item Name="ElectronCollection" Value="slimmedElectronsUSER" />
+<!-- <Item Name="ElectronCollection" Value="slimmedElectrons" /> -->
+<Item Name="MuonCollection" Value="slimmedMuonsUSER" />
+
+<Item Name="GenInfoName" Value="genInfo" />
+<Item Name="GenParticleCollection" Value="GenParticles" />
+<Item Name="PFParticleCollection" Value="PFParticles" />
+
+<!-- the class name of the AnalysisModule subclasses to run: -->
+<Item Name="AnalysisModule" Value="QGAnalysisMCModule" />
+
+<!-- tell AnalysisModuleRunner NOT to use the MC event weight from SFrame; rather let
+ MCLumiWeight (called via CommonModules) calculate the MC event weight. The MC
+ event weight assigned by MCLumiWeight is InputData.Lumi / Cycle.TargetLumi. -->
+<Item Name="use_sframe_weight" Value="false" />
+<Item Name="pileup_directory" Value="/nfs/dust/cms/user/aggleton/QG/102X_EL7/CMSSW_10_2_17/src/UHH2/common/data/2016/MyMCPileupHistogram.root" />
+<Item Name="pileup_directory_data" Value="/nfs/dust/cms/user/aggleton/QG/102X_EL7/CMSSW_10_2_17/src/UHH2/common/data/2016/MyDataPileupHistogram.root" />
+<!-- pileup is nominal 69.2mb with an uncert of 4.6%, so down = 66.017, up = 72.383 -->
+<Item Name="pileup_directory_data_up" Value="/nfs/dust/cms/user/aggleton/QG/102X_EL7/CMSSW_10_2_17/src/UHH2/common/data/2016/MyDataPileupHistogram_72383.root" />
+<Item Name="pileup_directory_data_down" Value="/nfs/dust/cms/user/aggleton/QG/102X_EL7/CMSSW_10_2_17/src/UHH2/common/data/2016/MyDataPileupHistogram_66017.root" />
+<!-- Here we try a 3* nominal downwards variation, to cope with the range of PU distributions per trigger -->
+<!-- <Item Name="pileup_directory_data_down" Value="/nfs/dust/cms/user/aggleton/QG/102X_EL7/CMSSW_10_2_17/src/UHH2/common/data/2016/MyDataPileupHistogram_59650.root" /> -->
