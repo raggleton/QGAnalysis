@@ -444,20 +444,21 @@ if __name__ == "__main__":
                         sample_dir = hadd_cmds[xml_filename]['sample_dir']
                         if cmd is None:
                             continue
-                        workdir = os.path.abspath("../Selection/%s/%s" % (sample_dir, new_workdir))
+                        workdir = os.path.abspath("/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/%s/%s" % (sample_dir, new_workdir))
                         conf_filename = hadd_job_gc(workdir=workdir, sample=sample_dir, xml_name=new_xml_filename, cmd=cmd)
                         hadd_filenames.append(conf_filename)
 
-    # file to easily check all hadd jobs
-    hadd_script = "hadd-check-%s.sh" % strftime("%Y%m%d-%H%M%S")
-    with open(hadd_script, "w") as f:
-        for conf_name in hadd_filenames:
-            f.write("grid-control -c %s\n" % conf_name)
-    os.chmod(hadd_script, 
-        stat.S_IRUSR |
-        stat.S_IWUSR |
-        stat.S_IXUSR |
-        stat.S_IRGRP |
-        stat.S_IROTH )
-    print("Check all hadd jobs:")
-    print("./%s" % hadd_script)
+    if args.hadd:
+        # file to easily check all hadd jobs
+        hadd_script = "hadd-check-%s.sh" % strftime("%Y%m%d-%H%M%S")
+        with open(hadd_script, "w") as f:
+            for conf_name in hadd_filenames:
+                f.write("grid-control -c %s\n" % conf_name)
+        os.chmod(hadd_script,
+            stat.S_IRUSR |
+            stat.S_IWUSR |
+            stat.S_IXUSR |
+            stat.S_IRGRP |
+            stat.S_IROTH )
+        print("Check all hadd jobs:")
+        print("./%s" % hadd_script)
