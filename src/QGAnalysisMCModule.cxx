@@ -178,11 +178,11 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
     dataset = matchDatasetName(datasetVersion);
 
     DO_PU_BINNED_HISTS = string2bool(ctx.get("DO_PU_BINNED_HISTS", "false"));
-    DO_UNFOLD_HISTS = string2bool(ctx.get("DO_UNFOLD_HISTS", "true"));
     DO_FLAVOUR_HISTS = string2bool(ctx.get("DO_FLAVOUR_HISTS", "false"));
     DO_KINEMATIC_HISTS = string2bool(ctx.get("DO_KINEMATIC_HISTS", "true"));
     DO_LAMBDA_HISTS = string2bool(ctx.get("DO_LAMBDA_HISTS", "true"));
-    DO_WEIGHT_HISTS = string2bool(ctx.get("DO_WEIGHT_HISTS", "true"));
+    DO_UNFOLD_HISTS = string2bool(ctx.get("DO_UNFOLD_HISTS", "true"));
+    DO_WEIGHT_HISTS = string2bool(ctx.get("DO_WEIGHT_HISTS", "false"));
 
     DO_LARGE_WEIGHT_CUTS = string2bool(ctx.get("DO_LARGE_WEIGHT_CUTS", "true"));
 
@@ -207,7 +207,7 @@ QGAnalysisMCModule::QGAnalysisMCModule(Context & ctx){
 
     // FIXME: get everything from ctx not extra args
     common_setup.reset(new GeneralEventSetup(ctx));
-    bool update4vec = false;
+    // bool update4vec = false;
     // tracking_eff.reset(new TrackingEfficiency(ctx, update4vec));
     bool doJetId = false; // Do it in the selection modules, after we have chosen our jet 1/2
     float largeY = 999.; // set y large here, do y selection as part of dijet selection
@@ -916,7 +916,6 @@ bool QGAnalysisMCModule::process(Event & event) {
         // So we do eta sorting, and jet lambda, then do all the hist filling,
         // since they might use these handles.
 
-        if (DO_KINEMATIC_HISTS) dijet_gen_hists->fill(event);
 
         if (hasRecoJets) {
             // Sort by eta & assign to handles
@@ -1031,23 +1030,40 @@ bool QGAnalysisMCModule::process(Event & event) {
             }
 
             // bool standard_sel = dijet_sel->passes(event);
-            bool tight_sel = dijet_sel_tighter->passes(event); // aka passReco
+            // bool tight_sel = dijet_sel_tighter->passes(event); // aka passReco
             if (DO_KINEMATIC_HISTS) {
                 // if (standard_sel) {
                 //     dijet_hists->fill(event);
                 // }
-                if (tight_sel) {
+                if (pass_dj_reco) {
                     dijet_hists_tighter->fill(event);
                 }
             }
 
-            if (DO_WEIGHT_HISTS && tight_sel) weight_hists_reco_sel->fill(event);
+            if (DO_WEIGHT_HISTS && pass_dj_reco) weight_hists_reco_sel->fill(event);
+            if (DO_KINEMATIC_HISTS && pass_dj_reco)  {
+                // float PU_pThat = event.genInfo->PU_pT_hat_max();
+                // double ptHat = event.genInfo->binningValues().at(0); // yes this is correct. no idea why
+                // const std::vector<GenJet> & genJets = event.get(genJets_handle);
+                // if (ptHat > 0 && (PU_pThat / ptHat) > 1.2 && genJets[0].pt() < 22) {
+                //     cout << "Weird low pt event: " << PU_pThat << " : " << ptHat << " : " << PU_pThat / ptHat << endl;
+                //     printGenJets(genJets);
+                //     printJets(*event.jets);
+                // }
+                // if (ptHat > 0 && (PU_pThat / ptHat) < 0.5 && genJets[0].pt() > 28 && genJets[0].pt() < 40) {
+                //     cout << "Weird high pt event: " << PU_pThat << " : " << ptHat << " : " << PU_pThat / ptHat << endl;
+                //     printGenJets(genJets, "", Color::FG_CYAN);
+                //     printJets(*event.jets, "", Color::FG_MAGENTA);
+                // }
+
+                dijet_gen_hists->fill(event);
+            }
 
             if (DO_LAMBDA_HISTS) {
                 // if (standard_sel) {
                 //     dijet_qg_hists->fill(event);
                 // }
-                if (tight_sel) {
+                if (pass_dj_reco) {
                     dijet_qg_hists_tighter->fill(event);
                     dijet_qg_hists_central_tighter->fill(event);
                     dijet_qg_hists_forward_tighter->fill(event);
@@ -1058,7 +1074,7 @@ bool QGAnalysisMCModule::process(Event & event) {
 
             // do eta-sorted dijet hists (where we need both jets)
 
-            if (DO_KINEMATIC_HISTS && tight_sel) {
+            if (DO_KINEMATIC_HISTS && pass_dj_reco) {
                 // do dijet hists but sorted by eta (only one that matters about eta-ordering)
                 // get them from event.jets and not the central/forward handles,
                 // since event.jets has correct genjet_index
