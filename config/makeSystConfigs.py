@@ -219,15 +219,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     base_files = [
-        'QGAnalysisHerwig.xml',
-        'QGAnalysisHerwigDYIncl.xml',
-        'QGAnalysisHerwigDYJetKt170.xml',
+        # 'QGAnalysisHerwig.xml',
+        # 'QGAnalysisHerwigDYIncl.xml',
+        # 'QGAnalysisHerwigDYJetKt170.xml',
 
         # 'QGAnalysisPythia.xml',
 
-        # 'QGAnalysisMGPythiaQCD.xml',
-        # 'QGAnalysisMGPythiaDY.xml',
-        # 'QGAnalysisMGPythiaDYInclHTMax70.xml',
+        'QGAnalysisMGPythiaQCD.xml',
+        'QGAnalysisMGPythiaDY.xml',
+        'QGAnalysisMGPythiaDYInclHTMax70.xml',
 
         # 'QGAnalysisMGPythiaDYIncl.xml',
 
@@ -311,8 +311,9 @@ if __name__ == "__main__":
         #            values=[('up'), ('down')]),
         # Systematic(names=['track_direction'], onMC=True, onData=False,
         #           # values=[('up'), ('down')]),
-        # Systematic(names=['pileup_direction'], onMC=True, onData=False,
-        #            values=[('up'), ('down')]),
+        Systematic(names=['pileup_direction'], onMC=True, onData=False,
+                   # values=[('up'), ('down')]),
+                   values=[('down')]),
         # Systematic(names=['PDFvariations'], onMC=True, onData=False,
         #            values=[ ('true') ]),
         # Systematic(names=['ScaleVariationMuR', 'ScaleVariationMuF'], onMC=True, onData=False,

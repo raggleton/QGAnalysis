@@ -19,20 +19,20 @@
     <!ENTITY MG-PYTHIA-DYJetsToLL_HT1200to2500 SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_HT-1200to2500_P8M1_Summer16v2_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
     <!ENTITY MG-PYTHIA-DYJetsToLL_HT2500toInf SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/datasets/102X/MGPythia/GenjetGhostFlavour_noBCpref/DYJetsToLL_HT-2500toInf_P8M1_Summer16v2_v1_5Nov20_NoTopJetAllGPParton_noLHE_genjetGhostNoBC.xml">
 
-    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/commonMC.xml">
+    <!ENTITY COMMON SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X_EL7/CMSSW_10_2_17/src/UHH2/QGAnalysis/config/commonMC_DY.xml">
 
     <!-- Jet config snippets -->
-    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
-    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
-    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
-    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
+    <!ENTITY AK4CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X_EL7/CMSSW_10_2_17/src/UHH2/QGAnalysis/config/ak4chsMC.xml">
+    <!ENTITY AK4PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X_EL7/CMSSW_10_2_17/src/UHH2/QGAnalysis/config/ak4puppiMC.xml">
+    <!ENTITY AK8CHS SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X_EL7/CMSSW_10_2_17/src/UHH2/QGAnalysis/config/ak8chsMC.xml">
+    <!ENTITY AK8PUPPI SYSTEM "/nfs/dust/cms/user/aggleton/QG/102X_EL7/CMSSW_10_2_17/src/UHH2/QGAnalysis/config/ak8puppiMC.xml">
 ]>
 
 
 <!-- MUST run SFrameBatch inside QGAnalyis/config! -->
 <!--
    <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="60" />
-   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning5_mergeZpJPt"/>
+   <ConfigSGE RAM ="2" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning6_PUDownX3"/>
 -->
 
 
@@ -120,7 +120,7 @@
             <!-- <Item Name="orignal_pdf" Value="NNPDF30_lo_as_0130"/> -->
             <!-- <Item Name="pdf_reweight" Value="cteq6l1"/> -->
 
-            <Item Name="JackknifeVariations" Value="True"/>
+            <Item Name="JackknifeVariations" Value="False"/>
 
             
 

@@ -37,7 +37,7 @@
 <!-- MUST run SFrameBatch inside QGAnalyis/config! -->
 <!--
    <ConfigParse NEventsBreak="0" LastBreak="0" FileSplit="40" />
-   <ConfigSGE RAM ="6" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning5"/>
+   <ConfigSGE RAM ="6" DISK ="1" Mail="robin.aggleton@desy.de" Notification="eas" Workdir="workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning6_PUDownX3"/>
 -->
 
 
@@ -128,7 +128,7 @@
             
             <!-- <Item Name="useStatus23Flavour" Value="True"/> -->
             
-            <Item Name="JackknifeVariations" Value="True"/>
+            <Item Name="JackknifeVariations" Value="False"/>
 
             <!-- <Item Name="orignal_pdf" Value="NNPDF30_lo_as_0130"/> -->
             <!-- <Item Name="pdf_reweight" Value="cteq6l1"/> -->
@@ -137,10 +137,13 @@
             <!-- <Item Name="pdf_reweight" Value="NNPDF30_lo_as_0118"/> -->
 
             <!-- <Item Name="DO_PU_BINNED_HISTS" Value="False" /> -->
-            <!-- <Item Name="DO_UNFOLD_HISTS" Value="True" /> -->
+            <!-- <Item Name="DO_UNFOLD_HISTS" Value="False" /> -->
             <!-- <Item Name="DO_FLAVOUR_HISTS" Value="False" /> -->
-            <!-- <Item Name="DO_KINEMATIC_HISTS" Value="False" /> -->
-            <!-- <Item Name="DO_LAMBDA_HISTS" Value="False" /> -->
+            <!-- <Item Name="DO_KINEMATIC_HISTS" Value="True" /> -->
+            <!-- <Item Name="DO_LAMBDA_HISTS" Value="True" /> -->
+            <!-- <Item Name="DO_WEIGHT_HISTS" Value="False" /> -->
+            
+            <Item Name="DO_LARGE_WEIGHT_CUTS" Value="True" />
 
 
             <!--@SYST-->

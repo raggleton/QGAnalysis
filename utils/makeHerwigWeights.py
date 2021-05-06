@@ -22,8 +22,9 @@ def make_weights_file(pythia_dir, herwig_dir, output_file):
     fout = ROOT.TFile(output_file, "RECREATE")
     
     # Do QCD sample
-    f_pythia = ROOT.TFile("../Selection/"+pythia_dir+"/uhh2.AnalysisModuleRunner.MC.MC_QCD.root")
-    f_herwig = ROOT.TFile("../Selection/"+herwig_dir+"/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_QCD.root")
+    # f_pythia = ROOT.TFile("../Selection/"+pythia_dir+"/uhh2.AnalysisModuleRunner.MC.MC_QCD.root")
+    f_pythia = ROOT.TFile(pythia_dir+"/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_QCD.root")
+    f_herwig = ROOT.TFile(herwig_dir+"/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_QCD.root")
 
     if (f_pythia.IsZombie()):
         print "Cannot open Pythia QCD file"
@@ -83,10 +84,13 @@ if __name__ == "__main__":
     for algo, pu, in product(ALGOS, PUS):
         SETUP = algo + pu
         # Check your directories are in the right places
-        PYTHIA_DIR = "MGPythia/workdir_%s_mgpythia_newFlav_jetAsymCut_chargedVars_pt1RecoConstituents_V11JEC_JER_target0p5_ZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto" % SETUP
-        HERWIG_DIR = "Herwig/workdir_%s_herwig_newFlav_jetAsymCut_chargedVars_pt1RecoConstituents_V11JEC_JER_target0p5_noZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto_noPtHatCut" % SETUP
+        # PYTHIA_DIR = "MGPythia/workdir_%s_mgpythia_newFlav_jetAsymCut_chargedVars_pt1RecoConstituents_V11JEC_JER_target0p5_ZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto" % SETUP
+        # HERWIG_DIR = "Herwig/workdir_%s_herwig_newFlav_jetAsymCut_chargedVars_pt1RecoConstituents_V11JEC_JER_target0p5_noZReweight_wta_groomed_fwdcenDijet_betterLargeWeightVeto_noPtHatCut" % SETUP
         # POWHEG_DIR = "Powheg/workdir_%s_powheg_newFlav_withPtRatio_0p94_withLeptonOverlapVeto_eta2p4_ssEta_dEta1p2" % SETUP
         # PYTHIAONLY_DIR = "PythiaOnlyFlat/workdir_%s_pythiaOnlyFlat_newFlav_withPtRatio_0p94_withLeptonOverlapVeto_eta2p4_ssEta_dEta1p2" % SETUP
-        make_weights_file(PYTHIA_DIR, HERWIG_DIR, "herwig_dijet_only_weights_%s.root" % SETUP)
+        # make_weights_file(PYTHIA_DIR, HERWIG_DIR, "herwig_dijet_only_weights_%s.root" % SETUP)
         # make_weights_file(PYTHIA_DIR, PYTHIAONLY_DIR, "pythiaOnlyFlat_newflav_weights_%s.root" % SETUP)
         # make_weights_file(PYTHIA_DIR, POWHEG_DIR, "powheg_newflav_weights_%s.root" % SETUP)
+        HERWIG_NO_PU_DIR = "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/workdir_102X_v3data_v2mc_ak4puppi_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning6_noPUcuts/"
+        HERWIG_PU_DIR = "/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/workdir_102X_v3data_v2mc_ak4puppi_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning6/"
+        make_weights_file(HERWIG_NO_PU_DIR, HERWIG_PU_DIR, "herwig_pu_to_noPU_dijet_ave_%s.root" % SETUP)

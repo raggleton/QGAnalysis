@@ -5,7 +5,8 @@
 set -u
 
 VARIATIONS=("Up" "Down")
-SYSTS=("chargedHadronShift" "neutralHadronShift" "photonShift" "jecsmear_direction" "jersmear_direction" "pileup_direction" "track_direction")
+# SYSTS=("chargedHadronShift" "neutralHadronShift" "photonShift" "jecsmear_direction" "jersmear_direction" "pileup_direction" "track_direction")
+SYSTS=("chargedHadronShift" "neutralHadronShift" "photonShift" "jecsmear_direction" "jersmear_direction" "pileup_direction")
 # SYSTS=("pileup_direction")
 # SYSTS=("jecsmear_direction" "jersmear_direction")
 # SYSTS=("track_direction")
@@ -92,8 +93,22 @@ OUTPUTDIR="workdir_102X_v3data_v2mc_ak4puppi_fixSelCutOrder_puppiJER_tightJetId_
 STEMSRCDIR="MGPythia/workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning5_mergeZpJPt"
 OUTPUTDIR="workdir_102X_v3data_v2mc_ak4puppi_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning5_mergeZpJPt"
 
-STEMSRCDIR="MGPythia/workdir_102X_v2_ak8puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning5_mergeZpJPt"
-OUTPUTDIR="workdir_102X_v3data_v2mc_ak8puppi_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning5_mergeZpJPt"
+# STEMSRCDIR="MGPythia/workdir_102X_v2_ak8puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning5_mergeZpJPt"
+# OUTPUTDIR="workdir_102X_v3data_v2mc_ak8puppi_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning5_mergeZpJPt"
+
+STEMSRCDIR="MGPythia/workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning6"
+OUTPUTDIR="workdir_102X_v3data_v2mc_ak4puppi_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning6"
+
+# STEMSRCDIR="MGPythia/workdir_102X_v2_ak8puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning6"
+# OUTPUTDIR="workdir_102X_v3data_v2mc_ak8puppi_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning6"
+
+NAFSRC="/nfs/dust/cms/user/aggleton/QG/102X/CMSSW_10_2_16/src/UHH2/QGAnalysis/Selection/"
+
+STEMSRCDIR="${NAFSRC}/MGPythia/workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning6_jackknife_tagNprobeReco"
+OUTPUTDIR="${NAFSRC}/workdir_102X_v2_ak4puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning6_jackknife_tagNprobeReco"
+
+# STEMSRCDIR="${NAFSRC}/MGPythia/workdir_102X_v2_ak8puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning6_jackknife_tagNprobeReco"
+# OUTPUTDIR="${NAFSRC}/workdir_102X_v2_ak8puppi_mgpythia_fixSelCutOrder_puppiJER_tightJetId_constitPt0MultPt1_WeightCuts_zjAsym_genjetGhostFlav_noBCpref_genJetNoMu_fixCharged_jetIDSel_newBinning6_jackknife_tagNprobeReco"
 
 
 function copy {
@@ -116,10 +131,11 @@ echo "------------------------------------------------------------------"
 echo ">>> HERWIG++"
 echo "------------------------------------------------------------------"
 base=$(basename $STEMSRCDIR)
+parent=$(dirname $STEMSRCDIR)
 base=${base/mgpythia/herwig}
 echo $base
-copy "Herwig/$base/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_QCD.root" "${ODIR}/"
-copy "Herwig/$base/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_DYJetsToLL_merged_PartonKtMin300.root" "${ODIR}/"
+copy "${parent}/Herwig/${base}/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_QCD.root" "${ODIR}/"
+copy "${parent}/Herwig/${base}/uhh2.AnalysisModuleRunner.MC.MC_HERWIG_DYJetsToLL_merged_PartonKtMin300.root" "${ODIR}/"
 
 echo "------------------------------------------------------------------"
 echo ">>> PYTHIA8"
